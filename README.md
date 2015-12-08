@@ -1,5 +1,5 @@
 # spotpy
-A Statistical Parameter Estimation Framework
+A Statistical Parameter Optimization Framework for Python
 
 =================
 Purpose
@@ -98,7 +98,7 @@ Installing SPOTPY is easy. Just use:
 
 	pip install spotpy
 
-Or, after downloading the source code and making sure python is in your path:
+Or, after downloading the [source code](hhttps://pypi.python.org/pypi/spotpy "source code") and making sure python is in your OS path:
 
 	python setup.py install
 	
