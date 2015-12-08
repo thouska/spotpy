@@ -106,6 +106,8 @@ Or, after downloading the source code and making sure python is in your path:
 Support
 =================
 
+* Homepage: http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy
+
 * Feel free to contact the authors of this tool for any support questions.
 
 * Please contact the authors in case of any bug.
