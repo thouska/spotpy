@@ -106,7 +106,7 @@ Or, after downloading the [source code](https://pypi.python.org/pypi/spotpy "sou
 Support
 =================
 
-* Homepage: http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy
+* Documentation: http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy
 
 * Feel free to contact the authors of this tool for any support questions.
 
