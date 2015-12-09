@@ -6,6 +6,7 @@ python:
 # command to install dependencies
 install:
   - pip install numpy
+  - pip install matplotlib
   #- travis_wait pip install scipy
 # command to run tests
 script: nosetests -s spotpy/examples/tutorial_rosenbrock.py
