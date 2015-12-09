@@ -52,4 +52,5 @@ for algorithm in algorithms:
 
 evaluation = spot_setup.evaluation()
 
-spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
+#Example how to plot the data
+#spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
