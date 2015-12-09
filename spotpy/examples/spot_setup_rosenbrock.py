@@ -26,12 +26,8 @@ class spot_setup(object):
         
     def evaluation(self):
         observations=[0]
-        print 'type Observations'
-        print type(observations)
         return observations
     
     def objectivefunction(self,simulation,evaluation):
-        print 'type observation in objectivefunction'
-        print type(evaluation)
         objectivefunction=-spotpy.objectivefunctions.rmse(evaluation,simulation)      
         return objectivefunction

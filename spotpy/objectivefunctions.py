@@ -11,7 +11,7 @@ returns the objective function value of interest.
 
 import numpy as np
 
-def bias(evalution,simulation):
+def bias(evaluation,simulation):
     """
     Bias
     
@@ -22,16 +22,16 @@ def bias(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Bias
     :rtype: float
     """    
-    if len(evalution)==len(simulation):   
+    if len(evaluation)==len(simulation):   
         bias_values=[]       
-        for i in range(len(evalution)):
-            if evalution[i] == -99999:
+        for i in range(len(evaluation)):
+            if evaluation[i] == -99999:
                 '''
                 Cleans out No Data values
                 '''
@@ -39,16 +39,17 @@ def bias(evalution,simulation):
                 pass
              
             else:            
-                bias_values.append(float(simulation[i]) - float(evalution[i]))
+                bias_values.append(float(simulation[i]) - float(evaluation[i]))
         bias_sum = np.sum(bias_values[0:len(bias_values)])       
         bias = bias_sum/len(bias_values)       
         return float(bias)
     
     else:
-        print "Error: evalution and simulation lists does not have the same length."
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
 
         
-def nashsutcliff(evalution,simulation):   
+def nashsutcliff(evaluation,simulation):   
     """
     Nash-Sutcliff model efficinecy
     
@@ -59,30 +60,29 @@ def nashsutcliff(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Nash-Sutcliff model efficiency
     :rtype: float
     
     """   
-    if len(evalution)==len(simulation):
-        s,e=np.array(simulation),np.array(evalution)
-        #s,e=simulation,evalution       
+    if len(evaluation)==len(simulation):
+        s,e=np.array(simulation),np.array(evaluation)
+        #s,e=simulation,evaluation       
         mean_observed = np.mean(e)
         # compute numerator and denominator
         numerator = sum((e - s) ** 2)
         denominator = sum((e - mean_observed)**2)
         # compute coefficient
         return 1 - (numerator/denominator)
-         #return coefficient
-        #return float(1 - sum((s-e)**2)/sum((e-np.mean(e))**2))
         
     else:
-        print "Error: evalution and simulation lists does not have the same length."
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
 
         
-def lognashsutcliff(evalution,simulation):
+def lognashsutcliff(evaluation,simulation):
     """
     log Nash-Sutcliff model efficiency
    
@@ -93,35 +93,44 @@ def lognashsutcliff(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: log Nash-Sutcliff model efficiency
     :rtype: float
     
-    """   
-    return float(1 - sum((np.log(simulation)-np.log(evalution))**2)/sum((np.log(evalution)-np.mean(np.log(evalution)))**2))
-
+    """
+    if len(evaluation)==len(simulation):
+        return float(1 - sum((np.log(simulation)-np.log(evaluation))**2)/sum((np.log(evaluation)-np.mean(np.log(evaluation)))**2))
+    else:
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
+        
     
-def log_p(evalution,simulation):
-    from scipy import stats    
+def log_p(evaluation,simulation,scale=0.1):
     """
     Logarithmic probability distribution
     
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Logarithmic probability distribution
     :rtype: float
     """ 
-    logLik = np.mean( stats.norm.logpdf(evalution, loc=simulation, scale=.1) )
-    return logLik
-
+    #from scipy import stats    
+    #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )    
+    if len(evaluation)==len(simulation):
+        y        = (evaluation-simulation)/scale
+        normpdf = -y**2 / 2 - np.log(np.sqrt(2*np.pi))
+        return np.mean(normpdf)
+    else:
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
     
-def correlationcoefficient(evalution,simulation):
+def correlationcoefficient(evaluation,simulation):
     """
     Correlation Coefficient
     
@@ -132,20 +141,20 @@ def correlationcoefficient(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Corelation Coefficient
     :rtype: float
     """ 
-    if len(evalution)==len(simulation):
-        Corelation_Coefficient = np.corrcoef(evalution,simulation)[0,1]
+    if len(evaluation)==len(simulation):
+        Corelation_Coefficient = np.corrcoef(evaluation,simulation)[0,1]
         return Corelation_Coefficient
     else:
-        return "Error: evalution and simulation lists does not have the same length."
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
   
-  
-def rsquared(evalution,simulation):
+def rsquared(evaluation,simulation):
     """
     Coefficient of Determination
     
@@ -156,19 +165,19 @@ def rsquared(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Coefficient of Determination
     :rtype: float
     """
-    if len(evalution)==len(simulation):
-        return correlationcoefficient(evalution,simulation)**2
+    if len(evaluation)==len(simulation):
+        return correlationcoefficient(evaluation,simulation)**2
     else:
-        return "Error: evalution and simulation lists does not have the same length."
-        
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
 
-def mse(evalution,simulation):
+def mse(evaluation,simulation):
     """
     Mean Squared Error
     
@@ -179,29 +188,29 @@ def mse(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Mean Squared Error
     :rtype: float
     """
     
-    if len(evalution)==len(simulation):
+    if len(evaluation)==len(simulation):
         
         MSE_values=[]
                 
-        for i in range(len(evalution)):
-            MSE_values.append((simulation[i] - evalution[i])**2)        
+        for i in range(len(evaluation)):
+            MSE_values.append((simulation[i] - evaluation[i])**2)        
         
-        MSE_sum = np.sum(MSE_values[0:len(evalution)])
+        MSE_sum = np.sum(MSE_values[0:len(evaluation)])
         
-        MSE=MSE_sum/(len(evalution))
+        MSE=MSE_sum/(len(evaluation))
         return MSE
     else:
-        return "Error: evalution and simulation lists does not have the same length."
-
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
         
-def rmse(evalution,simulation):
+def rmse(evaluation,simulation):
     """
     Root Mean Squared Error
     
@@ -212,19 +221,19 @@ def rmse(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Root Mean Squared Error
     :rtype: float
     """
-    if len(evalution)==len(simulation):
-        return np.sqrt(mse(evalution,simulation))
+    if len(evaluation)==len(simulation):
+        return np.sqrt(mse(evaluation,simulation))
     else:
-        return "Error: evalution and simulation lists does not have the same length."    
+        print "Error: evaluation and simulation lists does not have the same length."    
+        return np.nan
 
-
-def mae(evalution,simulation):
+def mae(evaluation,simulation):
     """
     Mean Absolute Error
 
@@ -235,29 +244,29 @@ def mae(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Mean Absolute Error
     :rtype: float
     """
-    if len(evalution)==len(simulation):
+    if len(evaluation)==len(simulation):
         
         MAE_values=[]
                 
-        for i in range(len(evalution)):
-            MAE_values.append(np.abs(simulation[i] - evalution[i]))        
+        for i in range(len(evaluation)):
+            MAE_values.append(np.abs(simulation[i] - evaluation[i]))        
         
-        MAE_sum = np.sum(MAE_values[0:len(evalution)])
+        MAE_sum = np.sum(MAE_values[0:len(evaluation)])
         
-        MAE = MAE_sum/(len(evalution))
+        MAE = MAE_sum/(len(evaluation))
         
         return MAE
     else:
-        return "Error: evalution and simulation lists does not have the same length."  
+        print "Error: evaluation and simulation lists does not have the same length."  
+        return np.nan
 
-
-def rrmse(evalution,simulation):
+def rrmse(evaluation,simulation):
     """
     Relative Root Mean Squared Error
     
@@ -268,23 +277,24 @@ def rrmse(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Relative Root Mean Squared Error
     :rtype: float
     """
     
-    if len(evalution)==len(simulation):
+    if len(evaluation)==len(simulation):
 
-        RRMSE = rmse(evalution,simulation)/np.mean(simulation)
+        RRMSE = rmse(evaluation,simulation)/np.mean(simulation)
         return RRMSE
         
     else:
-        return "Error: evalution and simulation lists does not have the same length."   
+        print "Error: evaluation and simulation lists does not have the same length."   
+        return np.nan
     
         
-def agreementindex(evalution,simulation):
+def agreementindex(evaluation,simulation):
     """
     Agreement Index (d) developed by Willmott (1981)
 
@@ -296,22 +306,80 @@ def agreementindex(evalution,simulation):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Agreement Index
     :rtype: float
     """
-    if len(evalution)==len(simulation):
-        simulation,evalution=np.array(simulation),np.array(evalution)
-        Agreement_index=1 -(np.sum((evalution-simulation)**2))/(np.sum(
-                (np.abs(simulation-np.mean(evalution))+np.abs(evalution-np.mean(evalution)))**2))
+    if len(evaluation)==len(simulation):
+        simulation,evaluation=np.array(simulation),np.array(evaluation)
+        Agreement_index=1 -(np.sum((evaluation-simulation)**2))/(np.sum(
+                (np.abs(simulation-np.mean(evaluation))+np.abs(evaluation-np.mean(evaluation)))**2))
         return Agreement_index
     else:
-        return "Error: evalution and simulation lists does not have the same length." 
-    
+        print "Error: evaluation and simulation lists does not have the same length." 
+        return np.nan
 
-def _variance(evalution):
+def covariance(evaluation,simulation):
+    """
+    Covariance
+    
+        .. math::
+         Covariance = \\frac{1}{N} \\sum_{i=1}^{N}((e_{i} - \\bar{e}) * (s_{i} - \\bar{s}))
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: Covariance
+    :rtype: float
+    """
+    if len(evaluation)==len(simulation):
+        Covariance_values = []
+        
+        for i in range(len(evaluation)):
+            Covariance_values.append((evaluation[i]-np.mean(evaluation))*(simulation[i]-np.mean(simulation)))
+            
+        Covariance = np.sum(Covariance_values)/(len(evaluation))
+        return Covariance
+    else:
+        print "Error: evaluation and simulation lists does not have the same length." 
+        return np.nan
+        
+def decomposed_mse(evaluation,simulation):
+    """
+    Decomposed MSE developed by Kobayashi and Salam (2000)
+    
+        .. math ::
+         dMSE = (\\frac{1}{N}\\sum_{i=1}^{N}(e_{i}-s_{i}))^2 + SDSD + LCS
+    
+         SDSD = (\\sigma(e) - \\sigma(s))^2
+         
+         LCS = 2 \\sigma(e) \\sigma(s) * (1 - \\frac{\\sum ^n _{i=1}(e_i - \\bar{e})(s_i - \\bar{s})}{\\sqrt{\\sum ^n _{i=1}(e_i - \\bar{e})^2} \\sqrt{\\sum ^n _{i=1}(s_i - \\bar{s})^2}})
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: Decomposed MSE
+    :rtype: float
+    """
+    
+    if len(evaluation)==len(simulation):
+        
+        Decomposed_MSE = str(round((bias(evaluation,simulation))**2,2))+'(bias**2) + '+str(round((_standarddeviation(evaluation)-_standarddeviation(simulation))**2,2))+'(SDSD) + '+str(round(2*_standarddeviation(evaluation)*_standarddeviation(simulation)*(1-correlationcoefficient(evaluation,simulation)),2))+'(LCS)'         
+        
+        return Decomposed_MSE
+    else:
+        print "Error: evaluation and simulation lists does not have the same length."
+        return np.nan
+        
+def _variance(evaluation):
     """
     Variance
     
@@ -326,40 +394,13 @@ def _variance(evalution):
     :rtype: float
     """
     Variance_values = []    
-    for i in range(len(evalution)):
-        Variance_values.append((evalution[i]-np.mean(evalution))**2)            
-    Variance = np.sum(Variance_values)/len(evalution) 
+    for i in range(len(evaluation)):
+        Variance_values.append((evaluation[i]-np.mean(evaluation))**2)            
+    Variance = np.sum(Variance_values)/len(evaluation) 
     return Variance
     
-
-def covariance(evalution,simulation):
-    """
-    Covariance
-    
-        .. math::
-         Covariance = \\frac{1}{N} \\sum_{i=1}^{N}((e_{i} - \\bar{e}) * (s_{i} - \\bar{s}))
-    
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-    
-    :simulation: simulation data to compared with evalution data
-    :type: list
-    
-    :return: Covariance
-    :rtype: float
-    """
-    if len(evalution)==len(simulation):
-        Covariance_values = []
-        
-        for i in range(len(evalution)):
-            Covariance_values.append((evalution[i]-np.mean(evalution))*(simulation[i]-np.mean(simulation)))
-            
-        Covariance = np.sum(Covariance_values)/(len(evalution))
-        return Covariance
-    else:
-        return "Error: evalution and simulation lists does not have the same length." 
-
-def _standarddeviation(evalution):
+      
+def _standarddeviation(evaluation):
     """
     Standard Derivation (sigma)
     
@@ -369,41 +410,13 @@ def _standarddeviation(evalution):
     :evaluation: Observed data to compared with simulation data.
     :type: list
     
-    :simulation: simulation data to compared with evalution data
+    :simulation: simulation data to compared with evaluation data
     :type: list
     
     :return: Standard Derivation
     :rtype: float
     """
     
-    return np.sqrt(_variance(evalution))
+    return np.sqrt(_variance(evaluation))
 
 
-def decomposed_mse(evalution,simulation):
-    """
-    Decomposed MSE developed by Kobayashi and Salam (2000)
-    
-        .. math ::
-         dMSE = (\\frac{1}{N}\\sum_{i=1}^{N}(e_{i}-s_{i}))^2 + SDSD + LCS
-    
-         SDSD = (\\sigma(e) - \\sigma(s))^2
-         
-         LCS = 2 \\sigma(e) \\sigma(s) * (1 - \\frac{\\sum ^n _{i=1}(e_i - \\bar{e})(s_i - \\bar{s})}{\\sqrt{\\sum ^n _{i=1}(e_i - \\bar{e})^2} \\sqrt{\\sum ^n _{i=1}(s_i - \\bar{s})^2}})
-    
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-    
-    :simulation: simulation data to compared with evalution data
-    :type: list
-    
-    :return: Decomposed MSE
-    :rtype: float
-    """
-    
-    if len(evalution)==len(simulation):
-        
-        Decomposed_MSE = str(round((bias(evalution,simulation))**2,2))+'(bias**2) + '+str(round((_standarddeviation(evalution)-_standarddeviation(simulation))**2,2))+'(SDSD) + '+str(round(2*_standarddeviation(evalution)*_standarddeviation(simulation)*(1-correlationcoefficient(evalution,simulation)),2))+'(LCS)'         
-        
-        return Decomposed_MSE
-    else:
-        return "Error: evalution and simulation lists does not have the same length."

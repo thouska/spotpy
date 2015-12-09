@@ -8,4 +8,4 @@ install:
   - pip install numpy
   #- travis_wait pip install scipy
 # command to run tests
-script: nosetests -s spotpy/examples/tutorial_Parameterlist_iterator.py
+script: nosetests -s spotpy/examples/tutorial_rosenbrock.py

@@ -9,7 +9,7 @@ This class holds the example code from the Rosenbrock tutorial web-documention.
 '''
 
 import spotpy
-from spot_setup_rosenbrock import spot_setup
+from spot_setup_ackley import spot_setup
 from spotpy import analyser
 
 #Create samplers for every algorithm:
@@ -53,7 +53,3 @@ for algorithm in algorithms:
 evaluation = spot_setup.evaluation()
 
 spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
-
-sampler=spotpy.algorithms.fast(spot_setup,  dbname='AckleyFAST',  dbformat='csv')
-sampler.sample(rep)
-

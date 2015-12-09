@@ -17,8 +17,7 @@ class spot_setup(object):
     def parameters(self):
         pars = []   #distribution of random value      #name  #stepsize# optguess
         for i in range(self.dim):        
-            pars.append((np.random.uniform(low=-.0001,high=.0001),  str(i),   5.5,  -20.0))        
-        #pars.append((np.random.uniform(low=-20,high=20),  'y',    2.5,   4.0))
+            pars.append((np.random.uniform(low=-20,high=20),  str(i),   2,  4.0))        
         dtype=np.dtype([('random', '<f8'), ('name', '|S30'),('step', '<f8'),('optguess', '<f8')])
         return np.array(pars,dtype=dtype)
                 
