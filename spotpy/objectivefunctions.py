@@ -123,7 +123,7 @@ def log_p(evaluation,simulation,scale=0.1):
     #from scipy import stats    
     #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )    
     if len(evaluation)==len(simulation):
-        y        = (evaluation-simulation)/scale
+        y        = (np.array(evaluation)-np.array(simulation))/scale
         normpdf = -y**2 / 2 - np.log(np.sqrt(2*np.pi))
         return np.mean(normpdf)
     else:
