@@ -5,7 +5,7 @@ A Statistical Parameter Optimization Framework for Python
 
 [![PyPI Downloads][pypi-dl-image]][pypi-dl-link]
 [![PyPI Version][pypi-v-image]][pypi-v-link]
-[![Python Versions][pypi-v-image]][pypi-v-link]
+[![Python Versions][pypi-pyv-image]][pypi-pyv-link]
 [![Build Status][travis-image]][travis-link]
 [![License][license-image]][license-link]
 
