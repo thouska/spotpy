@@ -146,4 +146,10 @@ Version 1.1.0
 Version 1.1.4
 =================
 
-* Added a new functionality to sample parameters from a given list. Checkout new example tutorial.  
+* Added a new functionality to sample parameters from a given list. Checkout new example tutorial.
+
+=================
+Version 1.2.0
+=================
+
+* Added Python 3 support

@@ -20,16 +20,14 @@ class spot_setup(object):
         dataend       = datetime(2000,1,1)
         analysestart  = datetime(1999,1,1)
         self.cmfmodel = model(datastart,dataend,analysestart)
+        self.params = [spotpy.parameter.Normal('alpha',0.3,0.1,0.02,0.2),
+                       spotpy.parameter.Normal('n',1.2,0.035,0.01,1.22),
+                       spotpy.parameter.Normal('ksat',1,0.3,0.1,2.0),
+                       spotpy.parameter.Normal('porosity',.55,0.04,0.02,0.6),
+                       ]
     
     def parameters(self):
-        pars = []   #distribution of random value      #name  #stepsize# optguess
-        pars.append((np.random.normal(loc=.3,scale=0.1),  'alpha',   0.02,  0.2))  
-        pars.append((np.random.normal(loc=1.2,scale=0.035),     'n',     0.01,  1.22))        
-        pars.append((np.random.normal(loc=1,scale=0.3),      'ksat' ,  0.1,   2.0))
-        pars.append((np.random.normal(loc=.55,scale=0.04),  'porosity',  0.02,  0.6))
-        dtype=np.dtype([('random', '<f8'), ('name', '|S30'),('step', '<f8'),('optguess', '<f8')])
-        return np.array(pars,dtype=dtype)
-            
+        return spotpy.parameter.generate(self.params)        
     
     def simulation(self,vector):
         simulations= self.cmfmodel._run(alpha=vector[0],n=vector[1],ksat=vector[2],porosity=vector[3])
