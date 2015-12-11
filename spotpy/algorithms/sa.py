@@ -7,8 +7,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This class holds the Simulated Annealing (SA) algorithm based on Kirkpatrick et al. (1983).
 '''
-
-from _algorithm import _algorithm
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
 import time
 import numpy as np
 
@@ -60,7 +63,7 @@ class sa(_algorithm):
                 if par[i]>self.max_bound[i]:
                     par[i]=self.max_bound[i] 
         else:
-            print 'ERROR: Bounds have not the same lenghts as Parameterarray'
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
     
     def sample(self,repetitions,Tini=80,Ntemp=50,alpha=0.99):
@@ -141,13 +144,16 @@ class sa(_algorithm):
                 acttime=time.time()
                 #Refresh progressbar every second
                 if acttime-intervaltime>=2:
-                    print '%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                    text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                    print(text)
                     intervaltime=time.time()
                 
             Titer=alpha*Titer
-        print '%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)       
+        text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)       
+        print(text)
         self.datawriter.finalize()
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)
         data = self.datawriter.getdata()
         return data
 

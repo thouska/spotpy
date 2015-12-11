@@ -7,7 +7,10 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This class makes the MPI parallelization.
 '''
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 from mpi4py import MPI
 
 
@@ -28,7 +31,8 @@ class ForEach(object):
     in this case using mpi
     """
     def __repr__(self):
-        return "ForEach(rank=%i/%i,phase=%s)" % (self.rank,self.size,self.phase)
+        text="ForEach(rank=%i/%i,phase=%s)" % (self.rank,self.size,self.phase)
+        return(text)
     def __init__(self,process):
         """
         Creates a repetition around a callable

@@ -123,21 +123,29 @@ class model(object):
         if alpha<self.bound[0][0] or alpha>self.bound[0][1] or ksat<self.bound[1][0] \
         or ksat>self.bound[1][1] or n<self.bound[2][0] or n>self.bound[2][1] or \
         porosity<self.bound[3][0] or porosity>self.bound[3][1]:
-            print 'The following combination was ignored:'        
-            print 'n= '+str(n)
-            print 'alpha='+str(alpha)
-            print 'ksat= '+str(ksat)
-            print 'porosity= '+str(porosity)
-            print '##############################'    
+            print('The following combination was ignored')
+            text='n= '+str(n)
+            print(text)
+            text='alpha='+str(alpha)
+            print(text)
+            text='ksat= '+str(ksat)
+            print(text)
+            text='porosity= '+str(porosity)
+            print(text)
+            print('##############################')
             return  self.observations*-np.inf
         else:
             project=cmf.project()
             cell = project.NewCell(x=0,y=0,z=0,area=1000, with_surfacewater=True)
-            print 'n= '+str(n)
-            print 'alpha='+str(alpha)
-            print 'ksat= '+str(ksat)
-            print 'porosity= '+str(porosity)
-            print '##############################'
+            text='n= '+str(n)
+            print(text)
+            text='alpha='+str(alpha)
+            print(text)
+            text='ksat= '+str(ksat)
+            print(text)
+            text='porosity= '+str(porosity)
+            print(text)
+            print('##############################')
             r_curve = cmf.VanGenuchtenMualem(Ksat=ksat,phi=porosity,alpha=alpha,n=n)
             layers=5
             ldepth=.01     
@@ -160,7 +168,7 @@ class model(object):
                 if self.gw_array['Date'].__contains__(t)==True:
                    Gw_Index=np.where(self.gw_array['Date']==t)               
                    gw.potential=self.gw_array[self.piezometer][Gw_Index]
-                   print gw.potential #TO DO: CHECK IF SOMETHING HAPPENS HERE!!!!
+                   print(gw.potential) #TO DO: CHECK IF SOMETHING HAPPENS HERE!!!!
                 if t > self.analysestart:
                     if Evalstep !=len(self.eval_dates) and t == self.eval_dates[Evalstep]:
                         evallist.append(cell.layers.wetness[0]*cell.layers.porosity[0]*100)

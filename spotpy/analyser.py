@@ -8,19 +8,18 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 Holds functions to analyse results out of the database.
 '''
 
-import matplotlib.pyplot as plt
-import pandas as pd
+
+
+
+
 import numpy as np
-from spotpy import objectivefunctions
-import random
-from matplotlib import colors
-import math
+import spotpy
+
+
 
 font = {'family' : 'calibri',
     'weight' : 'normal',
     'size'   : 18}
-
-cnames=list(colors.cnames)
         
 def load_csv_results(filename, usecols=None):
     """
@@ -100,8 +99,11 @@ def get_maxlikeindex(results):
         value and value of the maximum objectivefunction of your result array
     :rtype: int and float
     """        
-    maximum=np.nanmax(results['like'])    
-    print 'The best model run has an objectivefunction of: '+str(round(maximum,4))
+    maximum=np.nanmax(results['like'])
+    value=str(round(maximum,4))
+    text=str('The best model run has an objectivefunction of: ')
+    textv=text+value
+    print(textv)
     index=np.where(results['like']==maximum)
     return index, maximum
 
@@ -117,7 +119,10 @@ def get_minlikeindex(results):
     :rtype: int and float
     """            
     minimum=np.nanmin(results['like'])    
-    print 'The best model run has an objectivefunction of: '+str(round(minimum,4))
+    value=str(round(maximum,4))
+    text=str('The best model run has an objectivefunction of: ')
+    textv=text+value
+    print(textv)
     index=np.where(results['like']==minimum)
     return index, minimum    
 
@@ -161,7 +166,7 @@ def calc_like(results,evaluation):
     likes=[]
     sim=get_modelruns(results)
     for s in sim:
-        likes.append(objectivefunctions.rmse(list(s),evaluation))
+        likes.append(spotpy.objectivefunctions.rmse(list(s),evaluation))
         #likes.append(objectivefunctions.agreementindex(list(s),evaluation))
     return likes
 
@@ -180,11 +185,11 @@ def compare_different_objectivefunctions(like1,like2):
     """
     from scipy import stats
     out = stats.ttest_ind(like1,like2,equal_var=False)
-    print out
+    print(out)
     if out[1]>0.05:
-        print 'like1 is NOT signifikant different to like2: p>0.05'
+        print('like1 is NOT signifikant different to like2: p>0.05')
     else:
-        print 'like1 is signifikant different to like2: p<0.05' 
+        print('like1 is signifikant different to like2: p<0.05' )
     return out
     
 def get_posterior(results,threshold=0.9):
@@ -273,8 +278,9 @@ def get_sensitivity_of_fast(results,like_index=None,M=4, print_to_console=True):
     :return: Sensitivity indices for every parameter
     :rtype: list
     """
+    import math
     likes=results['like'+str(like_index)]
-    print likes.size
+    print(likes.size)
     parnames = get_parameternames(results)
     parnumber=len(parnames)
     if likes.size % (parnumber) == 0:
@@ -328,6 +334,10 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     :return: Parameter names which are sensitive, Sensitivity indices for every parameter, Parameter names which are not sensitive
     :rtype: Three lists
     """
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
+
     parnames=get_parameternames(results)
     fig=plt.figure(figsize=(16,12))
     all_names=[]
@@ -341,16 +351,16 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
         names=[]
         values=[]
         no_names=[]
-        for j in range(len(Si.values()[1])):
-            if Si.values()[1][j]>=sorted(np.sort(Si.values()[1]),reverse=True)[number_of_sensitiv_pars]:
+        for j in range(len(list(Si.values())[1])):
+            if list(Si.values())[1][j]>=sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]:
                 names.append(parnames[j])
-                values.append(Si.values()[1][j])
+                values.append(list(Si.values())[1][j])
             else:
                 no_names.append(parnames[j])
-        print names
-        ax.plot([sorted(np.sort(Si.values()[1]),reverse=True)[number_of_sensitiv_pars]]*len(Si.values()[1]),'r--')
+        print(names)
+        ax.plot([sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]]*len(list(Si.values())[1]),'r--')
         #ax.bar(np.arange(0,len(Si.values()[1])),sorted(np.sort(Si.values()[1]),reverse=True),label=str(names))
-        ax.bar(np.arange(0,len(Si.values()[1])),Si.values()[1],label=str(names))        
+        ax.bar(np.arange(0,len(list(Si.values())[1])),list(Si.values())[1],label=str(names))        
         ax.set_ylim([0,1])
         #ax.set_xlabel(names)
         ax.set_ylabel(likes[i])
@@ -363,6 +373,10 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
    
 def plot_heatmap_griewank(results,algorithms):
     """Example Plot as seen in the SPOTPY Documentation"""
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
+
     from matplotlib import ticker
     from matplotlib import cm
     font = {'family' : 'calibri',
@@ -407,12 +421,14 @@ def plot_heatmap_griewank(results,algorithms):
         ax.set_title(algorithms[i])
     
     #plt.tight_layout()  
-    fig.savefig('test.png', bbox_inches='tight')  # <------ this
-    fig.close()   
+    fig.savefig('test.png', bbox_inches='tight')  # <------ this  
     
     
 def plot_objectivefunction(results,evaluation,limit=None,sort=True):
     """Example Plot as seen in the SPOTPY Documentation"""
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     likes=calc_like(results,evaluation)    
     data=likes
     #Calc confidence Interval    
@@ -425,8 +441,10 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True):
     t_bounds = t.interval(0.999, len(data) - 1)
     # sum mean to the confidence interval
     ci = [mean + critval * stddev / np.sqrt(len(data)) for critval in t_bounds]
-    print "Mean: %f" % mean
-    print "Confidence Interval 95%%: %f, %f" % (ci[0], ci[1])    
+    value="Mean: %f" % mean
+    print(value)
+    value="Confidence Interval 95%%: %f, %f" % (ci[0], ci[1])    
+    print(value)
     threshold=ci[1]
     happend=None
     bestlike=[data[0]]
@@ -448,6 +466,9 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True):
         
 def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=None,xticks=[0,2000,4000]):
     """Example Plot as seen in the SPOTPY Documentation"""        
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     font = {'family' : 'calibri',
         'weight' : 'normal',
         'size'   : 20}
@@ -505,6 +526,9 @@ def plot_parametertrace(results,parameternames=None):
     :return: Plot of all traces of the given parameternames.
     :rtype: figure
     """  
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     if not parameternames:
         parameternames=get_parameternames(results)
@@ -522,7 +546,8 @@ def plot_parametertrace(results,parameternames=None):
         ax.legend()
         i+=1
     fig.savefig(names+'_trace.png')
-    print 'The figure as been saved as "'+names+'trace.png"' 
+    text='The figure as been saved as "'+names+'trace.png"' 
+    print(text)
 
 def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1):
     """
@@ -538,6 +563,9 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1):
     :return: Plot of all traces of the given parameternames.
     :rtype: figure
     """  
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     
     results=sort_like(results)
@@ -557,7 +585,8 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1):
         ax.legend()
         i+=1
     fig.savefig(names+'_trace.png')
-    print 'The figure as been saved as "'+names+'trace.png"'
+    text='The figure as been saved as "'+names+'trace.png"'
+    print(text) 
 
 def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True,sort=True, bestperc=0.1):
     """
@@ -590,6 +619,11 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
         
     """
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    import random
+
+    cnames=list(colors.cnames)
 
 
     plt.rc('font', **font)
@@ -615,7 +649,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
 
     parameternames=list(get_parameternames(results)    )
     bestparameterstring=''
-    maxNSE=objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
+    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
     for i in range(len(parameternames)):
         if i%8==0:
             bestparameterstring+='\n'
@@ -644,7 +678,8 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
 #        horizontalalignment='left',
 #        verticalalignment='bottom')
     fig.savefig('bestmodelrun.png')
-    print 'The figure as been saved as "bestmodelrun.png"'
+    text='The figure as been saved as "bestmodelrun.png"'
+    print(text)
     
 
 def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True):
@@ -678,13 +713,16 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
     >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
         
     """
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     plt.rc('font', **font)       
     if calculatelike:
         likes=[]
         sim=get_modelruns(results)
         par=get_parameters(results)
         for s in sim:
-            likes.append(objectivefunctions.nashsutcliff(s,evaluation))
+            likes.append(spotpy.objectivefunctions.nashsutcliff(s,evaluation))
         maximum=max(likes)
         index=likes.index(maximum)
         bestmodelrun=list(sim[index])
@@ -700,7 +738,7 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
         
     parameternames=list(get_parameternames(results)    )
     bestparameterstring=''
-    maxNSE=objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
+    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
     for i in range(len(parameternames)):
         if i%8==0:
             bestparameterstring+='\n'
@@ -721,7 +759,8 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
 #        horizontalalignment='left',
 #        verticalalignment='bottom')
     fig.savefig('bestmodelrun.png')
-    print 'The figure as been saved as "bestmodelrun.png"'
+    text='The figure as been saved as "bestmodelrun.png"'
+    print(text)
 
 
 def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True):
@@ -755,6 +794,9 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
     >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
         
     """
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
 
 
     plt.rc('font', **font)
@@ -767,13 +809,13 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
             sim=get_modelruns(results[i])
             par=get_parameters(results[i])
             for s in sim:
-                likes.append(objectivefunctions.lognashsutcliff(evaluation,list(s)))                                
+                likes.append(spotpyobjectivefunctions.lognashsutcliff(evaluation,list(s)))                                
                                 
             maximum=max(likes)
             index=likes.index(maximum)
             bestmodelrun=list(sim[index])
             bestparameterset=list(par[index])
-            print bestparameterset
+            print(bestparameterset)
             
         else:
             if objectivefunctionmax==True:
@@ -782,7 +824,7 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
                 index,maximum=get_minlikeindex(results[i])
             bestmodelrun=list(get_modelruns(results[i])[index][0])#Transform values into list to ensure plotting
         
-        maxLike=objectivefunctions.lognashsutcliff(evaluation,bestmodelrun)        
+        maxLike=spotpy.objectivefunctions.lognashsutcliff(evaluation,bestmodelrun)        
         
         if dates is not None:
             plt.plot(dates,bestmodelrun,'-',color=colors[i],label=algorithms[i]+': LogNSE='+str(round(maxLike,4)))        
@@ -796,9 +838,13 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
         plt.ylim(15,50) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
 
         fig.savefig('bestmodelrun.png')
-        print 'The figure as been saved as "bestmodelrun.png"'
+        text='The figure as been saved as "bestmodelrun.png"'
+        print(text)
 
 def plot_objectivefunctiontraces(results,evaluation,algorithms,filename='Like_trace'):
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     font = {'family' : 'calibri',
         'weight' : 'normal',
         'size'   : 20}
@@ -825,6 +871,9 @@ def plot_objectivefunctiontraces(results,evaluation,algorithms,filename='Like_tr
 
 
 def plot_regression(results,evaluation):
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     simulations=get_modelruns(results)
     for sim in simulations:
@@ -833,12 +882,17 @@ def plot_regression(results,evaluation):
     plt.xlabel('evaluation')
     plt.title('Regression between simulations and evaluation data')
     fig.savefig('regressionanalysis.png')
-    print 'The figure as been saved as "regressionanalysis.png"'
+    text='The figure as been saved as "regressionanalysis.png"'
+    print(text)
     
     
 def plot_parameterInteraction(results):
     '''Input:  List with values of parameters and list of strings with parameter names
        Output: Dotty plot of parameter distribution and gaussian kde distribution'''
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    import pandas as pd
+    cnames=list(colors.cnames)
     parameterdistribtion=get_parameters(results)
     parameternames=get_parameternames(results)  
     df = pd.DataFrame(parameterdistribtion, columns=parameternames)
@@ -850,6 +904,9 @@ def plot_allmodelruns(modelruns,observations,dates=None):
     '''Input:  Array of modelruns and list of Observations
        Output: Plot with all modelruns as a line and dots with the Observations
     ''' 
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     ax = plt.subplot(1,1,1)
     if dates is not None:
@@ -871,12 +928,17 @@ def plot_allmodelruns(modelruns,observations,dates=None):
     ax.set_ylabel = 'Evaluation points'
     ax.set_title  = 'Maximum objectivefunction of Simulations'
     fig.savefig('bestmodel.png')
-    print 'The figure as been saved as "Modelruns.png"' 
+    text='The figure as been saved as "Modelruns.png"' 
+    print(text)
     
   
 def plot_autocorellation(parameterdistribution,parametername):
     '''Input:  List of sampled values for one Parameter
        Output: Parameter Trace, Histogramm and Autocorrelation Plot'''
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    import pandas as pd
+    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     ax = plt.subplot(1,1,1)
     pd.tools.plotting.autocorrelation_plot(parameterdistribution)
@@ -886,6 +948,9 @@ def plot_autocorellation(parameterdistribution,parametername):
 def plot_gelman_rubin(r_hat_values):
     '''Input:  List of R_hat values of chains (see Gelman & Rubin 1992) 
        Output: Plot as seen for e.g. in (Sadegh and Vrugt 2014)'''
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     ax = plt.subplot(1,1,1)
     ax.plot(r_hat_values)
@@ -921,6 +986,9 @@ def gelman_rubin(x):
 def plot_Geweke(parameterdistribution,parametername):
     '''Input:  Takes a list of sampled values for a parameter and his name as a string
        Output: Plot as seen for e.g. in BUGS or PyMC'''
+    import matplotlib.pyplot as plt
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     # perform the Geweke test
     Geweke_values = _Geweke(parameterdistribution)
     

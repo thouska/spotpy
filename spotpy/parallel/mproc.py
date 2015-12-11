@@ -4,6 +4,10 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Philipp Kraft
 '''
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import multiprocessing as mp
 
 class ForEach(object):
@@ -26,4 +30,4 @@ if __name__ == '__main__':
     fe = ForEach(proc)
     jobs = range(10000)
     for j,q in fe(jobs):
-        print j
+        print(j)

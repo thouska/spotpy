@@ -14,7 +14,7 @@ This class holds the example code from the getting_started web-documention.
 #To use SPOT we have to import it and use one of the pre-build examples:
 import spotpy                                # Load the SPOT package into your working storage 
 from spotpy import analyser                  # Load the Plotting extension 
-from spot_setup_rosenbrock import spot_setup # Import the two dimensional Rosenbrock example
+from spotpy.examples.spot_setup_rosenbrock import spot_setup # Import the two dimensional Rosenbrock example
 #from spot_setup_griewank import spot_setup   
 
 

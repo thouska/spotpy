@@ -26,7 +26,7 @@ X, Y = meshgrid(X, Y)
 
 #from spot_setup_rosenbrock import spot_setup
 #from spot_setup_griewank import spot_setup
-from spot_setup_ackley import spot_setup
+from spotpy.examples.spot_setup_ackley import spot_setup
 
 Z = np.zeros(X.shape)
 for i in xrange(X.shape[0]):

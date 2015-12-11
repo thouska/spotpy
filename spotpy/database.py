@@ -8,8 +8,12 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 This is the parent class of all algorithms, which can handle the database 
 structure during the sample.
 '''
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import numpy as np
+import io 
 
 class database(object):
     """
@@ -127,13 +131,13 @@ class csv(database):
         self.chains=chains
         self.dbname=dbname
         #Create a open file, which needs to be closed after the sampling
-        self.db=open(self.dbname+'.csv', 'wb')
+        self.db=io.open(self.dbname+'.csv', 'wb')
         
         header_as_str=''
         for name in self.header:
             header_as_str=header_as_str+str(name)+','
         header_as_str=header_as_str[:-1]+'\n'  
-        self.db.write(header_as_str)          
+        self.db.write(bytes(header_as_str, 'UTF-8')) 
         #self.save(like,randompar,simulations=simulations,save_sim=save_sim)
     
     def save(self,objectivefunction,parameterlist,simulations=None,chains=1):
@@ -144,11 +148,11 @@ class csv(database):
             data=self._get_list(objectivefunction,parameterlist,simulations=None)
         for value in data:
             try:
-                self.db.write(str(value)+',')
+                self.db.write(bytes(str(value)+',','UTF-8'))
             except IOError:
-                raw_input("Please close the file "+self.dbname+" When done press Enter to continue...")
-                self.db.write(str(value)+',')
-        self.db.write(str(chains)+'\n')
+                input("Please close the file "+self.dbname+" When done press Enter to continue...")
+                self.db.write(bytes(str(value)+',','UTF-8'))
+        self.db.write(bytes(str(chains)+'\n','UTF-8'))
 
     def finalize(self):
         self.db.close()

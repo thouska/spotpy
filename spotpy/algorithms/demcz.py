@@ -46,8 +46,11 @@ from this software without specific prior written permission.
 THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.'''
-
-from _algorithm import _algorithm
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
 from spotpy import objectivefunctions
 import numpy as np
 import time
@@ -105,7 +108,7 @@ class demcz(_algorithm):
                 if par[i]>self.max_bound[i]:
                     par[i]=self.max_bound[i] 
         else:
-            print 'ERROR: Bounds have not the same lenghts as Parameterarray'
+            print('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
     #def simulate(self): 
         
@@ -299,7 +302,7 @@ class demcz(_algorithm):
                 covConvergence.update(history,'interest')
                 if all(grConvergence.R<convergenceCriteria):
                     iter =maxChainDraws
-                    print 'All chains fullfil the convergence criteria. Sampling stopped.'
+                    print('All chains fullfil the convergence criteria. Sampling stopped.')
             iter += 1
         
 #            else:
@@ -308,7 +311,8 @@ class demcz(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print str(iter)+' of '+str(repetitions)
+                text=str(iter)+' of '+str(repetitions)
+                print(text)
                 intervaltime=time.time()
                   
         #3) finalize
@@ -318,11 +322,13 @@ class demcz(_algorithm):
         self.iter = iter
         self.burnIn = burnIn 
         self.R = grConvergence.R
-        print 'Gelman Rubin R='+str(self.R)
+        text='Gelman Rubin R='+str(self.R)
+        print(text)
         
         self.repeat.terminate()
         self.datawriter.finalize()
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)
 
 
     def _update_accepts_ratio(self, weighting, acceptances):
@@ -388,7 +394,7 @@ class _SimulationHistory(object):
             self.r_hat.append(grConvergence)
 
         except IndexError:
-            print 'index error'
+            print('index error')
             self.relevantHistoryEnd += 1
             self.relevantHistoryStart += increment            
             pass
@@ -499,7 +505,7 @@ class _CovarianceConvergence:
             projection = np.dot(np.linalg.inv(basis1), basis2)
         except np.linalg.linalg.LinAlgError:
             projection=(np.array(basis1)*np.nan)
-            print 'Exception happend!'
+            print('Exception happend!')
 
         # find the releative size in each of the basis1 directions 
         return np.log(np.sum(projection**2, axis = 0)**.5) 

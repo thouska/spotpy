@@ -7,8 +7,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This class holds the LatinHyperCube algorithm based on McKay et al. (1979).
 '''
-
-from _algorithm import _algorithm
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
 import numpy as np
 import random
 import time
@@ -66,7 +69,7 @@ class lhs(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
-        print 'Creating LatinHyperCube Matrix'
+        print('Creating LatinHyperCube Matrix')
         #Get the names of the parameters to analyse
         names     = self.parameter()['name']
         #Define the jump size between the parameter
@@ -86,7 +89,7 @@ class lhs(_algorithm):
             random.shuffle(Matrix[:,i])
         
         
-        print 'Start sampling'
+        print('Start sampling')
         starttime=time.time()
         intervaltime=starttime
         # A generator that produces the parameters
@@ -102,10 +105,13 @@ class lhs(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()        
         self.repeat.terminate()
         
         self.datawriter.finalize()
-        print '%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        print(text)
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)

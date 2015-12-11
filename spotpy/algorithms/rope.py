@@ -8,7 +8,10 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This class holds the Robust Parameter Estimation (ROPE) algorithm based on Bárdossy and Singh (2008).
 '''
 
-from _algorithm import _algorithm
+
+
+
+from . import _algorithm
 import time
 import numpy as np
 
@@ -68,7 +71,7 @@ class rope(_algorithm):
                 if par[i]>self.max_bound[i]:
                     par[i]=self.max_bound[i] 
         else:
-            print 'ERROR: Bounds have not the same lenghts as Parameterarray'
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
     
     def get_best_runs(self,likes,pars,runs):
@@ -98,7 +101,7 @@ class rope(_algorithm):
         pars=[]        
        
         param_generator = ((rep,list(self.parameter()['random'])) 
-            for rep in xrange(int(runs)))
+            for rep in range(int(runs)))
         for rep,ropepar,simulations in self.repeat(param_generator):
             #Calculate the objective function
             like        = self.objectivefunction(simulations,self.evaluation)
@@ -114,7 +117,8 @@ class rope(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
        
         
@@ -132,7 +136,7 @@ class rope(_algorithm):
             pars=[]
             likes=[]
 
-            param_generator = ((rep,list(new_pars[rep])) for rep in xrange(int(runs)))        
+            param_generator = ((rep,list(new_pars[rep])) for rep in range(int(runs)))        
             for rep,ropepar,simulations in self.repeat(param_generator):        
                 #Calculate the objective function
                 like        = self.objectivefunction(simulations,self.evaluation)
@@ -148,16 +152,19 @@ class rope(_algorithm):
                 acttime=time.time()
                 #Refresh progressbar every second
                 if acttime-intervaltime>=2:
-                    print '%i of %i (best like=%g)' % (rep+runs*i,repetitions,self.status.objectivefunction)
+                    text='%i of %i (best like=%g)' % (rep+runs*i,repetitions,self.status.objectivefunction)
+                    print(text)
                     intervaltime=time.time()        
                         
         self.repeat.terminate()                    
         self.datawriter.finalize()
-        print 'End of sampling'
-        print '%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
-        print 'Best parameter set:'        
-        print self.status.params        
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        print('End of sampling')
+        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        print(text)
+        print('Best parameter set:')
+        print(self.status.params)
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)
 
         
     
@@ -165,7 +172,8 @@ class rope(_algorithm):
         X=np.array(pars)
         
         N, NP = X.shape
-        print str(N)+' input vectors with '+str(NP)+' parameters'
+        text=str(N)+' input vectors with '+str(NP)+' parameters'
+        print(text)
         
         Ngen= int(runs)#int(N*(1/self.percentage))
         print('Generating '+str(Ngen)+' parameters:')
@@ -200,7 +208,7 @@ class rope(_algorithm):
                 if LNDEP[L]>1:
                     CL=np.vstack((CL, TL[L, :]))
                     IPOS=IPOS+1
-            print IPOS, ITRY
+            print(IPOS, ITRY)
         CL=np.delete(CL,0, 0)
         CL=CL[:NPOSI]
         return CL
@@ -211,7 +219,7 @@ class rope(_algorithm):
     
     def fDEP(self,N, NP, NDIR, X, TL, EPS, LLEN):    
         LNDEP=np.array([N for i in range (N)])
-        for NRAN in range (NDIR):
+        for NRAN in range(int(NDIR)):
     
     #       Random sample of size NP
             JSAMP=np.zeros(N)
@@ -226,7 +234,7 @@ class rope(_algorithm):
                     dirac=1
                     L=np.random.randint(1, N+1)
                     if L>N: L=N
-                    for j in range (NSAMP):
+                    for j in range(NSAMP):
                         if L==JSAMP[j]: dirac=0
                 NSAMP=NSAMP+1
                 JSAMP[index+1]=L
@@ -235,7 +243,7 @@ class rope(_algorithm):
             S=np.zeros(shape=(NP, NP))
             for i in range(NP):
                 row=JSAMP[i]
-                S[i,:]=[X[row-1,j] for j in range (NP)] # S: random sample from X
+                S[i,:]=[X[row-1,j] for j in range(NP)] # S: random sample from X
             nx, NP = S.shape
             C=np.zeros(shape=(NP, NP))
             y=np.zeros(shape=(2,2))       

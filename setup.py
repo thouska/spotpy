@@ -1,9 +1,13 @@
 from setuptools import setup
+import sys
 
+extra = {}
+if sys.version_info >= (3,):
+    extra['use_2to3'] = True
 
-setup(
+  setup(
   name = 'spotpy',
-  version = '1.1.4',
+  version = '1.2.0',
   description = 'A Statistical Parameter Optimization Tool',
 
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
@@ -13,6 +17,7 @@ setup(
   license='MIT',
   packages=["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel"],
   include_package_data=True,
+  cmdclass=COMMANDS,
   keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Uncertainty', 'Calibration', 'Model'],
   classifiers=[
         'Development Status :: 4 - Beta',
@@ -24,5 +29,12 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.0',
+        'Programming Language :: Python :: 3.1',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Libraries :: Python Modules'],
+        **extra
 	)

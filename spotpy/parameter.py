@@ -7,6 +7,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 Contains classes to generate random parameter sets
 '''
+
 import numpy.random as rnd
 import numpy as np
 
@@ -75,7 +76,8 @@ class List(object):
         try:
             return self.list_of_parametersettings[self.icall-3]
         except IndexError:
-            print 'Error: Number of repetitions is higher than the number of available parameter sets'
+            text='Error: Number of repetitions is higher than the number of available parameter sets'
+            print(text)
             raise
             
     def astuple(self):

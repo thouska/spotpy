@@ -6,28 +6,30 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This example implements the Ackley function into SPOT.  
 '''
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import numpy as np
 import spotpy
 
 class spot_setup(object):
     def __init__(self,dim=30):
         self.dim=dim
+        self.params = []
+        for i in range(self.dim):
+            self.params.append(spotpy.parameter.Uniform(str(i),-32.768,32.768,2.5,-20.0))
         
     def parameters(self):
-        pars = []   #distribution of random value      #name  #stepsize# optguess
-        for i in range(self.dim):        
-            pars.append((np.random.uniform(low=-32.768,high=32.768),  str(i),   2.5,  -20.0))        
-        dtype=np.dtype([('random', '<f8'), ('name', '|S30'),('step', '<f8'),('optguess', '<f8')])
-        return np.array(pars,dtype=dtype)
+        return spotpy.parameter.generate(self.params)
                 
   
     def simulation(self, vector):
         firstSum = 0.0
         secondSum = 0.0
-        for c in vector:
+        for c in range(len(vector)):
             firstSum += c**2.0
-            secondSum += np.cos(2.0*np.pi*c)
+            secondSum += np.cos(2.0*np.pi*vector[c])
             n = float(len(vector))
         return [-20.0*np.exp(-0.2*np.sqrt(firstSum/n)) - np.exp(secondSum/n) + 20 + np.e   ]
      

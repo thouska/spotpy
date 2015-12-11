@@ -24,7 +24,8 @@ https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Metho
 
 import database
 import algorithms
-#import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
+import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
 import objectivefunctions
 import parameter
-__version__ = '1.1.4'
+import examples
+__version__ = '1.2.0'

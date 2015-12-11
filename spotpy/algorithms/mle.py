@@ -8,7 +8,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This class holds the MaximumLikelihoodEstimation (MLE) algorithm.
 '''
 
-from _algorithm import _algorithm
+from . import _algorithm
 import numpy as np
 import time
 
@@ -60,10 +60,11 @@ class mle(_algorithm):
                 if par[i]<self.min_bound[i]: 
                     par[i]=self.min_bound[i]
                 if par[i]>self.max_bound[i]:
-                    par[i]=self.max_bound[i] 
+                    par[i]=self.max_bound[i]
+            return par
         else:
-            print 'ERROR: Bounds have not the same lenghts as Parameterarray'
-        return par    
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
+            return par    
     
     def sample(self, repetitions):       
         # Define stepsize of MCMC.
@@ -77,7 +78,7 @@ class mle(_algorithm):
         likes=[]
         pars=[]
         sims=[]
-        print 'burnIn...'
+        print('burnIn...')
         for i in range(burnIn):
             par = self.parameter()['random']
             pars.append(par)
@@ -91,13 +92,14 @@ class mle(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (i,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (i,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
         
         old_like = max(likes)
         old_par =pars[likes.index(old_like)]
         old_simulations=sims[likes.index(old_like)]
-        print 'Beginn Random Walk'
+        print('Beginn Random Walk')
         for rep in range(repetitions-burnIn):
             # Suggest new candidate from Gaussian proposal distribution.
             new_par = []#np.zeros([len(old_par)])
@@ -122,13 +124,17 @@ class mle(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep+burnIn,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep+burnIn,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
         
         self.datawriter.finalize()
-        print 'End of sampling'
-        print "Acceptance rate = "+str(accepted/repetitions)        
-        print '%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
-        print 'Best parameter set:'        
-        print self.status.params        
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        print('End of sampling')
+        text="Acceptance rate = "+str(accepted/repetitions)        
+        print(text)
+        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        print(text)
+        print('Best parameter set:')
+        print(self.status.params)
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text) 

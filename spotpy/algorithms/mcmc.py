@@ -7,9 +7,13 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This class holds the MarkovChainMonteCarlo (MCMC) algorithm based on Metropolis et al. (1953).
 '''
-
-from _algorithm import _algorithm
-from spotpy import objectivefunctions
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
+import spotpy
+#from .spotpy import objectivefunctions
 import numpy as np
 import time
 
@@ -61,7 +65,7 @@ class mcmc(_algorithm):
                 if par[i]>self.max_bound[i]:
                     par[i]=self.max_bound[i] 
         else:
-            print 'ERROR: Bounds have not the same lenghts as Parameterarray'
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
                     
     def sample(self, repetitions):       
@@ -76,12 +80,12 @@ class mcmc(_algorithm):
         likes=[]
         pars=[]
         sims=[]
-        print 'burnIn...'
+        print('burnIn...')
         for i in range(burnIn):
             par = self.parameter()['random']
             pars.append(par)
             sim = self.model(par)
-            like = objectivefunctions.log_p(sim,self.evaluation)
+            like = spotpy.objectivefunctions.log_p(sim,self.evaluation)
             likes.append(like)
             sims.append(sim)            
             self.datawriter.save(like,par,simulations=sim)
@@ -90,7 +94,8 @@ class mcmc(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (i,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (i,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
         
         old_like = max(likes)
@@ -100,7 +105,7 @@ class mcmc(_algorithm):
         self.min_bound, self.max_bound = self.find_min_max()
         
         nevertheless=0
-        print 'Beginn of Random Walk'
+        print('Beginn of Random Walk')
         for rep in range(repetitions-burnIn):
             # Suggest new candidate from Gaussian proposal distribution.
             #np.zeros([len(old_par)])
@@ -114,7 +119,7 @@ class mcmc(_algorithm):
             new_par=self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
             #new_like = self.objectivefunction(new_simulations,self.evaluation)
-            new_like =objectivefunctions.log_p(new_simulations,self.evaluation)      
+            new_like =spotpy.objectivefunctions.log_p(new_simulations,self.evaluation)      
             self.status(rep,new_like,new_par)      
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
@@ -142,13 +147,17 @@ class mcmc(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep+burnIn,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep+burnIn,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
         
         self.datawriter.finalize()
-        print 'End of sampling'
-        print "Acceptance rate = "+str(accepted/repetitions)        
-        print '%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
-        print 'Best parameter set:'        
-        print self.status.params        
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        print('End of sampling')
+        text="Acceptance rate = "+str(accepted/repetitions)        
+        print(text)
+        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        print(text)
+        print('Best parameter set')
+        print(self.status.params)
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)

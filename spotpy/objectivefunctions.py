@@ -35,7 +35,7 @@ def bias(evaluation,simulation):
                 '''
                 Cleans out No Data values
                 '''
-                print 'Wrong Results! Clean out No Data Values'                 
+                print('Wrong Results! Clean out No Data Values')                 
                 pass
              
             else:            
@@ -45,7 +45,7 @@ def bias(evaluation,simulation):
         return float(bias)
     
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
         
@@ -78,7 +78,7 @@ def nashsutcliff(evaluation,simulation):
         return 1 - (numerator/denominator)
         
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
         
@@ -103,7 +103,7 @@ def lognashsutcliff(evaluation,simulation):
     if len(evaluation)==len(simulation):
         return float(1 - sum((np.log(simulation)-np.log(evaluation))**2)/sum((np.log(evaluation)-np.mean(np.log(evaluation)))**2))
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
         
     
@@ -127,7 +127,7 @@ def log_p(evaluation,simulation,scale=0.1):
         normpdf = -y**2 / 2 - np.log(np.sqrt(2*np.pi))
         return np.mean(normpdf)
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
     
 def correlationcoefficient(evaluation,simulation):
@@ -151,7 +151,7 @@ def correlationcoefficient(evaluation,simulation):
         Corelation_Coefficient = np.corrcoef(evaluation,simulation)[0,1]
         return Corelation_Coefficient
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
   
 def rsquared(evaluation,simulation):
@@ -174,7 +174,7 @@ def rsquared(evaluation,simulation):
     if len(evaluation)==len(simulation):
         return correlationcoefficient(evaluation,simulation)**2
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
 def mse(evaluation,simulation):
@@ -207,7 +207,7 @@ def mse(evaluation,simulation):
         MSE=MSE_sum/(len(evaluation))
         return MSE
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
         
 def rmse(evaluation,simulation):
@@ -230,7 +230,7 @@ def rmse(evaluation,simulation):
     if len(evaluation)==len(simulation):
         return np.sqrt(mse(evaluation,simulation))
     else:
-        print "Error: evaluation and simulation lists does not have the same length."    
+        print("Error: evaluation and simulation lists does not have the same length.")    
         return np.nan
 
 def mae(evaluation,simulation):
@@ -263,7 +263,7 @@ def mae(evaluation,simulation):
         
         return MAE
     else:
-        print "Error: evaluation and simulation lists does not have the same length."  
+        print("Error: evaluation and simulation lists does not have the same length.")  
         return np.nan
 
 def rrmse(evaluation,simulation):
@@ -290,7 +290,7 @@ def rrmse(evaluation,simulation):
         return RRMSE
         
     else:
-        print "Error: evaluation and simulation lists does not have the same length."   
+        print("Error: evaluation and simulation lists does not have the same length.")   
         return np.nan
     
         
@@ -318,7 +318,7 @@ def agreementindex(evaluation,simulation):
                 (np.abs(simulation-np.mean(evaluation))+np.abs(evaluation-np.mean(evaluation)))**2))
         return Agreement_index
     else:
-        print "Error: evaluation and simulation lists does not have the same length." 
+        print("Error: evaluation and simulation lists does not have the same length.") 
         return np.nan
 
 def covariance(evaluation,simulation):
@@ -346,7 +346,7 @@ def covariance(evaluation,simulation):
         Covariance = np.sum(Covariance_values)/(len(evaluation))
         return Covariance
     else:
-        print "Error: evaluation and simulation lists does not have the same length." 
+        print("Error: evaluation and simulation lists does not have the same length.") 
         return np.nan
         
 def decomposed_mse(evaluation,simulation):
@@ -376,7 +376,7 @@ def decomposed_mse(evaluation,simulation):
         
         return Decomposed_MSE
     else:
-        print "Error: evaluation and simulation lists does not have the same length."
+        print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
         
 def _variance(evaluation):

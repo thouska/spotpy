@@ -15,8 +15,11 @@ The Sensitivity Analysis Library is distributed in the hope that it will be usef
 
 You should have received a copy of the GNU Lesser General Public License along with the Sensitivity Analysis Library. If not, see http://www.gnu.org/licenses/.
 '''
-
-from _algorithm import _algorithm
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
 import numpy as np
 import time
 import math
@@ -130,7 +133,7 @@ class fast(_algorithm):
    
 
     def analyze(self,problem, Y, D, parnames,M=4, print_to_console=False):
-        print Y.size
+        print(Y.size)
         
         if Y.size % (D) == 0:
             N = int(Y.size / D)
@@ -189,7 +192,7 @@ class fast(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
-        print 'Creating FAST Matrix'
+        print('Creating FAST Matrix')
         #Get the names of the parameters to analyse
         names     = self.parameter()['name']
         #Get the minimum and maximum value for each parameter from the distribution
@@ -201,7 +204,7 @@ class fast(_algorithm):
         for i in range(len(parmin)):
             bounds.append([parmin[i],parmax[i]])
         Matrix = self.matrix(bounds, N, M=4)
-        print 'Start sampling'
+        print('Start sampling')
         starttime=time.time()
         intervaltime=starttime
         # A generator that produces the parameters
@@ -217,13 +220,16 @@ class fast(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep,len(Matrix),self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep,len(Matrix),self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()        
         self.repeat.terminate()
         
         self.datawriter.finalize()
-        print '%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        print(text)
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)
         data=self.datawriter.getdata()
 
         Si = self.analyze(bounds, data['like'], len(bounds), names,print_to_console=True)

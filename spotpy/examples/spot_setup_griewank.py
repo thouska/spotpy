@@ -6,20 +6,22 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This example implements the Griewank function into SPOT.	
 '''
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import numpy as np
 import spotpy
 
 class spot_setup(object):
     def __init__(self,dim=2):
         self.dim=dim
+        self.params = []
+        for i in range(self.dim):
+            self.params.append(spotpy.parameter.Uniform(str(i),-20,20,2,4.0))
         
     def parameters(self):
-        pars = []   #distribution of random value      #name  #stepsize# optguess
-        for i in range(self.dim):        
-            pars.append((np.random.uniform(low=-20,high=20),  str(i),   2,  4.0))        
-        dtype=np.dtype([('random', '<f8'), ('name', '|S30'),('step', '<f8'),('optguess', '<f8')])
-        return np.array(pars,dtype=dtype)
+        return spotpy.parameter.generate(self.params)
                 
   
     def simulation(self, vector):

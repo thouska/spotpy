@@ -8,7 +8,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This class holds the MonteCarlo (MC) algorithm.
 '''
 
-from _algorithm import _algorithm
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
 import time
 
 class mc(_algorithm): 
@@ -70,7 +74,7 @@ class mc(_algorithm):
         #self.datawriter.save(like,randompar,simulations=simulations)
         # A generator that produces the parameters
         param_generator = ((rep,list(self.parameter()['random'])) 
-                            for rep in xrange(int(repetitions)-1))        
+                            for rep in range(int(repetitions)-1))        
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
             like        = self.objectivefunction(simulations,self.evaluation)
@@ -82,17 +86,20 @@ class mc(_algorithm):
             acttime=time.time()
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
                 
         
         self.datawriter.finalize()
         self.repeat.terminate()
-        print 'End of sampling'
-        print '%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
-        print 'Best parameter set:'        
-        print self.status.params        
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        print('End of sampling')
+        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        print(text)
+        print('Best parameter set')        
+        print(self.status.params)
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)
 
     
      

@@ -10,9 +10,12 @@ This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, b
 Based on Optimization_SCE
 Copyright (c) 2011 Stijn Van Hoey.
 '''
-
-from _algorithm import _algorithm
-from spotpy import objectivefunctions
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
+import spotpy
 import numpy as np
 import time 
 
@@ -184,7 +187,7 @@ class sceua(_algorithm):
         param_generator = ((rep,list(x[rep])) for rep in xrange(int(npt)))        
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
-            like = objectivefunctions.rmse(self.evaluation,simulations)
+            like = spotpy.objectivefunctions.rmse(self.evaluation,simulations)
             #Save everything in the database
             self.status(rep,-like,randompar)
             xf[rep] = like                        
@@ -193,7 +196,8 @@ class sceua(_algorithm):
             #Progress bar
             acttime=time.time()
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
    
         # Sort the population in order of increasing function values;
@@ -228,15 +232,15 @@ class sceua(_algorithm):
 
         # Check for convergency;
         if icall >= repetitions:
-            print '*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT'
-            print 'ON THE MAXIMUM NUMBER OF TRIALS '
-            print repetitions
-            print 'HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:'
-            print icall
-            print 'OF THE INITIAL LOOP!'
+            print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
+            print('ON THE MAXIMUM NUMBER OF TRIALS ')
+            print(repetitions)
+            print('HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:')
+            print(icall)
+            print('OF THE INITIAL LOOP!')
 
         if gnrng < peps:
-            print 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE'
+            print('THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
         # Begin evolution loops:
         nloop = 0
@@ -266,7 +270,8 @@ class sceua(_algorithm):
             #Progress bar
             acttime=time.time()
             if acttime-intervaltime>=2:
-                print '%i of %i (best like=%g)' % (icall,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g)' % (icall,repetitions,self.status.objectivefunction)
+                print(text)
                 intervaltime=time.time()
             # End of Loop on Complex Evolution;
     
@@ -299,13 +304,13 @@ class sceua(_algorithm):
 
             # Check for convergency;
             if icall >= repetitions:
-                print '*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT'
-                print 'ON THE MAXIMUM NUMBER OF TRIALS '
-                print repetitions
-                print 'HAS BEEN EXCEEDED.'
+                print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
+                print('ON THE MAXIMUM NUMBER OF TRIALS ')
+                print(repetitions)
+                print('HAS BEEN EXCEEDED.')
 
             if gnrng < peps:
-                print 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE'
+                print('THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
             criter=np.append(criter,bestf)
 
@@ -313,19 +318,24 @@ class sceua(_algorithm):
                 criter_change= np.abs(criter[nloop-1]-criter[nloop-kstop])*100
                 criter_change= criter_change/np.mean(np.abs(criter[nloop-kstop:nloop]))
                 if criter_change < pcento:
-                    print 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' %(kstop,pcento)
-                    print 'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!'
+                    text='THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' %(kstop,pcento)
+                    print(text)
+                    print('CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
 
         # End of the Outer Loops
-        print 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' %icall
-        print 'NORMALIZED GEOMETRIC RANGE = %f'  %gnrng
-        print 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' %(kstop,criter_change)
+        text='SEARCH WAS STOPPED AT TRIAL NUMBER: %d' %icall
+        print(text)
+        text='NORMALIZED GEOMETRIC RANGE = %f'  %gnrng
+        print(text)
+        text='THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' %(kstop,criter_change)
+        print(text)
 
         #reshape BESTX
         BESTX=BESTX.reshape(BESTX.size/self.nopt,self.nopt)
         self.repeat.terminate()
         self.datawriter.finalize()
-        print 'Duration:'+str(round((acttime-starttime),2))+' s'
+        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        print(text)
  
     
  
@@ -377,7 +387,7 @@ class sceua(_algorithm):
 
         ##    fnew = functn(self.nopt,snew);
         simulation=self.model(snew)
-        like = objectivefunctions.rmse(simulation,self.evaluation)
+        like = spotpy.objectivefunctions.rmse(simulation,self.evaluation)
         #like=-self.objectivefunction(simulation,self.evaluation)
         fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
         #fnew = self.model(snew)
@@ -387,7 +397,7 @@ class sceua(_algorithm):
         if fnew > fw:
             snew = sw + beta*(ce-sw)
             simulation=self.model(snew)
-            like = objectivefunctions.rmse(simulation,self.evaluation) 
+            like = spotpy.objectivefunctions.rmse(simulation,self.evaluation) 
             #like=-self.objectivefunction(simulation,self.evaluation)
             fnew = like
             icall += 1
@@ -396,7 +406,7 @@ class sceua(_algorithm):
             if fnew > fw:
                 snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
                 simulation=self.model(snew)
-                like = objectivefunctions.rmse(simulation,self.evaluation)
+                like = spotpy.objectivefunctions.rmse(simulation,self.evaluation)
                 #like=-self.objectivefunction(simulation,self.evaluation)  
                 fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
                 #print 'NSE = '+str((fnew-1)*-1)                    
