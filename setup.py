@@ -17,6 +17,7 @@ if sys.version_info >= (3,):
   license='MIT',
   packages=["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel"],
   include_package_data=True,
+  **extra,
   keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Uncertainty', 'Calibration', 'Model'],
   classifiers=[
         'Development Status :: 4 - Beta',
@@ -32,5 +33,4 @@ if sys.version_info >= (3,):
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Libraries :: Python Modules'],
-        **extra,
         )
