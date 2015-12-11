@@ -137,7 +137,7 @@ class csv(database):
         for name in self.header:
             header_as_str=header_as_str+str(name)+','
         header_as_str=header_as_str[:-1]+'\n'  
-        self.db.write(bytes(header_as_str, 'UTF-8')) 
+        self.db.write(bytes(header_as_str.encode('utf-8'))) 
         #self.save(like,randompar,simulations=simulations,save_sim=save_sim)
     
     def save(self,objectivefunction,parameterlist,simulations=None,chains=1):
@@ -148,11 +148,11 @@ class csv(database):
             data=self._get_list(objectivefunction,parameterlist,simulations=None)
         for value in data:
             try:
-                self.db.write(bytes(str(value)+',','UTF-8'))
+                self.db.write(bytes((str(value)+',').encode('utf-8')))
             except IOError:
                 input("Please close the file "+self.dbname+" When done press Enter to continue...")
-                self.db.write(bytes(str(value)+',','UTF-8'))
-        self.db.write(bytes(str(chains)+'\n','UTF-8'))
+                self.db.write(bytes((str(value)+',').encode('utf-8')))
+        self.db.write(bytes((str(chains)+'\n').encode('utf-8')))
 
     def finalize(self):
         self.db.close()
