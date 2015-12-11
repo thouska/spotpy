@@ -137,7 +137,7 @@ class csv(database):
         for name in self.header:
             header_as_str=header_as_str+str(name)+','
         header_as_str=header_as_str[:-1]+'\n'  
-        self.db.write(bytes(header_as_str), 'UTF-8') 
+        self.db.write(bytes(header_as_str, 'UTF-8') 
         #self.save(like,randompar,simulations=simulations,save_sim=save_sim)
     
     def save(self,objectivefunction,parameterlist,simulations=None,chains=1):
