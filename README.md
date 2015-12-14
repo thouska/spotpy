@@ -132,24 +132,38 @@ Support
 
 * Please contact the authors in case of any bug.
 
-* If you use this package for a scientific research paper, please cite SPOTPY.
+* If you use this package for a scientific research paper, please cite SPOTPY. It is peer-reviewed.
 
 * Patches/enhancements and any other contributions to this package are very welcome!
+
+* GitHub: https://github.com/thouska/spotpy
 
 =================
 Version 1.1.0
 =================
 
-* Changed `likelihood` to `objectivefunction`. Checkout new example spotpy_setup files.  
+* Changed `likelihood` to `objectivefunction`. Checkout new [example spotpy_setup files][http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy/Tutorial/2-Rosenbrock/#creating-the-setup-file].  
+
+=================
+Version 1.1.1 - 1.1.3
+=================
+
+* Minor bugfixes
 
 =================
 Version 1.1.4
 =================
 
-* Added a new functionality to sample parameters from a given list. Checkout new example tutorial.
+* Added a new functionality to sample parameters from a given list. Checkout the corresponding [example tutorial][http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy/Tutorial/6-Advanced_hints/#sampling-from-a-given-parameter-list] and [code][https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_Parameterlist_iterator.py].
 
 =================
 Version 1.2.0
 =================
 
 * Added Python 3 support
+
+=================
+Version 1.2.1
+=================
+
+* Spotpy supports now userdefined databases. Checkout the corresponding [example tutorial][http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy/Tutorial/6-Advanced_hints/#create-a-own-database] and [code][https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_ownDatabase.py].
