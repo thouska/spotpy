@@ -157,7 +157,10 @@ class rope(_algorithm):
                     intervaltime=time.time()        
                         
         self.repeat.terminate()                    
-        self.datawriter.finalize()
+        try:
+            self.datawriter.finalize()
+        except AttributeError: #Happens if no database was assigned
+            pass
         print('End of sampling')
         text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
         print(text)

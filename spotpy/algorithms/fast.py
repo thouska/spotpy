@@ -225,11 +225,16 @@ class fast(_algorithm):
                 intervaltime=time.time()        
         self.repeat.terminate()
         
-        self.datawriter.finalize()
         text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
         print(text)
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
-        data=self.datawriter.getdata()
+        
+        try:
+            self.datawriter.finalize()
+            data=self.datawriter.getdata()
+            Si = self.analyze(bounds, data['like'], len(bounds), names,print_to_console=True)
 
-        Si = self.analyze(bounds, data['like'], len(bounds), names,print_to_console=True)
+        except AttributeError: #Happens if no database was assigned
+            pass
+        

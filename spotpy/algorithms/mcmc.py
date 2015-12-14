@@ -151,7 +151,10 @@ class mcmc(_algorithm):
                 print(text)
                 intervaltime=time.time()
         
-        self.datawriter.finalize()
+        try:
+            self.datawriter.finalize()
+        except AttributeError: #Happens if no database was assigned
+            pass
         print('End of sampling')
         text="Acceptance rate = "+str(accepted/repetitions)        
         print(text)

@@ -333,7 +333,10 @@ class sceua(_algorithm):
         #reshape BESTX
         BESTX=BESTX.reshape(BESTX.size/self.nopt,self.nopt)
         self.repeat.terminate()
-        self.datawriter.finalize()
+        try:
+            self.datawriter.finalize()
+        except AttributeError: #Happens if no database was assigned
+            pass
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
  

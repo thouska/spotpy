@@ -151,7 +151,10 @@ class sa(_algorithm):
             Titer=alpha*Titer
         text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)       
         print(text)
-        self.datawriter.finalize()
+        try:
+            self.datawriter.finalize()
+        except AttributeError: #Happens if no database was assigned
+            pass
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
         data = self.datawriter.getdata()

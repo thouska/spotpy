@@ -326,7 +326,10 @@ class demcz(_algorithm):
         print(text)
         
         self.repeat.terminate()
-        self.datawriter.finalize()
+        try:
+            self.datawriter.finalize()
+        except AttributeError: #Happens if no database was assigned
+            pass
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
 

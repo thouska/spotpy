@@ -76,7 +76,7 @@ class _algorithm(object):
         
     """
     
-    def __init__(self, spot_setup, dbname='test', dbformat='ram', parallel='seq',save_sim=True):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
         #Initialize the user defined setup class
         self.setup        = spot_setup
         self.model        = self.setup.simulation
@@ -92,9 +92,12 @@ class _algorithm(object):
         parnames        = self.parameter()['name']
         simulations     = self.model(randompar)
         like            = self.objectivefunction(simulations,self.evaluation)
-        writerclass     = getattr(database, self.dbformat)
-        self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
-        
+        if dbname is not None:
+            writerclass     = getattr(database, self.dbformat)
+            self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
+        else:
+            self.datawriter = spot_setup
+            
         # Now a repeater (ForEach-object) is loaded
         # A repeater is a convinent wrapper to repeat tasks
         # We have the same interface for sequential and for parallel tasks

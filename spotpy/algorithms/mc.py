@@ -49,7 +49,7 @@ class mc(_algorithm):
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
      '''
-    def __init__(self, spot_setup, dbname='test', dbformat='ram', parallel='seq',save_sim=True):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
    
     def sample(self, repetitions):
@@ -92,7 +92,10 @@ class mc(_algorithm):
                 
         
         self.datawriter.finalize()
-        self.repeat.terminate()
+        try:
+            self.datawriter.finalize()
+        except AttributeError: #Happens if no database was assigned
+            pass
         print('End of sampling')
         text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
         print(text)
