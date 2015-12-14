@@ -154,7 +154,7 @@ Version 1.1.1 - 1.1.3
 Version 1.1.4
 =================
 
-* Added a new functionality to sample parameters from a given list. Checkout the corresponding [example tutorial][http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/6-Advanced_hints/#sampling-from-a-given-parameter-list) and [code](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_Parameterlist_iterator.py)
+* Added a new functionality to sample parameters from a given list. Checkout the corresponding [example tutorial](http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/6-Advanced_hints/#sampling-from-a-given-parameter-list) and [code](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_Parameterlist_iterator.py)
 
 =================
 Version 1.2.0
