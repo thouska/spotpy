@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 The MIT License (MIT)

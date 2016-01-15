@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
@@ -46,6 +47,7 @@ from this software without specific prior written permission.
 THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.'''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

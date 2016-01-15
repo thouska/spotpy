@@ -26,10 +26,12 @@ Purpose
 =================
 
 SPOTPY is a Python tool that enables the use of Computational optimization techniques for calibration, uncertainty 
-and sensitivity analysis techniques of almost every (environmental-) model.
+and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One:
+
+Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
  
 The simplicity and flexibility enables the use and test of different 
-algorithms without the need of complex codes::
+algorithms of almost any model, without the need of complex codes::
 
 	sampler = spotpy.algorithms.sceua(model_setup())     # Initialize your model with a setup file
 	sampler.sample(10000)                                # Run the model
@@ -167,3 +169,9 @@ Version 1.2.1
 =================
 
 * Spotpy supports now userdefined databases. Checkout the corresponding [example tutorial](http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/6-Advanced_hints/#create-a-own-database) and [code](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_ownDatabase.py).
+
+=================
+Version 1.2.2
+=================
+
+* Minor bugfix in Monte Carlo sampler

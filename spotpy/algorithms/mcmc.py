@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
 This class holds the MarkovChainMonteCarlo (MCMC) algorithm based on Metropolis et al. (1953).
+
+Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H. and Teller, E.: Equation of state calculations by fast computing machines, J. Chem. Phys., 21(6), 1087–1092, 1953.
 '''
 from __future__ import absolute_import
 from __future__ import division

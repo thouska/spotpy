@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska and Alejandro Chamorro-Chavez
 
-This class holds the Simulated Annealing (SA) algorithm based on Kirkpatrick et al. (1983).
+This class holds the Simulated Annealing (SA) algorithm based on Kirkpatrick et al. (1983):
+
+Kirkpatrick, S., Gelatt, C. D., Vecchi, M. P. and others: Optimization by simmulated annealing, science, 220(4598), 671–680, 1983.
 '''
 from __future__ import absolute_import
 from __future__ import division

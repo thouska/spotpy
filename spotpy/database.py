@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 
 :author: Tobias Houska

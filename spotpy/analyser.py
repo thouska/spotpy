@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
-Holds functions to analyse results out of the database.
+Holds functions to analyse results out of the database. 
+Note: This part of SPOTPY is in alpha status and not ready for production use.
 '''
 
 

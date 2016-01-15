@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
-:author: Tobias Houska
+:author: Tobias Houska and the SALib team
 
-This class holds the Fourier Amplitude Sensitivity Test (FAST) based on Cukier et al. (1973) and Saltelli et al. (1999)
+This class holds the Fourier Amplitude Sensitivity Test (FAST) based on Cukier et al. (1973) and Saltelli et al. (1999):
 
-Based on SALib
+Cukier, R. I., Fortuin, C. M., Shuler, K. E., Petschek, A. G. and Schaibly, J. H.: Study of the sensitivity of coupled reaction systems to uncertainties in rate coefficients. I Theory, J. Chem. Phys., 59(8), 3873–3878, 1973.
+
+Saltelli, A., Tarantola, S. and Chan, K. P.-S.: A Quantitative Model-Independent Method for Global Sensitivity Analysis of Model Output, Technometrics, 41(1), 39–56, doi:10.1080/00401706.1999.10485594, 1999.
+
+The presented code is based on SALib
 Copyright (C) 2013-2015 Jon Herman and others. Licensed under the GNU Lesser General Public License.
 The Sensitivity Analysis Library is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

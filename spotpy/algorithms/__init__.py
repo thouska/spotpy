@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
+
+:paper: Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: 
+SPOTting Model Parameters Using a Ready-Made Python Package, 
+PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
 
 Imports the different algorithms from this package.
 To reduce dependencies, one may select here just the needed algorithm.

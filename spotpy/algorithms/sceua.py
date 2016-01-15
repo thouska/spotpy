@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska and Stijn Van Hoey
 
-This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, based on Duan (1994).
+This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, based on Duan (1994):
+
+Duan, Q., Sorooshian, S. and Gupta, V. K.: Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol., 158(3), 265–284, 1994.
 
 Based on Optimization_SCE
 Copyright (c) 2011 Stijn Van Hoey.

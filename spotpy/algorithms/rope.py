@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska and Alejandro Chamorro-Chavez
 
 This class holds the Robust Parameter Estimation (ROPE) algorithm based on Bárdossy and Singh (2008).
+
+Bárdossy, A. and Singh, S. K.: Robust estimation of hydrological model parameters, Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
 '''
 
 

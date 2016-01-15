@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
@@ -90,8 +91,6 @@ class mc(_algorithm):
                 print(text)
                 intervaltime=time.time()
                 
-        
-        self.datawriter.finalize()
         try:
             self.datawriter.finalize()
         except AttributeError: #Happens if no database was assigned
