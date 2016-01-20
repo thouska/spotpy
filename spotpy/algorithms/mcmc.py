@@ -50,7 +50,7 @@ class mcmc(_algorithm):
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
      '''
-    def __init__(self, spot_setup, dbname='test', dbformat='ram', parallel='seq',save_sim=True):
+    def __init__(self, spot_setup, dbname='test', dbformat='csv', parallel='seq',save_sim=True):
 
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
       
