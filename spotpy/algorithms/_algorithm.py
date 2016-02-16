@@ -89,11 +89,11 @@ class _algorithm(object):
         self.dbformat     = dbformat
         
         #Initialize the database with a first run
-        randompar       = self.parameter()['random']
-        parnames        = self.parameter()['name']
-        simulations     = self.model(randompar)
-        like            = self.objectivefunction(simulations,self.evaluation)
         if dbname is not None:
+            randompar       = self.parameter()['random']
+            parnames        = self.parameter()['name']
+            simulations     = self.model(randompar)
+            like            = self.objectivefunction(simulations,self.evaluation)
             writerclass     = getattr(database, self.dbformat)
             self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
         else:
