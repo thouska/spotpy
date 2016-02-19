@@ -83,11 +83,12 @@ class sceua(_algorithm):
             return id,params,self.model(params)
         
         else:#complex-evolution
-            igs,x,xf,icall, sce_vars= id_params_tuple
+            igs,x,xf,icall,cx,cf,sce_vars= id_params_tuple
             self.npg,self.nopt,self.ngs,self.nspl,self.nps,self.bl,self.bu, self.status = sce_vars
             # Partition the population into complexes (sub-populations);
-            cx=np.zeros((self.npg,self.nopt))
-            cf=np.zeros((self.npg))
+#            cx=np.zeros((self.npg,self.nopt))
+#            cf=np.zeros((self.npg))
+            #print(igs)
             k1=np.arange(self.npg,dtype=int)
             k2=k1*self.ngs+igs
             cx[k1,:] = x[k2,:]
@@ -137,9 +138,9 @@ class sceua(_algorithm):
                 cx=cx[idx,:]
                 
             # Replace the complex back into the population;
-            x[k2,:] = cx[k1,:]
-            xf[k2] = cf[k1]
-            return igs,likes,pars,sims,x,xf
+
+
+            return igs,likes,pars,sims,cx,cf,k1,k2
 
     def sample(self,repetitions,ngs=20,kstop=100,pcento=0.0000001,peps=0.0000001):
         """
@@ -180,7 +181,7 @@ class sceua(_algorithm):
         x=self._sampleinputmatrix(npt,self.nopt)
         
         #Set Ininitial parameter position         
-        iniflg=1        
+        #iniflg=1        
 
         nloop=0
         icall=0
@@ -211,8 +212,8 @@ class sceua(_algorithm):
         # Record the best and worst points;
         bestx=x[0,:]
         bestf=xf[0]
-        worstx=x[-1,:]
-        worstf=xf[-1]
+        #worstx=x[-1,:]
+        #worstf=xf[-1]
 
         BESTF=bestf
         BESTX=bestx
@@ -223,15 +224,6 @@ class sceua(_algorithm):
 
         # Computes the normalized geometric range of the parameters
         gnrng=np.exp(np.mean(np.log((np.max(x,axis=0)-np.min(x,axis=0))/bound)))
-
-#        print 'The Initial Loop: 0'
-#        print ' BESTF:  %f ' %bestf
-#        print ' BESTX:  '
-#        print bestx
-#        print ' WORSTF:  %f ' %worstf
-#        print ' WORSTX: '
-#        print worstx
-#        print '     '
 
         # Check for convergency;
         if icall >= repetitions:
@@ -260,16 +252,19 @@ class sceua(_algorithm):
             #print nloop
             #print 'Start MPI'
             # Loop on complexes (sub-populations);
+            cx=np.zeros((self.npg,self.nopt))
+            cf=np.zeros((self.npg))
+            
             sce_vars=[self.npg,self.nopt,self.ngs,self.nspl,self.nps,self.bl,self.bu, self.status]
-            param_generator = ((rep,x,xf,icall,sce_vars) for rep in xrange(int(self.ngs))) 
-            for igs,likes,pars,sims,x,xf in self.repeat(param_generator):
+            param_generator = ((rep,x,xf,icall,cx,cf,sce_vars) for rep in xrange(int(self.ngs))) 
+            for igs,likes,pars,sims,cx,cf,k1,k2 in self.repeat(param_generator):
                 icall+=len(likes)
+                x[k2,:] = cx[k1,:]
+                xf[k2] = cf[k1]
+            
                 for i in range(len(likes)):
                     self.datawriter.save(-likes[i],list(pars[i]), simulations = list(sims[i]),chains = igs)   
-            #print 'End MPI'
-            
-            #Progress bar
-            acttime=time.time()
+ 
             #Progress bar
             acttime=time.time()
             if acttime-intervaltime>=2:
@@ -286,8 +281,8 @@ class sceua(_algorithm):
             # Record the best and worst points;
             bestx=x[0,:]
             bestf=xf[0]
-            worstx=x[-1,:]
-            worstf=xf[-1]
+            #worstx=x[-1,:]
+            #worstf=xf[-1]
 
             BESTX = np.append(BESTX,bestx, axis=0) #appenden en op einde reshapen!!
             BESTF = np.append(BESTF,bestf)
@@ -295,15 +290,6 @@ class sceua(_algorithm):
 
             # Computes the normalized geometric range of the parameters
             gnrng=np.exp(np.mean(np.log((np.max(x,axis=0)-np.min(x,axis=0))/bound)))
-
-#            print 'Evolution Loop: %d  - Trial - %d' %(nloop,icall)
-#            print ' BESTF:  %f ' %bestf
-#            print ' BESTX:  '
-#            print bestx
-#            print ' WORSTF:  %f ' %worstf
-#            print ' WORSTX: '
-#            print worstx
-#            print '     '
 
             # Check for convergency;
             if icall >= repetitions:
