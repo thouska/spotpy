@@ -263,6 +263,7 @@ class sceua(_algorithm):
                 xf[k2] = cf[k1]
             
                 for i in range(len(likes)):
+                    self.status(icall,-likes[i],pars[i])
                     self.datawriter.save(-likes[i],list(pars[i]), simulations = list(sims[i]),chains = igs)   
  
             #Progress bar
