@@ -327,6 +327,8 @@ class sceua(_algorithm):
             self.datawriter.finalize()
         except AttributeError: #Happens if no database was assigned
             pass
+        print('Best parameter set')
+        print(self.status.params)
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
  
