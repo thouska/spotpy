@@ -139,7 +139,7 @@ class csv(database):
             header_as_str=header_as_str+str(name)+','
         header_as_str=header_as_str[:-1]+'\n'  
         self.db.write(bytes(header_as_str.encode('utf-8'))) 
-        #self.save(like,randompar,simulations=simulations,save_sim=save_sim)
+        self.save(like,randompar,simulations=simulations)
     
     def save(self,objectivefunction,parameterlist,simulations=None,chains=1):
         self.ram_par=parameterlist
