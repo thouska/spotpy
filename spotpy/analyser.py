@@ -69,7 +69,7 @@ def get_parameters(results):
     fields=[word for word in results.dtype.names if word.startswith('par')]
     results = results[fields]
     #print results.dtype.names# = get_parameternames(results)
-    results.dtype.names = get_parameternames(results)    
+    #results.dtype.names = get_parameternames(results)    
     return results
 
 def get_parameternames(results):
@@ -897,7 +897,8 @@ def plot_parameterInteraction(results):
     cnames=list(colors.cnames)
     parameterdistribtion=get_parameters(results)
     parameternames=get_parameternames(results)  
-    df = pd.DataFrame(parameterdistribtion, columns=parameternames)
+    df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
+    
     pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     plt.savefig('ParameterInteraction',dpi=300)    
     
