@@ -74,7 +74,8 @@ Some features you can use with the SPOTPY package are:
   * Mean Absolute Error (`MAE`)
   * Relative Root Mean Squared Error (`RRMSE`)
   * Agreement Index (`AI`)
-  * Covariance, Decomposed MSE (`dMSE`).
+  * Covariance, Decomposed MSE (`dMSE`)
+  * Kling-Gupta Efficiency (`KGE`).
 
 * Prebuild parameter distribution functions: 
 

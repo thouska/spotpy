@@ -379,7 +379,34 @@ def decomposed_mse(evaluation,simulation):
     else:
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
-        
+
+def kge(evaluation,simulation, return_all=False):
+    """
+    Kling-Gupta Efficiency
+    
+    Corresponding paper: 
+    Gupta, Kling, Yilmaz, Martinez, 2009, Decomposition of the mean squared error and NSE performance criteria: Implications for improving hydrological modelling
+    
+    output:
+        kge: Kling-Gupta Efficiency
+    optional_output:
+        cc: correlation 
+        alpha: ratio of the standard deviation
+        beta: ratio of the mean
+    """
+    if len(evaluation)==len(simulation):
+        cc    = np.corrcoef(evaluation,simulation)[0,1]
+        alpha = np.std(simulation)/np.std(evaluation)
+        beta  = np.sum(simulation)/np.sum(evaluation)
+        kge   = 1- np.sqrt( (cc-1)**2 + (alpha-1)**2 + (beta-1)**2 )
+        if return_all:
+            return kge, cc, alpha, beta
+        else:
+            return kge
+    else:
+        print("Error: evaluation and simulation lists does not have the same length.")
+        return np.nan
+
 def _variance(evaluation):
     """
     Variance
