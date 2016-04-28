@@ -24,4 +24,3 @@ from sceua import sceua  # Shuffled Complex Evolution
 from sa import sa        # Simulated annealing
 from rope import rope    # RObust Parameter Estimation
 from fast import fast    # Fourier Amplitude Sensitivity Test
-
