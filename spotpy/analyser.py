@@ -129,7 +129,7 @@ def get_minlikeindex(results):
     return index, minimum    
 
 
-def get_percentiles(results,sim_number=None):
+def get_percentiles(results,sim_number=''):
     """
     Get 5,25,50,75 and 95 percentiles of your simulations
     
