@@ -85,9 +85,15 @@ class mc(_algorithm):
             
             #Progress bar
             acttime=time.time()
+            
+            #get str showing approximate timeleft to end of simulation in H, M, S 
+        
+            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime-starttime)/
+                                   (rep + 1))*(repetitions-(rep + 1 )))))
             #Refresh progressbar every second
             if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+                text='%i of %i (best like=%g) est. time remaining: %s' % (rep,repetitions,
+                     self.status.objectivefunction,timestr)
                 print(text)
                 intervaltime=time.time()
                 
