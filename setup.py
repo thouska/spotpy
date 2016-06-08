@@ -8,7 +8,7 @@ setup(
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
-  download_url = 'svn://fb09-pasig.umwelt.uni-giessen.de/spotpy/trunk/', 
+  #download_url = 'svn://fb09-pasig.umwelt.uni-giessen.de/spotpy/trunk/', 
   license = 'MIT',
   packages = ["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel"],
   include_package_data = True,
