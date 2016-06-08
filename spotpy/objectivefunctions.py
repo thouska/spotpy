@@ -49,7 +49,33 @@ def bias(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
+
+def pbias(evaluation,simulation):
+    """
+    Procentual Bias
+    
+        .. math::
         
+         PBias= 100 * \\frac{\\sum_{i=1}^{N}(e_{i}-s_{i})}{\\sum_{i=1}^{N}(e_{i})}
+
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: PBias
+    :rtype: float
+    """    
+    if len(evaluation)==len(simulation):   
+        sim = np.array(simulation)
+        obs = np.array(evaluation)
+        return 100 * (float(np.sum( sim - obs )) / float(np.sum( obs )) )
+
+    else:
+        print("Error: evaluation and simulation lists does not have the same length.")
+        return np.nan
+
 def nashsutcliff(evaluation,simulation):   
     """
     Nash-Sutcliff model efficinecy

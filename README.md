@@ -64,6 +64,7 @@ Some features you can use with the SPOTPY package are:
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
   * Bias
+  * PBias
   * Nash-Sutcliff (`NSE`)
   * logarithmic Nash-Sutcliff (`logNSE`)
   * logarithmic probability (`logp`)
