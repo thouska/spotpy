@@ -26,7 +26,7 @@ SPOTPY is a Python tool that enables the use of Computational optimization techn
 and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One:
 
 Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE, 
-10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015
+10(12), e0145180, doi:[10.1371/journal.pone.0145180](http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0145180 "SPOTting Model Parameters Using a Ready-Made Python Package"), 2015
  
 The simplicity and flexibility enables the use and test of different 
 algorithms of almost any model, without the need of complex codes::
