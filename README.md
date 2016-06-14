@@ -3,14 +3,11 @@ A Statistical Parameter Optimization Framework for Python
 
 ---
 
-#[![PyPI Downloads][pypi-dl-image]][pypi-dl-link]
 [![PyPI Version][pypi-v-image]][pypi-v-link]
 [![Python Versions][pypi-pyv-image]][pypi-pyv-link]
 [![Build Status][travis-image]][travis-link]
 [![License][license-image]][license-link]
 
-#[pypi-dl-image]: https://img.shields.io/pypi/dm/spotpy.png
-#[pypi-dl-link]: https://pypi.python.org/pypi/spotpy
 [pypi-v-image]: https://img.shields.io/pypi/v/spotpy.png
 [pypi-v-link]: https://pypi.python.org/pypi/spotpy
 [pypi-pyv-image]: https://img.shields.io/pypi/pyversions/spotpy.png
