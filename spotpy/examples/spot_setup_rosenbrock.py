@@ -1,9 +1,7 @@
 '''
 Copyright 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska
-
 This example implements the Rosenbrock function into SPOT.  
 '''
 from __future__ import absolute_import

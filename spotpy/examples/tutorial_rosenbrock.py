@@ -2,9 +2,7 @@
 '''
 Copyright 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska
-
 This class holds the example code from the Rosenbrock tutorial web-documention.
 '''
 from __future__ import absolute_import

@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 '''
 Copyright (c) 2015 by Tobias Houska
-
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska
-
 This class holds the MonteCarlo (MC) algorithm.
 '''
 
@@ -41,7 +38,6 @@ class mc(_algorithm):
     dbformat: str
         * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
         * csv: A csv file will be created, which you can import afterwards.        
-
     parallel: str
         * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
@@ -108,6 +104,3 @@ class mc(_algorithm):
         print(self.status.params)
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
-
-    
-     
