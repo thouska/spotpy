@@ -121,7 +121,10 @@ class lhs(_algorithm):
             self.datawriter.finalize()
         except AttributeError: #Happens if no database was assigned
             pass
+        print('End of sampling')
         text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
         print(text)
+        print('Best parameter set')        
+        print(self.status.params)
         text='Duration:'+str(round((acttime-starttime),2))+' s'
         print(text)
