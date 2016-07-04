@@ -47,7 +47,7 @@ class mc(_algorithm):
         *False: Simulationt results will not be saved
      '''
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
-        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
+        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim, dbinit= False)
    
     def sample(self, repetitions):
         """
@@ -75,6 +75,9 @@ class mc(_algorithm):
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
             like        = self.objectivefunction(simulations,self.evaluation)
+            if rep==0:
+                parnames        = self.parameter()['name']
+                self.initialize_database(randompar,parnames,simulations,like)
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)
