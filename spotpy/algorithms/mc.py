@@ -71,13 +71,16 @@ class mc(_algorithm):
         #self.datawriter.save(like,randompar,simulations=simulations)
         # A generator that produces the parameters
         param_generator = ((rep,list(self.parameter()['random'])) 
-                            for rep in range(int(repetitions)-1))        
+                            for rep in range(int(repetitions)-1))
+        firstcall=True
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
             like        = self.objectivefunction(simulations,self.evaluation)
-            if rep==0:
+            if firstcall==True:
                 parnames        = self.parameter()['name']
                 self.initialize_database(randompar,parnames,simulations,like)
+                firstcall=False
+            
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)
