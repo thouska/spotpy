@@ -77,7 +77,7 @@ class _algorithm(object):
         
     """
     
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True, parallel='seq',save_sim=True):
         #Initialize the user defined setup class
         self.setup        = spot_setup
         self.model        = self.setup.simulation
@@ -89,13 +89,13 @@ class _algorithm(object):
         self.dbformat     = dbformat
         
         #Initialize the database with a first run
-        if dbname is not None:
+        if dbname is not None and dbinit == True:
             randompar       = self.parameter()['random']
             parnames        = self.parameter()['name']
             simulations     = self.model(randompar)
             like            = self.objectivefunction(simulations,self.evaluation)
-            writerclass     = getattr(database, self.dbformat)
-            self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
+            self.initialize_database(randompar,parnames,simulations,like)
+
         else:
             self.datawriter = spot_setup
             
@@ -124,7 +124,11 @@ class _algorithm(object):
         # simulate function, new calculation phases and the termination
         self.repeat.start()
         self.status = _RunStatistic()
-    
+
+    def initialize_database(randompar,parnames,simulations,like):
+        writerclass     = getattr(database, self.dbformat)
+        self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
+
     def getdata(self):
         if self.dbformat=='ram':
             return self.datawriter.data

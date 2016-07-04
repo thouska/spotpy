@@ -15,6 +15,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
+from .. import database
 import numpy as np
 import random
 import time
@@ -55,7 +56,7 @@ class lhs(_algorithm):
      '''
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
-        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
+        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim, dbinit= False)
 
     def find_min_max(self):
         randompar=self.parameter()['random']        
@@ -98,9 +99,13 @@ class lhs(_algorithm):
         # A generator that produces the parameters
         #param_generator = iter(Matrix)
         param_generator = ((rep,list(Matrix[rep])) for rep in xrange(int(repetitions)-1))        
-        for rep,randompar,simulations in self.repeat(param_generator):        
+        for rep,randompar,simulations in self.repeat(param_generator):
             #Calculate the objective function
             like        = self.objectivefunction(simulations,self.evaluation)
+            if rep==0:
+                parnames        = self.parameter()['name']
+                self.initialize_database(randompar,parnames,simulations,like)
+            self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)
