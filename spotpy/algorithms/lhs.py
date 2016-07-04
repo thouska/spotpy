@@ -105,7 +105,6 @@ class lhs(_algorithm):
             if rep==0:
                 parnames        = self.parameter()['name']
                 self.initialize_database(randompar,parnames,simulations,like)
-            self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)
