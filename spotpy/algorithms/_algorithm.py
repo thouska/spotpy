@@ -125,7 +125,7 @@ class _algorithm(object):
         self.repeat.start()
         self.status = _RunStatistic()
 
-    def initialize_database(randompar,parnames,simulations,like):
+    def initialize_database(self,randompar,parnames,simulations,like):
         writerclass     = getattr(database, self.dbformat)
         self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
 
