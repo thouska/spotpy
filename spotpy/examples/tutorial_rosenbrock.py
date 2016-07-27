@@ -53,4 +53,4 @@ results.append(sampler.getdata())
 evaluation = spot_setup.evaluation()
 
 #Example how to plot the data
-spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
+#spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
