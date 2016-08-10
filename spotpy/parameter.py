@@ -19,7 +19,7 @@ class Base(object):
     It creates a random number (or array) drawn from specified distribution
     """
 
-    def __init__(self, name, rndfunc, rndargs, step=None, optguess=None, **kwargs):
+    def __init__(self, name, rndfunc, rndargs, step=None, optguess=None, *args, **kwargs):
         """
         :name:     Name of the parameter
         :rndfunc:  Function to draw a random number, 
@@ -61,7 +61,7 @@ class Uniform(Base):
     A specialization of the Base parameter for uniform distributions
     """
 
-    def __init__(self, name, low, high, **kwargs):
+    def __init__(self, name, low, high, *args, **kwargs):
         """
         :name: Name of the parameter
         :low: lower bound of the uniform distribution
@@ -76,6 +76,7 @@ class Uniform(Base):
         super(Uniform, self).__init__(name,
                                       rnd.uniform,
                                       (low, high),
+                                      *args,
                                       **kwargs)
 
 
@@ -107,7 +108,7 @@ class Normal(Base):
     A specialization of the Base parameter for normal distributions
     """
 
-    def __init__(self, name, mean, stddev, **kwargs):
+    def __init__(self, name, mean, stddev, *args, **kwargs):
         """
         :name: Name of the parameter
         :mean: center of the normal distribution
@@ -122,6 +123,7 @@ class Normal(Base):
         super(Normal, self).__init__(name,
                                      rnd.normal,
                                      (mean, stddev),
+                                      *args,
                                      **kwargs)
 
 
@@ -130,7 +132,7 @@ class logNormal(Base):
     A specialization of the Base parameter for normal distributions
     """
 
-    def __init__(self, name, mean, sigma, **kwargs):
+    def __init__(self, name, mean, sigma, *args, **kwargs):
         """
         :name: Name of the parameter
         :mean: Mean value of the underlying normal distribution
@@ -145,6 +147,7 @@ class logNormal(Base):
         super(logNormal, self).__init__(name,
                                         rnd.lognormal,
                                         (mean, sigma),
+                                        *args,
                                         **kwargs)
 
 
@@ -153,7 +156,7 @@ class Chisquare(Base):
     A specialization of the Base parameter for chisquare distributions
     """
 
-    def __init__(self, name, dt, **kwargs):
+    def __init__(self, name, dt, *args, **kwargs):
         """
         :name: Name of the parameter
         :dt: Number of degrees of freedom.
@@ -167,6 +170,7 @@ class Chisquare(Base):
         super(Chisquare, self).__init__(name,
                                         rnd.chisquare,
                                         (dt,),
+                                        *args,
                                         **kwargs)
 
 
@@ -175,7 +179,7 @@ class Exponential(Base):
     A specialization of the Base parameter for exponential distributions
     """
 
-    def __init__(self, name, scale, **kwargs):
+    def __init__(self, name, scale, *args, **kwargs):
         """
         :name: Name of the parameter
         :scale: The scale parameter, \beta = 1/\lambda.
@@ -189,6 +193,7 @@ class Exponential(Base):
         super(Exponential, self).__init__(name,
                                           rnd.exponential,
                                           (scale,),
+                                          *args,
                                           **kwargs)
 
 
@@ -197,7 +202,7 @@ class Gamma(Base):
     A specialization of the Base parameter for gamma distributions
     """
 
-    def __init__(self, name, shape, **kwargs):
+    def __init__(self, name, shape, *args, **kwargs):
         """
         :name: Name of the parameter
         :shape: The shape of the gamma distribution.
@@ -211,6 +216,7 @@ class Gamma(Base):
         super(Gamma, self).__init__(name,
                                     rnd.gamma,
                                     (shape,),
+                                    *args,
                                     **kwargs)
 
 
@@ -219,7 +225,7 @@ class Wald(Base):
     A specialization of the Base parameter for Wald distributions
     """
 
-    def __init__(self, name, mean, scale, **kwargs):
+    def __init__(self, name, mean, scale, *args, **kwargs):
         """
         :name: Name of the parameter
         :mean: Shape of the distribution.
@@ -234,6 +240,7 @@ class Wald(Base):
         super(Wald, self).__init__(name,
                                    rnd.wald,
                                    (mean, scale),
+                                   *args,
                                    **kwargs)
 
 
@@ -242,7 +249,7 @@ class Weilbull(Base):
     A specialization of the Base parameter for Weilbull distributions
     """
 
-    def __init__(self, name, a, **kwargs):
+    def __init__(self, name, a, *args, **kwargs):
         """
         :name: Name of the parameter
         :a: Shape of the distribution.
@@ -256,6 +263,7 @@ class Weilbull(Base):
         super(Weilbull, self).__init__(name,
                                        rnd.weilbull,
                                        (a,),
+                                       *args,
                                        **kwargs)
 
 
