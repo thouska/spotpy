@@ -129,7 +129,7 @@ class _algorithm(object):
         try:
             writerclass     = getattr(database, self.dbformat)
             self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
-        except ValueError: #Might happen if a user defined database was implemented
+        except (ValueError, TypeError): #Might happen if a user defined database was implemented
             pass
 
     def getdata(self):
