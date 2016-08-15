@@ -40,10 +40,10 @@ class sceua(_algorithm):
             observation.
         evaluation: function
             Should return the true values as return by the model.
-            
+
     dbname: str
         * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-    
+
     dbformat: str
         * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
         * csv: A csv file will be created, which you can import afterwards.        
@@ -52,14 +52,22 @@ class sceua(_algorithm):
         * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
         * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
-    
+
     save_sim: boolean
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
-     '''
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
-        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
+    alt_objfun: str or None, default: 'rmse'
+        alternative objectivefunction to be used for algorithm
+        * None: the objfun defined in spot_setup.objectivefunction is used
+        * any str: if str is found in spotpy.objectivefunctions, 
+            this objectivefunction is used, else falls back to None 
+            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
+     '''
+    def __init__(self, *args, **kwargs):
+        if 'alt_objfun' not in kwargs:
+            kwargs['alt_objfun'] = 'rmse'
+        super(sceua, self).__init__(*args, **kwargs)
     
     def find_min_max(self):
         randompar=self.parameter()['random']        
@@ -191,7 +199,7 @@ class sceua(_algorithm):
         param_generator = ((rep,list(x[rep])) for rep in xrange(int(npt)))        
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
-            like = spotpy.objectivefunctions.rmse(self.evaluation,simulations)
+            like = self.objectivefunction(self.evaluation,simulations)
             #Save everything in the database
             self.status(rep,-like,randompar)
             xf[rep] = like                        
@@ -382,8 +390,7 @@ class sceua(_algorithm):
 
         ##    fnew = functn(self.nopt,snew);
         simulation=self.model(snew)
-        like = spotpy.objectivefunctions.rmse(simulation,self.evaluation)
-        #like=-self.objectivefunction(simulation,self.evaluation)
+        like = self.objectivefunction(self.evaluation,simulations)
         fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
         #fnew = self.model(snew)
         icall += 1
@@ -392,8 +399,7 @@ class sceua(_algorithm):
         if fnew > fw:
             snew = sw + beta*(ce-sw)
             simulation=self.model(snew)
-            like = spotpy.objectivefunctions.rmse(simulation,self.evaluation) 
-            #like=-self.objectivefunction(simulation,self.evaluation)
+            like = self.objectivefunction(self.evaluation,simulations)
             fnew = like
             icall += 1
 
@@ -401,8 +407,7 @@ class sceua(_algorithm):
             if fnew > fw:
                 snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
                 simulation=self.model(snew)
-                like = spotpy.objectivefunctions.rmse(simulation,self.evaluation)
-                #like=-self.objectivefunction(simulation,self.evaluation)  
+                like = self.objectivefunction(self.evaluation,simulations)
                 fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
                 #print 'NSE = '+str((fnew-1)*-1)                    
                 #fnew = self.model(snew)

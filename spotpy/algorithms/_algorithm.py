@@ -12,7 +12,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from spotpy import database
+from spotpy import database, objectivefunctions
 import numpy as np
 
 class _RunStatistic(object):
@@ -74,15 +74,25 @@ class _algorithm(object):
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
+
+    alt_objfun: str or None, default: 'rmse'
+        alternative objectivefunction to be used for algorithm
+        * None: the objfun defined in spot_setup.objectivefunction is used
+        * any str: if str is found in spotpy.objectivefunctions, 
+            this objectivefunction is used, else falls back to None 
+            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
         
     """
     
-    def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True, parallel='seq',save_sim=True):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
+                 parallel='seq', save_sim=True, alt_objfun=None):
         #Initialize the user defined setup class
         self.setup        = spot_setup
         self.model        = self.setup.simulation
         self.parameter    = self.setup.parameters
-        self.objectivefunction   = self.setup.objectivefunction
+        # use alt_objfun if alt_objfun is defined in objectivefunctions,
+        # else self.setup.objectivefunction
+        self.objectivefunction   = getattr(objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
         self.evaluation   = self.setup.evaluation()
         self.save_sim     = save_sim
         self.dbname       = dbname
@@ -93,7 +103,7 @@ class _algorithm(object):
             randompar       = self.parameter()['random']
             parnames        = self.parameter()['name']
             simulations     = self.model(randompar)
-            like            = self.objectivefunction(simulations,self.evaluation)
+            like            = self.objectivefunction(self.evaluation, simulations)
             self.initialize_database(randompar,parnames,simulations,like)
 
         else:
