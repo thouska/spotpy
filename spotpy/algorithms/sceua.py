@@ -389,7 +389,7 @@ class sceua(_algorithm):
             snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
 
         ##    fnew = functn(self.nopt,snew);
-        simulation=self.model(snew)
+        simulations=self.model(snew)
         like = self.objectivefunction(self.evaluation,simulations)
         fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
         #fnew = self.model(snew)
@@ -398,7 +398,7 @@ class sceua(_algorithm):
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
             snew = sw + beta*(ce-sw)
-            simulation=self.model(snew)
+            simulations=self.model(snew)
             like = self.objectivefunction(self.evaluation,simulations)
             fnew = like
             icall += 1
@@ -406,7 +406,7 @@ class sceua(_algorithm):
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
                 snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
-                simulation=self.model(snew)
+                simulations=self.model(snew)
                 like = self.objectivefunction(self.evaluation,simulations)
                 fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
                 #print 'NSE = '+str((fnew-1)*-1)                    
@@ -414,7 +414,7 @@ class sceua(_algorithm):
                 icall += 1
 
         # END OF CCE
-        return snew,fnew,icall,simulation
+        return snew,fnew,icall,simulations
                                 
     def _sampleinputmatrix(self,nrows,npars):
         '''
