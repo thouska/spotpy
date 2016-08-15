@@ -15,8 +15,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
-import spotpy
-#from .spotpy import objectivefunctions
 import numpy as np
 import time
 
@@ -49,10 +47,18 @@ class mcmc(_algorithm):
     save_sim: boolean
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
-     '''
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
-        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
+    alt_objfun: str or None, default: 'log_p'
+        alternative objectivefunction to be used for algorithm
+        * None: the objfun defined in spot_setup.objectivefunction is used
+        * any str: if str is found in spotpy.objectivefunctions, 
+            this objectivefunction is used, else falls back to None 
+            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
+     '''
+    def __init__(self, *args, **kwargs):
+        if 'alt_objfun' not in kwargs:
+            kwargs['alt_objfun'] = 'log_p'
+        super(mcmc, self).__init__(*args, **kwargs)
       
     def find_min_max(self):
         randompar=self.parameter()['random']        
@@ -88,7 +94,7 @@ class mcmc(_algorithm):
             par = self.parameter()['random']
             pars.append(par)
             sim = self.model(par)
-            like = spotpy.objectivefunctions.log_p(sim,self.evaluation)
+            like = self.objectivefunction(self.evaluation, sim)
             likes.append(like)
             sims.append(sim)            
             self.datawriter.save(like,par,simulations=sim)
@@ -121,8 +127,7 @@ class mcmc(_algorithm):
 
             new_par=self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
-            #new_like = self.objectivefunction(new_simulations,self.evaluation)
-            new_like =spotpy.objectivefunctions.log_p(new_simulations,self.evaluation)      
+            new_like = self.objectivefunction(self.evaluation, new_simulations)
             self.status(rep,new_like,new_par)      
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
