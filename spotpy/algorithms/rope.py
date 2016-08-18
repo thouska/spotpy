@@ -96,7 +96,7 @@ class rope(_algorithm):
         self.min_bound, self.max_bound = self.find_min_max()
         randompar   = list(self.parameter()['optguess'])
         simulations = self.model(randompar)
-        like        = self.objectivefunction(evaluation = self.evaluation, simulation = new_simulations)
+        like        = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
         self.percentage=percentage
         runs=int(repetitions/subsets)
         #Init ROPE with one subset
