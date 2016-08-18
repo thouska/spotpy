@@ -14,11 +14,11 @@ import numpy as np
 import spotpy
 
 class spot_setup(object):
-    def __init__(self,dim=2):
-        self.dim=dim
+    def __init__(self, dim = 2):
+        self.dim = dim
         self.params = []
         for i in range(self.dim):
-            self.params.append(spotpy.parameter.Uniform(str(i),-20,20,2,4.0))
+            self.params.append(spotpy.parameter.Uniform(str(i), -20, 20, 2, 4.0))
         
     def parameters(self):
         return spotpy.parameter.generate(self.params)
@@ -30,18 +30,16 @@ class spot_setup(object):
         s = 0
         p = 1
         for j in range(n): 
-            s = s+vector[j]**2
+            s = s + vector[j]**2
         for j in range(n): 
-            p = p*np.cos(vector[j]/np.sqrt(j+1))
-        simulation = [s/fr-p+1]
+            p = p * np.cos(vector[j] / np.sqrt(j+1))
+        simulation = [s / fr - p + 1]
         return simulation     
-     
-     
-     
+       
     def evaluation(self):
-        observations=[0]
+        observations = [0]
         return observations
     
-    def objectivefunction(self,simulation,evaluation):
-        objectivefunction= -spotpy.objectivefunctions.rmse(simulation,evaluation)
+    def objectivefunction(self, simulation,evaluation):
+        objectivefunction= -spotpy.objectivefunctions.rmse(evaluation = evaluation, simulation = simulation)
         return objectivefunction

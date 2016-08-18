@@ -199,7 +199,7 @@ class sceua(_algorithm):
         param_generator = ((rep,list(x[rep])) for rep in xrange(int(npt)))        
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
-            like = self.objectivefunction(self.evaluation,simulations)
+            like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
             #Save everything in the database
             self.status(rep,-like,randompar)
             xf[rep] = like                        
@@ -390,7 +390,7 @@ class sceua(_algorithm):
 
         ##    fnew = functn(self.nopt,snew);
         simulations=self.model(snew)
-        like = self.objectivefunction(self.evaluation,simulations)
+        like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
         fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
         #fnew = self.model(snew)
         icall += 1
@@ -399,7 +399,7 @@ class sceua(_algorithm):
         if fnew > fw:
             snew = sw + beta*(ce-sw)
             simulations=self.model(snew)
-            like = self.objectivefunction(self.evaluation,simulations)
+            like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
             fnew = like
             icall += 1
 
@@ -407,7 +407,7 @@ class sceua(_algorithm):
             if fnew > fw:
                 snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
                 simulations=self.model(snew)
-                like = self.objectivefunction(self.evaluation,simulations)
+                like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
                 #print 'NSE = '+str((fnew-1)*-1)                    
                 #fnew = self.model(snew)

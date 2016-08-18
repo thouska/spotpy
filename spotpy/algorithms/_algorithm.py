@@ -103,7 +103,7 @@ class _algorithm(object):
             randompar       = self.parameter()['random']
             parnames        = self.parameter()['name']
             simulations     = self.model(randompar)
-            like            = self.objectivefunction(self.evaluation, simulations)
+            like            = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
             self.initialize_database(randompar,parnames,simulations,like)
 
         else:
@@ -136,11 +136,9 @@ class _algorithm(object):
         self.status = _RunStatistic()
 
     def initialize_database(self,randompar,parnames,simulations,like):
-        try:
-            writerclass     = getattr(database, self.dbformat)
-            self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
-        except (ValueError, TypeError): #Might happen if a user defined database was implemented
-            pass
+        writerclass     = getattr(database, self.dbformat)
+        self.datawriter = writerclass(self.dbname,parnames,like,randompar,simulations,save_sim=self.save_sim)
+
 
     def getdata(self):
         if self.dbformat=='ram':

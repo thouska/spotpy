@@ -12,7 +12,7 @@ returns the objective function value of interest.
 
 import numpy as np
 
-def bias(evaluation,simulation):
+def bias(evaluation=None,simulation=None):
     """
     Bias
     
@@ -29,7 +29,7 @@ def bias(evaluation,simulation):
     :return: Bias
     :rtype: float
     """    
-    if len(evaluation)==len(simulation):   
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:   
         bias_values=[]       
         for i in range(len(evaluation)):
             if evaluation[i] == -99999:
@@ -50,7 +50,7 @@ def bias(evaluation,simulation):
         return np.nan
 
 
-def pbias(evaluation,simulation):
+def pbias(evaluation=None,simulation=None):
     """
     Procentual Bias
     
@@ -67,7 +67,7 @@ def pbias(evaluation,simulation):
     :return: PBias
     :rtype: float
     """    
-    if len(evaluation)==len(simulation):   
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:   
         sim = np.array(simulation)
         obs = np.array(evaluation)
         return 100 * (float(np.sum( sim - obs )) / float(np.sum( obs )) )
@@ -76,7 +76,7 @@ def pbias(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def nashsutcliff(evaluation,simulation):   
+def nashsutcliff(evaluation=None,simulation=None):   
     """
     Nash-Sutcliff model efficinecy
     
@@ -94,7 +94,7 @@ def nashsutcliff(evaluation,simulation):
     :rtype: float
     
     """   
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         s,e=np.array(simulation),np.array(evaluation)
         #s,e=simulation,evaluation       
         mean_observed = np.mean(e)
@@ -109,7 +109,7 @@ def nashsutcliff(evaluation,simulation):
         return np.nan
 
         
-def lognashsutcliff(evaluation,simulation):
+def lognashsutcliff(evaluation=None,simulation=None):
     """
     log Nash-Sutcliff model efficiency
    
@@ -127,14 +127,14 @@ def lognashsutcliff(evaluation,simulation):
     :rtype: float
     
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         return float(1 - sum((np.log(simulation)-np.log(evaluation))**2)/sum((np.log(evaluation)-np.mean(np.log(evaluation)))**2))
     else:
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
         
     
-def log_p(evaluation,simulation,scale=0.1):
+def log_p(evaluation=None,simulation=None,scale=0.1):
     """
     Logarithmic probability distribution
     
@@ -157,7 +157,7 @@ def log_p(evaluation,simulation,scale=0.1):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
     
-def correlationcoefficient(evaluation,simulation):
+def correlationcoefficient(evaluation=None,simulation=None):
     """
     Correlation Coefficient
     
@@ -174,14 +174,14 @@ def correlationcoefficient(evaluation,simulation):
     :return: Corelation Coefficient
     :rtype: float
     """ 
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         Corelation_Coefficient = np.corrcoef(evaluation,simulation)[0,1]
         return Corelation_Coefficient
     else:
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
   
-def rsquared(evaluation,simulation):
+def rsquared(evaluation=None,simulation=None):
     """
     Coefficient of Determination
     
@@ -198,13 +198,13 @@ def rsquared(evaluation,simulation):
     :return: Coefficient of Determination
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         return correlationcoefficient(evaluation,simulation)**2
     else:
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def mse(evaluation,simulation):
+def mse(evaluation=None,simulation=None):
     """
     Mean Squared Error
     
@@ -222,7 +222,7 @@ def mse(evaluation,simulation):
     :rtype: float
     """
     
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         
         MSE_values=[]
                 
@@ -237,7 +237,7 @@ def mse(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
         
-def rmse(evaluation,simulation):
+def rmse(evaluation=None,simulation=None):
     """
     Root Mean Squared Error
     
@@ -254,13 +254,13 @@ def rmse(evaluation,simulation):
     :return: Root Mean Squared Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         return np.sqrt(mse(evaluation,simulation))
     else:
         print("Error: evaluation and simulation lists does not have the same length.")    
         return np.nan
 
-def mae(evaluation,simulation):
+def mae(evaluation=None,simulation=None):
     """
     Mean Absolute Error
 
@@ -277,7 +277,7 @@ def mae(evaluation,simulation):
     :return: Mean Absolute Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         
         MAE_values=[]
                 
@@ -293,7 +293,7 @@ def mae(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")  
         return np.nan
 
-def rrmse(evaluation,simulation):
+def rrmse(evaluation=None,simulation=None):
     """
     Relative Root Mean Squared Error
     
@@ -311,7 +311,7 @@ def rrmse(evaluation,simulation):
     :rtype: float
     """
     
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
 
         RRMSE = rmse(evaluation,simulation)/np.mean(simulation)
         return RRMSE
@@ -321,7 +321,7 @@ def rrmse(evaluation,simulation):
         return np.nan
     
         
-def agreementindex(evaluation,simulation):
+def agreementindex(evaluation=None,simulation=None):
     """
     Agreement Index (d) developed by Willmott (1981)
 
@@ -339,7 +339,7 @@ def agreementindex(evaluation,simulation):
     :return: Agreement Index
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         simulation,evaluation=np.array(simulation),np.array(evaluation)
         Agreement_index=1 -(np.sum((evaluation-simulation)**2))/(np.sum(
                 (np.abs(simulation-np.mean(evaluation))+np.abs(evaluation-np.mean(evaluation)))**2))
@@ -348,7 +348,7 @@ def agreementindex(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.") 
         return np.nan
 
-def covariance(evaluation,simulation):
+def covariance(evaluation=None,simulation=None):
     """
     Covariance
     
@@ -364,7 +364,7 @@ def covariance(evaluation,simulation):
     :return: Covariance
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         Covariance_values = []
         
         for i in range(len(evaluation)):
@@ -376,7 +376,7 @@ def covariance(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.") 
         return np.nan
         
-def decomposed_mse(evaluation,simulation):
+def decomposed_mse(evaluation=None,simulation=None):
     """
     Decomposed MSE developed by Kobayashi and Salam (2000)
     
@@ -397,7 +397,7 @@ def decomposed_mse(evaluation,simulation):
     :rtype: float
     """
     
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         
         Decomposed_MSE = str(round((bias(evaluation,simulation))**2,2))+'(bias**2) + '+str(round((_standarddeviation(evaluation)-_standarddeviation(simulation))**2,2))+'(SDSD) + '+str(round(2*_standarddeviation(evaluation)*_standarddeviation(simulation)*(1-correlationcoefficient(evaluation,simulation)),2))+'(LCS)'         
         
@@ -406,7 +406,7 @@ def decomposed_mse(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def kge(evaluation,simulation, return_all=False):
+def kge(evaluation=None,simulation=None, return_all=False):
     """
     Kling-Gupta Efficiency
     
@@ -420,7 +420,7 @@ def kge(evaluation,simulation, return_all=False):
         alpha: ratio of the standard deviation
         beta: ratio of the mean
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation is not None and simulation is not None:
         cc    = np.corrcoef(evaluation,simulation)[0,1]
         alpha = np.std(simulation)/np.std(evaluation)
         beta  = np.sum(simulation)/np.sum(evaluation)

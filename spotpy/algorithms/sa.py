@@ -91,7 +91,7 @@ class sa(_algorithm):
         Xopt = x        
         simulations=self.model(x)
         SimOpt=simulations
-        Enew = self.objectivefunction(simulations,self.evaluation)
+        Enew = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
         Eopt = Enew
         self.datawriter.save(Eopt,Xopt,simulations=simulations)
         #k=(vmax-vmin)/self.parameter()['step']
@@ -120,7 +120,7 @@ class sa(_algorithm):
                         #print Xopt
                         Xopt=x                        
                         SimOpt=self.model(x)
-                        Eopt = self.objectivefunction(simulations,self.evaluation) 
+                        Eopt = self.objectivefunction(evaluation = self.evaluation, simulation =simulations) 
                         x=[]
                         for i in range(len(Xopt)):
                             # Use stepsize provided for every dimension.
@@ -139,7 +139,7 @@ class sa(_algorithm):
               
                 
                 simulations=self.model(x)
-                Enew = self.objectivefunction(simulations,self.evaluation)
+                Enew = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 self.status(rep,Enew,Xopt) 
                 self.datawriter.save(Eopt,Xopt,simulations=SimOpt)
                 rep+=1        

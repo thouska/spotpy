@@ -94,10 +94,10 @@ class mcmc(_algorithm):
             par = self.parameter()['random']
             pars.append(par)
             sim = self.model(par)
-            like = self.objectivefunction(self.evaluation, sim)
+            like = self.objectivefunction(evaluation = self.evaluation, simulation = sim)
             likes.append(like)
             sims.append(sim)            
-            self.datawriter.save(like,par,simulations=sim)
+            self.datawriter.save(like,par,simulations = sim)
             self.status(i,like,par)
             #Progress bar
             acttime=time.time()
@@ -127,7 +127,7 @@ class mcmc(_algorithm):
 
             new_par=self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(self.evaluation, new_simulations)
+            new_like = self.objectivefunction(evaluation = self.evaluation, simulation = new_simulations)
             self.status(rep,new_like,new_par)      
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):

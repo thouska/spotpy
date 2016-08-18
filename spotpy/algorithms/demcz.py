@@ -198,7 +198,7 @@ class demcz(_algorithm):
             param_generator = ((rep,list(burnInpar[i][rep])) for rep in xrange(int(nChains)))               
                     
             for rep,vector,simulations in self.repeat(param_generator):
-                likelist=self.objectivefunction(self.evaluation, simulations)
+                likelist=self.objectivefunction(evaluation=self.evaluation, simulation=simulations)
                 simulationlist=simulations
                 self._logPs.append(likelist)
                 #Save everything in the database
@@ -265,7 +265,7 @@ class demcz(_algorithm):
             param_generator = ((rep,list(proposalVectors[rep])) for rep in xrange(int(nChains)))               
             for rep,vector,simulations in self.repeat(param_generator):
                 new_simulationlist.append(simulations) 
-                like=self.objectivefunction(self.evaluation, simulations)
+                like=self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 self._logPs.append(like)
                 new_likelist.append(like)                 
                 proposalLogPs.append(like)

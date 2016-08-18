@@ -96,7 +96,7 @@ class rope(_algorithm):
         self.min_bound, self.max_bound = self.find_min_max()
         randompar   = list(self.parameter()['optguess'])
         simulations = self.model(randompar)
-        like        = self.objectivefunction(simulations,self.evaluation)
+        like        = self.objectivefunction(evaluation = self.evaluation, simulation = new_simulations)
         self.percentage=percentage
         runs=int(repetitions/subsets)
         #Init ROPE with one subset
@@ -107,7 +107,7 @@ class rope(_algorithm):
             for rep in range(int(runs)))
         for rep,ropepar,simulations in self.repeat(param_generator):
             #Calculate the objective function
-            like        = self.objectivefunction(simulations,self.evaluation)
+            like        = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
             likes.append(like)
             pars.append(ropepar)
             #Save everything in the database
@@ -142,7 +142,7 @@ class rope(_algorithm):
             param_generator = ((rep,list(new_pars[rep])) for rep in range(int(runs)))        
             for rep,ropepar,simulations in self.repeat(param_generator):        
                 #Calculate the objective function
-                like        = self.objectivefunction(simulations,self.evaluation)
+                like        = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 likes.append(like)
                 pars.append(ropepar)
                 #Save everything in the database

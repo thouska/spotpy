@@ -217,7 +217,7 @@ class fast(_algorithm):
         param_generator = ((rep,list(Matrix[rep])) for rep in xrange(len(Matrix)))        
         for rep,randompar,simulations in self.repeat(param_generator):     
             #Calculate the objective function
-            like        = self.objectivefunction(simulations,self.evaluation)
+            like        = self.objectivefunction(evaluation=self.evaluation,simulation=simulations)
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)

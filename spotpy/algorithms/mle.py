@@ -85,7 +85,7 @@ class mle(_algorithm):
             pars.append(par)
             sim = self.model(par)
             sims.append(sim)
-            like = self.objectivefunction(sim,self.evaluation)
+            like = self.objectivefunction(evaluation = self.evaluation, simulation = sim)
             likes.append(like)            
             self.datawriter.save(like,par,simulations=sim)
             self.status(i,like,par)
@@ -109,7 +109,7 @@ class mle(_algorithm):
                 new_par.append(np.random.normal(loc=old_par[i], scale=stepsizes[i]))
             new_par=self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(new_simulations,self.evaluation)
+            new_like = self.objectivefunction(evaluation = self.evaluation, simulation=new_simulations)
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
                 self.datawriter.save(new_like,new_par,simulations=new_simulations)

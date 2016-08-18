@@ -16,7 +16,7 @@ import spotpy
         
 class spot_setup(object):
     def __init__(self,mean=0,std=1):
-        self.params = [spotpy.parameter.Uniform('x',-5,5,1.5,3.0),
+        self.params = [spotpy.parameter.Uniform('x',-5,5,1.5,3.0)
                        ]
         self.mean=mean
         self.std=std
@@ -29,9 +29,9 @@ class spot_setup(object):
         return simulations
         
     def evaluation(self):
-        observations=[0]
+        observations = [0]
         return observations
     
-    def objectivefunction(self,simulation,evaluation):
-        objectivefunction=-spotpy.objectivefunctions.rmse(evaluation,simulation)      
+    def objectivefunction(self, simulation,evaluation):
+        objectivefunction = -spotpy.objectivefunctions.rmse(evaluation = evaluation,simulation = simulation)      
         return objectivefunction

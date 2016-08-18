@@ -40,7 +40,7 @@ class spot_setup(object):
             return list(self.cmfmodel.observations)
     
     def objectivefunction(self,simulation,evaluation):
-        objectivefunction= -spotpy.objectivefunctions.rmse(simulation,evaluation)
+        objectivefunction= -spotpy.objectivefunctions.rmse(evaluation=evaluation,simulation=simulation)
         return objectivefunction
         
         

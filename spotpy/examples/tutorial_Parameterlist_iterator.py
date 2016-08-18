@@ -35,7 +35,7 @@ class spot_setup(object):
         return observations
     
     def objectivefunction(self,simulation,evaluation):
-        objectivefunction=-spotpy.objectivefunctions.rmse(evaluation,simulation)      
+        objectivefunction = -spotpy.objectivefunctions.rmse(evaluation,simulation)      
         return objectivefunction
         
 
