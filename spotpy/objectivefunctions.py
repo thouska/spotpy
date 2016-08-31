@@ -313,7 +313,7 @@ def rrmse(evaluation,simulation):
     
     if len(evaluation)==len(simulation):
 
-        RRMSE = rmse(evaluation,simulation)/np.mean(simulation)
+        RRMSE = rmse(evaluation,simulation)/np.mean(evaluation)
         return RRMSE
         
     else:
