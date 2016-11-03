@@ -57,6 +57,8 @@ Some features you can use with the SPOTPY package are:
   * Differential Evolution Adaptive Metropolis Algorithm (`DE-MCz`) 
   * RObust Parameter Estimation (`ROPE`).
   * Fourier Amplitude Sensitivity Test (`FAST`)
+  * Artificial Bee Colony
+  * Fitness Scaled Chaotic Artificial Bee Colony
 
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
