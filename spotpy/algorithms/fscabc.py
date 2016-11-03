@@ -115,7 +115,7 @@ class fscabc(_algorithm):
             r=random.random()
         #Initialization
         work=[]
-        #WCalculate the objective function
+        #Calculate the objective function
         param_generator = ((rep,list(self.parameter()['random'])) for rep in range(eb))
         for rep,randompar,simulations in self.repeat(param_generator):
             #Calculate fitness
