@@ -24,7 +24,7 @@ from operator import itemgetter
 
 class fscabc(_algorithm):
     '''
-    Implements the ABC algorithm from Karaboga (2007).
+    Implements the FSCABC algorithm from Zhang (2011).
     
     Input
     ----------
@@ -76,7 +76,7 @@ class fscabc(_algorithm):
         x=4*r*(1-r)
         return x
 
-    def sample(self,repetitions,lb,ub,eb=48,a=(1/10),kstop=100,pcento=0.0000001,peps=0.0001,kpow=5,limit=eb):
+    def sample(self,repetitions,eb=48,a=(1/10),peps=0.0001,kpow=5,limit=eb/2):
         """
 
         
@@ -84,51 +84,44 @@ class fscabc(_algorithm):
         ----------
         repetitions: int
             maximum number of function evaluations allowed during optimization
-        lb: array
-            lower bounds of input parameters
-        ub: array
-            upper bounds of input parameters
         eb: int
             number of employed bees (half of population size)
         a: float
             mutation factor
-        kstop: int
-            maximum number of evolution loops before convergency
-        pcento: float 
-            the percentage change allowed in kstop loops before convergency
         peps: float
             convergence criterium    
         kpow: float
             exponent for power scaling method
         """
-        #Initialize the Progress bar
+        #Initialize the progress bar
         starttime    = time.time()
         intervaltime = starttime
         #Initialize FSCABC parameters:
         randompar=self.parameter()['random']
         self.nopt=randompar.size
-        self.limit=eb/2
+        self.limit=limit
         random.seed()
+        lb,ub=find_min_max()
+        #Generate chaos
         r=0.25
         while r==0.25 or r==0.5 or r== 0.75:
             r=random.random()
         #Initialization
         work=[]
+        #WCalculate the objective function
         param_generator = ((rep,list(self.parameter()['random'])) for rep in range(eb))
         for rep,randompar,simulations in self.repeat(param_generator):
-            #Calculate the objective function
+            #Calculate fitness
             like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)
             c=0
             p=0
-            work.append([like,randompar,like,randompar,c,p]) #(fit_x,x,fit_v,v,
+            work.append([like,randompar,like,randompar,c,p]) #(fit_x,x,fit_v,v,limit,normalized fitness)
             #Progress bar
             acttime=time.time()
-            
             #get str showing approximate timeleft to end of simulation in H, M, S 
-        
             timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime-starttime)/
                                    (rep + 1))*(repetitions-(rep + 1 )))))
             #Refresh progressbar every second
@@ -155,9 +148,10 @@ class fscabc(_algorithm):
                     work[i][3]=self.parameter()['random']
                     work[i][4]=0
                 '''
+            #Calculate the objective function
             param_generator = ((rep,work[rep][3]) for rep in range(eb)) 
             for rep,randompar,simulations in self.repeat(param_generator):
-            #Calculate the objective function
+            #Calculate fitness
                 clike = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 if clike > work[rep][0]:
                     work[rep][1]=work[rep][3]
@@ -168,7 +162,6 @@ class fscabc(_algorithm):
                 self.status(rep,work[rep][0],work[rep][1])
                 self.datawriter.save(clike,work[rep][3],simulations=simulations,chains=icall)
                 icall += 1
-                print(time.localtime(),icall)
             #Fitness scaling
             bn=[]
             csum=0
@@ -196,11 +189,11 @@ class fscabc(_algorithm):
                 work[i][3][j]=work[z][1][j]+random.uniform(-a,a)*(work[z][1][j]-work[k][1][j])
                 if work[i][3][j]<lb[j]: work[i][3][j]=lb[j]
                 if work[i][3][j]>ub[j]: work[i][3][j]=ub[j]
-            param_generator = ((rep,work[rep][3]) for rep in range(eb))             
-            for rep,randompar,simulations in self.repeat(param_generator):
             #Calculate the objective function
+            param_generator = ((rep,work[rep][3]) for rep in range(eb))
+            for rep,randompar,simulations in self.repeat(param_generator):
+            #Calculate fitness
                 clike = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
-            #Fitting vergleichen/Counter erhöhen
                 if clike > work[rep][0]:
                     work[rep][1]=work[rep][3]
                     work[rep][0]=clike
