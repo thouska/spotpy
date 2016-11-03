@@ -71,7 +71,7 @@ class abc(_algorithm):
         simulations=self.model(params)
         return id,params,simulations
 
-    def sample(self,repetitions,eb=48,a=(1/10),peps=0.0001,limit=eb/2):
+    def sample(self,repetitions,eb=48,a=(1/10),peps=0.0001,ownlimit=False,limit=24):
         """
 
         
@@ -84,7 +84,11 @@ class abc(_algorithm):
         a: float
             mutation factor
         peps: float
-            Convergence criterium        
+            Convergence criterium
+        ownlimit: boolean
+            determines if an userdefined limit is set or not
+        limit: int
+            sets the limit
         """
         #Initialize the Progress bar
         starttime    = time.time()
@@ -92,8 +96,11 @@ class abc(_algorithm):
         #Initialize ABC parameters:
         randompar=self.parameter()['random']
         self.nopt=randompar.size
-        self.limit=limit
         random.seed()
+        if ownlimit == True:
+            self.limit=limit
+        else:
+            self.limit=eb
         lb,ub=find_min_max()
         #Initialization
         work=[]

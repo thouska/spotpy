@@ -76,7 +76,7 @@ class fscabc(_algorithm):
         x=4*r*(1-r)
         return x
 
-    def sample(self,repetitions,eb=48,a=(1/10),peps=0.0001,kpow=5,limit=eb/2):
+    def sample(self,repetitions,eb=48,a=(1/10),peps=0.0001,kpow=5,ownlimit=False,limit=24):
         """
 
         
@@ -92,6 +92,10 @@ class fscabc(_algorithm):
             convergence criterium    
         kpow: float
             exponent for power scaling method
+        ownlimit: boolean
+            determines if an userdefined limit is set or not
+        limit: int
+            sets the limit
         """
         #Initialize the progress bar
         starttime    = time.time()
@@ -99,8 +103,11 @@ class fscabc(_algorithm):
         #Initialize FSCABC parameters:
         randompar=self.parameter()['random']
         self.nopt=randompar.size
-        self.limit=limit
         random.seed()
+        if ownlimit == True:
+            self.limit=limit
+        else:
+            self.limit=eb
         lb,ub=find_min_max()
         #Generate chaos
         r=0.25
