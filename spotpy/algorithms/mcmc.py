@@ -60,12 +60,6 @@ class mcmc(_algorithm):
             kwargs['alt_objfun'] = 'log_p'
         super(mcmc, self).__init__(*args, **kwargs)
       
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
     def check_par_validity(self,par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -111,7 +105,7 @@ class mcmc(_algorithm):
         index=likes.index(old_like)
         old_par =pars[index]
         old_simulations=sims[index]
-        self.min_bound, self.max_bound = self.find_min_max()
+        self.min_bound, self.max_bound = self.parameter()['minbound'],self.parameter()['maxbound']
         
         nevertheless=0
         print('Beginn of Random Walk')

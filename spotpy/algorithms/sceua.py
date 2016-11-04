@@ -181,7 +181,7 @@ class sceua(_algorithm):
         self.nspl=self.npg
         npt=self.npg*self.ngs
         self.iseed=1        
-        self.bl,self.bu = self.find_min_max()
+        self.bl,self.bu = self.parameter()['minbound'],self.parameter()['maxbound']
         bound = self.bu-self.bl  #np.array
 
 

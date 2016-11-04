@@ -58,12 +58,7 @@ class lhs(_algorithm):
 
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim, dbinit= False)
 
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-        
+
     def sample(self, repetitions):
         """
         Samples from the LatinHypercube algorithm.
@@ -79,7 +74,7 @@ class lhs(_algorithm):
         #Define the jump size between the parameter
         segment   = 1/float(repetitions)
         #Get the minimum and maximum value for each parameter from the distribution
-        parmin,parmax=self.find_min_max()
+        parmin,parmax=self.parameter()['minbound'],self.parameter()['maxbound']
         
         #Create an Matrix to store the parameter sets
         Matrix=np.empty((repetitions,len(parmin)))      

@@ -14,8 +14,8 @@ import spotpy
         
 class spot_setup(object):
     def __init__(self):
-        self.params = [spotpy.parameter.Uniform('x', -10, 10, 1.5, 3.0),
-                       spotpy.parameter.Uniform('y', -10, 10, 1.5, 3.0)
+        self.params = [spotpy.parameter.Uniform('x', -10, 10, 1.5, 3.0, -10, 10),
+                       spotpy.parameter.Uniform('y', -10, 10, 1.5, 3.0, -10, 10)
                        ]
     def parameters(self):
         return spotpy.parameter.generate(self.params)

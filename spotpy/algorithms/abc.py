@@ -60,12 +60,6 @@ class abc(_algorithm):
 
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
     
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
     def simulate(self,id_params_tuple):
         id,params = id_params_tuple
         simulations=self.model(params)
@@ -101,7 +95,7 @@ class abc(_algorithm):
             self.limit=limit
         else:
             self.limit=eb
-        lb,ub=find_min_max()
+        lb,ub=self.parameter()['minbound'],self.parameter()['maxbound']
         #Initialization
         work=[]
         #Calculate the objective function

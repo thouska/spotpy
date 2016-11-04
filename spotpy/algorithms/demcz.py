@@ -102,13 +102,7 @@ class demcz(_algorithm):
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'log_p'
         super(demcz, self).__init__(*args, **kwargs)
-
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
+ 
     def check_par_validity(self,par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -150,7 +144,7 @@ class demcz(_algorithm):
         """
         starttime=time.time()
         intervaltime=starttime        
-        self.min_bound, self.max_bound = self.find_min_max()
+        self.min_bound, self.max_bound = self.parameter()['minbound'],self.parameter()['maxbound']
         repetitions=int(repetitions/nChains)
         ndraw_max = repetitions*nChains 
         maxChainDraws = int(ndraw_max/nChains)

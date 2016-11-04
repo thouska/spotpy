@@ -51,12 +51,6 @@ class sa(_algorithm):
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
-    
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
 
     def check_par_validity(self,par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
@@ -80,7 +74,7 @@ class sa(_algorithm):
         """
         #Tini=80#repetitions/100
         #Ntemp=6
-        self.min_bound, self.max_bound = self.find_min_max()
+        self.min_bound, self.max_bound = self.parameter()['minbound'],self.parameter()['maxbound']
         stepsizes    = self.parameter()['step']
         starttime=time.time()
         intervaltime=starttime
