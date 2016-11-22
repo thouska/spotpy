@@ -98,6 +98,7 @@ class mc(_algorithm):
                      self.status.objectivefunction,timestr)
                 print(text)
                 intervaltime=time.time()
+        self.repeat.terminate()
                 
         try:
             self.datawriter.finalize()
