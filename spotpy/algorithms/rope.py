@@ -57,12 +57,6 @@ class rope(_algorithm):
 
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
     
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-
     def create_par(self,min_bound,max_bound):
         return np.random.uniform(low=min_bound,high=max_bound)
 
@@ -93,10 +87,10 @@ class rope(_algorithm):
         """
         starttime=time.time()
         intervaltime=starttime
-        self.min_bound, self.max_bound = self.find_min_max()
+        self.min_bound, self.max_bound = self.parameter()['minbound'],self.parameter()['maxbound']
         randompar   = list(self.parameter()['optguess'])
         simulations = self.model(randompar)
-        like        = self.objectivefunction(simulations,self.evaluation)
+        like        = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
         self.percentage=percentage
         runs=int(repetitions/subsets)
         #Init ROPE with one subset
@@ -107,7 +101,7 @@ class rope(_algorithm):
             for rep in range(int(runs)))
         for rep,ropepar,simulations in self.repeat(param_generator):
             #Calculate the objective function
-            like        = self.objectivefunction(simulations,self.evaluation)
+            like        = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
             likes.append(like)
             pars.append(ropepar)
             #Save everything in the database
@@ -142,7 +136,7 @@ class rope(_algorithm):
             param_generator = ((rep,list(new_pars[rep])) for rep in range(int(runs)))        
             for rep,ropepar,simulations in self.repeat(param_generator):        
                 #Calculate the objective function
-                like        = self.objectivefunction(simulations,self.evaluation)
+                like        = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 likes.append(like)
                 pars.append(ropepar)
                 #Save everything in the database

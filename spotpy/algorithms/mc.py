@@ -75,7 +75,7 @@ class mc(_algorithm):
         firstcall=True
         for rep,randompar,simulations in self.repeat(param_generator):        
             #Calculate the objective function
-            like        = self.objectivefunction(simulations,self.evaluation)
+            like        = self.objectivefunction(evaluation=self.evaluation,simulation=simulations)
             if firstcall==True:
                 parnames        = self.parameter()['name']
                 self.initialize_database(randompar,parnames,simulations,like)
@@ -98,6 +98,7 @@ class mc(_algorithm):
                      self.status.objectivefunction,timestr)
                 print(text)
                 intervaltime=time.time()
+        self.repeat.terminate()
                 
         try:
             self.datawriter.finalize()

@@ -53,7 +53,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
-from spotpy import objectivefunctions
 import numpy as np
 import time
 
@@ -91,17 +90,19 @@ class demcz(_algorithm):
     save_sim: boolean
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
+
+    alt_objfun: str or None, default: 'log_p'
+        alternative objectivefunction to be used for algorithm
+        * None: the objfun defined in spot_setup.objectivefunction is used
+        * any str: if str is found in spotpy.objectivefunctions, 
+            this objectivefunction is used, else falls back to None 
+            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
      '''
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
-
-        _algorithm.__init__(self, spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
-
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
+    def __init__(self, *args, **kwargs):
+        if 'alt_objfun' not in kwargs:
+            kwargs['alt_objfun'] = 'log_p'
+        super(demcz, self).__init__(*args, **kwargs)
+ 
     def check_par_validity(self,par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -143,7 +144,7 @@ class demcz(_algorithm):
         """
         starttime=time.time()
         intervaltime=starttime        
-        self.min_bound, self.max_bound = self.find_min_max()
+        self.min_bound, self.max_bound = self.parameter()['minbound'],self.parameter()['maxbound']
         repetitions=int(repetitions/nChains)
         ndraw_max = repetitions*nChains 
         maxChainDraws = int(ndraw_max/nChains)
@@ -191,7 +192,7 @@ class demcz(_algorithm):
             param_generator = ((rep,list(burnInpar[i][rep])) for rep in xrange(int(nChains)))               
                     
             for rep,vector,simulations in self.repeat(param_generator):
-                likelist=objectivefunctions.log_p(simulations,self.evaluation)
+                likelist=self.objectivefunction(evaluation=self.evaluation, simulation=simulations)
                 simulationlist=simulations
                 self._logPs.append(likelist)
                 #Save everything in the database
@@ -201,7 +202,7 @@ class demcz(_algorithm):
             history.record(burnInpar[i],self._logPs,1)
 #        for chain in range(nChains):
 #            simulationlist=self.model(vectors[chain])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS        
-#            likelist=objectivefunctions.log_p(simulationlist,self.evaluation)            
+#            likelist=self.objectivefunction(self.evaluation, simulations)            
 #            self._logPs.append(likelist)
 #            self.datawriter.save(likelist,list(vectors[chain]),simulations=list(simulationlist),chains=chain)
         
@@ -258,7 +259,7 @@ class demcz(_algorithm):
             param_generator = ((rep,list(proposalVectors[rep])) for rep in xrange(int(nChains)))               
             for rep,vector,simulations in self.repeat(param_generator):
                 new_simulationlist.append(simulations) 
-                like=objectivefunctions.log_p(simulations,self.evaluation)
+                like=self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
                 self._logPs.append(like)
                 new_likelist.append(like)                 
                 proposalLogPs.append(like)
@@ -267,7 +268,7 @@ class demcz(_algorithm):
 #            for i in range(nChains):                
 #                simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
 #                new_simulationlist.append(simulations)             
-#                like=objectivefunctions.log_p(simulations,self.evaluation) 
+#                like=self.objectivefunction(self.evaluation, simulations) 
 #                new_likelist.append(like)                 
 #                proposalLogPs.append(like)
                       
@@ -276,7 +277,10 @@ class demcz(_algorithm):
             self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
 #            if mAccept and iter % 20 == 0:
 #                print self.accepts_ratio 
-                        
+            
+            # choose from list of possible choices if 1d_decision is True at
+            # specific index, else use default choice
+            # np.choose(1d_decision[:,None], (list of possible choices, default choice)
             currentVectors = np.choose(decisions[:,np.newaxis], (currentVectors, proposalVectors))
             currentLogPs   = np.choose(decisions, (currentLogPs, proposalLogPs))
             simulationlist = list(np.choose(decisions[:,np.newaxis], (new_simulationlist, old_simulationlist)))

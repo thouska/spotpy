@@ -47,14 +47,7 @@ class mle(_algorithm):
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
         _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
-
-
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
+  
     def check_par_validity(self,par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -73,7 +66,7 @@ class mle(_algorithm):
         accepted  = 0.0
         starttime=time.time()
         intervaltime=starttime
-        self.min_bound, self.max_bound = self.find_min_max()
+        self.min_bound, self.max_bound = self.parameter()['minbound'],self.parameter()['maxbound']
         # Metropolis-Hastings iterations.
         burnIn=int(repetitions/10)
         likes=[]
@@ -85,7 +78,7 @@ class mle(_algorithm):
             pars.append(par)
             sim = self.model(par)
             sims.append(sim)
-            like = self.objectivefunction(sim,self.evaluation)
+            like = self.objectivefunction(evaluation = self.evaluation, simulation = sim)
             likes.append(like)            
             self.datawriter.save(like,par,simulations=sim)
             self.status(i,like,par)
@@ -109,7 +102,7 @@ class mle(_algorithm):
                 new_par.append(np.random.normal(loc=old_par[i], scale=stepsizes[i]))
             new_par=self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(new_simulations,self.evaluation)
+            new_like = self.objectivefunction(evaluation = self.evaluation, simulation=new_simulations)
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
                 self.datawriter.save(new_like,new_par,simulations=new_simulations)

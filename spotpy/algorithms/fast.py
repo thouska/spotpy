@@ -93,12 +93,6 @@ class fast(_algorithm):
                            out=params),
                lower_bounds,
                out=params)
-        
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
     
     def matrix(self,bounds, N, M=4):
         D = len(bounds)
@@ -201,7 +195,7 @@ class fast(_algorithm):
         #Get the names of the parameters to analyse
         names     = self.parameter()['name']
         #Get the minimum and maximum value for each parameter from the distribution
-        parmin,parmax=self.find_min_max()
+        parmin,parmax=self.parameter()['minbound'],self.parameter()['maxbound']
         
         #Create an Matrix to store the parameter sets
         N=int(math.ceil(float(repetitions)/float(len(parmin))))
@@ -217,7 +211,7 @@ class fast(_algorithm):
         param_generator = ((rep,list(Matrix[rep])) for rep in xrange(len(Matrix)))        
         for rep,randompar,simulations in self.repeat(param_generator):     
             #Calculate the objective function
-            like        = self.objectivefunction(simulations,self.evaluation)
+            like        = self.objectivefunction(evaluation=self.evaluation,simulation=simulations)
             self.status(rep,like,randompar)
             #Save everything in the database
             self.datawriter.save(like,randompar,simulations=simulations)

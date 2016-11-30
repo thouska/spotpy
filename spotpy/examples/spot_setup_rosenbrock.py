@@ -14,21 +14,21 @@ import spotpy
         
 class spot_setup(object):
     def __init__(self):
-        self.params = [spotpy.parameter.Uniform('x',-10,10,1.5,3.0),
-                       spotpy.parameter.Uniform('y',-10,10,1.5,3.0),
+        self.params = [spotpy.parameter.Uniform('x', -10, 10, 1.5, 3.0, -10, 10),
+                       spotpy.parameter.Uniform('y', -10, 10, 1.5, 3.0, -10, 10)
                        ]
     def parameters(self):
         return spotpy.parameter.generate(self.params)
         
     def simulation(self,vector):      
         x=np.array(vector)
-        simulations= [sum(100.0*(x[1:] - x[:-1]**2.0)**2.0 + (1 - x[:-1])**2.0)]
+        simulations= [sum(100.0 * (x[1:] - x[:-1] **2.0) **2.0 + (1 - x[:-1]) **2.0)]
         return simulations
         
     def evaluation(self):
-        observations=[0]
+        observations = [0]
         return observations
     
-    def objectivefunction(self,simulation,evaluation):
-        objectivefunction=-spotpy.objectivefunctions.rmse(evaluation,simulation)      
+    def objectivefunction(self, simulation = simulation, evaluation = evaluation):
+        objectivefunction = -spotpy.objectivefunctions.rmse(evaluation = evaluation, simulation = simulation)      
         return objectivefunction

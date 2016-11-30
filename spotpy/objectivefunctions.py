@@ -134,7 +134,7 @@ def lognashsutcliff(evaluation,simulation):
         return np.nan
         
     
-def log_p(evaluation,simulation,scale=0.1):
+def log_p(evaluation=None,simulation=None,scale=0.1):
     """
     Logarithmic probability distribution
     
@@ -254,7 +254,7 @@ def rmse(evaluation,simulation):
     :return: Root Mean Squared Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation:
         return np.sqrt(mse(evaluation,simulation))
     else:
         print("Error: evaluation and simulation lists does not have the same length.")    
@@ -277,7 +277,7 @@ def mae(evaluation,simulation):
     :return: Mean Absolute Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation):
+    if len(evaluation)==len(simulation) and evaluation:
         
         MAE_values=[]
                 
@@ -313,7 +313,7 @@ def rrmse(evaluation,simulation):
     
     if len(evaluation)==len(simulation):
 
-        RRMSE = rmse(evaluation,simulation)/np.mean(simulation)
+        RRMSE = rmse(evaluation,simulation)/np.mean(evaluation)
         return RRMSE
         
     else:
@@ -406,7 +406,7 @@ def decomposed_mse(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def kge(evaluation,simulation, return_all=False):
+def kge(evaluationsimulation, return_all=False):
     """
     Kling-Gupta Efficiency
     

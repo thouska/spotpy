@@ -49,8 +49,17 @@ sampler=spotpy.algorithms.rope(spot_setup,  dbname='RosenROPE',  dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
+sampler=spotpy.algorithms.abc(spot_setup,    dbname='RosenMC',    dbformat='csv')
+sampler.sample(rep)
+results.append(sampler.getdata())
+
+sampler=spotpy.algorithms.fscabc(spot_setup,    dbname='RosenMC',    dbformat='csv')
+sampler.sample(rep)
+results.append(sampler.getdata())
+
 
 evaluation = spot_setup.evaluation()
 
 #Example how to plot the data
+#algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc']
 #spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
