@@ -35,7 +35,8 @@ class database(object):
         if not save_sim:
             simulations = None
         self.dim_dict = {}
-        self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [('like', like), ('par', randompar), ('simulation', simulations)]]
+        self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [(
+            'like', like), ('par', randompar), ('simulation', simulations)]]
         self._make_header(parnames)
 
     def _check_dims(self, name, obj):
@@ -59,6 +60,7 @@ class database(object):
                 self.dim_dict[name] = self._iterable_to_list
                 return (len(obj),)
         else:
+            # scalar (int, float)
             self.dim_dict[name] = self._scalar_to_list
             return (1,)
 
@@ -79,13 +81,16 @@ class database(object):
 
     def _make_header(self, parnames):
         self.header = []
-        self.header.extend(['like' + '_'.join(map(str, x)) for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
-        self.header.extend(['par{}'.format(x) for x in parnames])
-        self.header.extend(['simulation' + '_'.join(map(str, x)) for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
+        self.header.extend(['like' + '_'.join(map(str, x))
+                            for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
+        self.header.extend(['par{0}'.format(x) for x in parnames])
+        self.header.extend(['simulation' + '_'.join(map(str, x))
+                            for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
         self.header.append('chain')
 
     def _tuple_2_xrange(self, t):
-        return (xrange(1, x+1) for x in t)
+        return (xrange(1, x + 1) for x in t)
+
 
 class ram(database):
     """
@@ -105,9 +110,9 @@ class ram(database):
     def save(self, objectivefunction, parameterlist, simulations=None,
              chains=1):
         self.ram.append(self.dim_dict['like'](objectivefunction) +
-                                   self.dim_dict['par'](parameterlist) +
-                                   self.dim_dict['simulation'](simulations) +
-                                   [chains])
+                        self.dim_dict['par'](parameterlist) +
+                        self.dim_dict['simulation'](simulations) +
+                        [chains])
 
     def finalize(self):
         dt = np.dtype({'names': self.header,
@@ -120,7 +125,6 @@ class ram(database):
     def getdata(self):
         # Expects a finalized database
         return self.data
-
 
 
 class csv(database):
@@ -141,17 +145,19 @@ class csv(database):
             self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
-        coll = (self.dim_dict['like'](objectivefunction) +\
-                                   self.dim_dict['par'](parameterlist) +\
-                                   self.dim_dict['simulation'](simulations) +\
-                                   [chains])
+        coll = (self.dim_dict['like'](objectivefunction) +
+                self.dim_dict['par'](parameterlist) +
+                self.dim_dict['simulation'](simulations) +
+                [chains])
         try:
             # maybe apply a rounding for the floats?!
-            self.db.write(bytes((','.join(map(str, coll)) + '\n').encode('utf-8')))
+            self.db.write(
+                bytes((','.join(map(str, coll)) + '\n').encode('utf-8')))
         except IOError:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
-            self.db.write(bytes((','.join(map(str, coll)) + '\n').encode('utf-8')))
+            self.db.write(
+                bytes((','.join(map(str, coll)) + '\n').encode('utf-8')))
 
     def finalize(self):
         self.db.close()
