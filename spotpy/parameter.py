@@ -40,7 +40,7 @@ class Base(object):
                                      np.percentile(self(size=1000), 40))
         self.minbound = minbound or np.min(self(size=1000))
         self.maxbound = maxbound or np.max(self(size=1000))
-        
+
     def __call__(self, **kwargs):
         """
         Returns a parameter realization
