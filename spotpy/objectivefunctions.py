@@ -254,10 +254,10 @@ def rmse(evaluation,simulation):
     :return: Root Mean Squared Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation) and evaluation:
+    if len(evaluation)==len(simulation)>0:
         return np.sqrt(mse(evaluation,simulation))
     else:
-        print("Error: evaluation and simulation lists does not have the same length.")    
+        print("Error: evaluation and simulation lists do not have the same length.")    
         return np.nan
 
 def mae(evaluation,simulation):
@@ -277,7 +277,7 @@ def mae(evaluation,simulation):
     :return: Mean Absolute Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation) and evaluation:
+    if len(evaluation)==len(simulation)>0:
         
         MAE_values=[]
                 

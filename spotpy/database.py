@@ -6,7 +6,7 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 
 :author: Tobias Houska
 
-This is the parent class of all algorithms, which can handle the database 
+This is the parent class of all algorithms, which can handle the database
 structure during the sample.
 '''
 from __future__ import absolute_import
@@ -14,112 +14,117 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 import numpy as np
-import io 
+import io
+from itertools import product
+
 
 class database(object):
     """
     Parent class for database. It can handle the basic functionalities of all
     databases.
     """
-    def __init__(self,dbname,parnames,like,randompar,simulations,chains=1,save_sim=True):
-        self.save_sim = save_sim        
-        #Just needed for the first line in the database        
-        self.header=self.make_header(like,parnames,simulations)
 
-    
-    
-    def make_header(self,objectivefunction,parnames,simulations):
-        if type(objectivefunction)==type([]):
-            header=[]
-            for i in range(len(objectivefunction)):
-                header.append('like'+str(i+1))
-        else:
-            header   = ['like']
-        for name in parnames:
-            header.append('par'+str(name))
-        if self.save_sim==True:
-            if type(simulations[0])==type([]):
-                for i in range(len(simulations)):
-                    for j in range(len(simulations[i])):
-                        header.append('simulation'+str(i)+'_'+str(j))
+    def __init__(self, dbname, parnames, like, randompar, simulations=None,
+                 chains=1, save_sim=True, **kwargs):
+        # Just needed for the first line in the database
+        self.chains = chains
+        self.dbname = dbname
+        self.like = like
+        self.randompar = randompar
+        self.simulations = simulations
+        if not save_sim:
+            simulations = None
+        self.dim_dict = {}
+        self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [(
+            'like', like), ('par', randompar), ('simulation', simulations)]]
+        self._make_header(parnames)
+
+    def _check_dims(self, name, obj):
+        '''checks dimensionality of obj and stores function in dict'''
+        if obj is None:
+            # None object
+            self.dim_dict[name] = self._empty_list
+            return (0,)
+        elif hasattr(obj, '__len__'):
+            if hasattr(obj, 'shape'):
+                # np.array style obj
+                self.dim_dict[name] = self._array_to_list
+                return obj.shape
+            elif all([hasattr(x, '__len__') for x in obj]):
+                # nested list, checked only for singular nesting
+                # assumes all lists have same length
+                self.dim_dict[name] = self._nestediterable_to_list
+                return (len(obj), len(obj[0]))
             else:
-                for i in range(len(simulations)):
-                    header.append('simulation'+str(i))
-        header.append('chain')  
-        return header        
-        
-    def _get_list(self,objectivefunction,parameterlist,simulations=None):
-        data=[]
-        if type(objectivefunction)==type([]):
-            for like in objectivefunction:
-                data.append(like)
+                # simple iterable
+                self.dim_dict[name] = self._iterable_to_list
+                return (len(obj),)
         else:
-            data.append(objectivefunction)
-        for par in parameterlist:
-            data.append(float(par))
-        if self.save_sim==True:
-            if type(simulations[0])==type([]):
-                for i in range(len(simulations)):
-                    for sim in simulations[i]:
-                        data.append(float(sim))
-            else:
-                for sim in simulations:
-                    data.append(float(sim))      
-        return data
-    
-      
+            # scalar (int, float)
+            self.dim_dict[name] = self._scalar_to_list
+            return (1,)
+
+    def _empty_list(self, obj):
+        return []
+
+    def _scalar_to_list(self, obj):
+        return [obj]
+
+    def _iterable_to_list(self, obj):
+        return list(obj)
+
+    def _array_to_list(self, obj):
+        return obj.flatten().tolist()
+
+    def _nestediterable_to_list(self, obj):
+        return np.array(obj).flatten().tolist()
+
+    def _make_header(self, parnames):
+        self.header = []
+        self.header.extend(['like' + '_'.join(map(str, x))
+                            for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
+        self.header.extend(['par{0}'.format(x) for x in parnames])
+        self.header.extend(['simulation' + '_'.join(map(str, x))
+                            for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
+        self.header.append('chain')
+
+    def _tuple_2_xrange(self, t):
+        return (xrange(1, x + 1) for x in t)
+
+
 class ram(database):
     """
     This class saves the process in the working storage. It can be used if
     time matters.
     """
-    def __init__(self,dbname,parnames,like,randompar,simulations,chains=1,save_sim=True):
-        database.__init__(self,dbname,parnames,like,randompar,simulations,chains=chains,save_sim=save_sim)        
-        
-        self.ram_par  = [list(randompar)]
-        if type(like)==type([]):
-            self.ram_like = [like]
-        else:
-            self.ram_like = [[like]]
-        self.ram_sim  = [list(simulations)]
-        self.chains   = [[chains]]  
-        
-    def save(self,objectivefunction,parameterlist,simulations=None,chains=1):
-        self.ram_par.append(parameterlist)
-        if type(objectivefunction)==type([]):
-            self.ram_like.append(objectivefunction)
-        else:
-            self.ram_like.append([objectivefunction])
-        if self.save_sim==True:
-            self.ram_sim.append(simulations)
-        self.chains.append([chains])
-    
+
+    def __init__(self, *args, **kwargs):
+        # init base class
+        super(ram, self).__init__(*args, **kwargs)
+        # init the status vars
+        self.ram = []
+        # store init item only if dbinit
+        if kwargs.get('dbinit', True):
+            self.save(self.like, self.randompar, self.simulations, self.chains)
+
+    def save(self, objectivefunction, parameterlist, simulations=None,
+             chains=1):
+        self.ram.append(self.dim_dict['like'](objectivefunction) +
+                        self.dim_dict['par'](parameterlist) +
+                        self.dim_dict['simulation'](simulations) +
+                        [chains])
+
     def finalize(self):
         dt = np.dtype({'names': self.header,
-                'formats': ['<f8']*len(self.header)})
-        
-        ram=[]
-        for i in range(len(self.ram_like)):
-            if self.save_sim==True:
-                wrapped=tuple(self.ram_like[i]+self.ram_par[i]+self.ram_sim[i]+self.chains[i])
-            else:
-                wrapped=tuple(self.ram_like[i]+self.ram_par[i]+self.chains[i])                
-            ram.append(wrapped)
-        #ignore the first initialization run to reduce the risk of different 
-        #objectivefunction mixing
-        self.data=np.array(ram,dtype=dt)[1:]
+                       'formats': [np.float] * len(self.header)})
 
-    
+        # ignore the first initialization run to reduce the risk of different
+        # objectivefunction mixing
+        self.data = np.array(self.ram[1:]).astype(dt)
+
     def getdata(self):
-        #Expects a finalized database
+        # Expects a finalized database
         return self.data
-    
-    def get_last_par(self):
-        if len(self.ram_par[-1])==1:
-            return self.ram_par
-        else:
-            return self.ram_par[-1]
-            
 
 
 class csv(database):
@@ -127,45 +132,37 @@ class csv(database):
     This class saves the process in the working storage. It can be used if
     safety matters.
     """
-    def __init__(self,dbname,parnames,like,randompar,simulations=None,chains=1,save_sim=True):
-        database.__init__(self,dbname,parnames,like,randompar,simulations,chains=chains,save_sim=save_sim)  
-        self.chains=chains
-        self.dbname=dbname
-        #Create a open file, which needs to be closed after the sampling
-        self.db=io.open(self.dbname+'.csv', 'wb')
-        
-        header_as_str=''
-        for name in self.header:
-            header_as_str=header_as_str+str(name)+','
-        header_as_str=header_as_str[:-1]+'\n'  
-        self.db.write(bytes(header_as_str.encode('utf-8'))) 
-        self.save(like,randompar,simulations=simulations)
-    
-    def save(self,objectivefunction,parameterlist,simulations=None,chains=1):
-        self.ram_par=parameterlist
-        if self.save_sim==True:
-            data=self._get_list(objectivefunction,parameterlist,simulations=simulations)
-        else:
-            data=self._get_list(objectivefunction,parameterlist,simulations=None)
-        for value in data:
-            try:
-                self.db.write(bytes((str(value)+',').encode('utf-8')))
-            except IOError:
-                input("Please close the file "+self.dbname+" When done press Enter to continue...")
-                self.db.write(bytes((str(value)+',').encode('utf-8')))
-        self.db.write(bytes((str(chains)+'\n').encode('utf-8')))
+
+    def __init__(self, *args, **kwargs):
+        # init base class
+        super(csv, self).__init__(*args, **kwargs)
+        # Create a open file, which needs to be closed after the sampling
+        self.db = io.open(self.dbname + '.csv', 'wb')
+        # write header line
+        self.db.write(bytes((','.join(self.header) + '\n').encode('utf-8')))
+        # store init item only if dbinit
+        if kwargs.get('dbinit', True):
+            self.save(self.like, self.randompar, self.simulations, self.chains)
+
+    def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
+        coll = (self.dim_dict['like'](objectivefunction) +
+                self.dim_dict['par'](parameterlist) +
+                self.dim_dict['simulation'](simulations) +
+                [chains])
+        try:
+            # maybe apply a rounding for the floats?!
+            self.db.write(
+                bytes((','.join(map(str, coll)) + '\n').encode('utf-8')))
+        except IOError:
+            input("Please close the file " + self.dbname +
+                  " When done press Enter to continue...")
+            self.db.write(
+                bytes((','.join(map(str, coll)) + '\n').encode('utf-8')))
 
     def finalize(self):
         self.db.close()
-        
-    def getdata(self,dbname=None):        
-        data=np.genfromtxt(self.dbname+'.csv',delimiter=',',names=True)[1:]
+
+    def getdata(self, dbname=None):
+        data = np.genfromtxt(
+            self.dbname + '.csv', delimiter=',', names=True)[1:]
         return data
-
-    def get_last_par(self):
-        return self.ram_par
-    
-
-    
-
-        

@@ -20,12 +20,13 @@ from __future__ import unicode_literals
 from . import _algorithm
 import spotpy
 import numpy as np
-import time 
+import time
+
 
 class sceua(_algorithm):
     '''
     Implements the SCE-UA algorithm from Duan (1994).
-    
+
     Input
     ----------
     spot_setup: class
@@ -64,97 +65,101 @@ class sceua(_algorithm):
             this objectivefunction is used, else falls back to None 
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
      '''
+
     def __init__(self, *args, **kwargs):
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'rmse'
         super(sceua, self).__init__(*args, **kwargs)
-    
+
     def find_min_max(self):
-        randompar=self.parameter()['random']        
+        randompar = self.parameter()['random']
         for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
+            randompar = np.column_stack(
+                (randompar, self.parameter()['random']))
+        return np.amin(randompar, axis=1), np.amax(randompar, axis=1)
     """
     def simulate(self,params):
         if self.repeat.phase=='burnin':
             id,params = params
             simulations =
-    """ 
-    def simulate(self,id_params_tuple):
+    """
+
+    def simulate(self, id_params_tuple):
         """This overwrites the simple wrapper function of _algorithms.py
-        and makes a two phase mpi parallelization possbile: 
+        and makes a two phase mpi parallelization possbile:
         1) burn-in
         2) complex evolution
         """
-        if not self.repeat.phase: #burn-in
-            id,params = id_params_tuple
-            return id,params,self.model(params)
-        
-        else:#complex-evolution
-            igs,x,xf,icall,cx,cf,sce_vars= id_params_tuple
-            self.npg,self.nopt,self.ngs,self.nspl,self.nps,self.bl,self.bu, self.status = sce_vars
+        if not self.repeat.phase:  # burn-in
+            id, params = id_params_tuple
+            return id, params, self.model(params)
+
+        else:  # complex-evolution
+            igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
+            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status = sce_vars
             # Partition the population into complexes (sub-populations);
 #            cx=np.zeros((self.npg,self.nopt))
 #            cf=np.zeros((self.npg))
-            #print(igs)
-            k1=np.arange(self.npg,dtype=int)
-            k2=k1*self.ngs+igs
-            cx[k1,:] = x[k2,:]
+            # print(igs)
+            k1 = np.arange(self.npg, dtype=int)
+            k2 = k1 * self.ngs + igs
+            cx[k1, :] = x[k2, :]
             cf[k1] = xf[k2]
             # Evolve sub-population igs for self.self.nspl steps:
-            likes=[]
-            sims=[]
-            pars=[]
+            likes = []
+            sims = []
+            pars = []
             for loop in xrange(self.nspl):
                 # Select simplex by sampling the complex according to a linear
                 # probability distribution
-                lcs=np.array([0]*self.nps)
+                lcs = np.array([0] * self.nps)
                 lcs[0] = 1
-                for k3 in range(1,self.nps):
+                for k3 in range(1, self.nps):
                     for i in range(1000):
                         #lpos = 1 + int(np.floor(self.npg+0.5-np.sqrt((self.npg+0.5)**2 - self.npg*(self.npg+1)*np.random.random())))
-                        lpos = int(np.floor(self.npg+0.5-np.sqrt((self.npg+0.5)**2 - self.npg*(self.npg+1)*np.random.random())))
-                        #idx=find(lcs(1:k3-1)==lpos)
-                        idx=(lcs[0:k3]==lpos).nonzero()  #check of element al eens gekozen
+                        lpos = int(np.floor(
+                            self.npg + 0.5 - np.sqrt((self.npg + 0.5)**2 - self.npg * (self.npg + 1) * np.random.random())))
+                        # idx=find(lcs(1:k3-1)==lpos)
+                        # check of element al eens gekozen
+                        idx = (lcs[0:k3] == lpos).nonzero()
                         if idx[0].size == 0:
                             break
                     lcs[k3] = lpos
                 lcs.sort()
-                
+
                 # Construct the simplex:
-                s = np.zeros((self.nps,self.nopt))
-                s=cx[lcs,:]
+                s = np.zeros((self.nps, self.nopt))
+                s = cx[lcs, :]
                 sf = cf[lcs]
-                
-                snew,fnew,icall,simulation = self._cceua(s,sf,icall)
-                likes.append(fnew)                
-                pars.append(list(snew))
-                self.status(igs,-fnew,snew)                
-                sims.append(list(simulation))
-                #self.datawriter.save(-fnew,list(snew), simulations = list(simulation),chains = igs)   
+
+                snew, fnew, icall, simulation = self._cceua(s, sf, icall)
+                likes.append(fnew)
+                pars.append(snew)
+                self.status(igs, -fnew, snew)
+                sims.append(simulation)
+                #self.datawriter.save(-fnew,list(snew), simulations = list(simulation),chains = igs)
                 # Replace the worst point in Simplex with the new point:
-                s[-1,:] = snew
+                s[-1, :] = snew
                 sf[-1] = fnew
-                
+
                 # Replace the simplex into the complex;
-                cx[lcs,:] = s
+                cx[lcs, :] = s
                 cf[lcs] = sf
-                
+
                 # Sort the complex;
                 idx = np.argsort(cf)
                 cf = np.sort(cf)
-                cx=cx[idx,:]
-                
+                cx = cx[idx, :]
+
             # Replace the complex back into the population;
 
+            return igs, likes, pars, sims, cx, cf, k1, k2
 
-            return igs,likes,pars,sims,cx,cf,k1,k2
-
-    def sample(self,repetitions,ngs=20,kstop=100,pcento=0.0000001,peps=0.0000001):
+    def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001):
         """
         Samples from parameter distributions using SCE-UA (Duan, 2004), 
         converted to python by Van Hoey (2011).
-        
+
         Parameters
         ----------
         repetitions: int
@@ -170,68 +175,71 @@ class sceua(_algorithm):
             Convergence criterium        
         """
         # Initialize the Progress bar
-        starttime    = time.time()
+        starttime = time.time()
         intervaltime = starttime
         # Initialize SCE parameters:
-        self.ngs=ngs
-        randompar=self.parameter()['random']        
-        self.nopt=randompar.size
-        self.npg=2*self.nopt+1
-        self.nps=self.nopt+1
-        self.nspl=self.npg
-        npt=self.npg*self.ngs
-        self.iseed=1        
-        self.bl,self.bu = self.parameter()['minbound'],self.parameter()['maxbound']
-        bound = self.bu-self.bl  #np.array
-
+        self.ngs = ngs
+        randompar = self.parameter()['random']
+        self.nopt = randompar.size
+        self.npg = 2 * self.nopt + 1
+        self.nps = self.nopt + 1
+        self.nspl = self.npg
+        npt = self.npg * self.ngs
+        self.iseed = 1
+        self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
+            'maxbound']
+        bound = self.bu - self.bl  # np.array
 
         # Create an initial population to fill array x(npt,self.self.nopt):
-        x=self._sampleinputmatrix(npt,self.nopt)
-        
-        #Set Ininitial parameter position         
-        #iniflg=1        
+        x = self._sampleinputmatrix(npt, self.nopt)
 
-        nloop=0
-        icall=0
-        xf=np.zeros(npt)
-        
-        #Burn in
-        param_generator = ((rep,list(x[rep])) for rep in xrange(int(npt)))        
-        for rep,randompar,simulations in self.repeat(param_generator):        
-            #Calculate the objective function
-            like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
-            #Save everything in the database
-            self.status(rep,-like,randompar)
-            xf[rep] = like                        
-            self.datawriter.save(-like,randompar,simulations=simulations)            
+        # Set Ininitial parameter position
+        # iniflg=1
+
+        nloop = 0
+        icall = 0
+        xf = np.zeros(npt)
+
+        # Burn in
+        param_generator = ((rep, x[rep]) for rep in xrange(int(npt)))
+        for rep, randompar, simulations in self.repeat(param_generator):
+            # Calculate the objective function
+            like = self.objectivefunction(
+                evaluation=self.evaluation, simulation=simulations)
+            # Save everything in the database
+            self.status(rep, -like, randompar)
+            xf[rep] = like
+            self.datawriter.save(-like, randompar, simulations=simulations)
             icall += 1
-            #Progress bar
-            acttime=time.time()
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (rep,repetitions,self.status.objectivefunction)
+            # Progress bar
+            acttime = time.time()
+            if acttime - intervaltime >= 2:
+                text = '%i of %i (best like=%g)' % (
+                    rep, repetitions, self.status.objectivefunction)
                 print(text)
-                intervaltime=time.time()
-   
+                intervaltime = time.time()
+
         # Sort the population in order of increasing function values;
         idx = np.argsort(xf)
         xf = np.sort(xf)
-        x=x[idx,:]
+        x = x[idx, :]
 
         # Record the best and worst points;
-        bestx=x[0,:]
-        bestf=xf[0]
-        #worstx=x[-1,:]
-        #worstf=xf[-1]
+        bestx = x[0, :]
+        bestf = xf[0]
+        # worstx=x[-1,:]
+        # worstf=xf[-1]
 
-        BESTF=bestf
-        BESTX=bestx
-        ICALL=icall
+        BESTF = bestf
+        BESTX = bestx
+        ICALL = icall
 
         # Compute the standard deviation for each parameter
-        #xnstd=np.std(x,axis=0)
+        # xnstd=np.std(x,axis=0)
 
         # Computes the normalized geometric range of the parameters
-        gnrng=np.exp(np.mean(np.log((np.max(x,axis=0)-np.min(x,axis=0))/bound)))
+        gnrng = np.exp(
+            np.mean(np.log((np.max(x, axis=0) - np.min(x, axis=0)) / bound)))
 
         # Check for convergency;
         if icall >= repetitions:
@@ -243,62 +251,69 @@ class sceua(_algorithm):
             print('OF THE INITIAL LOOP!')
 
         if gnrng < peps:
-            print('THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
+            print(
+                'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
         # Begin evolution loops:
         nloop = 0
-        criter=[]
-        criter_change=1e+5
-        
-        starttime=time.time()
-        intervaltime=starttime
-        acttime=time.time()
+        criter = []
+        criter_change = 1e+5
+
+        starttime = time.time()
+        intervaltime = starttime
+        acttime = time.time()
         self.repeat.setphase('ComplexEvo')
-      
-        while icall<repetitions and gnrng>peps and criter_change>pcento:
-            nloop+=1
-            #print nloop
-            #print 'Start MPI'
+
+        while icall < repetitions and gnrng > peps and criter_change > pcento:
+            nloop += 1
+            # print nloop
+            # print 'Start MPI'
             # Loop on complexes (sub-populations);
-            cx=np.zeros((self.npg,self.nopt))
-            cf=np.zeros((self.npg))
-            
-            sce_vars=[self.npg,self.nopt,self.ngs,self.nspl,self.nps,self.bl,self.bu, self.status]
-            param_generator = ((rep,x,xf,icall,cx,cf,sce_vars) for rep in xrange(int(self.ngs))) 
-            for igs,likes,pars,sims,cx,cf,k1,k2 in self.repeat(param_generator):
-                icall+=len(likes)
-                x[k2,:] = cx[k1,:]
+            cx = np.zeros((self.npg, self.nopt))
+            cf = np.zeros((self.npg))
+
+            sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
+                        self.nps, self.bl, self.bu, self.status]
+            param_generator = ((rep, x, xf, icall, cx, cf, sce_vars)
+                               for rep in xrange(int(self.ngs)))
+            for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
+                icall += len(likes)
+                x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
-            
+
                 for i in range(len(likes)):
-                    self.status(icall,-likes[i],pars[i])
-                    self.datawriter.save(-likes[i],list(pars[i]), simulations = list(sims[i]),chains = igs)   
- 
-            #Progress bar
-            acttime=time.time()
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (icall,repetitions,self.status.objectivefunction)
+                    self.status(icall, -likes[i], pars[i])
+                    self.datawriter.save(-likes[i], pars[i],
+                                         simulations=sims[i], chains=igs)
+
+            # Progress bar
+            acttime = time.time()
+            if acttime - intervaltime >= 2:
+                text = '%i of %i (best like=%g)' % (
+                    icall, repetitions, self.status.objectivefunction)
                 print(text)
-                intervaltime=time.time()
+                intervaltime = time.time()
             # End of Loop on Complex Evolution;
-    
+
             # Shuffled the complexes;
             idx = np.argsort(xf)
             xf = np.sort(xf)
-            x=x[idx,:]
+            x = x[idx, :]
 
             # Record the best and worst points;
-            bestx=x[0,:]
-            bestf=xf[0]
-            #worstx=x[-1,:]
-            #worstf=xf[-1]
+            bestx = x[0, :]
+            bestf = xf[0]
+            # worstx=x[-1,:]
+            # worstf=xf[-1]
 
-            BESTX = np.append(BESTX,bestx, axis=0) #appenden en op einde reshapen!!
-            BESTF = np.append(BESTF,bestf)
-            ICALL = np.append(ICALL,icall)
+            # appenden en op einde reshapen!!
+            BESTX = np.append(BESTX, bestx, axis=0)
+            BESTF = np.append(BESTF, bestf)
+            ICALL = np.append(ICALL, icall)
 
             # Computes the normalized geometric range of the parameters
-            gnrng=np.exp(np.mean(np.log((np.max(x,axis=0)-np.min(x,axis=0))/bound)))
+            gnrng = np.exp(
+                np.mean(np.log((np.max(x, axis=0) - np.min(x, axis=0)) / bound)))
 
             # Check for convergency;
             if icall >= repetitions:
@@ -308,41 +323,45 @@ class sceua(_algorithm):
                 print('HAS BEEN EXCEEDED.')
 
             if gnrng < peps:
-                print('THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
+                print(
+                    'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
-            criter=np.append(criter,bestf)
+            criter = np.append(criter, bestf)
 
-            if nloop >= kstop: #nodig zodat minimum zoveel doorlopen worden
-                criter_change= np.abs(criter[nloop-1]-criter[nloop-kstop])*100
-                criter_change= criter_change/np.mean(np.abs(criter[nloop-kstop:nloop]))
+            if nloop >= kstop:  # nodig zodat minimum zoveel doorlopen worden
+                criter_change = np.abs(
+                    criter[nloop - 1] - criter[nloop - kstop]) * 100
+                criter_change = criter_change / \
+                    np.mean(np.abs(criter[nloop - kstop:nloop]))
                 if criter_change < pcento:
-                    text='THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' %(kstop,pcento)
+                    text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' % (
+                        kstop, pcento)
                     print(text)
-                    print('CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
+                    print(
+                        'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
 
         # End of the Outer Loops
-        text='SEARCH WAS STOPPED AT TRIAL NUMBER: %d' %icall
+        text = 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % icall
         print(text)
-        text='NORMALIZED GEOMETRIC RANGE = %f'  %gnrng
+        text = 'NORMALIZED GEOMETRIC RANGE = %f' % gnrng
         print(text)
-        text='THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' %(kstop,criter_change)
+        text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' % (
+            kstop, criter_change)
         print(text)
 
-        #reshape BESTX
-        BESTX=BESTX.reshape(BESTX.size/self.nopt,self.nopt)
+        # reshape BESTX
+        BESTX = BESTX.reshape(BESTX.size / self.nopt, self.nopt)
         self.repeat.terminate()
         try:
             self.datawriter.finalize()
-        except AttributeError: #Happens if no database was assigned
+        except AttributeError:  # Happens if no database was assigned
             pass
         print('Best parameter set')
         print(self.status.params)
-        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
         print(text)
- 
-    
- 
-    def _cceua(self,s,sf,icall):
+
+    def _cceua(self, s, sf, icall):
             #  This is the subroutine for generating a new point in a simplex
             #
             #   s(.,.) = the sorted simplex in order of increasing function values
@@ -359,78 +378,81 @@ class sceua(_algorithm):
             #         = 1 , yes
             #         = 0 , no
 
-        self.nps,self.nopt=s.shape
+        self.nps, self.nopt = s.shape
         alpha = 1.0
         beta = 0.5
 
         # Assign the best and worst points:
-        sw=s[-1,:]
-        fw=sf[-1]
+        sw = s[-1, :]
+        fw = sf[-1]
 
         # Compute the centroid of the simplex excluding the worst point:
-        ce= np.mean(s[:-1,:],axis=0)
+        ce = np.mean(s[:-1, :], axis=0)
 
         # Attempt a reflection point
-        snew = ce + alpha*(ce-sw)
+        snew = ce + alpha * (ce - sw)
 
         # Check if is outside the bounds:
-        ibound=0
-        s1=snew-self.bl
-        idx=(s1<0).nonzero()
+        ibound = 0
+        s1 = snew - self.bl
+        idx = (s1 < 0).nonzero()
         if idx[0].size <> 0:
-            ibound=1
+            ibound = 1
 
-        s1=self.bu-snew
-        idx=(s1<0).nonzero()
+        s1 = self.bu - snew
+        idx = (s1 < 0).nonzero()
         if idx[0].size <> 0:
-            ibound=2
+            ibound = 2
 
         if ibound >= 1:
-            snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
+            snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
 
         ##    fnew = functn(self.nopt,snew);
-        simulations=self.model(snew)
-        like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
-        fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
+        simulations = self.model(snew)
+        like = self.objectivefunction(
+            evaluation=self.evaluation, simulation=simulations)
+        # bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
+        fnew = like
         #fnew = self.model(snew)
         icall += 1
 
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
-            snew = sw + beta*(ce-sw)
-            simulations=self.model(snew)
-            like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
+            snew = sw + beta * (ce - sw)
+            simulations = self.model(snew)
+            like = self.objectivefunction(
+                evaluation=self.evaluation, simulation=simulations)
             fnew = like
             icall += 1
 
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
-                snew = self._sampleinputmatrix(1,self.nopt)[0]  #checken!!
-                simulations=self.model(snew)
-                like = self.objectivefunction(evaluation = self.evaluation, simulation = simulations)
-                fnew = like#bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
-                #print 'NSE = '+str((fnew-1)*-1)                    
+                snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
+                simulations = self.model(snew)
+                like = self.objectivefunction(
+                    evaluation=self.evaluation, simulation=simulations)
+                # bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
+                fnew = like
+                # print 'NSE = '+str((fnew-1)*-1)
                 #fnew = self.model(snew)
                 icall += 1
 
         # END OF CCE
-        return snew,fnew,icall,simulations
-                                
-    def _sampleinputmatrix(self,nrows,npars):
+        return snew, fnew, icall, simulations
+
+    def _sampleinputmatrix(self, nrows, npars):
         '''
         Create inputparameter matrix for nrows simualtions,
         for npars with bounds ub and lb (np.array from same size)
         distname gives the initial sampling ditribution (currently one for all parameters)
 
         returns np.array
-        '''   
-        x=np.zeros((nrows,npars))
+        '''
+        x = np.zeros((nrows, npars))
         for i in range(nrows):
-            x[i,:]= self.parameter()['random']
-        return x        
+            x[i, :] = self.parameter()['random']
+        return x
         # Matrix=np.empty((nrows,npars))
         # for i in range(nrows):
-            # Matrix[i]= self.parameter()['random']
+        # Matrix[i]= self.parameter()['random']
         # return Matrix
-  
-  
