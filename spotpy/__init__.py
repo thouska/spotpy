@@ -34,4 +34,3 @@ import analyser #Acitivate if you want to have the analyser imported by default 
 import objectivefunctions
 import parameter
 import examples
-__version__ = '1.2.26'

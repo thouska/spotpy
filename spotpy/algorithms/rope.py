@@ -99,7 +99,7 @@ class rope(_algorithm):
         # Init ROPE with one subset
         likes = []
         pars = []
-
+        firstcall = True
         param_generator = ((rep, self.parameter()['random'])
                            for rep in range(int(runs)))
         for rep, ropepar, simulations in self.repeat(param_generator):
@@ -108,6 +108,9 @@ class rope(_algorithm):
                 evaluation=self.evaluation, simulation=simulations)
             likes.append(like)
             pars.append(ropepar)
+            if firstcall == True:
+                self.initialize_database(ropepar, self.parameter()['name'], simulations, like)
+                firstcall = False
             # Save everything in the database
             self.datawriter.save(like, ropepar, simulations=simulations)
 

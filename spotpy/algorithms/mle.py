@@ -74,6 +74,7 @@ class mle(_algorithm):
         likes = []
         pars = []
         sims = []
+        firstcall = True
         print('burnIn...')
         for i in range(burnIn):
             par = self.parameter()['random']
@@ -83,6 +84,9 @@ class mle(_algorithm):
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=sim)
             likes.append(like)
+            if firstcall==True:
+                self.initialize_database(par, self.parameter()['name'], sim, like)
+                firstcall=False
             self.datawriter.save(like, par, simulations=sim)
             self.status(i, like, par)
             # Progress bar

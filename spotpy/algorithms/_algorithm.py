@@ -107,7 +107,7 @@ class _algorithm(object):
         self.dbformat = dbformat
         self.dbinit = dbinit
 
-        self.initialize_database()
+        #self.initialize_database()
 
         # Now a repeater (ForEach-object) is loaded
         # A repeater is a convinent wrapper to repeat tasks
@@ -137,14 +137,14 @@ class _algorithm(object):
         self.repeat.start()
         self.status = _RunStatistic()
 
-    def initialize_database(self):
+    def initialize_database(self, randompar, parnames, simulations, like):
         # Initialize the database with a first run
         if hasattr(database, self.dbformat):
-            randompar = self.parameter()['random']
-            parnames = self.parameter()['name']
-            simulations = self.model(randompar)
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
+            #randompar = self.parameter()['random']
+            #parnames = self.parameter()['name']
+            #simulations = self.model(randompar)
+            #like = self.objectivefunction(
+            #    evaluation=self.evaluation, simulation=simulations)
 
             writerclass = getattr(database, self.dbformat)
             self.datawriter = writerclass(

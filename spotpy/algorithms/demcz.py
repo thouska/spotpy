@@ -194,7 +194,7 @@ class demcz(_algorithm):
         # use the last nChains chains as the actual chains to track
         # add the starting positions to the history
 
-        
+        firstcall = True        
         for i in range(len(burnInpar)):
             self._logPs = []
             param_generator = (
@@ -206,6 +206,9 @@ class demcz(_algorithm):
                     evaluation=self.evaluation, simulation=simulations)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
+                if firstcall == True:
+                    self.initialize_database(randompar, self.parameter()['name'], simulations, likelist)
+                    firstcall = False
                 # Save everything in the database
                 self.datawriter.save(likelist, vector, simulations=simulations)
             # print len(self._logPs)

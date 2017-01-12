@@ -213,6 +213,7 @@ class fast(_algorithm):
         intervaltime = starttime
         # A generator that produces the parameters
         #param_generator = iter(Matrix)
+        firstcall = True
         param_generator = (
             (rep, Matrix[rep]) for rep in xrange(len(Matrix)))
         for rep, randompar, simulations in self.repeat(param_generator):
@@ -220,6 +221,9 @@ class fast(_algorithm):
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
             self.status(rep, like, randompar)
+            if firstcall == True:
+                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
+                firstcall = False
             # Save everything in the database
             self.datawriter.save(like, randompar, simulations=simulations)
             # Progress bar

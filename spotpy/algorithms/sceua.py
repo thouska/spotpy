@@ -201,6 +201,7 @@ class sceua(_algorithm):
         xf = np.zeros(npt)
 
         # Burn in
+        firstcall = True
         param_generator = ((rep, x[rep]) for rep in xrange(int(npt)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
@@ -209,6 +210,9 @@ class sceua(_algorithm):
             # Save everything in the database
             self.status(rep, -like, randompar)
             xf[rep] = like
+            if firstcall==True:
+                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
+                firstcall=False
             self.datawriter.save(-like, randompar, simulations=simulations)
             icall += 1
             # Progress bar

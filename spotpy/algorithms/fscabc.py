@@ -107,6 +107,7 @@ class fscabc(_algorithm):
             r = random.random()
         # Initialization
         work = []
+        firstcall = True
         # Calculate the objective function
         param_generator = (
             (rep, self.parameter()['random']) for rep in range(eb))
@@ -115,6 +116,9 @@ class fscabc(_algorithm):
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
             self.status(rep, like, randompar)
+            if firstcall == True:
+                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
+                firstcall = False
             # Save everything in the database
             self.datawriter.save(like, randompar, simulations=simulations)
             c = 0

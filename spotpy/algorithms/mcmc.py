@@ -85,6 +85,7 @@ class mcmc(_algorithm):
         likes = []
         pars = []
         sims = []
+        firstcall = True
         print('burnIn...')
         for i in range(burnIn):
             par = self.parameter()['random']
@@ -94,6 +95,9 @@ class mcmc(_algorithm):
                 evaluation=self.evaluation, simulation=sim)
             likes.append(like)
             sims.append(sim)
+            if firstcall==True:
+                self.initialize_database(par, self.parameter()['name'], sim, like)
+                firstcall=False
             self.datawriter.save(like, par, simulations=sim)
             self.status(i, like, par)
             # Progress bar

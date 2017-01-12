@@ -92,6 +92,7 @@ class sa(_algorithm):
         Enew = self.objectivefunction(
             evaluation=self.evaluation, simulation=simulations)
         Eopt = Enew
+        self.initialize_database(x, self.parameter()['name'], simulations, Enew)
         self.datawriter.save(Eopt, Xopt, simulations=simulations)
         # k=(vmax-vmin)/self.parameter()['step']
         rep = 0
