@@ -198,7 +198,7 @@ class demcz(_algorithm):
                     firstcall = False
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
-
+                self.status(rep, likelist, vector)
                 burnInpar[i][rep] = vector
                 # Save everything in the database
                 self.datawriter.save(likelist, vector, simulations=simulations)
@@ -268,7 +268,7 @@ class demcz(_algorithm):
                 self._logPs.append(like)
                 new_likelist.append(like)
                 proposalLogPs.append(like)
-
+                self.status(rep, like, vector)
 
             # for i in range(nChains):
             #     simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
