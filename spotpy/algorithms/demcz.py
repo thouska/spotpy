@@ -189,13 +189,13 @@ class demcz(_algorithm):
 
 
             for rep, vector, simulations in self.repeat(param_generator):
-                if firstcall == True:
-                    self.initialize_database(randompar, self.parameter()['name'], simulations, likelist)
 
-                    firstcall = False
                 burnInpar[i][rep] = vector
                 likelist = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
+                if firstcall == True:
+                    self.initialize_database(vector, self.parameter()['name'], simulations, likelist)
+                    firstcall = False
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
 
