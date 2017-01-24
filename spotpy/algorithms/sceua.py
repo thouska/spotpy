@@ -354,7 +354,7 @@ class sceua(_algorithm):
         print(text)
 
         # reshape BESTX
-        BESTX = BESTX.reshape(BESTX.size / self.nopt, self.nopt)
+        BESTX = BESTX.reshape(BESTX.size // self.nopt, self.nopt)
         self.repeat.terminate()
         try:
             self.datawriter.finalize()
