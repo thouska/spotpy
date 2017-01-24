@@ -95,8 +95,8 @@ class demcz(_algorithm):
     alt_objfun: str or None, default: 'log_p'
         alternative objectivefunction to be used for algorithm
         * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions, 
-            this objectivefunction is used, else falls back to None 
+        * any str: if str is found in spotpy.objectivefunctions,
+            this objectivefunction is used, else falls back to None
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
      '''
 
@@ -116,6 +116,7 @@ class demcz(_algorithm):
             print('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
     # def simulate(self):
+
 
     def sample(self, repetitions, nChains=5, burnIn=100, thin=1, 
                convergenceCriteria=.8, variables_of_interest=None,
@@ -156,9 +157,9 @@ class demcz(_algorithm):
         maxChainDraws = int(ndraw_max / nChains)
 
         dimensions = len(self.parameter()['random'])
-        history = _SimulationHistory(maxChainDraws, nChains, dimensions)
 
         # minbound,maxbound=self.find_min_max()
+        # select variables if necessary
 
         if variables_of_interest is not None:
             slices = []
@@ -167,62 +168,39 @@ class demcz(_algorithm):
         else:
             slices = [slice(None, None)]
 
+
+        # make a list of starting chains that at least span the dimension space
+        # in this case it will be of size 2*dim
+        nSeedIterations = max(int(np.ceil(dimensions * 2 / nChains)), 2)
+
+        # init a simulationhistory instance
+        history = _SimulationHistory(maxChainDraws + nSeedIterations,
+                                     nChains, dimensions)
         history.add_group('interest', slices)
 
-        # initialize the temporary storage vectors
-        currentVectors = np.zeros((nChains, dimensions))
-        currentLogPs = np.zeros(nChains)
-
-        self.accepts_ratio = 0
-        #) make a list of starting chains that at least spans the dimension space
-        # in this case it will be of size 2*dim
-        nSeedChains = int(np.ceil(dimensions * 2 / nChains) * nChains)
-        nSeedIterations = int(nSeedChains / nChains)
-        if nSeedIterations <= 2:
-            nSeedIterations = 2
-        burnInpar = []
+        ### BURN_IN
+        burnInpar = [np.zeros((nChains, dimensions))] * nSeedIterations
         for i in range(nSeedIterations):
-            vectors = np.zeros((nChains, dimensions))
-            for j in range(nChains):
-                # +np.random.uniform(low=-1,high=1)
-                randompar = self.parameter()['random']
-                vectors[j] = randompar
-                # print randompar
-            burnInpar.append(vectors)
-            history.record(vectors, 0, 0)
-
-        # use the last nChains chains as the actual chains to track
-        # add the starting positions to the history
-
-        firstcall = True        
-        for i in range(len(burnInpar)):
             self._logPs = []
-            param_generator = (
-                (rep, burnInpar[i][rep]) for rep in xrange(int(nChains)))
-
             simulationlist = []
+            param_generator = (
+                (rep, self.parameter()['random']) for rep in xrange(int(nChains)))
+
+
             for rep, vector, simulations in self.repeat(param_generator):
                 likelist = self.objectivefunction(
                     evaluation=self.evaluation, simulation=simulations)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
-                if firstcall == True:
-                    self.initialize_database(randompar, self.parameter()['name'], simulations, likelist)
-                    firstcall = False
+
+                burnInpar[i][rep] = vector
                 # Save everything in the database
                 self.datawriter.save(likelist, vector, simulations=simulations)
-            # print len(self._logPs)
-            # print len(burnInpar[i])
             history.record(burnInpar[i], self._logPs, 1)
-#        for chain in range(nChains):
-#            simulationlist=self.model(vectors[chain])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
-#            likelist=self.objectivefunction(self.evaluation, simulations)
-#            self._logPs.append(likelist)
-#            self.datawriter.save(likelist,list(vectors[chain]),simulations=list(simulationlist),chains=chain)
-
-#        history.record(vectors,self._logPs,1)
 
         gamma = None
+        self.accepts_ratio = 0
+
 
         # initilize the convergence diagnostic object
         grConvergence = _GRConvergence()
@@ -230,7 +208,9 @@ class demcz(_algorithm):
 
         # get the starting log objectivefunction and position for each of the
         # chains
-        currentVectors = vectors
+
+        currentVectors = burnInpar[-1]
+
         currentLogPs = self._logPs[-1]
 
         # 2)now loop through and sample
@@ -284,20 +264,23 @@ class demcz(_algorithm):
                 proposalLogPs.append(like)
 
 
-#            for i in range(nChains):
-#                simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
-#                new_simulationlist.append(simulations)
-#                like=self.objectivefunction(self.evaluation, simulations)
-#                new_likelist.append(like)
-#                proposalLogPs.append(like)
+            # for i in range(nChains):
+            #     simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
+            #     new_simulationlist.append(simulations)
+            #     like=self.objectivefunction(self.evaluation, simulations)
+            #     new_likelist.append(like)
+            #     proposalLogPs.append(like)
+
 
             # apply the metrop decision to decide whether to accept or reject
             # each chain proposal
             decisions, acceptance = self._metropolis_hastings(
                 currentLogPs, proposalLogPs, nChains)
             self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
-#            if mAccept and cur_iter % 20 == 0:
-#                print self.accepts_ratio
+
+            # if mAccept and cur_iter % 20 == 0:
+            #     print self.accepts_ratio
+
 
             # choose from list of possible choices if 1d_decision is True at
             # specific index, else use default choice
@@ -306,7 +289,10 @@ class demcz(_algorithm):
             currentVectors = np.choose(
                 decisions[:, np.newaxis], (currentVectors, proposalVectors))
             currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
-            simulationlist = [[new_simulationlist, old_simulationlist][int(x)][ix] for ix,x in enumerate(decisions)]
+
+            simulationlist = [[new_simulationlist, old_simulationlist][
+                int(x)][ix] for ix, x in enumerate(decisions)]
+
             likelist = list(
                 np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
 
@@ -342,8 +328,10 @@ class demcz(_algorithm):
                         'All chains fullfil the convergence criteria. Sampling stopped.')
             cur_iter += 1
 
-#            else:
-#                print 'A proposal vector was ignored'
+
+            # else:
+            #     print 'A proposal vector was ignored'
+
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second
@@ -423,25 +411,20 @@ class _SimulationHistory(object):
                     vectors[:, :, i], logPs[:, i], increment, grConvergence)
 
     def _record(self, vectors, logPs, increment, grConvergence):
-        try:
-            self._sequence_histories[:, :, self.relevantHistoryEnd] = vectors
-            self._combined_history[(self.relevantHistoryEnd * self._nChains):(
-                self.relevantHistoryEnd * self._nChains + self._nChains), :] = vectors
-            self._logPSequences[:, self.relevantHistoryEnd] = logPs
-            self._logPHistory[(self.relevantHistoryEnd * self._nChains):
-                              (self.relevantHistoryEnd * self._nChains + self._nChains)] = logPs
-            self.relevantHistoryEnd += 1
-            if np.isnan(increment):
-                self.relevantHistoryStart += 0
-            else:
-                self.relevantHistoryStart += increment
-            self.r_hat.append(grConvergence)
 
-        except IndexError:
-            print('index error')
-            self.relevantHistoryEnd += 1
+        self._sequence_histories[:, :, self.relevantHistoryEnd] = vectors
+        self._combined_history[(self.relevantHistoryEnd * self._nChains):(
+            self.relevantHistoryEnd * self._nChains + self._nChains), :] = vectors
+        self._logPSequences[:, self.relevantHistoryEnd] = logPs
+        self._logPHistory[(self.relevantHistoryEnd * self._nChains):
+                          (self.relevantHistoryEnd * self._nChains + self._nChains)] = logPs
+        self.relevantHistoryEnd += 1
+        if np.isnan(increment):
+            self.relevantHistoryStart += 0
+        else:
             self.relevantHistoryStart += increment
-            pass
+        self.r_hat.append(grConvergence)
+
 
     def start_sampling(self):
         self._sampling_start = self.relevantHistoryEnd
@@ -601,7 +584,8 @@ def _dream_proposals(currentVectors, history, dimensions, nChains, DEpairs, gamm
     return proposalVectors
 
 
-def _dream2_proposals(currentVectors, history, dimensions, nChains, DEpairs, 
+def _dream2_proposals(currentVectors, history, dimensions, nChains, DEpairs,
+
                       gamma, jitter, eps):
     """
     generates and returns proposal vectors given the current states
