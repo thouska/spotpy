@@ -117,7 +117,8 @@ class demcz(_algorithm):
         return par
     # def simulate(self):
 
-    def sample(self, repetitions, nChains=5, burnIn=100, thin=1,
+
+    def sample(self, repetitions, nChains=5, burnIn=100, thin=1, 
                convergenceCriteria=.8, variables_of_interest=None,
                DEpairs=2, adaptationRate='auto', eps=5e-2,
                mConvergence=True, mAccept=True):
@@ -127,7 +128,7 @@ class demcz(_algorithm):
         Parameters
         ----------
         repetitions : int
-            number of draws from the sample distribution to be returned
+            number of draws from the sample distribution to be returned 
         nChains : int
             number of different chains to employ
         burnInSize : int
@@ -159,12 +160,14 @@ class demcz(_algorithm):
 
         # minbound,maxbound=self.find_min_max()
         # select variables if necessary
+
         if variables_of_interest is not None:
             slices = []
             for var in variables_of_interest:
                 slices.append(self.slices[var])
         else:
             slices = [slice(None, None)]
+
 
         # make a list of starting chains that at least span the dimension space
         # in this case it will be of size 2*dim
@@ -183,11 +186,13 @@ class demcz(_algorithm):
             param_generator = (
                 (rep, self.parameter()['random']) for rep in xrange(int(nChains)))
 
+
             for rep, vector, simulations in self.repeat(param_generator):
                 likelist = self.objectivefunction(
                     evaluation=self.evaluation, simulation=simulations)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
+
                 burnInpar[i][rep] = vector
                 # Save everything in the database
                 self.datawriter.save(likelist, vector, simulations=simulations)
@@ -196,13 +201,16 @@ class demcz(_algorithm):
         gamma = None
         self.accepts_ratio = 0
 
+
         # initilize the convergence diagnostic object
         grConvergence = _GRConvergence()
         covConvergence = _CovarianceConvergence()
 
         # get the starting log objectivefunction and position for each of the
         # chains
+
         currentVectors = burnInpar[-1]
+
         currentLogPs = self._logPs[-1]
 
         # 2)now loop through and sample
@@ -238,7 +246,7 @@ class demcz(_algorithm):
                     proposalVectors[i] = self.check_par_validity(
                         proposalVectors[i])
 
-            # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
+           # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
             proposalLogPs = []
             old_simulationlist = simulationlist
             old_likelist = likelist
@@ -255,6 +263,7 @@ class demcz(_algorithm):
                 new_likelist.append(like)
                 proposalLogPs.append(like)
 
+
             # for i in range(nChains):
             #     simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
             #     new_simulationlist.append(simulations)
@@ -262,13 +271,16 @@ class demcz(_algorithm):
             #     new_likelist.append(like)
             #     proposalLogPs.append(like)
 
+
             # apply the metrop decision to decide whether to accept or reject
             # each chain proposal
             decisions, acceptance = self._metropolis_hastings(
                 currentLogPs, proposalLogPs, nChains)
             self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
+
             # if mAccept and cur_iter % 20 == 0:
             #     print self.accepts_ratio
+
 
             # choose from list of possible choices if 1d_decision is True at
             # specific index, else use default choice
@@ -277,8 +289,10 @@ class demcz(_algorithm):
             currentVectors = np.choose(
                 decisions[:, np.newaxis], (currentVectors, proposalVectors))
             currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
+
             simulationlist = [[new_simulationlist, old_simulationlist][
                 int(x)][ix] for ix, x in enumerate(decisions)]
+
             likelist = list(
                 np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
 
@@ -314,8 +328,10 @@ class demcz(_algorithm):
                         'All chains fullfil the convergence criteria. Sampling stopped.')
             cur_iter += 1
 
+
             # else:
             #     print 'A proposal vector was ignored'
+
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second
@@ -395,6 +411,7 @@ class _SimulationHistory(object):
                     vectors[:, :, i], logPs[:, i], increment, grConvergence)
 
     def _record(self, vectors, logPs, increment, grConvergence):
+
         self._sequence_histories[:, :, self.relevantHistoryEnd] = vectors
         self._combined_history[(self.relevantHistoryEnd * self._nChains):(
             self.relevantHistoryEnd * self._nChains + self._nChains), :] = vectors
@@ -407,6 +424,7 @@ class _SimulationHistory(object):
         else:
             self.relevantHistoryStart += increment
         self.r_hat.append(grConvergence)
+
 
     def start_sampling(self):
         self._sampling_start = self.relevantHistoryEnd
@@ -567,6 +585,7 @@ def _dream_proposals(currentVectors, history, dimensions, nChains, DEpairs, gamm
 
 
 def _dream2_proposals(currentVectors, history, dimensions, nChains, DEpairs,
+
                       gamma, jitter, eps):
     """
     generates and returns proposal vectors given the current states
