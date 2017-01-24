@@ -179,6 +179,7 @@ class demcz(_algorithm):
         history.add_group('interest', slices)
 
         ### BURN_IN
+        firstcall = True
         burnInpar = [np.zeros((nChains, dimensions))] * nSeedIterations
         for i in range(nSeedIterations):
             self._logPs = []
