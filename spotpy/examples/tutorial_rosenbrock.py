@@ -57,7 +57,7 @@ sampler=spotpy.algorithms.fscabc(spot_setup,    dbname='RosenMC',    dbformat='c
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-print(results[0]['parx'][-1]) # Check for Travis: Get the last sampled parameter for x
+print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
 evaluation = spot_setup.evaluation()
 
 #Example how to plot the data
