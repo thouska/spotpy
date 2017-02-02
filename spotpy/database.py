@@ -83,7 +83,7 @@ class database(object):
         self.header = []
         self.header.extend(['like' + '_'.join(map(str, x))
                             for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
-        self.header.extend(['par{0}'.format(x) for x in parnames])
+        self.header.extend(['par{0}'.format(x.decode()) for x in parnames])
         self.header.extend(['simulation' + '_'.join(map(str, x))
                             for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
         self.header.append('chain')
