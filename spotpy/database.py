@@ -137,9 +137,9 @@ class csv(database):
         # init base class
         super(csv, self).__init__(*args, **kwargs)
         # Create a open file, which needs to be closed after the sampling
-        self.db = io.open(self.dbname + '.csv', 'wb')
+        self.db = io.open(self.dbname + '.csv', 'w')
         # write header line
-        self.db.write((','.join(self.header) + '\n').encode('utf-8'))
+        self.db.write(','.join(self.header) + '\n')
         # store init item only if dbinit
         if kwargs.get('dbinit', True):
             self.save(self.like, self.randompar, self.simulations, self.chains)
@@ -152,12 +152,12 @@ class csv(database):
         try:
             # maybe apply a rounding for the floats?!
             self.db.write(
-                (','.join(map(str, coll)) + '\n').encode('utf-8'))
+                ','.join(map(str, coll)) + '\n')
         except IOError:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
             self.db.write(
-                (','.join(map(str, coll)) + '\n').encode('utf-8'))
+                ','.join(map(str, coll)) + '\n')
 
     def finalize(self):
         self.db.close()
