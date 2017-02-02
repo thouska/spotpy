@@ -137,7 +137,7 @@ class csv(database):
         # init base class
         super(csv, self).__init__(*args, **kwargs)
         # Create a open file, which needs to be closed after the sampling
-        self.db = io.open(self.dbname + '.csv', 'w')
+        self.db = io.open(self.dbname + '.csv', 'wb')
         # write header line
         self.db.write((','.join(self.header) + '\n').encode('utf-8'))
         # store init item only if dbinit
