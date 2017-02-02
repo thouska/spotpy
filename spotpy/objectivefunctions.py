@@ -406,7 +406,7 @@ def decomposed_mse(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def kge(evaluations,imulation, return_all=False):
+def kge(evaluation,simulation, return_all=False):
     """
     Kling-Gupta Efficiency
     
