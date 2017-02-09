@@ -33,14 +33,14 @@ class _RunStatistic(object):
         self.objectivefunction = -1e308
 
     def __call__(self, rep, objectivefunction, params):
-        if type(objectivefunction) == type([]):
+        try:
             if objectivefunction[0] > self.objectivefunction:
                 # Show only the first best objectivefunction when working with
                 # more than one objectivefunction
                 self.objectivefunction = objectivefunction[0]
                 self.params = params
                 self.rep = rep
-        else:
+        except TypeError:
             if objectivefunction > self.objectivefunction:
                 self.params = params
                 self.objectivefunction = objectivefunction
