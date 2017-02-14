@@ -110,10 +110,14 @@ class lhs(_algorithm):
             self.datawriter.save(like, randompar, simulations=simulations)
             # Progress bar
             acttime = time.time()
-            # Refresh progressbar every second
+            
+            #create string of the aproximate time left to complete all runs
+            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
+                       (rep + 1)) * (repetitions - (rep + 1)))))
+            # Refresh progressbar every second 
             if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    rep, repetitions, self.status.objectivefunction)
+                text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
+                    self.status.objectivefunction, timestr)
                 print(text)
                 intervaltime = time.time()
         self.repeat.terminate()
