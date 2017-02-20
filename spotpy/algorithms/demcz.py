@@ -184,6 +184,7 @@ class demcz(_algorithm):
         for i in range(nSeedIterations):
             self._logPs = []
             simulationlist = []
+            old_like = np.empty(nChains)
             param_generator = (
                 (rep, self.parameter()['random']) for rep in xrange(int(nChains)))
 
@@ -194,14 +195,15 @@ class demcz(_algorithm):
                 likelist = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
                 if firstcall == True:
-                    self.initialize_database(vector, self.parameter()['name'], simulations, likelist)
+                    self.initialize_database(list(vector), self.parameter()['name'], simulations, likelist)
                     firstcall = False
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
+                old_like[rep] = likelist
                 self.status(rep, likelist, vector)
                 burnInpar[i][rep] = vector
                 # Save everything in the database
-                self.datawriter.save(likelist, vector, simulations=simulations)
+                self.datawriter.save(likelist, list(vector), simulations=simulations)
             history.record(burnInpar[i], self._logPs, 1)
 
         gamma = None
@@ -255,7 +257,7 @@ class demcz(_algorithm):
            # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
             proposalLogPs = []
             old_simulationlist = simulationlist
-            old_likelist = likelist
+            old_likelist = self._logPs[-1]
             new_simulationlist = []
             new_likelist = []
 
@@ -295,17 +297,20 @@ class demcz(_algorithm):
             save_likes=[]
             save_pars=[]
             save_sims=[]
+            #print(len(self._logPs))
+
             for curchain in range(nChains):
                 if decisions[curchain]:
-                   save_likes.append(new_likelist)
-                   save_pars.append(proposalVectors)
-                   save_sims.append(new_simulationlist)
+                   save_likes.append(float(new_likelist[curchain]))
+                   old_like[curchain]=float(new_likelist[curchain])
+                   save_pars.append(proposalVectors[curchain])
+                   save_sims.append(new_simulationlist[curchain])
                 else:
-                   save_likes.append(old_likelist)
-                   save_pars.append(currentVectors)
-                   save_sims.append(old_simulationlist)
+                   save_likes.append(old_like[curchain])
+                   save_pars.append(currentVectors[curchain])
+                   save_sims.append(old_simulationlist[curchain])
                       
-                   
+            #print(len(save_pars)     )
             currentVectors = np.choose(
                 decisions[:, np.newaxis], (currentVectors, proposalVectors))
             currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
@@ -332,7 +337,7 @@ class demcz(_algorithm):
                     currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
                 for chain in range(nChains):
                     if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
-                        self.datawriter.save(save_likes[chain][0],
+                        self.datawriter.save(save_likes[chain],
                                              save_pars[chain],
                                              simulations=save_sims[chain],
                                              chains=chain)
