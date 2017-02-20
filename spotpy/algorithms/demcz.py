@@ -292,6 +292,20 @@ class demcz(_algorithm):
             # specific index, else use default choice
             # np.choose(1d_decision[:,None], (list of possible choices, default
             # choice)
+            save_likes=[]
+            save_pars=[]
+            save_sims=[]
+            for curchain in range(nChains):
+                if decisions[curchain]:
+                   save_likes.append(new_likelist)
+                   save_pars.append(proposalVectors)
+                   save_sims.append(new_simulationlist)
+                else:
+                   save_likes.append(old_likelist)
+                   save_pars.append(currentVectors)
+                   save_sims.append(old_simulationlist)
+                      
+                   
             currentVectors = np.choose(
                 decisions[:, np.newaxis], (currentVectors, proposalVectors))
             currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
@@ -318,9 +332,9 @@ class demcz(_algorithm):
                     currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
                 for chain in range(nChains):
                     if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
-                        self.datawriter.save(likelist[chain][0],
-                                             currentVectors[chain],
-                                             simulations=simulationlist[chain],
+                        self.datawriter.save(save_likes[chain][0],
+                                             save_pars[chain],
+                                             simulations=save_sims[chain],
                                              chains=chain)
 
             if history.nsamples > 0 and cur_iter > lastRecalculation * 1.1 and history.nsequence_histories > dimensions:
