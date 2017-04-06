@@ -117,8 +117,10 @@ class _algorithm(object):
         elif parallel == 'mpi':
             from spotpy.parallel.mpi import ForEach
         elif parallel == 'mpc':
-            raise NotImplementedError(
-                'Sorry, mpc is not available by now. Please use seq or mpi')
+            print('Multiprocessing is in still testing phase and may result in errors')
+            from spotpy.parallel.mproc import ForEach
+            #raise NotImplementedError(
+            #    'Sorry, mpc is not available by now. Please use seq or mpi')
         else:
             raise ValueError(
                 "'%s' is not a valid keyword for parallel processing" % parallel)

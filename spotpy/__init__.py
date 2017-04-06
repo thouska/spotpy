@@ -18,6 +18,7 @@ sampling and an analyser class for the plotting of results by the sampling.
                - Matplotlib >1.4 (optional) (http://matplotlib.org/) 
                - CMF (optional) (http://fb09-pasig.umwelt.uni-giessen.de:8000/)
                - mpi4py (optional) (http://mpi4py.scipy.org/)
+               - pathos (optional) (https://pypi.python.org/pypi/pathos/)
 
                :help: For specific questions, try to use the socumentation website at:
 http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
@@ -34,4 +35,4 @@ import analyser #Acitivate if you want to have the analyser imported by default 
 import objectivefunctions
 import parameter
 import examples
-__version__ = '1.2.35'
+__version__ = '1.2.36'

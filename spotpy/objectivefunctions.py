@@ -76,9 +76,9 @@ def pbias(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def nashsutcliff(evaluation,simulation):   
+def nashsutcliffe(evaluation,simulation):   
     """
-    Nash-Sutcliff model efficinecy
+    Nash-Sutcliffe model efficinecy
     
         .. math::
 
@@ -109,9 +109,9 @@ def nashsutcliff(evaluation,simulation):
         return np.nan
 
         
-def lognashsutcliff(evaluation,simulation):
+def lognashsutcliffe(evaluation,simulation):
     """
-    log Nash-Sutcliff model efficiency
+    log Nash-Sutcliffe model efficiency
    
         .. math::
 
