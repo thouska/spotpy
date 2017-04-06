@@ -60,7 +60,7 @@ class mcmc(_algorithm):
     def __init__(self, *args, **kwargs):
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'log_p'
-        super(mcmc_parallel, self).__init__(*args, **kwargs)
+        super(mcmc, self).__init__(*args, **kwargs)
 
     def check_par_validity(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
