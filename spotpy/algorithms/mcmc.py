@@ -19,7 +19,7 @@ import numpy as np
 import time
 
 
-class mcmc_parallel(_algorithm):
+class mcmc(_algorithm):
     '''
     Implements the MarkovChainMonteCarlo algorithm.
 
