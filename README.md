@@ -136,9 +136,11 @@ Support
 
 * Please contact the authors in case of any bug.
 
-* If you use this package for a scientific research paper, please cite SPOTPY. It is peer-reviewed.
+* If you use this package for a scientific research paper, please cite SPOTPY. It is [peer-reviewed](http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0145180 "SPOTting Model Parameters Using a Ready-Made Python Package").
 
 * Patches/enhancements and any other contributions to this package are very welcome!
 
-* GitHub: https://github.com/thouska/spotpy
 
+Getting started
+=================
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
