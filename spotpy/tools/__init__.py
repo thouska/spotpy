@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
+Copyright (c) 2017 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
@@ -29,11 +29,5 @@ https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Metho
 Pleas cite our paper, if you are using SPOTPY.
 '''
 
-import database
-import algorithms
-import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
-import objectivefunctions
-import parameter
-import examples
-import indicies
+import progressbar
 __version__ = '1.2.36'
