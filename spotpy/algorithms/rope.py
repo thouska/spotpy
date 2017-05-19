@@ -254,8 +254,10 @@ class rope(_algorithm):
             S = np.zeros(shape=(NP, NP))
             for i in range(NP):
                 row = JSAMP[i]
-                S[i, :] = [X[row - 1, j]
-                           for j in range(NP)]  # S: random sample from X
+
+                #too complicated S[i, :] = [X[int(row) - 1,j] for j in range(NP)]  # S: random sample from X
+                S[i, :] = X[int(row) - 1]
+
             nx, NP = S.shape
             C = np.zeros(shape=(NP, NP))
             y = np.zeros(shape=(2, 2))

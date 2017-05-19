@@ -57,6 +57,10 @@ import numpy as np
 import time
 
 
+class DEMCZError(Exception):
+    pass
+
+
 class demcz(_algorithm):
     '''
     Implements the DE-MC_Z algorithm from ter Braak and Vrugt (2008).
@@ -186,7 +190,7 @@ class demcz(_algorithm):
             simulationlist = []
             old_like = np.empty(nChains)
             param_generator = (
-                (rep, self.parameter()['random']) for rep in xrange(int(nChains)))
+                (rep, self.parameter()['random']) for rep in range(int(nChains)))
 
 
             for rep, vector, simulations in self.repeat(param_generator):
@@ -262,7 +266,7 @@ class demcz(_algorithm):
             new_likelist = []
 
             param_generator = (
-                (rep, list(proposalVectors[rep])) for rep in xrange(int(nChains)))
+                (rep, list(proposalVectors[rep])) for rep in range(int(nChains)))
             for rep, vector, simulations in self.repeat(param_generator):
                 new_simulationlist.append(simulations)
                 like = self.objectivefunction(
@@ -284,7 +288,10 @@ class demcz(_algorithm):
             # each chain proposal
             decisions, acceptance = self._metropolis_hastings(
                 currentLogPs, proposalLogPs, nChains)
-            self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
+            try:
+                self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
+            except DEMCZError:
+                pass
 
             # if mAccept and cur_iter % 20 == 0:
             #     print self.accepts_ratio
@@ -427,7 +434,7 @@ class _SimulationHistory(object):
         self.relevantHistoryEnd = 0
 
     def add_group(self, name, slices):
-        indexes = range(self._dimensions)
+        indexes = list(range(self._dimensions))
         indicies = []
         for s in slices:
             indicies.extend(indexes[s])
