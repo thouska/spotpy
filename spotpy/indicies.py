@@ -26,8 +26,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from spotpy.examples.spot_setup_hymod import spot_setup
-import pandas,pprint
+import pandas
 import copy
 import numpy as np
 '''
@@ -38,10 +37,19 @@ Uncertainty in hydrological signatures I. K. Westerberg and H. K. McMillan
 '''
 
 class HydroIndiciesError(Exception):
+    """
+    Define an own error class to know it is an error made by a hydroindex calculation to warn the use for wrong inputs
+    """
     pass
 
 
 def __isSorted(df):
+    """
+    If the pandas object is not sorted the comparision will failed with a valueError which will be caught 
+    and noted as a unsorted list
+    :param df: pandas datetime object 
+    :return: bool
+    """
     try:
         if sum(df == df.sort_values()) == df.__len__():
             return True
@@ -52,7 +60,17 @@ def __isSorted(df):
 
 
 def __calcDev(a, b):
-    """We calculate the relative error"""
+    """
+    Calculate the relative error / derivation of two values
+    If one parameter is zero the result is just 1, for example b = 0, so calculate: (a+0)/a = 1
+    a ~= b iff result is ~zero [approximately]
+    :param a: value a
+    :type: float
+    :param b: value b
+    :type: float
+    :return: relative error
+    :type: float
+    """
     if a != 0:
         return (a - b) / a
     elif b != 0:
@@ -61,147 +79,345 @@ def __calcDev(a, b):
         return 0
 
 def __percentilwrapper(array, index):
-    """Based to the definition of the paper with a 10-percentiles - 10% = 0.1 of the data are equal or less then the Q10 """
+    """
+    Based to the definition of the paper with a 10-percentiles - 10% = 0.1 of the data are equal or less then the Q10 
+    :array: data
+    :type: list
+    :index: percentil index
+    :type: float / int
+    :return: Numpy Percentil
+    :rtype: float
+    
+    """
     return np.percentile(array, index)
 
 def __calcMeanFlow(data):
-    """Simply calculate the mean of the data"""
+    """
+    Simply calculate the mean of the data
+    :data: A list of float data
+    :type: list
+    :return: Mean
+    :rtype: float
+    """
     return np.mean(data)
 
 def __calcMedianFlow(data):
-    """Simply calculate the median (flow exceeded 50% of the time) of the data"""
+    """
+    Simply calculate the median (flow exceeded 50% of the time) of the data
+    :data: A list of float data
+    :type: list
+    :return: Median
+    :rtype: float
+    """
     return np.percentile(data, 50)
 
 
-def getMeanFlow(simulations,observations):
-    """Simply calculate the mean of the data"""
-    if simulations.__len__() != observations.__len__():
+def getMeanFlow(evaluation, simulation):
+    """
+    Simply calculate the mean of the data
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: Mean
+    :rtype: float
+    
+    """
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    a = __calcMeanFlow(simulations)
-    b = __calcMeanFlow(observations)
+    a = __calcMeanFlow(simulation)
+    b = __calcMeanFlow(evaluation)
     return __calcDev(a,b)
 
-def getMedianFlow(simulations, observations):
-    """Simply calculate the median (flow exceeded 50% of the time) of the data"""
-    if simulations.__len__() != observations.__len__():
+def getMedianFlow(evaluation, simulation):
+    """    
+    Simply calculate the median (flow exceeded 50% of the time) of the data
+
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: Median
+    :rtype: float
+    
+    """
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
-    a = __calcMedianFlow(simulations)
-    b = __calcMedianFlow(observations)
+    a = __calcMedianFlow(simulation)
+    b = __calcMedianFlow(evaluation)
     return __calcDev(a, b)
 
-def getSkewness(simulations, observations):
-    """Skewness, i.e. MF divided by Q50."""
-    if simulations.__len__() != observations.__len__():
+def getSkewness(evaluation, simulation):
+    """
+    Skewness, i.e. MF divided by Q50.
+         
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: derivation of the skewness
+    :rtype: float
+    
+    """
+
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    a = __calcMeanFlow(simulations) / __calcMedianFlow(simulations)
-    b = __calcMeanFlow(observations) / __calcMedianFlow(observations)
+    a = __calcMeanFlow(simulation) / __calcMedianFlow(simulation)
+    b = __calcMeanFlow(evaluation) / __calcMedianFlow(evaluation)
     return __calcDev(a, b)
 
-def getCoeffVariation(simulations, observations):
-    """Coefficient of variation, i.e. standard deviation divided by MF"""
-    if simulations.__len__() != observations.__len__():
+def getCoeffVariation(evaluation, simulation):
+    """
+    
+    Coefficient of variation, i.e. standard deviation divided by MF
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the coefficient of variation
+    :rtype: float
+
+    """
+    
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    a = np.std(simulations)/__calcMeanFlow(simulations)
-    b = np.std(observations) / __calcMeanFlow(observations)
-    return __calcDev(a, b)
-
-
-def getQ001(simulations, observations):
-    """The value of the 0.01 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 0.01)
-    b = __percentilwrapper(observations, 0.01)
-    return __calcDev(a, b)
-
-def getQ01(simulations, observations):
-    """The value of the 0.1 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 0.1)
-    b = __percentilwrapper(observations, 0.1)
-    return __calcDev(a, b)
-
-def getQ1(simulations, observations):
-    """The value of the 1 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 1)
-    b = __percentilwrapper(observations, 1)
-    return __calcDev(a, b)
-
-def getQ5(simulations, observations):
-    """The value of the 5 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 5)
-    b = __percentilwrapper(observations, 5)
-    return __calcDev(a, b)
-
-def getQ10(simulations, observations):
-    """The value of the 10 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 10)
-    b = __percentilwrapper(observations, 10)
-    return __calcDev(a, b)
-
-def getQ20(simulations, observations):
-    """The value of the 20 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 20)
-    b = __percentilwrapper(observations, 20)
-    return __calcDev(a, b)
-
-def getQ85(simulations, observations):
-    """The value of the 85 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 85)
-    b = __percentilwrapper(observations, 85)
-    return __calcDev(a, b)
-
-def getQ95(simulations, observations):
-    """The value of the 95 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 95)
-    b = __percentilwrapper(observations, 95)
-    return __calcDev(a, b)
-
-def getQ99(simulations, observations):
-    """The value of the 99 percentiles (german: quantil)"""
-    if simulations.__len__() != observations.__len__():
-        raise HydroIndiciesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulations, 99)
-    b = __percentilwrapper(observations, 99)
+    a = np.std(simulation)/__calcMeanFlow(simulation)
+    b = np.std(evaluation) / __calcMeanFlow(evaluation)
     return __calcDev(a, b)
 
 
-def getDuration(simulations, observations,datetime_series,key):
-    """Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median"""
-    if simulations.__len__() != observations.__len__():
+def getQ001(evaluation, simulation):
+    """
+    The value of the 0.01 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 0.01 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    if simulations.__len__() != datetime_series.__len__():
+    a = __percentilwrapper(simulation, 0.01)
+    b = __percentilwrapper(evaluation, 0.01)
+    return __calcDev(a, b)
+
+def getQ01(evaluation, simulation):
+    """
+    The value of the 0.1 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 0.1 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 0.1)
+    b = __percentilwrapper(evaluation, 0.1)
+    return __calcDev(a, b)
+
+def getQ1(evaluation, simulation):
+    """
+    The value of the 1 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 1 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 1)
+    b = __percentilwrapper(evaluation, 1)
+    return __calcDev(a, b)
+
+def getQ5(evaluation, simulation):
+    """
+    The value of the 5 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 5 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 5)
+    b = __percentilwrapper(evaluation, 5)
+    return __calcDev(a, b)
+
+def getQ10(evaluation, simulation):
+    """
+    The value of the 10 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 10 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 10)
+    b = __percentilwrapper(evaluation, 10)
+    return __calcDev(a, b)
+
+def getQ20(evaluation, simulation):
+    """
+    The value of the 20 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 20 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 20)
+    b = __percentilwrapper(evaluation, 20)
+    return __calcDev(a, b)
+
+def getQ85(evaluation, simulation):
+    """
+    The value of the 85 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 85 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 85)
+    b = __percentilwrapper(evaluation, 85)
+    return __calcDev(a, b)
+
+def getQ95(evaluation, simulation):
+    """
+    The value of the 95 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 95 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 95)
+    b = __percentilwrapper(evaluation, 95)
+    return __calcDev(a, b)
+
+def getQ99(evaluation, simulation):
+    """
+    The value of the 99 percentiles
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :return: derivation of the 99 percentiles
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    a = __percentilwrapper(simulation, 99)
+    b = __percentilwrapper(evaluation, 99)
+    return __calcDev(a, b)
+
+
+def getDuration(evaluation, simulation,datetime_series,key):
+    """
+    Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
+    
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
+    :type: pandas datetime
+    
+    :key: which threshold calculation should be used. Allowed keys are: [0.2, 1,3,5,7,9] 
+    :type: int/float
+    
+    :return: mean of deviation of average duration of a year
+    :rtype: float
+
+    """
+    if simulation.__len__() != evaluation.__len__():
+        raise HydroIndiciesError("Simulation and observation data have not the same length")
+
+    if simulation.__len__() != datetime_series.__len__():
         raise HydroIndiciesError("Simulation / observation data and the datetime_series have not the same length")
 
 
-    FRE_a, rawDUR_a, DUR_a = __calcFRE(simulations,datetime_series)
-    FRE_b, rawDUR_b, DUR_b = __calcFRE(observations,datetime_series)
+    FRE_a, rawDUR_a, DUR_a = __calcFRE(simulation,datetime_series)
+    FRE_b, rawDUR_b, DUR_b = __calcFRE(evaluation,datetime_series)
 
     sum_dev = 0.0
     for y in DUR_a:
@@ -213,16 +429,36 @@ def getDuration(simulations, observations,datetime_series,key):
     return sum_dev / DUR_a.__len__()
 
 
-def getFrequency(simulations, observations, datetime_series, key):
-    """Get high and low-flow event frequencies which have a threshold of [0.2, 1,3,5,7,9] the median"""
-    if simulations.__len__() != observations.__len__():
+def getFrequency(evaluation, simulation, datetime_series, key):
+    """
+    Get high and low-flow event frequencies which have a threshold of [0.2, 1,3,5,7,9] the median
+    
+        
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
+    :type: pandas datetime
+    
+    :key: which threshold calculation should be used. Allowed keys are: [0.2, 1,3,5,7,9] 
+    :type: int/float
+    
+    :return: mean of deviation of average frequency of a year
+    :rtype: float
+
+    
+    """
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    if simulations.__len__() != datetime_series.__len__():
+    if simulation.__len__() != datetime_series.__len__():
         raise HydroIndiciesError("Simulation / observation data and the datetime_series have not the same length")
 
-    FRE_a, rawDUR_a, DUR_a = __calcFRE(simulations, datetime_series)
-    FRE_b, rawDUR_b, DUR_b = __calcFRE(observations, datetime_series)
+    FRE_a, rawDUR_a, DUR_a = __calcFRE(simulation, datetime_series)
+    FRE_b, rawDUR_b, DUR_b = __calcFRE(evaluation, datetime_series)
 
     sum_dev = 0.0
     for y in FRE_a:
@@ -235,13 +471,18 @@ def getFrequency(simulations, observations, datetime_series, key):
 
 
 def __calcFRE(dailyflows,datetime_series):
-    """High  ̄flow frequency, i.e. average number of high  ̄flow events per year, using a threshold of 
+    """
+    High  ̄flow frequency, i.e. average number of high  ̄flow events per year, using a threshold of 
         0.2 times the median
         1 times the median
         3   -""-        
         5   -""-
         7   -""-
         9   -""-
+    
+    :param dailyflows: list of float
+    :param datetime_series: pandas datetime object
+    :return: 
     """
 
     Count_per_year = {}
@@ -310,37 +551,82 @@ def __calcFRE(dailyflows,datetime_series):
     return Count_per_year, duration_per_year, DUR
 
 
-def getLowFlowVar(simulations, observations,datetime_series):
-    """Mean of annual minimum flow divided by the median flow (Jowett and Duncan, 1990)"""
-    if simulations.__len__() != observations.__len__():
+def getLowFlowVar(evaluation, simulation,datetime_series):
+    """
+    
+    Mean of annual minimum flow divided by the median flow (Jowett and Duncan, 1990)
+        
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+
+    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
+    :type: pandas datetime
+    
+    
+    :return: mean of deviation of the low flow variation
+    :rtype: float
+
+    """
+     
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    if simulations.__len__() != datetime_series.__len__():
+    if simulation.__len__() != datetime_series.__len__():
         raise HydroIndiciesError("Simulation / observation data and the datetime_series have not the same length")
     if not __isSorted(datetime_series):
         raise HydroIndiciesError("datetime_series data are not sorted")
 
-    sim_LFV = __calcAnnularData(simulations,datetime_series,"min") / __calcMedianFlow(simulations)
-    obs_LFV = __calcAnnularData(observations, datetime_series, "min") / __calcMedianFlow(observations)
+    sim_LFV = __calcAnnularData(simulation,datetime_series,"min") / __calcMedianFlow(simulation)
+    obs_LFV = __calcAnnularData(evaluation, datetime_series, "min") / __calcMedianFlow(evaluation)
     return __calcDev(sim_LFV,obs_LFV)
 
 
-def getHighFlowVar(simulations, observations, datetime_series):
-    """Mean of annual minimum flow divided by the median flow (Jowett and Duncan, 1990)"""
-    if simulations.__len__() != observations.__len__():
+def getHighFlowVar(evaluation, simulation, datetime_series):
+    """
+    Mean of annual maximum flow divided by the median flow (Jowett and Duncan, 1990)
+
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
+    :type: pandas datetime
+    
+    
+    :return: mean of deviation of the high flow variation
+    :rtype: float
+
+    """
+    
+    
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    if simulations.__len__() != datetime_series.__len__():
+    if simulation.__len__() != datetime_series.__len__():
         raise HydroIndiciesError("Simulation / observation data and the datetime_series have not the same length")
     if not __isSorted(datetime_series):
         raise HydroIndiciesError("datetime_series data are not sorted")
 
-    sim_LFV = __calcAnnularData(simulations, datetime_series, "max") / __calcMedianFlow(simulations)
-    obs_LFV = __calcAnnularData(observations, datetime_series, "max") / __calcMedianFlow(observations)
+    sim_LFV = __calcAnnularData(simulation, datetime_series, "max") / __calcMedianFlow(simulation)
+    obs_LFV = __calcAnnularData(evaluation, datetime_series, "max") / __calcMedianFlow(evaluation)
     return __calcDev(sim_LFV, obs_LFV)
 
 
 def __calcAnnularData(data,datetime_series,what):
+    """
+    
+    :param data: float list 
+    :param datetime_series: sorted pandas date time object
+    :param what: string which switches the calculation method. Allowed are:
+        "min": the minimum value of a year
+        "max": the maximum value of a year
+    :return: float - mean of min/max per year
+    """
     data_per_year_tmp=[]
     data_per_year={}
     index=0
@@ -367,7 +653,7 @@ def __calcAnnularData(data,datetime_series,what):
         raise HydroIndiciesError("The parameter what="+what+" is not defined")
 
 
-def getBaseflowIndex(simulations, observations, datetime_series):
+def getBaseflowIndex(evaluation, simulation, datetime_series):
     """
     We may have to use baseflow devided with total discharge
     How could we do that?
@@ -379,18 +665,29 @@ def getBaseflowIndex(simulations, observations, datetime_series):
     basic: Q50?
     
     Look at: IH_108.pdf
-    :return: 
+    
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
+    :type: pandas datetime
+    
+    :return: deviation of base flow index
     """
-    if simulations.__len__() != observations.__len__():
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    if simulations.__len__() != datetime_series.__len__():
+    if simulation.__len__() != datetime_series.__len__():
         raise HydroIndiciesError("Simulation / observation data and the datetime_series have not the same length")
     if not __isSorted(datetime_series):
         raise HydroIndiciesError("datetime_series data are not sorted")
 
-    bfi_sim = __calcBaseflowIndex(simulations,datetime_series)
-    bfi_obs = __calcBaseflowIndex(observations,datetime_series)
+    bfi_sim = __calcBaseflowIndex(simulation,datetime_series)
+    bfi_obs = __calcBaseflowIndex(evaluation,datetime_series)
     sum_sim = 0.0
     sum_obs = 0.0
 
@@ -406,6 +703,13 @@ def getBaseflowIndex(simulations, observations, datetime_series):
 
 
 def __calcBaseflowIndex(data,datetime_series):
+    """
+    .. :math:
+        "BF/ TD" where BF is the median of the data and TD the minimum of the data per year
+    :param data: float list
+    :param datetime_series: sorted pandas daetime objext
+    :return: dict of BFI per year 
+    """
     Min_per_year={}
     Q50_per_year = {}
     data_per_year_tmp=[]
@@ -426,26 +730,41 @@ def __calcBaseflowIndex(data,datetime_series):
     return BFI
 
 
-def getSlopeFDC(simulations, observations):
+def getSlopeFDC(evaluation, simulation):
     """
     Slope of the FDC between the 33 and 66 % exceedance values of streamflow normalised by its mean (Yadav et al., 2007)
+    
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: deviation of the slope
     """
-    if simulations.__len__() != observations.__len__():
+    if simulation.__len__() != evaluation.__len__():
         raise HydroIndiciesError("Simulation and observation data have not the same length")
 
-    return __calcDev(__calcSlopeFDC(simulations),__calcSlopeFDC(observations))
+    return __calcDev(__calcSlopeFDC(simulation),__calcSlopeFDC(evaluation))
 
 
 def __calcSlopeFDC(data):
+    """
+    The main idea is to use a threshold by the mean of the data and use the first occurrence of a 33% exceed and a 66% 
+    exceed and calculate the factor of how many times is the 66% exceed higher then the 33% exceed.
+    If 33% or 66% exceed does not exists then just give 0 back for a slope of 0 (horizontal line) 
+    :param data: float list 
+    :return: float slope
+    """
     upper33_data = np.sort(data)[np.sort(data) >= 1.33 * __calcMeanFlow(data)]
     upper66_data = np.sort(data)[np.sort(data) >= 1.66 * __calcMeanFlow(data)]
     if upper33_data.__len__() > 0 and upper66_data.__len__() > 0:
         if upper66_data[0] != 0:
             return upper33_data[0] / upper66_data[0]
         else:
-            return 1
+            return 0.0
     else:
-        return 1
+        return 0.0
 
 
 def __help():

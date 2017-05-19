@@ -29,11 +29,12 @@ https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Metho
 Pleas cite our paper, if you are using SPOTPY.
 '''
 
-import database
-import algorithms
-import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
-import objectivefunctions
-import parameter
-import examples
-import indicies
+from . import database
+from . import algorithms
+from . import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
+from . import objectivefunctions
+from . import parameter
+from . import examples
+from . import indicies
+from . import tools
 __version__ = '1.2.36'
