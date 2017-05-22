@@ -35,6 +35,5 @@ from . import analyser #Acitivate if you want to have the analyser imported by d
 from . import objectivefunctions
 from . import parameter
 from . import examples
-from . import indicies
-from . import tools
-__version__ = '1.2.36'
+from . import signatures
+__version__ = '1.2.37'
