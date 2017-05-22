@@ -35,5 +35,5 @@ from . import analyser #Acitivate if you want to have the analyser imported by d
 from . import objectivefunctions
 from . import parameter
 from . import examples
-from . import signatures
+#from . import signatures #Acitivate if you want to use hydrological signatures/indices as objective function
 __version__ = '1.2.37'
