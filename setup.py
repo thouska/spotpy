@@ -10,10 +10,10 @@ setup(
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
   #download_url = 'svn://fb09-pasig.umwelt.uni-giessen.de/spotpy/trunk/', 
   license = 'MIT',
-  packages = ["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel","spotpy.tools"],
+  packages = ["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel"],
   include_package_data = True,
   use_2to3 = True,
-  keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model', 'HydroIndicies'],
+  keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model', 'Signatures'],
   classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
