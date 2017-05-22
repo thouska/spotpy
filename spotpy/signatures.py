@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2017 by Benjamin Manns
+Copyright (c) 2015 by Tobias Houska
+
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+
 :author: Benjamin Manns
-:paper: Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: 
-SPOTting Model Parameters Using a Ready-Made Python Package, 
-PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
-This package enables the comprehensive use of different Bayesian and Heuristic calibration 
-techniques in one Framework. It comes along with an algorithms folder for the 
-sampling and an analyser class for the plotting of results by the sampling.
-:dependencies: - Numpy >1.8 (http://www.numpy.org/) 
-               - Pandas >0.13 (optional) (http://pandas.pydata.org/)
-               - Matplotlib >1.4 (optional) (http://matplotlib.org/) 
-               - CMF (optional) (http://fb09-pasig.umwelt.uni-giessen.de:8000/)
-               - mpi4py (optional) (http://mpi4py.scipy.org/)
-               - pathos (optional) (https://pypi.python.org/pypi/pathos/)
-               :help: For specific questions, try to use the documentation website at:
-http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
-For general things about parameter optimization techniques have a look at:
-https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
-Pleas cite our paper, if you are using SPOTPY.
+
+This tool holds functions for caclulation of hyrological signatures. It takes Python-lists of simulation and observation data
+returns the hydrological signature value of interest.
+
+The code is based on:
+
+B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197 Flow variables for ecological studies in temperate streams: groupings based on covariance
+I. K. Westerberg and H. K. McMillan / HESS 19 (2015) 3951-3968 Uncertainty in hydrological signatures
 '''
 
 from __future__ import absolute_import
@@ -29,12 +22,7 @@ from __future__ import unicode_literals
 import pandas
 import copy
 import numpy as np
-'''
-By B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197
 
-Uncertainty in hydrological signatures I. K. Westerberg and H. K. McMillan
-
-'''
 
 class HydroIndiciesError(Exception):
     """
