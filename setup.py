@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
   name = 'spotpy',
-  version = '1.2.36',
+  version = '1.2.37',
   description = 'A Statistical Parameter Optimization Tool',
 
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
@@ -13,7 +13,7 @@ setup(
   packages = ["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel"],
   include_package_data = True,
   use_2to3 = True,
-  keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model'],
+  keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model', 'Signatures'],
   classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
