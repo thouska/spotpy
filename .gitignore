@@ -10,6 +10,8 @@ __pycache__/
 *.rst
 *.gitignore
 *.yml
+*.csv
+*.out
 docs/*
 
 # Distribution / packaging
