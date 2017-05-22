@@ -27,11 +27,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy.examples.spot_setup_hymod import spot_setup
-import pandas,pprint
-import copy
-import numpy as np
-import spotpy.tools.progressbar
-import spotpy.indicies as ind
+import pandas as pd
+import spotpy.signatures as sig
 
 print("INFO: For this example you need the folder >hymod< in the examples folder")
 
@@ -42,9 +39,9 @@ observation = spot_setup.evaluation()
 
 timespanlen = simulation.__len__()
 
-print(ind.getMedianFlow(simulation, observation))
-print(ind.getDuration(simulation, observation,pandas.date_range("2015-05-01", periods=timespanlen),0.2))
-print(ind.getBaseflowIndex(simulation, observation, pandas.date_range("2015-05-01", periods=timespanlen)))
-print(ind.getSlopeFDC(simulation, observation))
-print(ind.getLowFlowVar(simulation, observation, pandas.date_range("2015-05-01", periods=timespanlen)))
-print(ind.getHighFlowVar(simulation, observation, pandas.date_range("2015-05-01", periods=timespanlen)))
+print(sig.getMedianFlow(simulation, observation))
+print(sig.getDuration(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),0.2))
+print(sig.getBaseflowIndex(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
+print(sig.getSlopeFDC(simulation, observation))
+print(sig.getLowFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
+print(sig.getHighFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
