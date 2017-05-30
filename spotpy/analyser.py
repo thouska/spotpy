@@ -101,12 +101,16 @@ def get_maxlikeindex(results):
         value and value of the maximum objectivefunction of your result array
     :rtype: int and float
     """        
-    maximum=np.nanmax(results['like'])
+    try:
+        likes=results['like']
+    except ValueError:
+        likes=results['like1']
+    maximum=np.nanmax(likes)
     value=str(round(maximum,4))
     text=str('The best model run has an objectivefunction of: ')
     textv=text+value
     print(textv)
-    index=np.where(results['like']==maximum)
+    index=np.where(likes==maximum)
     return index, maximum
 
 def get_minlikeindex(results):
@@ -120,12 +124,16 @@ def get_minlikeindex(results):
         value and value of the minimum objectivefunction of your result array
     :rtype: int and float
     """            
-    minimum=np.nanmin(results['like'])    
+    try:
+        likes=results['like']
+    except ValueError:
+        likes=results['like1']
+    minimum=np.nanmin(likes)    
     value=str(round(maximum,4))
     text=str('The best model run has an objectivefunction of: ')
     textv=text+value
     print(textv)
-    index=np.where(results['like']==minimum)
+    index=np.where(likes==minimum)
     return index, minimum    
 
 

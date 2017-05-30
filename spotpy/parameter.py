@@ -16,7 +16,7 @@ class Base(object):
     It creates a random number (or array) drawn from specified distribution
     """
 
-    def __init__(self, name, rndfunc, rndargs, step=None, optguess=None, *args, **kwargs):
+    def __init__(self, name, rndfunc, rndargs, step=None, optguess=None, minbound=None, maxbound=None, *args, **kwargs):
         """
         :name:     Name of the parameter
         :rndfunc:  Function to draw a random number, 
@@ -38,10 +38,12 @@ class Base(object):
         self.step = step or np.percentile(self(size=1000), 50)
         self.optguess = optguess or (np.percentile(self(size=1000), 50) -
                                      np.percentile(self(size=1000), 40))
+        self.minbound = minbound or np.min(self(size=1000))
+        self.maxbound = maxbound or np.max(self(size=1000))
 
     def __call__(self, **kwargs):
         """
-        Returns a pparameter realization
+        Returns a parameter realization
         """
         return self.rndfunc(*self.rndargs, **kwargs)
 
@@ -49,7 +51,7 @@ class Base(object):
         """
         Returns a tuple of a realization and the other parameter properties
         """
-        return self(), self.name, self.step, self.optguess
+        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound
 
 
 class Uniform(Base):
@@ -96,7 +98,7 @@ class List(object):
             raise
 
     def astuple(self):
-        return self(), self.name, 0, 0
+        return self(), self.name, 0, 0, 0, 0
 
 
 class Normal(Base):
@@ -240,9 +242,9 @@ class Wald(Base):
                                    **kwargs)
 
 
-class Weilbull(Base):
+class Weibull(Base):
     """
-    A specialization of the Base parameter for Weilbull distributions
+    A specialization of the Base parameter for Weibull distributions
     """
 
     def __init__(self, name, a, *args, **kwargs):
@@ -256,8 +258,8 @@ class Weilbull(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Weilbull, self).__init__(name,
-                                       rnd.weilbull,
+        super(Weibull, self).__init__(name,
+                                       rnd.weibull,
                                        (a,),
                                        *args,
                                        **kwargs)
@@ -270,5 +272,6 @@ def generate(parameters):
     :parameters: A sequence of parameter objects
     """
     dtype = [('random', '<f8'), ('name', '|S30'),
-             ('step', '<f8'), ('optguess', '<f8')]
+             ('step', '<f8'), ('optguess', '<f8'),
+             ('minbound', '<f8'), ('maxbound', '<f8')]
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))

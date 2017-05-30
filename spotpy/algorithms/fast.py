@@ -29,10 +29,11 @@ import numpy as np
 import time
 import math
 
+
 class fast(_algorithm):
     '''
     Implements the Fourier Amplitude Sensitivity Test algorithm.
-    
+
     Input
     ----------
     spot_setup: class
@@ -47,10 +48,10 @@ class fast(_algorithm):
             observation.
         evaluation: function
             Should return the true values as return by the model.
-            
+
     dbname: str
         * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-    
+
     dbformat: str
         * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
         * csv: A csv file will be created, which you can import afterwards.        
@@ -58,16 +59,18 @@ class fast(_algorithm):
     parallel: str
         * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
-        
+
     save_sim: boolean
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
      '''
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
-        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)    
-   
-    def scale_samples(self,params,bounds):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
+
+        _algorithm.__init__(self, spot_setup, dbname=dbname,
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+
+    def scale_samples(self, params, bounds):
         '''
         Rescales samples in 0-to-1 range to arbitrary bounds.
 
@@ -93,14 +96,8 @@ class fast(_algorithm):
                            out=params),
                lower_bounds,
                out=params)
-        
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
-    def matrix(self,bounds, N, M=4):
+
+    def matrix(self, bounds, N, M=4):
         D = len(bounds)
 
         omega = np.empty([D])
@@ -130,16 +127,18 @@ class fast(_algorithm):
             phi = 2 * math.pi * np.random.rand()
 
             for j in range(D):
-                g = 0.5 + (1 / math.pi) * np.arcsin(np.sin(omega2[j] * s + phi))
+                g = 0.5 + (1 / math.pi) * \
+                    np.arcsin(np.sin(omega2[j] * s + phi))
                 X[l, j] = g
 
         self.scale_samples(X, bounds)
         return X
-   
 
-    def analyze(self,problem, Y, D, parnames,M=4, print_to_console=False):
+    def analyze(self, problem, Y, D, parnames, M=4, print_to_console=False):
+        if len(Y.shape) > 1:
+            Y = Y.flatten()
         print(Y.size)
-        
+
         if Y.size % (D) == 0:
             N = int(Y.size / D)
         else:
@@ -148,17 +147,17 @@ class fast(_algorithm):
                 where D is the number of parameters in your parameter file.
               """)
             exit()
-    
+
         # Recreate the vector omega used in the sampling
         omega = np.empty([D])
         omega[0] = math.floor((N - 1) / (2 * M))
         m = math.floor(omega[0] / (2 * M))
-    
+
         if m >= (D - 1):
             omega[1:] = np.floor(np.linspace(1, m, D - 1))
         else:
             omega[1:] = np.arange(D - 1) % m + 1
-    
+
         # Calculate and Output the First and Total Order Values
         if print_to_console:
             print("Parameter First Total")
@@ -171,75 +170,84 @@ class fast(_algorithm):
                 print("%s %f %f" %
                       (parnames[i], Si['S1'][i], Si['ST'][i]))
         return Si
-    
-    
-    def compute_first_order(self,outputs, N, M, omega):
+
+    def compute_first_order(self, outputs, N, M, omega):
         f = np.fft.fft(outputs)
         Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
         V = 2 * np.sum(Sp)
         D1 = 2 * np.sum(Sp[np.arange(1, M + 1) * int(omega) - 1])
         return D1 / V
-    
-    
-    def compute_total_order(self,outputs, N, omega):
+
+    def compute_total_order(self, outputs, N, omega):
         f = np.fft.fft(outputs)
         Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
         V = 2 * np.sum(Sp)
         Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
         return (1 - Dt / V)
-        
+
     def sample(self, repetitions):
         """
         Samples from the FAST algorithm.
-        
+
         Input
         ----------
         repetitions: int 
             Maximum number of runs.  
         """
         print('Creating FAST Matrix')
-        #Get the names of the parameters to analyse
-        names     = self.parameter()['name']
-        #Get the minimum and maximum value for each parameter from the distribution
-        parmin,parmax=self.find_min_max()
-        
-        #Create an Matrix to store the parameter sets
-        N=int(math.ceil(float(repetitions)/float(len(parmin))))
-        bounds=[]
+        # Get the names of the parameters to analyse
+        names = self.parameter()['name']
+        # Get the minimum and maximum value for each parameter from the
+        # distribution
+        parmin, parmax = self.parameter()['minbound'], self.parameter()[
+            'maxbound']
+
+        # Create an Matrix to store the parameter sets
+        N = int(math.ceil(float(repetitions) / float(len(parmin))))
+        bounds = []
         for i in range(len(parmin)):
-            bounds.append([parmin[i],parmax[i]])
+            bounds.append([parmin[i], parmax[i]])
         Matrix = self.matrix(bounds, N, M=4)
         print('Start sampling')
-        starttime=time.time()
-        intervaltime=starttime
+        starttime = time.time()
+        intervaltime = starttime
         # A generator that produces the parameters
         #param_generator = iter(Matrix)
-        param_generator = ((rep,list(Matrix[rep])) for rep in xrange(len(Matrix)))        
-        for rep,randompar,simulations in self.repeat(param_generator):     
-            #Calculate the objective function
-            like        = self.objectivefunction(evaluation=self.evaluation,simulation=simulations)
-            self.status(rep,like,randompar)
-            #Save everything in the database
-            self.datawriter.save(like,randompar,simulations=simulations)
-            #Progress bar
-            acttime=time.time()
-            #Refresh progressbar every second
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (rep,len(Matrix),self.status.objectivefunction)
+        firstcall = True
+        param_generator = (
+            (rep, Matrix[rep]) for rep in xrange(len(Matrix)))
+        for rep, randompar, simulations in self.repeat(param_generator):
+            # Calculate the objective function
+            like = self.objectivefunction(
+                evaluation=self.evaluation, simulation=simulations)
+            self.status(rep, like, randompar)
+            if firstcall == True:
+                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
+                firstcall = False
+            # Save everything in the database
+            self.datawriter.save(like, randompar, simulations=simulations)
+            # Progress bar
+            acttime = time.time()
+            # Refresh progressbar every second
+            if acttime - intervaltime >= 2:
+                text = '%i of %i (best like=%g)' % (
+                    rep, len(Matrix), self.status.objectivefunction)
                 print(text)
-                intervaltime=time.time()        
+                intervaltime = time.time()
         self.repeat.terminate()
-        
-        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+
+        text = '%i of %i (best like=%g)' % (
+            self.status.rep, repetitions, self.status.objectivefunction)
         print(text)
-        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
         print(text)
-        
+
         try:
             self.datawriter.finalize()
-            data=self.datawriter.getdata()
-            Si = self.analyze(bounds, data['like'], len(bounds), names,print_to_console=True)
+            data = self.datawriter.getdata()
+            # this is likely to crash if database does not assign name 'like1'
+            Si = self.analyze(
+                bounds, data['like1'], len(bounds), names, print_to_console=True)
 
-        except AttributeError: #Happens if no database was assigned
+        except AttributeError:  # Happens if no database was assigned
             pass
-        

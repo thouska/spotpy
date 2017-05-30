@@ -76,9 +76,9 @@ def pbias(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def nashsutcliff(evaluation,simulation):   
+def nashsutcliffe(evaluation,simulation):   
     """
-    Nash-Sutcliff model efficinecy
+    Nash-Sutcliffe model efficinecy
     
         .. math::
 
@@ -109,9 +109,9 @@ def nashsutcliff(evaluation,simulation):
         return np.nan
 
         
-def lognashsutcliff(evaluation,simulation):
+def lognashsutcliffe(evaluation,simulation):
     """
-    log Nash-Sutcliff model efficiency
+    log Nash-Sutcliffe model efficiency
    
         .. math::
 
@@ -254,10 +254,10 @@ def rmse(evaluation,simulation):
     :return: Root Mean Squared Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation) and evaluation:
+    if len(evaluation)==len(simulation)>0:
         return np.sqrt(mse(evaluation,simulation))
     else:
-        print("Error: evaluation and simulation lists does not have the same length.")    
+        print("Error: evaluation and simulation lists do not have the same length.")    
         return np.nan
 
 def mae(evaluation,simulation):
@@ -277,7 +277,7 @@ def mae(evaluation,simulation):
     :return: Mean Absolute Error
     :rtype: float
     """
-    if len(evaluation)==len(simulation) and evaluation:
+    if len(evaluation)==len(simulation)>0:
         
         MAE_values=[]
                 
@@ -406,7 +406,7 @@ def decomposed_mse(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def kge(evaluationsimulation, return_all=False):
+def kge(evaluation,simulation, return_all=False):
     """
     Kling-Gupta Efficiency
     

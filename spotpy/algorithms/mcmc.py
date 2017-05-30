@@ -18,10 +18,11 @@ from . import _algorithm
 import numpy as np
 import time
 
+
 class mcmc(_algorithm):
     '''
     Implements the MarkovChainMonteCarlo algorithm.
-    
+
     Input
     ----------
     spot_setup: class
@@ -36,14 +37,14 @@ class mcmc(_algorithm):
             observation.
         evaluation: function
             Should return the true values as return by the model.
-            
+
     dbname: str
         * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-    
+
     dbformat: str
         * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
         * csv: A csv file will be created, which you can import afterwards.        
-        
+
     save_sim: boolean
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
@@ -55,120 +56,119 @@ class mcmc(_algorithm):
             this objectivefunction is used, else falls back to None 
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
      '''
+
     def __init__(self, *args, **kwargs):
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'log_p'
         super(mcmc, self).__init__(*args, **kwargs)
-      
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
-    def check_par_validity(self,par):
+
+    def check_par_validity(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
-                if par[i]<self.min_bound[i]: 
-                    par[i]=self.min_bound[i]
-                if par[i]>self.max_bound[i]:
-                    par[i]=self.max_bound[i] 
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i]
+                if par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i]
         else:
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
-                    
-    def sample(self, repetitions):       
+
+    def get_new_proposal_vector(self,old_par):
+        new_par = np.random.normal(loc=old_par, scale=self.stepsizes)
+        new_par = self.check_par_validity(new_par)
+        return new_par
+
+    def update_mcmc_status(self,par,like,sim,cur_chain):  
+        self.bestpar[cur_chain]=par
+        self.bestlike[cur_chain]=like
+        self.bestsim[cur_chain]=sim
+
+            
+    def sample(self, repetitions,nChains=1):
         # Prepare storing MCMC chain as array of arrays.
         # define stepsize of MCMC.
-        stepsizes    = self.parameter()['step']  # array of stepsizes
-        accepted     = 0.0
-        starttime    = time.time()
+        self.repetitions = int(repetitions)
+        self.nChains = int(nChains)
+        #Ensure initialisation of chains and database
+        self.burnIn = self.nChains
+        self.stepsizes = self.parameter()['step']  # array of stepsizes
+        starttime = time.time()
         intervaltime = starttime
         # Metropolis-Hastings iterations.
-        burnIn=int(repetitions/10)
-        likes=[]
-        pars=[]
-        sims=[]
-        print('burnIn...')
-        for i in range(burnIn):
-            par = self.parameter()['random']
-            pars.append(par)
-            sim = self.model(par)
-            like = self.objectivefunction(evaluation = self.evaluation, simulation = sim)
-            likes.append(like)
-            sims.append(sim)            
-            self.datawriter.save(like,par,simulations = sim)
-            self.status(i,like,par)
-            #Progress bar
-            acttime=time.time()
-            #Refresh progressbar every second
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (i,repetitions,self.status.objectivefunction)
+        self.bestpar=np.array([[np.nan]*len(self.stepsizes)]*self.nChains)
+        self.bestlike=[[-np.inf]]*self.nChains
+        self.bestsim=[[np.nan]]*self.nChains
+        self.accepted=np.zeros(self.nChains)
+        self.nChainruns=[[0]]*self.nChains
+        self.min_bound, self.max_bound = self.parameter(
+        )['minbound'], self.parameter()['maxbound']
+        
+        firstcall = True
+        
+        print('Inititalize ',self.nChains, ' chain(s)...')
+        self.iter=0
+        param_generator = ((curChain,self.parameter()['random']) for curChain in xrange(int(self.nChains)))                
+        for curChain,par,sim in self.repeat(param_generator):
+            
+            like = self.objectivefunction(
+                evaluation=self.evaluation, simulation=sim)
+            
+            if firstcall==True:
+                self.initialize_database(par, self.parameter()['name'], sim, like)
+                firstcall=False
+            self.update_mcmc_status(par,like,sim,curChain)
+            self.datawriter.save(like, par, simulations=sim,chains=curChain)
+            self.status(self.iter, like, par)
+            self.iter+=1
+            # Progress bar
+            acttime = time.time()
+            # Refresh progressbar every second
+            if acttime - intervaltime >= 2:
+                text = '%i of %i (best like=%g)' % (
+                    self.iter, repetitions, self.status.objectivefunction)
                 print(text)
-                intervaltime=time.time()
-        
-        old_like = max(likes)
-        index=likes.index(old_like)
-        old_par =pars[index]
-        old_simulations=sims[index]
-        self.min_bound, self.max_bound = self.find_min_max()
-        
-        nevertheless=0
-        print('Beginn of Random Walk')
-        for rep in range(repetitions-burnIn):
-            # Suggest new candidate from Gaussian proposal distribution.
-            #np.zeros([len(old_par)])
-            #Create new paramert combination and check if all parameter are into 
-            #the given parameter bounds
-            new_par = []
-            for i in range(len(old_par)):
-                # Use stepsize provided for every dimension.
-                new_par.append(np.random.normal(loc=old_par[i], scale=stepsizes[i]))
+                intervaltime = time.time()
 
-            new_par=self.check_par_validity(new_par)
-            new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(evaluation = self.evaluation, simulation = new_simulations)
-            self.status(rep,new_like,new_par)      
-            # Accept new candidate in Monte-Carlo fashing.
-            if (new_like > old_like):
-                self.datawriter.save(new_like,new_par,simulations=new_simulations)
-                self.status(rep+burnIn,new_like,new_par)                
-                accepted = accepted + 1.0  # monitor acceptance
-                old_par=new_par
-                old_simulations=new_simulations
-                old_like=new_like
-            else:            
-                logMetropHastRatio = new_like - old_like
-                u = np.log(np.random.uniform(low=0,high=1)   )
-                if u < logMetropHastRatio: #Standard Metropolis decision
-                    #if u < 0.85: #Accept nevertheless with 85% probability (Igancio)
-                    nevertheless+=1
-                    self.datawriter.save(new_like,new_par,simulations=new_simulations)               
-                    self.status(rep+burnIn,new_like,new_par)                      
-                    accepted = accepted + 1.0  # monitor acceptance
-                    old_par=new_par
-                    old_simulations=new_simulations
-                    old_like=new_like
+        print('Beginn of Random Walk')
+        #Walf through chains
+        while self.iter <= self.repetitions - self.burnIn:
+            param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in xrange(int(self.nChains)))                
+            for cChain,par,sim in self.repeat(param_generator):
+                
+                like = self.objectivefunction(
+                    evaluation=self.evaluation, simulation=sim)
+                self.status(self.iter, like, par)
+                logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
+                u = np.random.uniform(low=0.3, high=1)
+                if logMetropHastRatio>1.0 or logMetropHastRatio>u:
+                    self.update_mcmc_status(par,like,sim,cChain)   
+                    self.accepted[cChain] += 1  # monitor acceptance
+                    self.datawriter.save(like, par, simulations=sim,chains=cChain)
                 else:
-                    self.datawriter.save(old_like,old_par,simulations=old_simulations)
-            #Progress bar
-            acttime=time.time()
-            #Refresh progressbar every second
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (rep+burnIn,repetitions,self.status.objectivefunction)
+                    self.datawriter.save(self.bestlike[cChain], self.bestpar[cChain], 
+                                         simulations=self.bestsim[cChain],chains=cChain)
+                # Progress bar
+                acttime = time.time()
+                self.iter+=1
+            # Refresh progressbar every second
+            if acttime - intervaltime >= 2 and self.iter >=2:
+                text = '%i of %i (best like=%g)' % (
+                    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
-                intervaltime=time.time()
-        
+                intervaltime = time.time()
+                
+
+
         try:
             self.datawriter.finalize()
-        except AttributeError: #Happens if no database was assigned
+        except AttributeError:  # Happens if no database was assigned
             pass
         print('End of sampling')
-        text="Acceptance rate = "+str(accepted/repetitions)        
-        print(text)
-        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        text = '%i of %i (best like=%g)' % (
+            self.status.rep, repetitions, self.status.objectivefunction)
         print(text)
         print('Best parameter set')
         print(self.status.params)
-        text='Duration:'+str(round((acttime-starttime),2))+' s'
+        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
         print(text)

@@ -17,7 +17,7 @@ import time
 class mle(_algorithm):
     '''
     Implements the Maximum Likelihood Estimation algorithm.
-    
+
     Input
     ----------
     spot_setup: class
@@ -32,113 +32,117 @@ class mle(_algorithm):
             observation.
         evaluation: function
             Should return the true values as return by the model.
-            
+
     dbname: str
         * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-    
+
     dbformat: str
         * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
         * csv: A csv file will be created, which you can import afterwards.        
-        
+
     save_sim: boolean
         *True:  Simulation results will be saved
         *False: Simulationt results will not be saved
      '''
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq',save_sim=True):
 
-        _algorithm.__init__(self,spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,save_sim=save_sim)
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
 
+        _algorithm.__init__(self, spot_setup, dbname=dbname,
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
 
-    def find_min_max(self):
-        randompar=self.parameter()['random']        
-        for i in range(1000):
-            randompar=np.column_stack((randompar,self.parameter()['random']))
-        return np.amin(randompar,axis=1),np.amax(randompar,axis=1)
-    
-    def check_par_validity(self,par):
+    def check_par_validity(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
-                if par[i]<self.min_bound[i]: 
-                    par[i]=self.min_bound[i]
-                if par[i]>self.max_bound[i]:
-                    par[i]=self.max_bound[i]
-            return par
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i]
+                if par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i]
         else:
-            print('ERROR: Bounds have not the same lenghts as Parameterarray')
-            return par    
-    
-    def sample(self, repetitions):       
+            print('ERROR Bounds have not the same lenghts as Parameterarray')
+        return par
+
+    def sample(self, repetitions):
         # Define stepsize of MCMC.
         stepsizes = self.parameter()['step']  # array of stepsizes
-        accepted  = 0.0
-        starttime=time.time()
-        intervaltime=starttime
-        self.min_bound, self.max_bound = self.find_min_max()
+        accepted = 0.0
+        starttime = time.time()
+        intervaltime = starttime
+        self.min_bound, self.max_bound = self.parameter(
+        )['minbound'], self.parameter()['maxbound']
         # Metropolis-Hastings iterations.
-        burnIn=int(repetitions/10)
-        likes=[]
-        pars=[]
-        sims=[]
+        burnIn = int(repetitions / 10)
+        likes = []
+        pars = []
+        sims = []
+        firstcall = True
         print('burnIn...')
         for i in range(burnIn):
             par = self.parameter()['random']
             pars.append(par)
             sim = self.model(par)
             sims.append(sim)
-            like = self.objectivefunction(evaluation = self.evaluation, simulation = sim)
-            likes.append(like)            
-            self.datawriter.save(like,par,simulations=sim)
-            self.status(i,like,par)
-            #Progress bar
-            acttime=time.time()
-            #Refresh progressbar every second
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (i,repetitions,self.status.objectivefunction)
+            like = self.objectivefunction(
+                evaluation=self.evaluation, simulation=sim)
+            likes.append(like)
+            if firstcall==True:
+                self.initialize_database(par, self.parameter()['name'], sim, like)
+                firstcall=False
+            self.datawriter.save(like, par, simulations=sim)
+            self.status(i, like, par)
+            # Progress bar
+            acttime = time.time()
+            # Refresh progressbar every second
+            if acttime - intervaltime >= 2:
+                text = '%i of %i (best like=%g)' % (
+                    i, repetitions, self.status.objectivefunction)
                 print(text)
-                intervaltime=time.time()
-        
+                intervaltime = time.time()
+
         old_like = max(likes)
-        old_par =pars[likes.index(old_like)]
-        old_simulations=sims[likes.index(old_like)]
+        old_par = pars[likes.index(old_like)]
+        old_simulations = sims[likes.index(old_like)]
         print('Beginn Random Walk')
-        for rep in range(repetitions-burnIn):
+        for rep in range(repetitions - burnIn):
             # Suggest new candidate from Gaussian proposal distribution.
-            new_par = []#np.zeros([len(old_par)])
-            for i in range(len(old_par)):
-                # Use stepsize provided for every dimension.
-                new_par.append(np.random.normal(loc=old_par[i], scale=stepsizes[i]))
-            new_par=self.check_par_validity(new_par)
+            # Use stepsize provided for every dimension.
+            new_par = np.random.normal(loc=old_par, scale=stepsizes)
+            new_par = self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(evaluation = self.evaluation, simulation=new_simulations)
+            new_like = self.objectivefunction(
+                evaluation=self.evaluation, simulation=new_simulations)
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
-                self.datawriter.save(new_like,new_par,simulations=new_simulations)
+                self.datawriter.save(
+                    new_like, new_par, simulations=new_simulations)
                 accepted = accepted + 1.0  # monitor acceptance
-                old_par=new_par
-                old_simulations=new_simulations
-                old_like=new_like
-                self.status(rep,new_like,new_par)                      
+                old_par = new_par
+                old_simulations = new_simulations
+                old_like = new_like
+                self.status(rep, new_like, new_par)
             else:
-                self.datawriter.save(old_like,old_par,simulations=old_simulations)
-            
-            #Progress bar
-            acttime=time.time()
-            #Refresh progressbar every second
-            if acttime-intervaltime>=2:
-                text='%i of %i (best like=%g)' % (rep+burnIn,repetitions,self.status.objectivefunction)
+                self.datawriter.save(
+                    old_like, old_par, simulations=old_simulations)
+
+            # Progress bar
+            acttime = time.time()
+            # Refresh progressbar every second
+            if acttime - intervaltime >= 2:
+                text = '%i of %i (best like=%g)' % (
+                    rep + burnIn, repetitions, self.status.objectivefunction)
                 print(text)
-                intervaltime=time.time()
-        
+                intervaltime = time.time()
+
         try:
             self.datawriter.finalize()
-        except AttributeError: #Happens if no database was assigned
+        except AttributeError:  # Happens if no database was assigned
             pass
         print('End of sampling')
-        text="Acceptance rate = "+str(accepted/repetitions)        
+        text = "Acceptance rate = " + str(accepted / repetitions)
         print(text)
-        text='%i of %i (best like=%g)' % (self.status.rep,repetitions,self.status.objectivefunction)
+        text = '%i of %i (best like=%g)' % (
+            self.status.rep, repetitions, self.status.objectivefunction)
         print(text)
         print('Best parameter set:')
         print(self.status.params)
-        text='Duration:'+str(round((acttime-starttime),2))+' s'
-        print(text) 
+        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
+        print(text)
