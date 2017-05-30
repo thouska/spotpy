@@ -19,11 +19,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-import pandas
 import copy
 import numpy as np
 import datetime
-from .tools import suitableinput
 
 
 class HydroSignaturesError(Exception):
@@ -31,6 +29,34 @@ class HydroSignaturesError(Exception):
     Define an own error class to know it is an error made by a hydroindex calculation to warn the use for wrong inputs
     """
     pass
+
+
+
+import warnings
+
+
+class SuitableInput:
+    def __init__(self, datm, section):
+        self.datm = datm
+        self.section = section
+        b, r = self.__calc()
+        if not b:
+            warnings.warn("\nYour chose section was [" + self.section + "] and this is not suitable to you time data.\n"
+                          "Your time data have an interval of [" + str(r) + " " + self.section + "]")
+
+    def __calc(self):
+        if self.datm.__len__() > 1:
+            diff = (self.datm[1].to_pydatetime() - self.datm[0].to_pydatetime()).total_seconds()
+            if self.section == "year":
+                return diff / (3600 * 24 * 365) <= 1.0, diff / (3600 * 24 * 365)
+            elif self.section == "month":
+                return diff / (3600 * 24 * 30) <= 1.0, diff / (3600 * 24 * 30)
+            elif self.section == "day":
+                return diff / (3600 * 24) <= 1.0, diff / (3600 * 24)
+            elif self.section == "hour":
+                return diff <= 3600, diff / 3600
+            else:
+                raise Exception("The section [" + self.section + "] is not defined in "+str(self))
 
 
 def __isSorted(df):
@@ -392,7 +418,7 @@ def getQ99(evaluation, simulation):
     return __calcDev(a, b)
 
 
-def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
     month, day, hour.
@@ -438,7 +464,7 @@ def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, t
     return __calcDev(np.mean(for_mean_a),np.mean(for_mean_b))
 
 
-def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
     So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
@@ -474,7 +500,7 @@ def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, 
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
     
@@ -553,7 +579,7 @@ def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_f
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
     month, day, hour.
@@ -596,7 +622,7 @@ def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_serie
     return __calcDev(np.mean(for_mean_a), np.mean(for_mean_b))
 
 
-def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
     So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
@@ -633,9 +659,9 @@ def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_serie
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
-    Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
+    Get high and low-flow yearly-average event duration which have a threshold of threshold_factor the median
 
 
     :evaluation: Observed data to compared with simulation data.
@@ -731,7 +757,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     :param which_flow: string :: ["flood","drought"]
     :return: dict :: objects per section with the flood event
     """
-    suitableinput.SuitableInput(datetime_series, section)
+    SuitableInput(datetime_series, section)
     duration_per_section = {}
     tmp_duration_logger_per_sec = {}
     threshold_on_per_year = {}
@@ -827,7 +853,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     return duration_per_section
 
 
-def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor, section):
+def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
     
@@ -866,7 +892,7 @@ def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor,
     return sum / FRE_s.__len__()
 
 
-def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_factor, section):
+def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
 
