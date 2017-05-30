@@ -1,8 +1,16 @@
 from setuptools import setup
 
+f = open("buildversion","r")
+buildv = f.read()
+f.close()
+f = open("buildversion","w")
+f.write(str(int(buildv)+1))
+f.close()
+
+
 setup(
   name = 'spotpy',
-  version = '1.2.37',
+  version = '1.2.'+buildv,
   description = 'A Statistical Parameter Optimization Tool',
 
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
@@ -10,7 +18,7 @@ setup(
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
   #download_url = 'svn://fb09-pasig.umwelt.uni-giessen.de/spotpy/trunk/', 
   license = 'MIT',
-  packages = ["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel"],
+  packages = ["spotpy", "spotpy.examples", "spotpy.algorithms", "spotpy.parallel","spotpy.tools"],
   include_package_data = True,
   use_2to3 = True,
   keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model', 'Signatures'],
