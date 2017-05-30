@@ -25,13 +25,21 @@ observation = spot_setup.evaluation()
 timespanlen = simulation.__len__()
 ddd = pd.date_range("2015-01-01 11:00", freq="5min",periods=timespanlen)
 dd_daily = pd.date_range("2015-05-01", periods=timespanlen)
-#print(sig.getMedianFlow(simulation, observation))
-#print(sig.getFloodFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3, "day"))
-#sig.__calcFloodDuration(simulation,ddd,3, "year")
+print(sig.getMedianFlow(simulation, observation))
+print(sig.getFloodFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3, "day"))
+sig.__calcFloodDuration(simulation,ddd,3, "year","drought")
 
 print(sig.getAverageFloodOverflowPerSection(simulation, observation,dd_daily,3, "day"))
+print(sig.getAverageFloodDuration(simulation, observation,dd_daily,3, "day"))
+print(sig.getAverageBaseflowDuration(simulation, observation,dd_daily,3, "day"))
 
-#print(sig.getBaseflowIndex(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
-#print(sig.getSlopeFDC(simulation, observation))
-#print(sig.getLowFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
-#print(sig.getHighFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
+print(sig.getAverageBaseflowDuration(simulation, observation,dd_daily,3, "day"))
+print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,dd_daily,3, "day"))
+print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,dd_daily,3, "day"))
+
+
+
+print(sig.getBaseflowIndex(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
+print(sig.getSlopeFDC(simulation, observation))
+print(sig.getLowFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
+print(sig.getHighFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))

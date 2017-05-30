@@ -24,7 +24,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from . import _algorithm
+from ._algorithm import _algorithm
 import numpy as np
 import time
 import math

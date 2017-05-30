@@ -17,7 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from . import _algorithm
+from ._algorithm import _algorithm
 import spotpy
 import numpy as np
 import time
@@ -400,12 +400,12 @@ class sceua(_algorithm):
         ibound = 0
         s1 = snew - self.bl
         idx = (s1 < 0).nonzero()
-        if idx[0].size <> 0:
+        if idx[0].size != 0:
             ibound = 1
 
         s1 = self.bu - snew
         idx = (s1 < 0).nonzero()
-        if idx[0].size <> 0:
+        if idx[0].size != 0:
             ibound = 2
 
         if ibound >= 1:

@@ -13,16 +13,19 @@ PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
 Imports the different algorithms from this package.
 To reduce dependencies, one may select here just the needed algorithm.
 '''
-
-from _algorithm import _algorithm
-from demcz import demcz     # Differential Evolution Markov Chain Monte Carlo
-from lhs import lhs         # Latin Hypercube Sampling
-from mcmc import mcmc       # Metropolis Markov Chain Monte Carlo
-from mle import mle         # Maximum Likelihood Estimation
-from mc import mc           # Monte Carlo
-from sceua import sceua     # Shuffled Complex Evolution
-from sa import sa           # Simulated annealing
-from rope import rope       # RObust Parameter Estimation
-from fast import fast       # Fourier Amplitude Sensitivity Test
-from abc import abc         # Artificial Bee Colony
-from fscabc import fscabc   # Fitness Scaling Artificial Bee Colony
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from . import _algorithm
+from . import demcz     # Differential Evolution Markov Chain Monte Carlo
+from . import lhs         # Latin Hypercube Sampling
+from . import mcmc       # Metropolis Markov Chain Monte Carlo
+from . import mle         # Maximum Likelihood Estimation
+from . import mc           # Monte Carlo
+from . import sceua     # Shuffled Complex Evolution
+from . import sa           # Simulated annealing
+from . import rope       # RObust Parameter Estimation
+from . import fast       # Fourier Amplitude Sensitivity Test
+from . import abc         # Artificial Bee Colony
+from . import fscabc   # Fitness Scaling Artificial Bee Colony

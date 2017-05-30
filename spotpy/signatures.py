@@ -19,13 +19,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-import pandas, pprint
+import pandas
 import copy
 import numpy as np
 import datetime
-#import tools.progressbar as pbar
-#import tools.suitableinput
-import tools
+from .tools import suitableinput
+
 
 class HydroSignaturesError(Exception):
     """
@@ -554,7 +553,7 @@ def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_f
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageDroughtUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
     """
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
     month, day, hour.
@@ -597,7 +596,7 @@ def getAverageDroughtUnderflowPerSection(evaluation, simulation, datetime_series
     return __calcDev(np.mean(for_mean_a), np.mean(for_mean_b))
 
 
-def getAverageDroughtFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor, section):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
     So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
@@ -625,15 +624,16 @@ def getAverageDroughtFrequencyPerSection(evaluation, simulation, datetime_series
         sum_dur_1 = 0.0
         sum_dur_2 = 0.0
         for elem in DUR_a[y]:
-            sum_dur_1 += DUR_a[y][elem]["duration"]
-            sum_dur_2 += DUR_b[y][elem]["duration"]
+            sum_dur_1 += elem["duration"]
+        for elem in DUR_b[y]:
+            sum_dur_2 += elem["duration"]
 
         sum_dev += __calcDev(sum_dur_1, sum_dur_2)
 
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageDroughtDuration(evaluation, simulation, datetime_series, threshold_factor, section):
+def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshold_factor, section):
     """
     Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
 
@@ -731,7 +731,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     :param which_flow: string :: ["flood","drought"]
     :return: dict :: objects per section with the flood event
     """
-    tools.suitableinput.SuitableInput(datetime_series, section)
+    suitableinput.SuitableInput(datetime_series, section)
     duration_per_section = {}
     tmp_duration_logger_per_sec = {}
     threshold_on_per_year = {}
@@ -866,7 +866,7 @@ def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor,
     return sum / FRE_s.__len__()
 
 
-def getDroughtFrequency(evaluation, simulation, datetime_series, threshold_factor, section):
+def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_factor, section):
     """
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
 

@@ -9,7 +9,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This class holds the MaximumLikelihoodEstimation (MLE) algorithm.
 '''
 
-from . import _algorithm
+from ._algorithm import _algorithm
 import numpy as np
 import time
 

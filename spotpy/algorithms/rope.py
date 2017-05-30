@@ -12,7 +12,7 @@ Bárdossy, A. and Singh, S. K.: Robust estimation of hydrological model paramete
 '''
 
 
-from . import _algorithm
+from ._algorithm import _algorithm
 import time
 import numpy as np
 
