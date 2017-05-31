@@ -107,7 +107,7 @@ class mcmc(_algorithm):
         
         print('Inititalize ',self.nChains, ' chain(s)...')
         self.iter=0
-        param_generator = ((curChain,self.parameter()['random']) for curChain in xrange(int(self.nChains)))                
+        param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
         for curChain,par,sim in self.repeat(param_generator):
             
             like = self.objectivefunction(
@@ -132,7 +132,7 @@ class mcmc(_algorithm):
         print('Beginn of Random Walk')
         #Walf through chains
         while self.iter <= self.repetitions - self.burnIn:
-            param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in xrange(int(self.nChains)))                
+            param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in range(int(self.nChains)))                
             for cChain,par,sim in self.repeat(param_generator):
                 
                 like = self.objectivefunction(

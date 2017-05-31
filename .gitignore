@@ -12,6 +12,7 @@ __pycache__/
 *.yml
 *.csv
 *.out
+*.in
 docs/*
 
 # Distribution / packaging

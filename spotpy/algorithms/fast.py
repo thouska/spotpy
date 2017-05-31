@@ -215,7 +215,7 @@ class fast(_algorithm):
         #param_generator = iter(Matrix)
         firstcall = True
         param_generator = (
-            (rep, Matrix[rep]) for rep in xrange(len(Matrix)))
+            (rep, Matrix[rep]) for rep in range(len(Matrix)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             like = self.objectivefunction(
