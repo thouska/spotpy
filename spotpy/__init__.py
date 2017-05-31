@@ -20,20 +20,19 @@ sampling and an analyser class for the plotting of results by the sampling.
                - mpi4py (optional) (http://mpi4py.scipy.org/)
                - pathos (optional) (https://pypi.python.org/pypi/pathos/)
 
-               :help: For specific questions, try to use the socumentation website at:
-http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
+               :help: For specific questions, try to use the documentation website at:
+                http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
 
 For general things about parameter optimization techniques have a look at:
 https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
 
 Pleas cite our paper, if you are using SPOTPY.
 '''
-
 from . import database
 from . import algorithms
 from . import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
 from . import objectivefunctions
 from . import parameter
 from . import examples
-#from . import signatures #Acitivate if you want to use hydrological signatures/indices as objective function
+from . import signatures #Acitivate if you want to use hydrological signatures/indices as objective function
 __version__ = '1.2.37'
