@@ -1,16 +1,8 @@
 from setuptools import setup
 
-f = open("buildversion","r")
-buildv = f.read()
-f.close()
-f = open("buildversion","w")
-f.write(str(int(buildv)+1))
-f.close()
-
-
 setup(
   name = 'spotpy',
-  version = '1.2.'+buildv,
+  version = '1.2.37',
   description = 'A Statistical Parameter Optimization Tool',
 
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
@@ -35,5 +27,7 @@ setup(
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules'],
         )
