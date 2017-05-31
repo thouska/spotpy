@@ -17,7 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from . import _algorithm
+from ._algorithm import _algorithm
 from .demcz import demcz     # Differential Evolution Markov Chain Monte Carlo
 from .lhs import lhs         # Latin Hypercube Sampling
 from .mcmc import mcmc       # Metropolis Markov Chain Monte Carlo
