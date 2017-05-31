@@ -17,43 +17,43 @@ results=[]
 spot_setup=spot_setup()
 rep=5000
 
-sampler=spotpy.algorithms.mc.mc(spot_setup,    dbname='RosenMC',    dbformat='csv')
+sampler=spotpy.algorithms.mc(spot_setup,    dbname='RosenMC',    dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.lhs.lhs(spot_setup,   dbname='RosenLHS',   dbformat='csv')
+sampler=spotpy.algorithms.lhs(spot_setup,   dbname='RosenLHS',   dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.mle.mle(spot_setup,   dbname='RosenMLE',   dbformat='csv')
+sampler=spotpy.algorithms.mle(spot_setup,   dbname='RosenMLE',   dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.mcmc.mcmc(spot_setup,  dbname='RosenMCMC',  dbformat='csv')
+sampler=spotpy.algorithms.mcmc(spot_setup,  dbname='RosenMCMC',  dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.sceua.sceua(spot_setup, dbname='RosenSCEUA', dbformat='csv')
+sampler=spotpy.algorithms.sceua(spot_setup, dbname='RosenSCEUA', dbformat='csv')
 sampler.sample(rep,ngs=4)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.sa.sa(spot_setup,    dbname='RosenSA',    dbformat='csv')
+sampler=spotpy.algorithms.sa(spot_setup,    dbname='RosenSA',    dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.demcz.demcz(spot_setup, dbname='RosenDEMCz', dbformat='csv')
+sampler=spotpy.algorithms.demcz(spot_setup, dbname='RosenDEMCz', dbformat='csv')
 sampler.sample(rep,nChains=4)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.rope.rope(spot_setup,  dbname='RosenROPE',  dbformat='csv')
+sampler=spotpy.algorithms.rope(spot_setup,  dbname='RosenROPE',  dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.abc.abc(spot_setup,    dbname='RosenMC',    dbformat='csv')
+sampler=spotpy.algorithms.abc(spot_setup,    dbname='RosenMC',    dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.fscabc.fscabc(spot_setup,    dbname='RosenMC',    dbformat='csv')
+sampler=spotpy.algorithms.fscabc(spot_setup,    dbname='RosenMC',    dbformat='csv')
 sampler.sample(rep)
 results.append(sampler.getdata())
 
