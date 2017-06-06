@@ -107,10 +107,10 @@ class fscabc(_algorithm):
             determines if an userdefined limit is set or not
         limit: int
             sets the limit for scout bee phase
-        breakpoint: None, 'write' or 'read'
-            None does nothing, 'write' writes a breakpoint for restart as specified in backup_every_rep, 'read' reads a breakpoint file with name dbname + '.break'
-        backup_every_rep: int
-            writes a breakpoint after every generation, if more than the specified number of samples have carried out after last breakpoint
+breakpoint: None, 'write', 'read' or 'readandwrite'
+            None does nothing, 'write' writes a breakpoint for restart as specified in backup_every_rep, 'read' reads a breakpoint file with dbname + '.break', 'readandwrite' does both
+backup_every_rep: int
+            writes a breakpoint after every generation, if more at least the specified number of samples are carried out after writing the last breakpoint
         """
         # Initialize the progress bar
         starttime = time.time()
@@ -164,7 +164,7 @@ class fscabc(_algorithm):
             icall = 0
             gnrng = 1e100
             # and criter_change>pcento:
-        elif breakpoint == 'read':
+        elif breakpoint == 'read' or breakpoint == 'readandwrite':
             datafrombreak=self.readbreakdata(dbname)
             r=datafrombreak[1]
             work=datafrombreak[0]
@@ -273,7 +273,7 @@ class fscabc(_algorithm):
             text = '%i of %i (best like=%g) est. time remaining: %s' % (
                 icall, repetitions, self.status.objectivefunction, timestr)
             print(text)
-            if breakpoint == 'write' and icall >= lastbackup+backup_every_rep:
+            if breakpoint == 'write' or breakpoint == 'readandwrite' and icall >= lastbackup+backup_every_rep:
                 self.writebreakdata(self.dbname, work,r,icall,gnrng)
                 lastbackup=icall
             if icall >= repetitions:
