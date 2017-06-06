@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import copy
 import numpy as np
 import datetime
+import warnings
 
 
 class HydroSignaturesError(Exception):
@@ -31,12 +32,17 @@ class HydroSignaturesError(Exception):
     pass
 
 
-
-import warnings
-
-
 class SuitableInput:
     def __init__(self, datm, section):
+        """
+        Checks whether the date time series suits to a chosen section (year, month, day, hour). So if we may have daily
+         data, a hourly section may not work properly. All of this inappropriate choices generate a warning
+
+        :param datm:
+        :type datm: pandas datetime object
+        :param section: section in [year, month, day, hour]
+        :type section: string
+        """
         self.datm = datm
         self.section = section
         b, r = self.__calc()
@@ -61,10 +67,14 @@ class SuitableInput:
 
 def __isSorted(df):
     """
-    If the pandas object is not sorted the comparision will failed with a valueError which will be caught 
+    If the pandas object is not sorted the comparision will failed with a ValueError which will be caught
     and noted as a unsorted list
-    :param df: pandas datetime object 
-    :return: bool
+
+    :param df: time series
+    :type df: pandas datetime object
+    :return: if the pandas object is sorted
+    :rtype: bool
+
     """
     try:
         if sum(df == df.sort_values()) == df.__len__():
@@ -78,14 +88,16 @@ def __isSorted(df):
 def __calcDev(a, b):
     """
     Calculate the relative error / derivation of two values
-    If one parameter is zero the result is just 1, for example b = 0, so calculate: (a+0)/a = 1
-    a ~= b iff result is ~zero [approximately]
-    :param a: value a
-    :type: float
-    :param b: value b
-    :type: float
-    :return: relative error
-    :type: float
+    If one parameter is zero the result is just 1, for example b = 0, so calculate:
+    :math:`\\frac{a+0}{a} = 1` and also
+    :math:`a =  b  \\Leftrightarrow  return =  0` [approximately]
+
+    :param a: Value a
+    :type a: float
+    :param b: Value b
+    :type b: float
+    :return: relative error of a and b (numeric definition)
+    :rtype: float
     """
     if a != 0:
         return (a - b) / a
@@ -97,14 +109,14 @@ def __calcDev(a, b):
 
 def __percentilwrapper(array, index):
     """
-    Based to the definition of the paper with a 10-percentiles - 10% = 0.1 of the data are equal or less then the Q10 
-    :array: data
-    :type: list
-    :index: percentil index
-    :type: float / int
-    :return: Numpy Percentil
+    A Percentil Wrapper to have a easy chance to modify the percentil calculation for the following functions
+
+    :param array: float array
+    :type array: list
+    :param index: which percentil should be used
+    :type index: int
+    :return: the percentil
     :rtype: float
-    
     """
     return np.percentile(array, index)
 
@@ -112,8 +124,9 @@ def __percentilwrapper(array, index):
 def __calcMeanFlow(data):
     """
     Simply calculate the mean of the data
-    :data: A list of float data
-    :type: list
+
+    :param data: A list of float data
+    :type data: list
     :return: Mean
     :rtype: float
     """
@@ -123,8 +136,9 @@ def __calcMeanFlow(data):
 def __calcMedianFlow(data):
     """
     Simply calculate the median (flow exceeded 50% of the time) of the data
-    :data: A list of float data
-    :type: list
+
+    :param data: A list of float data
+    :type data: list
     :return: Median
     :rtype: float
     """
@@ -134,11 +148,12 @@ def __calcMedianFlow(data):
 def getMeanFlow(evaluation, simulation):
     """
     Simply calculate the mean of the data
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
     
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
     
     :return: Mean
     :rtype: float
@@ -156,11 +171,11 @@ def getMedianFlow(evaluation, simulation):
     """    
     Simply calculate the median (flow exceeded 50% of the time) of the data
 
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
     
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
     
     :return: Median
     :rtype: float
@@ -177,11 +192,11 @@ def getSkewness(evaluation, simulation):
     """
     Skewness, i.e. the mean flow data divided by Q50 (50 percentil / median flow) .
          
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-    
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
     
     :return: derivation of the skewness
     :rtype: float
@@ -200,12 +215,12 @@ def getCoeffVariation(evaluation, simulation):
     """
     
     Coefficient of variation, i.e. standard deviation divided by mean flow
-    
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the coefficient of variation
     :rtype: float
@@ -224,11 +239,11 @@ def getQ001(evaluation, simulation):
     """
     The value of the 0.01 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 0.01 percentiles
     :rtype: float
@@ -246,11 +261,11 @@ def getQ01(evaluation, simulation):
     """
     The value of the 0.1 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 0.1 percentiles
     :rtype: float
@@ -268,11 +283,11 @@ def getQ1(evaluation, simulation):
     """
     The value of the 1 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 1 percentiles
     :rtype: float
@@ -290,11 +305,11 @@ def getQ5(evaluation, simulation):
     """
     The value of the 5 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 5 percentiles
     :rtype: float
@@ -312,11 +327,11 @@ def getQ10(evaluation, simulation):
     """
     The value of the 10 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 10 percentiles
     :rtype: float
@@ -334,11 +349,11 @@ def getQ20(evaluation, simulation):
     """
     The value of the 20 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 20 percentiles
     :rtype: float
@@ -356,11 +371,11 @@ def getQ85(evaluation, simulation):
     """
     The value of the 85 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 85 percentiles
     :rtype: float
@@ -378,11 +393,11 @@ def getQ95(evaluation, simulation):
     """
     The value of the 95 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 95 percentiles
     :rtype: float
@@ -400,11 +415,11 @@ def getQ99(evaluation, simulation):
     """
     The value of the 99 percentiles
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: Simulated data to compared with evaluation data
+    :type simulation: list
 
     :return: derivation of the 99 percentiles
     :rtype: float
@@ -423,17 +438,23 @@ def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, t
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
     month, day, hour.
     Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the 
-    overflow events hourly but you have only daily data it the function will work but not very usefull
+    overflow events hourly but you have only daily data it the function will work but not very useful.
     
-    However for every section the function collect the overflow value, i.e. value - threshold  and calc the deviation 
-    of the means of this overflows
+    However for every section the function collect the overflow value, i.e. value - threshold and calc the deviation
+    of the means of this overflows.
     
-    :param evaluation: list :: Observed data to compared with simulation data.
-    :param simulation: list :: simulation data to compared with evaluation data
-    :param datetime_series: pandas datetime object
-    :param threshold_factor: int/float :: which times the median we use for a threshold
-    :param section: string  :: of ["year","month","day","hour"] 
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
     :return: deviation of means of overflow value
+    :rtype: float
     """
 
 
@@ -469,12 +490,18 @@ def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, 
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
     So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
      
-    :param evaluation: list :: Observed data to compared with simulation data.
-    :param simulation: list :: simulation data to compared with evaluation data
-    :param datetime_series: pandas datetime object
-    :param threshold_factor: int/float :: which times the median we use for a threshold
-    :param section: string  :: of ["year","month","day","hour"]
-    :return: float :
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: deviation of means of flood frequency per section
+    :rtype: float
     """
 
     if simulation.__len__() != evaluation.__len__():
@@ -492,8 +519,9 @@ def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, 
         sum_dur_1 = 0.0
         sum_dur_2 = 0.0
         for elem in DUR_a[y]:
-            sum_dur_1 += DUR_a[y][elem]["duration"]
-            sum_dur_2 += DUR_b[y][elem]["duration"]
+            sum_dur_1 += elem["duration"]
+        for elem in DUR_b[y]:
+            sum_dur_2 += elem["duration"]
 
         sum_dev += __calcDev(sum_dur_1, sum_dur_2)
 
@@ -504,23 +532,20 @@ def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_f
     """
     Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
     
-    
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
-    
-    :key: which times the median we use for a threshold  
-    :type: int/float
-    
-    :return: mean of deviation of average duration of a year
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: deviation of means of flood durations
     :rtype: float
-
     """
+
     if simulation.__len__() != evaluation.__len__():
         raise HydroSignaturesError("Simulation and observation data have not the same length")
 
@@ -584,17 +609,24 @@ def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_serie
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
     month, day, hour.
     Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the 
-    overflow events hourly but you have only daily data it the function will work but not very usefull
+    overflow events hourly but you have only daily data it the function will work but not very useful.
 
     However for every section the function collect the overflow value, i.e. value - threshold  and calc the deviation 
-    of the means of this overflows
+    of the means of this overflows.
 
-    :param evaluation: list :: Observed data to compared with simulation data.
-    :param simulation: list :: simulation data to compared with evaluation data
-    :param datetime_series: pandas datetime object
-    :param threshold_factor: int/float :: which times the median we use for a threshold
-    :param section: string  :: of ["year","month","day","hour"] 
-    :return: deviation of means of overflow value
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: deviation of means of underflow value
+    :rtype: float
+
     """
 
     if simulation.__len__() != evaluation.__len__():
@@ -603,8 +635,8 @@ def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_serie
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"drought")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"drought")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
 
     for_mean_a = []
     for_mean_b = []
@@ -627,12 +659,18 @@ def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_serie
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
     So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
 
-    :param evaluation: list :: Observed data to compared with simulation data.
-    :param simulation: list :: simulation data to compared with evaluation data
-    :param datetime_series: pandas datetime object
-    :param threshold_factor: int/float :: which times the median we use for a threshold
-    :param section: string  :: of ["year","month","day","hour"]
-    :return: float :
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: deviation of means of baseflow frequency per section
+    :rtype: float
     """
 
     if simulation.__len__() != evaluation.__len__():
@@ -641,8 +679,8 @@ def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_serie
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"drought")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"drought")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
 
     sum_dev = 0.0
 
@@ -663,20 +701,17 @@ def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshol
     """
     Get high and low-flow yearly-average event duration which have a threshold of threshold_factor the median
 
-
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
-
-    :key: which times the median we use for a threshold 
-    :type: int/float
-
-    :return: mean of deviation of average duration of a year
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: deviation of means of baseflow duration
     :rtype: float
 
     """
@@ -686,8 +721,8 @@ def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshol
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"drought")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"drought")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
 
     sum_dev = 0.0
     for y in DUR_a:
@@ -740,7 +775,7 @@ def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshol
 
 def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_flow):
     """
-    With a given data set we use the datetime_series and save all continuous floods, messured by a given
+    With a given data set we use the datetime_series and save all continuous floods, measured by a given
     threshold_factor times the median of the data. The start and end time of this event is recorded. Based on the user's
     section we create the list of the calculated values per year, month, day, hour.
     Important to know is that the user can input a date-time object with several intervals, so it could be every second 
@@ -749,13 +784,18 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     measurement and the amount of how many steps are in the flood event. 
     This function is used by several "getFlood*"-Functions which then calculate the desired hydrological index.
 
-    :param data: list :: measurement / simulation of a flow
-    :param datetime_series: pandas datetime :: 
-    :param threshold_factor: int/float :: the times the median of data is used as a threshold for a flood or drought 
-                                        event 
-    :param section: string :: ["year","month","day","hour"]
-    :param which_flow: string :: ["flood","drought"]
-    :return: dict :: objects per section with the flood event
+    :param data: measurement / simulation of a flow
+    :type data: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :param which_flow: in ["flood","baseflow"]
+    :type which_flow: string
+    :return: objects per section with the flood event
+    :rtype: dict
     """
     SuitableInput(datetime_series, section)
     duration_per_section = {}
@@ -764,15 +804,15 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
 
     index = 0
 
-    if which_flow not in ["flood", "drought"]:
-        raise HydroSignaturesError("which_flow should be flood or drought")
+    if which_flow not in ["flood", "baseflow"]:
+        raise HydroSignaturesError("which_flow should be flood or baseflow")
     if section not in ["year","month","day","hour"]:
         raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
 
     tmpStdDurLG = {'start': "0000-00-00", 'end': '0000-00-00', 'duration': 0}
     if which_flow == "flood":
         tmpStdDurLG['overflow'] = []
-    elif which_flow == "drought":
+    elif which_flow == "baseflow":
         tmpStdDurLG['underflow'] = []
 
     if __isSorted(datetime_series):
@@ -822,7 +862,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
                     tmp_duration_logger_per_sec[sec_key]["overflow"].append(diff)
                 else:
                     event_happend = False
-            elif which_flow == "drought":
+            elif which_flow == "baseflow":
                 if data[index] < threshold_factor * __calcMedianFlow(data):
                     event_happend = True
                     diff = data[index] - threshold_factor * __calcMedianFlow(data)
@@ -856,24 +896,18 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
 def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
     """
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
-    
-        
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
-    
-    :key: which threshold calculation should be used.  
-    :type: int/float
-    
-    :section: for which section should the function calc a frequency of flood, allowed is  ["year","month","day","hour"]
-    :type: string
-    
-    :return: mean of deviation of average frequency of a defined section, 
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: mean of deviation of average flood frequency of a defined section
     :rtype: float
 
     
@@ -897,22 +931,17 @@ def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_fact
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
 
 
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
-
-    :key: which threshold calculation should be used.  
-    :type: int/float
-
-    :section: for which section should the function calc a frequency of flood, allowed is  ["year","month","day","hour"]
-    :type: string
-
-    :return: mean of deviation of average frequency of a defined section, 
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :param section: one of ["year","month","day","hour"]
+    :type section: string
+    :return: mean of deviation of average baseflow frequency of a defined section
     :rtype: float
 
 
@@ -923,8 +952,8 @@ def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_fact
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="drought")
-    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="drought")
+    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="baseflow")
+    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="baseflow")
     sum = 0.0
     for sec in FRE_s:
         sum += __calcDev(FRE_s[sec], FRE_e[sec])
@@ -935,24 +964,22 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, secti
     """
         Calc the high and low-flow event frequencies which have a threshold of "threshold_factor" the median
         
-        :data: data where the flood frenquency is calced of
-        :type: list
-
-        :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-        :type: pandas datetime
-
-        :key: which threshold calculation should be used.  
-        :type: int/float
-
-        :section: for which section should the function calc a frequency of flood
-        :type: string
-
+        :param data: data where the flood frequency is calculated of
+        :type data: list
+        :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
+        :type datetime_series: pandas datetime
+        :param threshold_factor: which times the median as threshold calculation should be used.
+        :type threshold_factor: float
+        :param section: for which section should the function calc a frequency of flood
+        :type section: string
+        :param flow_level_type: in ["flood","baseflow"]:
+        :type flow_level_type: string
         :return: mean of deviation of average frequency of a defined section, allowed is ["year","month","day","hour"]
         :rtype: float
     """
 
-    if flow_level_type not in ["flood","drought"]:
-        raise HydroSignaturesError("flow_level_type should flood or drought")
+    if flow_level_type not in ["flood","baseflow"]:
+        raise HydroSignaturesError("flow_level_type should flood or baseflow")
 
     if __isSorted(datetime_series):
 
@@ -977,7 +1004,7 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, secti
             if flow_level_type == "flood":
                 if data[index] > threshold_factor * __calcMedianFlow(data):
                     count_per_section[sec_key] += 1
-            elif flow_level_type == "drought":
+            elif flow_level_type == "baseflow":
                 if data[index] < threshold_factor * __calcMedianFlow(data):
                     count_per_section[sec_key] += 1
             index += 1
@@ -999,18 +1026,13 @@ def getLowFlowVar(evaluation, simulation, datetime_series):
         
          Annualar Data= \\frac{\\sum_{i=1}^{N}(min(d_i)}{N*median(data)}
 
- 
-        
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
 
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
-    
-    
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
+    :type datetime_series: pandas datetime object
     :return: mean of deviation of the low flow variation
     :rtype: float
 
@@ -1041,16 +1063,12 @@ def getHighFlowVar(evaluation, simulation, datetime_series):
 
 
 
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-    
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-    
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
-    
-    
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
+    :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
+    :type datetime_series: pandas datetime object
     :return: mean of deviation of the high flow variation
     :rtype: float
 
@@ -1073,16 +1091,18 @@ def __calcAnnularData(data, datetime_series, what):
     """
     Annular Data
     
-        .. math::
-        
-         Annualar Data= \\frac{\\sum_{i=1}^{N}(max(d_i)}{N}
+    :math:`Annualar Data= \\frac{\\sum_{i=1}^{N}(max(d_i)}{N}`
 
-    :param data: float list 
+    :param data: measurements
+    :type data: list
     :param datetime_series: sorted pandas date time object
-    :param what: string which switches the calculation method. Allowed are:
-        "min": the minimum value of a year
-        "max": the maximum value of a year
-    :return: float - mean of min/max per year
+    :type datetime_series: pandas datetime object
+
+    :param what: string which switches the calculation method. Allowed are: min (the min value of a year) and max (the max value of a year)
+    :type what: string
+
+    :return:mean of min/max per year
+    :rtype: float
     """
     data_per_year_tmp = []
     data_per_year = {}
@@ -1113,27 +1133,22 @@ def __calcAnnularData(data, datetime_series, what):
 def getBaseflowIndex(evaluation, simulation, datetime_series):
     """
     We may have to use baseflow devided with total discharge
-    How could we do that?
-    https://de.wikipedia.org/wiki/Niedrigwasser
-    See also http://people.ucalgary.ca/~hayashi/kumamoto_2014/lectures/2_3_baseflow.pdf for formular
+    See https://de.wikipedia.org/wiki/Niedrigwasser and
+    see also http://people.ucalgary.ca/~hayashi/kumamoto_2014/lectures/2_3_baseflow.pdf
+
+    For the formular look at: IH_108.pdf
     
-    I would propose:
-    discharge: minimum water flow
-    basic: Q50?
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
     
-    Look at: IH_108.pdf
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
     
-    
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
-    
-    :simulation: simulation data to compared with evaluation data
-    :type: list
-    
-    :datetime_series: a pandas data object with sorted (may not be complete but sorted) dates 
-    :type: pandas datetime
+    :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
+    :type datetime_series: pandas datetime
     
     :return: deviation of base flow index
+    :rtype: float
     """
     if simulation.__len__() != evaluation.__len__():
         raise HydroSignaturesError("Simulation and observation data have not the same length")
@@ -1161,11 +1176,16 @@ def getBaseflowIndex(evaluation, simulation, datetime_series):
 
 def __calcBaseflowIndex(data, datetime_series):
     """
-    .. :math:
-        "BF/ TD" where BF is the median of the data and TD the minimum of the data per year
+    Basefow Index
+
+    :math:`BasefowIndex = \\frac{BF}{TD}` where BF is the median of the data and TD the minimum of the data per year
+
     :param data: float list
-    :param datetime_series: sorted pandas daetime objext
-    :return: dict of BFI per year 
+    :type data: list
+    :param datetime_series: sorted pandas datetime object
+    :type datetime_series: pandas datetime object
+    :return: BFI per year
+    :rtype: dict
     """
     Min_per_year = {}
     Q50_per_year = {}
@@ -1192,13 +1212,14 @@ def getSlopeFDC(evaluation, simulation):
     Slope of the FDC between the 33 and 66 % exceedance values of streamflow normalised by its mean (Yadav et al., 2007)
      
     
-    :evaluation: Observed data to compared with simulation data.
-    :type: list
+    :param evaluation: Observed data to compared with simulation data.
+    :type evaluation: list
     
-    :simulation: simulation data to compared with evaluation data
-    :type: list
+    :param simulation: simulation data to compared with evaluation data
+    :type simulation: list
     
     :return: deviation of the slope
+    :rtype: float
     """
     if simulation.__len__() != evaluation.__len__():
         raise HydroSignaturesError("Simulation and observation data have not the same length")
@@ -1212,11 +1233,12 @@ def __calcSlopeFDC(data):
     exceed and calculate the factor of how many times is the 66% exceed higher then the 33% exceed.
     If 33% or 66% exceed does not exists then just give 0 back for a slope of 0 (horizontal line) 
     
-    .. :math:
-        slope = \\frac{treshold(mean*1,33 <= data)}{treshold(mean*1,66 <= data)}
+    :math:`slope = \\frac{treshold(mean*1,33 <= data)}{treshold(mean*1,66 <= data)}`
     
-    :param data: float list 
+    :param data: float list
+    :type data: list
     :return: float slope
+    :rtype: float
     """
     upper33_data = np.sort(data)[np.sort(data) >= 1.33 * __calcMeanFlow(data)]
     upper66_data = np.sort(data)[np.sort(data) >= 1.66 * __calcMeanFlow(data)]
