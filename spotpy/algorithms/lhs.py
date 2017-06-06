@@ -97,7 +97,7 @@ class lhs(_algorithm):
         # param_generator = iter(matrx)
         firstcall = True
         param_generator = ((rep, matrx[rep])
-                           for rep in xrange(int(repetitions) - 1))
+                           for rep in range(int(repetitions) - 1))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             like = self.objectivefunction(

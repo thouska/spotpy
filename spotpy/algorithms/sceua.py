@@ -109,7 +109,7 @@ class sceua(_algorithm):
             likes = []
             sims = []
             pars = []
-            for loop in xrange(self.nspl):
+            for loop in range(self.nspl):
                 # Select simplex by sampling the complex according to a linear
                 # probability distribution
                 lcs = np.array([0] * self.nps)
@@ -202,7 +202,7 @@ class sceua(_algorithm):
 
         # Burn in
         firstcall = True
-        param_generator = ((rep, x[rep]) for rep in xrange(int(npt)))
+        param_generator = ((rep, x[rep]) for rep in range(int(npt)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             like = self.objectivefunction(
@@ -279,7 +279,7 @@ class sceua(_algorithm):
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
                         self.nps, self.bl, self.bu, self.status]
             param_generator = ((rep, x, xf, icall, cx, cf, sce_vars)
-                               for rep in xrange(int(self.ngs)))
+                               for rep in range(int(self.ngs)))
             for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
                 icall += len(likes)
                 x[k2, :] = cx[k1, :]
@@ -400,12 +400,12 @@ class sceua(_algorithm):
         ibound = 0
         s1 = snew - self.bl
         idx = (s1 < 0).nonzero()
-        if idx[0].size <> 0:
+        if idx[0].size != 0:
             ibound = 1
 
         s1 = self.bu - snew
         idx = (s1 < 0).nonzero()
-        if idx[0].size <> 0:
+        if idx[0].size != 0:
             ibound = 2
 
         if ibound >= 1:

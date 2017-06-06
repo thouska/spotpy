@@ -275,7 +275,7 @@ def get_parbounds(spotpy_setup):
         bounds.append([parmin[i],parmax[i]])
     return bounds
     
-def get_sensitivity_of_fast(results,like_index=None,M=4, print_to_console=True):
+def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
     """
     Get the sensitivity for every parameter of your result array, created with the FAST algorithm 
     

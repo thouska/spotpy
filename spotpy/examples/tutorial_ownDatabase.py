@@ -27,7 +27,7 @@ class spot_setup(object):
         
     def simulation(self,vector):
         x=np.array(vector)
-        for i in xrange(self.slow):
+        for i in range(self.slow):
             s = np.sin(i)
         simulations= [sum(100.0*(x[1:] - x[:-1]**2.0)**2.0 + (1 - x[:-1])**2.0)]
         return simulations

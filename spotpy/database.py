@@ -89,7 +89,7 @@ class database(object):
         self.header.append('chain')
 
     def _tuple_2_xrange(self, t):
-        return (xrange(1, x + 1) for x in t)
+        return (range(1, x + 1) for x in t)
 
 
 class ram(database):
