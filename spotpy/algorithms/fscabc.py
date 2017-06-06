@@ -67,8 +67,27 @@ class fscabc(_algorithm):
     def mutate(self, r):
         x = 4 * r * (1 - r)
         return x
+    
+    def readbreakdata(self, dbname):
+        import pickle
+        import pprint
+        with open(dbname+'.break', 'rb') as csvfile:
+            work,r,icall,gnrng =pickle.load(csvfile)
+            pprint.pprint(work)
+            pprint.pprint(r)
+            pprint.pprint(icall)
+            pprint.pprint(gnrg)
+        return work, r, icall, gnrg
 
-    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=5, ownlimit=False, limit=24):
+    def writebreakdata(self,dbname, work, r,icall,gnrg):
+        import pickle
+        with open(str(dbname)+'.break', 'wb') as csvfile:
+            work=work,r,icall,gnrg
+            pickle.dump(work,csvfile)
+        
+
+
+    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=5, ownlimit=False, limit=24,breakpoint=None, backup_every_rep=100):
         """
 
 
@@ -81,13 +100,17 @@ class fscabc(_algorithm):
         a: float
             mutation factor
         peps: float
-            convergence criterium    
+            convergence criterion    
         kpow: float
             exponent for power scaling method
         ownlimit: boolean
             determines if an userdefined limit is set or not
         limit: int
-            sets the limit
+            sets the limit for scout bee phase
+        breakpoint: None, 'write' or 'read'
+            None does nothing, 'write' writes a breakpoint for restart as specified in backup_every_rep, 'read' reads a breakpoint file with name dbname + '.break'
+        backup_every_rep: int
+            writes a breakpoint after every generation, if more than the specified number of samples have carried out after last breakpoint
         """
         # Initialize the progress bar
         starttime = time.time()
@@ -105,41 +128,50 @@ class fscabc(_algorithm):
         r = 0.25
         while r == 0.25 or r == 0.5 or r == 0.75:
             r = random.random()
-        # Initialization
-        work = []
-        firstcall = True
-        # Calculate the objective function
-        param_generator = (
-            (rep, self.parameter()['random']) for rep in range(eb))
-        for rep, randompar, simulations in self.repeat(param_generator):
-            # Calculate fitness
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
-            self.status(rep, like, randompar)
-            if firstcall == True:
-                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
-                firstcall = False
-            # Save everything in the database
-            self.datawriter.save(like, randompar, simulations=simulations)
-            c = 0
-            p = 0
-            # (fit_x,x,fit_v,v,limit,normalized fitness)
-            work.append([like, randompar, like, randompar, c, p])
-            # Progress bar
-            acttime = time.time()
-            # get str showing approximate timeleft to end of simulation in H,
-            # M, S
-            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
-                                                                   (rep + 1)) * (repetitions - (rep + 1)))))
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
-                                                                            self.status.objectivefunction, timestr)
-                print(text)
-                intervaltime = time.time()
-        icall = 0
-        gnrng = 1e100
-        # and criter_change>pcento:
+        if breakpoint == None or breakpoint == 'write':
+            # Initialization
+            work = []
+            firstcall = True
+            # Calculate the objective function
+            param_generator = (
+                (rep, self.parameter()['random']) for rep in range(eb))
+            for rep, randompar, simulations in self.repeat(param_generator):
+                # Calculate fitness
+                like = self.objectivefunction(
+                    evaluation=self.evaluation, simulation=simulations)
+                self.status(rep, like, randompar)
+                if firstcall == True:
+                    self.initialize_database(randompar, self.parameter()['name'], simulations, like)
+                    firstcall = False
+                # Save everything in the database
+                self.datawriter.save(like, randompar, simulations=simulations)
+                c = 0
+                p = 0
+                # (fit_x,x,fit_v,v,limit,normalized fitness)
+                work.append([like, randompar, like, randompar, c, p])
+                # Progress bar
+                acttime = time.time()
+                # get str showing approximate timeleft to end of simulation in H,
+                # M, S
+                timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
+                                                                    (rep + 1)) * (repetitions - (rep + 1)))))
+                # Refresh progressbar every second
+                if acttime - intervaltime >= 2:
+                    text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
+                                                                                self.status.objectivefunction, timestr)
+                    print(text)
+                    intervaltime = time.time()
+            icall = 0
+            gnrng = 1e100
+            # and criter_change>pcento:
+        elif breakpoint == 'read':
+            datafrombreak=self.readbreakdata(dbname)
+            r=datafrombreak[1]
+            work=datafrombreak[0]
+            icall = datafrombreak[2]
+            gnrng = datafrombreak[3]
+            #Here database needs to be reinvoked
+        #Bee Phases
         while icall < repetitions and gnrng > peps:
             # Employed bee phase
             # Generate new input parameters
@@ -241,6 +273,9 @@ class fscabc(_algorithm):
             text = '%i of %i (best like=%g) est. time remaining: %s' % (
                 icall, repetitions, self.status.objectivefunction, timestr)
             print(text)
+            if breakpoint == 'write' and icall >= lastbackup+backup_every_rep:
+                self.writebreakdata(self.dbname, work,r,icall,gnrng)
+                lastbackup=icall
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
                 print('ON THE MAXIMUM NUMBER OF TRIALS ')
