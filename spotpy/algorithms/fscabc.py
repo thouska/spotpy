@@ -14,13 +14,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from . import _algorithm
-import spotpy
+from ._algorithm import _algorithm
 import numpy as np
 import time
 import random
-import itertools
-from operator import itemgetter
+
 
 
 class fscabc(_algorithm):
@@ -59,35 +57,17 @@ class fscabc(_algorithm):
         *False: Simulationt results will not be saved
      '''
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, breakpoint=None, backup_every_rep=100):
 
         _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim, breakpoint=breakpoint, backup_every_rep=backup_every_rep)
 
     def mutate(self, r):
         x = 4 * r * (1 - r)
         return x
-    
-    def readbreakdata(self, dbname):
-        import pickle
-        import pprint
-        with open(dbname+'.break', 'rb') as csvfile:
-            work,r,icall,gnrng =pickle.load(csvfile)
-            pprint.pprint(work)
-            pprint.pprint(r)
-            pprint.pprint(icall)
-            pprint.pprint(gnrg)
-        return work, r, icall, gnrg
-
-    def writebreakdata(self,dbname, work, r,icall,gnrg):
-        import pickle
-        with open(str(dbname)+'.break', 'wb') as csvfile:
-            work=work,r,icall,gnrg
-            pickle.dump(work,csvfile)
-        
 
 
-    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=5, ownlimit=False, limit=24,breakpoint=None, backup_every_rep=100):
+    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=5, ownlimit=False, limit=24):
         """
 
 
@@ -107,9 +87,9 @@ class fscabc(_algorithm):
             determines if an userdefined limit is set or not
         limit: int
             sets the limit for scout bee phase
-breakpoint: None, 'write', 'read' or 'readandwrite'
+        breakpoint: None, 'write', 'read' or 'readandwrite'
             None does nothing, 'write' writes a breakpoint for restart as specified in backup_every_rep, 'read' reads a breakpoint file with dbname + '.break', 'readandwrite' does both
-backup_every_rep: int
+        backup_every_rep: int
             writes a breakpoint after every generation, if more at least the specified number of samples are carried out after writing the last breakpoint
         """
         # Initialize the progress bar
@@ -119,6 +99,7 @@ backup_every_rep: int
         randompar = self.parameter()['random']
         self.nopt = randompar.size
         random.seed()
+        lastbackup=0
         if ownlimit == True:
             self.limit = limit
         else:
@@ -128,10 +109,24 @@ backup_every_rep: int
         r = 0.25
         while r == 0.25 or r == 0.5 or r == 0.75:
             r = random.random()
-        if breakpoint == None or breakpoint == 'write':
+            
+        
+        icall = 0
+        gnrng = 1e100
+        # and criter_change>pcento:
+
+        if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
+            datafrombreak=self.readbreakdata(self.dbname)
+            r=datafrombreak[1]
+            work=datafrombreak[0]
+            icall = datafrombreak[2]
+            gnrng = datafrombreak[3]
+            acttime = time.time()
+            #Here database needs to be reinvoked
+        
+        elif self.breakpoint == None or self.breakpoint == 'write':
             # Initialization
             work = []
-            firstcall = True
             # Calculate the objective function
             param_generator = (
                 (rep, self.parameter()['random']) for rep in range(eb))
@@ -139,12 +134,13 @@ backup_every_rep: int
                 # Calculate fitness
                 like = self.objectivefunction(
                     evaluation=self.evaluation, simulation=simulations)
-                self.status(rep, like, randompar)
-                if firstcall == True:
-                    self.initialize_database(randompar, self.parameter()['name'], simulations, like)
-                    firstcall = False
+
                 # Save everything in the database
-                self.datawriter.save(like, randompar, simulations=simulations)
+                self.save(like, randompar, simulations=simulations)
+                
+                # Update status information (always do that after saving)
+                self.status(rep, like, randompar)
+
                 c = 0
                 p = 0
                 # (fit_x,x,fit_v,v,limit,normalized fitness)
@@ -153,24 +149,16 @@ backup_every_rep: int
                 acttime = time.time()
                 # get str showing approximate timeleft to end of simulation in H,
                 # M, S
-                timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
-                                                                    (rep + 1)) * (repetitions - (rep + 1)))))
+#                timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
+#                                                                    (rep + 1)) * (repetitions - (rep + 1)))))
                 # Refresh progressbar every second
                 if acttime - intervaltime >= 2:
                     text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
                                                                                 self.status.objectivefunction, timestr)
                     print(text)
                     intervaltime = time.time()
-            icall = 0
-            gnrng = 1e100
-            # and criter_change>pcento:
-        elif breakpoint == 'read' or breakpoint == 'readandwrite':
-            datafrombreak=self.readbreakdata(dbname)
-            r=datafrombreak[1]
-            work=datafrombreak[0]
-            icall = datafrombreak[2]
-            gnrng = datafrombreak[3]
-            #Here database needs to be reinvoked
+
+
         #Bee Phases
         while icall < repetitions and gnrng > peps:
             # Employed bee phase
@@ -204,9 +192,13 @@ backup_every_rep: int
                     work[rep][4] = 0
                 else:
                     work[rep][4] = work[rep][4] + 1
-                self.status(rep, work[rep][0], work[rep][1])
-                self.datawriter.save(
+                
+                # Save everything in the database
+                self.save(
                     clike, work[rep][3], simulations=simulations, chains=icall)
+                
+                # Update status information (always do that after saving)
+                self.status(rep, work[rep][0], work[rep][1])
                 icall += 1
             # Fitness scaling
             bn = []
@@ -251,7 +243,7 @@ backup_every_rep: int
                 else:
                     work[rep][4] = work[rep][4] + 1
                 self.status(rep, work[rep][0], work[rep][1])
-                self.datawriter.save(
+                self.save(
                     clike, work[rep][3], simulations=simulations, chains=icall)
                 icall += 1
         # Scout bee phase
@@ -265,15 +257,15 @@ backup_every_rep: int
                         (icall, work[i][1]))
                     clike = self.objectivefunction(
                         evaluation=self.evaluation, simulation=simulations)
-                    self.datawriter.save(
+                    self.save(
                         clike, work[rep][3], simulations=simulations, chains=icall)
                     work[i][0] = clike
                     icall += 1
             gnrng = -self.status.objectivefunction
-            text = '%i of %i (best like=%g) est. time remaining: %s' % (
-                icall, repetitions, self.status.objectivefunction, timestr)
+            text = '%i of %i (best like=%g)' % (
+                icall, repetitions, self.status.objectivefunction)
             print(text)
-            if breakpoint == 'write' or breakpoint == 'readandwrite' and icall >= lastbackup+backup_every_rep:
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite' and icall >= lastbackup+self.backup_every_rep:
                 self.writebreakdata(self.dbname, work,r,icall,gnrng)
                 lastbackup=icall
             if icall >= repetitions:

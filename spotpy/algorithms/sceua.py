@@ -201,19 +201,16 @@ class sceua(_algorithm):
         xf = np.zeros(npt)
 
         # Burn in
-        firstcall = True
         param_generator = ((rep, x[rep]) for rep in range(int(npt)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
             # Save everything in the database
-            self.status(rep, -like, randompar)
+            
             xf[rep] = like
-            if firstcall==True:
-                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
-                firstcall=False
-            self.datawriter.save(-like, randompar, simulations=simulations)
+            self.save(-like, randompar, simulations=simulations)
+            self.status(rep, -like, randompar)
             icall += 1
             # Progress bar
             acttime = time.time()
@@ -286,10 +283,10 @@ class sceua(_algorithm):
                 xf[k2] = cf[k1]
 
                 for i in range(len(likes)):
-                    self.status(icall, -likes[i], pars[i])
-                    self.datawriter.save(-likes[i], pars[i],
+                    self.save(-likes[i], pars[i],
                                          simulations=sims[i], chains=igs)
-
+                    self.status(icall, -likes[i], pars[i])
+                    
             # Progress bar
             acttime = time.time()
             if acttime - intervaltime >= 2:

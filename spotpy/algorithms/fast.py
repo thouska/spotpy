@@ -220,12 +220,9 @@ class fast(_algorithm):
             # Calculate the objective function
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
-            self.status(rep, like, randompar)
-            if firstcall == True:
-                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
-                firstcall = False
             # Save everything in the database
-            self.datawriter.save(like, randompar, simulations=simulations)
+            self.save(like, randompar, simulations=simulations)
+            self.status(rep, like, randompar)
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second

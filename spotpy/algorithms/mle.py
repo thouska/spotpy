@@ -74,7 +74,6 @@ class mle(_algorithm):
         likes = []
         pars = []
         sims = []
-        firstcall = True
         print('burnIn...')
         for i in range(burnIn):
             par = self.parameter()['random']
@@ -84,10 +83,7 @@ class mle(_algorithm):
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=sim)
             likes.append(like)
-            if firstcall==True:
-                self.initialize_database(par, self.parameter()['name'], sim, like)
-                firstcall=False
-            self.datawriter.save(like, par, simulations=sim)
+            self.save(like, par, simulations=sim)
             self.status(i, like, par)
             # Progress bar
             acttime = time.time()
@@ -112,7 +108,7 @@ class mle(_algorithm):
                 evaluation=self.evaluation, simulation=new_simulations)
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
-                self.datawriter.save(
+                self.save(
                     new_like, new_par, simulations=new_simulations)
                 accepted = accepted + 1.0  # monitor acceptance
                 old_par = new_par
@@ -120,7 +116,7 @@ class mle(_algorithm):
                 old_like = new_like
                 self.status(rep, new_like, new_par)
             else:
-                self.datawriter.save(
+                self.save(
                     old_like, old_par, simulations=old_simulations)
 
             # Progress bar

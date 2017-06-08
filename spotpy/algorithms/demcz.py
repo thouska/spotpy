@@ -183,7 +183,6 @@ class demcz(_algorithm):
         history.add_group('interest', slices)
 
         ### BURN_IN
-        firstcall = True
         burnInpar = [np.zeros((nChains, dimensions))] * nSeedIterations
         for i in range(nSeedIterations):
             self._logPs = []
@@ -198,16 +197,15 @@ class demcz(_algorithm):
                 burnInpar[i][rep] = vector
                 likelist = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
-                if firstcall == True:
-                    self.initialize_database(list(vector), self.parameter()['name'], simulations, likelist)
-                    firstcall = False
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
                 old_like[rep] = likelist
-                self.status(rep, likelist, vector)
+                
                 burnInpar[i][rep] = vector
                 # Save everything in the database
-                self.datawriter.save(likelist, list(vector), simulations=simulations)
+                self.save(likelist, list(vector), simulations=simulations)
+                print(rep)
+                self.status(rep, likelist, vector)
             history.record(burnInpar[i], self._logPs, 1)
 
         gamma = None
@@ -344,7 +342,7 @@ class demcz(_algorithm):
                     currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
                 for chain in range(nChains):
                     if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
-                        self.datawriter.save(save_likes[chain],
+                        self.save(save_likes[chain],
                                              save_pars[chain],
                                              simulations=save_sims[chain],
                                              chains=chain)

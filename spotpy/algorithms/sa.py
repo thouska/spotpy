@@ -92,8 +92,7 @@ class sa(_algorithm):
         Enew = self.objectivefunction(
             evaluation=self.evaluation, simulation=simulations)
         Eopt = Enew
-        self.initialize_database(x, self.parameter()['name'], simulations, Enew)
-        self.datawriter.save(Eopt, Xopt, simulations=simulations)
+        self.save(Eopt, Xopt, simulations=simulations)
         # k=(vmax-vmin)/self.parameter()['step']
         rep = 0
         while (Titer > 0.001 * Tini and rep < repetitions):
@@ -126,8 +125,9 @@ class sa(_algorithm):
                 simulations = self.model(x)
                 Enew = self.objectivefunction(
                     evaluation=self.evaluation, simulation=simulations)
+                
+                self.save(Eopt, Xopt, simulations=SimOpt)
                 self.status(rep, Enew, Xopt)
-                self.datawriter.save(Eopt, Xopt, simulations=SimOpt)
                 rep += 1
                 # Progress bar
                 acttime = time.time()

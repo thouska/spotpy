@@ -95,19 +95,18 @@ class lhs(_algorithm):
         intervaltime = starttime
         # A generator that produces the parameters
         # param_generator = iter(matrx)
-        firstcall = True
+
         param_generator = ((rep, matrx[rep])
                            for rep in range(int(repetitions) - 1))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
-            if firstcall==True:
-                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
-                firstcall=False            
-            self.status(rep, like, randompar)
+         
+            
             # Save everything in the database
-            self.datawriter.save(like, randompar, simulations=simulations)
+            self.save(like, randompar, simulations=simulations)
+            self.status(rep, like, randompar)
             # Progress bar
             acttime = time.time()
             
