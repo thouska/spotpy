@@ -92,7 +92,7 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None):
+                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -105,8 +105,15 @@ class _algorithm(object):
         self.save_sim = save_sim
         self.dbname = dbname
         self.dbformat = dbformat
+        
+        self.breakpoint = breakpoint
+        self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
-
+            
+        if breakpoint == 'read' or breakpoint == 'readandwrite':
+            print('Reading backupfile')
+            self.dbdinit = False
+            self.breakdata = self.readbreakdata(self.dbname)
         #self.initialize_database()
 
         # Now a repeater (ForEach-object) is loaded
@@ -139,22 +146,38 @@ class _algorithm(object):
         self.repeat.start()
         self.status = _RunStatistic()
 
-    def initialize_database(self, randompar, parnames, simulations, like):
-        # Initialize the database with a first run
-        if hasattr(database, self.dbformat):
-            #randompar = self.parameter()['random']
-            #parnames = self.parameter()['name']
-            #simulations = self.model(randompar)
-            #like = self.objectivefunction(
-            #    evaluation=self.evaluation, simulation=simulations)
-
+    def save(self, like, randompar, simulations, chains=1):
+        # Initialize the database if no run was performed so far
+        if self.dbformat and self.status.rep == None:
+            print('Initialize database...')
             writerclass = getattr(database, self.dbformat)
+            parnames = self.setup.parameters()['name']
             self.datawriter = writerclass(
                 self.dbname, parnames, like, randompar, simulations, save_sim=self.save_sim, 
-                dbinit=self.dbinit, )
+                dbinit=self.dbinit)
+            self.status.rep = 1
         else:
-            self.datawriter = self.setup
+            self.datawriter.save(like, randompar, simulations, chains=chains)
+            #self.datawriter = self.setup
 
+    def readbreakdata(self, dbname):
+        import pickle
+        #import pprint
+        with open(dbname+'.break', 'rb') as csvfile:
+            work,r,icall,gnrg =pickle.load(csvfile)
+#            pprint.pprint(work)
+#            pprint.pprint(r)
+#            pprint.pprint(icall)
+#            pprint.pprint(gnrg)
+            #icall = 1000 #TODO:Just for testing purpose
+        return work, r, icall, gnrg
+
+    def writebreakdata(self, dbname, work, r, icall, gnrg):
+        import pickle
+        with open(str(dbname)+'.break', 'wb') as csvfile:
+            work=work,r,icall,gnrg
+            pickle.dump(work,csvfile)
+            
     def getdata(self):
         if self.dbformat == 'ram':
             return self.datawriter.data

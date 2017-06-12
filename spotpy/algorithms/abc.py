@@ -104,12 +104,10 @@ class abc(_algorithm):
             # Calculate fitness
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=simulations)
-            self.status(rep, like, randompar)
-            if firstcall == True:
-                self.initialize_database(randompar, self.parameter()['name'], simulations, like)
-                firstcall = False
+            
             # Save everything in the database
-            self.datawriter.save(like, randompar, simulations=simulations)
+            self.save(like, randompar, simulations=simulations)
+            self.status(rep, like, randompar)
             c = 0
             p = 0
             # (fit_x,x,fit_v,v,limit,normalized fitness)
@@ -163,9 +161,10 @@ class abc(_algorithm):
                     work[rep][4] = 0
                 else:
                     work[rep][4] = work[rep][4] + 1
-                self.status(rep, work[rep][0], work[rep][1])
-                self.datawriter.save(
+                
+                self.save(
                     clike, work[rep][3], simulations=simulations, chains=icall)
+                self.status(rep, work[rep][0], work[rep][1])
                 icall += 1
             # Probability distribution for roulette wheel selection
             bn = []
@@ -205,10 +204,10 @@ class abc(_algorithm):
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
-                    work[rep][4] = work[rep][4] + 1
-                self.status(rep, work[rep][0], work[rep][1])
-                self.datawriter.save(
+                    work[rep][4] = work[rep][4] + 1                
+                self.save(
                     clike, work[rep][3], simulations=simulations, chains=icall)
+                self.status(rep, work[rep][0], work[rep][1])
                 icall += 1
         # Scout bee phase
             for i, val in enumerate(work):
@@ -219,7 +218,7 @@ class abc(_algorithm):
                         (icall, work[i][1]))
                     clike = self.objectivefunction(
                         evaluation=self.evaluation, simulation=simulations)
-                    self.datawriter.save(
+                    self.save(
                         clike, work[rep][3], simulations=simulations, chains=icall)
                     work[i][0] = clike
                     icall += 1
@@ -246,4 +245,3 @@ class abc(_algorithm):
             self.datawriter.finalize()
         except AttributeError:  # Happens if no database was assigned
             pass
-

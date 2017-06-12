@@ -113,11 +113,8 @@ class mcmc(_algorithm):
             like = self.objectivefunction(
                 evaluation=self.evaluation, simulation=sim)
             
-            if firstcall==True:
-                self.initialize_database(par, self.parameter()['name'], sim, like)
-                firstcall=False
             self.update_mcmc_status(par,like,sim,curChain)
-            self.datawriter.save(like, par, simulations=sim,chains=curChain)
+            self.save(like, par, simulations=sim,chains=curChain)
             self.status(self.iter, like, par)
             self.iter+=1
             # Progress bar
@@ -137,16 +134,16 @@ class mcmc(_algorithm):
                 
                 like = self.objectivefunction(
                     evaluation=self.evaluation, simulation=sim)
-                self.status(self.iter, like, par)
                 logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
                 u = np.random.uniform(low=0.3, high=1)
                 if logMetropHastRatio>1.0 or logMetropHastRatio>u:
                     self.update_mcmc_status(par,like,sim,cChain)   
                     self.accepted[cChain] += 1  # monitor acceptance
-                    self.datawriter.save(like, par, simulations=sim,chains=cChain)
+                    self.save(like, par, simulations=sim,chains=cChain)
                 else:
-                    self.datawriter.save(self.bestlike[cChain], self.bestpar[cChain], 
+                    self.save(self.bestlike[cChain], self.bestpar[cChain], 
                                          simulations=self.bestsim[cChain],chains=cChain)
+                self.status(self.iter, like, par)                                
                 # Progress bar
                 acttime = time.time()
                 self.iter+=1

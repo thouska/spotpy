@@ -138,13 +138,18 @@ class csv(database):
     def __init__(self, *args, **kwargs):
         # init base class
         super(csv, self).__init__(*args, **kwargs)
-        # Create a open file, which needs to be closed after the sampling
-        self.db = io.open(self.dbname + '.csv', 'w')
-        # write header line
-        self.db.write(','.join(self.header) + '\n')
         # store init item only if dbinit
         if kwargs.get('dbinit', True):
+            # Create a open file, which needs to be closed after the sampling
+            self.db = io.open(self.dbname + '.csv', 'w')
+            # write header line
+            self.db.write(','.join(self.header) + '\n')
             self.save(self.like, self.randompar, self.simulations, self.chains)
+        else:
+            # Continues writing file
+            self.db = io.open(self.dbname + '.csv', 'a')
+            self.save(self.like, self.randompar, self.simulations, self.chains)
+        
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +
