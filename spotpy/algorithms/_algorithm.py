@@ -183,6 +183,8 @@ class _algorithm(object):
             return self.datawriter.data
         if self.dbformat == 'csv':
             return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)[1:]
+        if self.dbformat == 'sql':
+            return self.datawriter.getdata
 
     def simulate(self, id_params_tuple):
         """This is a simple wrapper of the model, returning the result together with

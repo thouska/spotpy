@@ -16,6 +16,8 @@ from __future__ import unicode_literals
 import numpy as np
 import io
 from itertools import product
+import sqlite3
+import os
 
 
 class database(object):
@@ -171,3 +173,47 @@ class csv(database):
         data = np.genfromtxt(
             self.dbname + '.csv', delimiter=',', names=True)[1:]
         return data
+
+class sql(database):
+    """
+    This class saves the process in the working storage. It can be used if
+    safety matters.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # init base class
+        super(sql, self).__init__(*args, **kwargs)
+        # Create a open file, which needs to be closed after the sampling
+        os.remove(self.dbname + '.db')
+        self.db = sqlite3.connect(self.dbname + '.db')
+        self.db_cursor = self.db.cursor()
+        # Create Table
+        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
+                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
+
+        # store init item only if dbinit
+        if kwargs.get('dbinit', True):
+            self.save(self.like, self.randompar, self.simulations, self.chains)
+
+    def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
+
+        #maybe apply a rounding for the floats?!
+        try:
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(self.dim_dict['like'](objectivefunction)[0])+","
+                               +str(self.dim_dict['par'](parameterlist)[0])+","+str(self.dim_dict['par'](parameterlist)[1])+","+str(self.dim_dict['simulation'](simulations)[0])+","+str(chains)+")")
+        except Exception:
+            input("Please close the file " + self.dbname +
+                  " When done press Enter to continue...")
+
+        self.db.commit()
+
+    def finalize(self):
+        self.db.close()
+
+    def getdata(self):
+        self.db = sqlite3.connect(self.dbname + '.db')
+        self.db_cursor = self.db.cursor()
+        back = [row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)]
+        self.db.close()
+        return back
+
