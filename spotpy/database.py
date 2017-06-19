@@ -185,7 +185,10 @@ class sql(database):
         # init base class
         super(sql, self).__init__(*args, **kwargs)
         # Create a open file, which needs to be closed after the sampling
-        os.remove(self.dbname + '.db')
+        try:        
+            os.remove(self.dbname + '.db')
+        except:
+            pass
         self.db = sqlite3.connect(self.dbname + '.db')
         self.db_cursor = self.db.cursor()
         # Create Table
