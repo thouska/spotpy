@@ -16,8 +16,7 @@ from __future__ import unicode_literals
 import numpy as np
 import io
 from itertools import product
-import sqlite3
-import os
+
 
 
 class database(object):
@@ -181,6 +180,8 @@ class sql(database):
     """
 
     def __init__(self, *args, **kwargs):
+        import sqlite3
+        import os
         # init base class
         super(sql, self).__init__(*args, **kwargs)
         # Create a open file, which needs to be closed after the sampling

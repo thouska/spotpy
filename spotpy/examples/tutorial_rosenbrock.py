@@ -57,6 +57,9 @@ sampler=spotpy.algorithms.fscabc(spot_setup,    dbname='RosenMC',  dbformat='csv
 sampler.sample(rep)
 results.append(sampler.getdata())
 
+sampler=spotpy.algorithms.dream(spot_setup,    dbname='RosenMC',  dbformat='csv')
+sampler.sample(rep)
+results.append(sampler.getdata())
 
 print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
 evaluation = spot_setup.evaluation()

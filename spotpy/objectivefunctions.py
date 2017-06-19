@@ -148,7 +148,10 @@ def log_p(evaluation=None,simulation=None,scale=0.1):
     :rtype: float
     """ 
     #from scipy import stats    
-    #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )    
+    #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )
+    scale = np.mean(evaluation)/10
+    if scale < .01:
+        scale = .01
     if len(evaluation)==len(simulation):
         y        = (np.array(evaluation)-np.array(simulation))/scale
         normpdf = -y**2 / 2 - np.log(np.sqrt(2*np.pi))

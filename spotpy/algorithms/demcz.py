@@ -204,7 +204,6 @@ class demcz(_algorithm):
                 burnInpar[i][rep] = vector
                 # Save everything in the database
                 self.save(likelist, list(vector), simulations=simulations)
-                print(rep)
                 self.status(rep, likelist, vector)
             history.record(burnInpar[i], self._logPs, 1)
 

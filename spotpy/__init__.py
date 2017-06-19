@@ -19,6 +19,7 @@ sampling and an analyser class for the plotting of results by the sampling.
                - CMF (optional) (http://fb09-pasig.umwelt.uni-giessen.de:8000/)
                - mpi4py (optional) (http://mpi4py.scipy.org/)
                - pathos (optional) (https://pypi.python.org/pypi/pathos/)
+               - sqlite3 (optional) (https://pypi.python.org/pypi/sqlite3/)
 
                :help: For specific questions, try to use the documentation website at:
                 http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
@@ -35,4 +36,4 @@ from . import objectivefunctions
 from . import parameter
 from . import examples
 from . import signatures #Acitivate if you want to use hydrological signatures/indices as objective function
-__version__ = '1.2.38'
+__version__ = '1.3.0'
