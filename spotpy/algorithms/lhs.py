@@ -57,7 +57,7 @@ class lhs(_algorithm):
      '''
 
     def __init__(self, *args, **kwargs):
-        kwargs['dbinit'] = False
+
         super(lhs, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions):

@@ -49,7 +49,7 @@ class mc(_algorithm):
      '''
 
     def __init__(self, *args, **kwargs):
-        kwargs['dbinit'] = False
+
         super(mc, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions):

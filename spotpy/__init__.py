@@ -36,4 +36,4 @@ from . import objectivefunctions
 from . import parameter
 from . import examples
 from . import signatures #Acitivate if you want to use hydrological signatures/indices as objective function
-__version__ = '1.3.0'
+__version__ = '1.3.1'
