@@ -25,8 +25,8 @@ class spot_setup(object):
                        spotpy.parameter.Uniform('x4',0.0 , 0.10),
                        spotpy.parameter.Uniform('x5',0.1 , 0.99)
                        ]
-        self.owd = os.getcwd()
-        self.evals = list(np.genfromtxt('hymod'+os.sep+'bound.txt',skip_header=65)[:,3])[:730]
+        self.owd = os.path.realpath(__file__)+os.sep+'..'
+        self.evals = list(np.genfromtxt(self.owd+os.sep+'hymod'+os.sep+'bound.txt',skip_header=65)[:,3])[:730]
         self.Factor = 1944 * (1000 * 1000 ) / (1000 * 60 * 60 * 24)
                     
         print(len(self.evals))
