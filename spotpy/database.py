@@ -170,7 +170,7 @@ class csv(database):
 
     def getdata(self, dbname=None):
         data = np.genfromtxt(
-            self.dbname + '.csv', delimiter=',', names=True)[1:]
+            self.dbname + '.csv', delimiter=',', names=True)[0:]
         return data
 
 class sql(database):
