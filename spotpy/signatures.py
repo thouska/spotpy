@@ -33,36 +33,40 @@ class HydroSignaturesError(Exception):
 
 
 class SuitableInput:
-    def __init__(self, datm, section):
+    def __init__(self, datm):
         """
-        Checks whether the date time series suits to a chosen section (year, month, day, hour). So if we may have daily
-         data, a hourly section may not work properly. All of this inappropriate choices generate a warning
+        Calculates which section type the the date time series suits best (year, month, day, hour).
 
         :param datm:
         :type datm: pandas datetime object
-        :param section: section in [year, month, day, hour]
-        :type section: string
+        :return: the section type which suites best
+        :rtype: string
         """
         self.datm = datm
-        self.section = section
-        b, r = self.__calc()
-        if not b:
-            warnings.warn("\nYour chose section was [" + self.section + "] and this is not suitable to you time data.\n"
-                          "Your time data have an interval of [" + str(r) + " " + self.section + "]")
+        self.allowed_sections = ['year', 'month', 'day', 'hour']
 
-    def __calc(self):
+    def calc(self):
         if self.datm.__len__() > 1:
             diff = (self.datm[1].to_pydatetime() - self.datm[0].to_pydatetime()).total_seconds()
-            if self.section == "year":
-                return diff / (3600 * 24 * 365) <= 1.0, diff / (3600 * 24 * 365)
-            elif self.section == "month":
-                return diff / (3600 * 24 * 30) <= 1.0, diff / (3600 * 24 * 30)
-            elif self.section == "day":
-                return diff / (3600 * 24) <= 1.0, diff / (3600 * 24)
-            elif self.section == "hour":
-                return diff <= 3600, diff / 3600
-            else:
-                raise Exception("The section [" + self.section + "] is not defined in "+str(self))
+            anything_found = False
+            found_section = ''
+            while not anything_found:
+                try:
+                    section = self.allowed_sections.pop()
+                except IndexError:
+                    break
+
+                if section == "year":
+                    anything_found, found_section = diff / (3600 * 24 * 365) <= 1.0, 'year'
+                elif section == "month":
+                    anything_found, found_section = diff / (3600 * 24 * 30) <= 1.0, 'month'
+                elif section == "day":
+                    anything_found, found_section = diff / (3600 * 24) <= 1.0, 'day'
+                elif section == "hour":
+                    anything_found, found_section = diff <= 3600, 'hour'
+                else:
+                    raise Exception("The section [" + section + "] is not defined in "+str(self))
+            return found_section
 
 
 def __isSorted(df):
@@ -92,6 +96,8 @@ def __calcDev(a, b):
     :math:`\\frac{a+0}{a} = 1` and also
     :math:`a =  b  \\Leftrightarrow  return =  0` [approximately]
 
+    See https://en.wikipedia.org/wiki/Approximation_error
+
     :param a: Value a
     :type a: float
     :param b: Value b
@@ -111,6 +117,9 @@ def __percentilwrapper(array, index):
     """
     A Percentil Wrapper to have a easy chance to modify the percentil calculation for the following functions
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param array: float array
     :type array: list
     :param index: which percentil should be used
@@ -125,6 +134,9 @@ def __calcMeanFlow(data):
     """
     Simply calculate the mean of the data
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param data: A list of float data
     :type data: list
     :return: Mean
@@ -137,6 +149,9 @@ def __calcMedianFlow(data):
     """
     Simply calculate the median (flow exceeded 50% of the time) of the data
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param data: A list of float data
     :type data: list
     :return: Median
@@ -148,6 +163,9 @@ def __calcMedianFlow(data):
 def getMeanFlow(evaluation, simulation):
     """
     Simply calculate the mean of the data
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -171,6 +189,9 @@ def getMedianFlow(evaluation, simulation):
     """    
     Simply calculate the median (flow exceeded 50% of the time) of the data
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
     
@@ -191,7 +212,9 @@ def getMedianFlow(evaluation, simulation):
 def getSkewness(evaluation, simulation):
     """
     Skewness, i.e. the mean flow data divided by Q50 (50 percentil / median flow) .
-         
+
+    See paper "B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197", (M_A1_MeanDailyFlows .pdf,  page 185)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -213,8 +236,9 @@ def getSkewness(evaluation, simulation):
 
 def getCoeffVariation(evaluation, simulation):
     """
-    
     Coefficient of variation, i.e. standard deviation divided by mean flow
+
+    See paper "B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197", (M_A1_MeanDailyFlows .pdf,  page 185)
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -238,7 +262,10 @@ def getCoeffVariation(evaluation, simulation):
 def getQ001(evaluation, simulation):
     """
     The value of the 0.01 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -260,7 +287,10 @@ def getQ001(evaluation, simulation):
 def getQ01(evaluation, simulation):
     """
     The value of the 0.1 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -282,7 +312,10 @@ def getQ01(evaluation, simulation):
 def getQ1(evaluation, simulation):
     """
     The value of the 1 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -304,7 +337,10 @@ def getQ1(evaluation, simulation):
 def getQ5(evaluation, simulation):
     """
     The value of the 5 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -326,7 +362,10 @@ def getQ5(evaluation, simulation):
 def getQ10(evaluation, simulation):
     """
     The value of the 10 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -348,7 +387,10 @@ def getQ10(evaluation, simulation):
 def getQ20(evaluation, simulation):
     """
     The value of the 20 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -370,7 +412,10 @@ def getQ20(evaluation, simulation):
 def getQ85(evaluation, simulation):
     """
     The value of the 85 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -392,7 +437,10 @@ def getQ85(evaluation, simulation):
 def getQ95(evaluation, simulation):
     """
     The value of the 95 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -414,7 +462,10 @@ def getQ95(evaluation, simulation):
 def getQ99(evaluation, simulation):
     """
     The value of the 99 percentiles
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
 
@@ -433,7 +484,7 @@ def getQ99(evaluation, simulation):
     return __calcDev(a, b)
 
 
-def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
     month, day, hour.
@@ -442,7 +493,11 @@ def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, t
     
     However for every section the function collect the overflow value, i.e. value - threshold and calc the deviation
     of the means of this overflows.
-    
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
     :param simulation: simulation data to compared with evaluation data
@@ -451,8 +506,6 @@ def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, t
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
     :return: deviation of means of overflow value
     :rtype: float
     """
@@ -465,8 +518,8 @@ def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, t
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"flood")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"flood")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, "flood")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, "flood")
 
 
     for_mean_a = []
@@ -485,11 +538,15 @@ def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, t
     return __calcDev(np.mean(for_mean_a),np.mean(for_mean_b))
 
 
-def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
-    So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
-     
+    So if the datetime is recorded all 5 min we use this fine interval to count all records which are in flood.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
     :param simulation: simulation data to compared with evaluation data
@@ -498,9 +555,7 @@ def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, 
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of flood frequency per section
+    :return: deviation of means of flood frequency per best suitable section
     :rtype: float
     """
 
@@ -510,8 +565,8 @@ def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, 
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"flood")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"flood")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, "flood")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, "flood")
 
     sum_dev = 0.0
 
@@ -528,10 +583,14 @@ def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, 
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
-    
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
     :param simulation: simulation data to compared with evaluation data
@@ -540,8 +599,6 @@ def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_f
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
     :return: deviation of means of flood durations
     :rtype: float
     """
@@ -552,8 +609,11 @@ def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_f
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"flood")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"flood")
+    s = SuitableInput(datetime_series)
+    section = s.calc()
+
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, "flood")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, "flood")
 
     sum_dev = 0.0
     for y in DUR_a:
@@ -604,15 +664,19 @@ def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_f
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3):
     """
-    All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
-    month, day, hour.
+    All measurements are scanned where there are overflow events. Based on the best suitable section we summarize events
+    per year, month, day, hour.
     Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the 
     overflow events hourly but you have only daily data it the function will work but not very useful.
 
     However for every section the function collect the overflow value, i.e. value - threshold  and calc the deviation 
     of the means of this overflows.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -622,8 +686,6 @@ def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_serie
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
     :return: deviation of means of underflow value
     :rtype: float
 
@@ -635,8 +697,8 @@ def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_serie
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, "baseflow")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, "baseflow")
 
     for_mean_a = []
     for_mean_b = []
@@ -654,10 +716,14 @@ def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_serie
     return __calcDev(np.mean(for_mean_a), np.mean(for_mean_b))
 
 
-def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series. 
     So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -679,8 +745,8 @@ def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_serie
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, "baseflow")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, "baseflow")
 
     sum_dev = 0.0
 
@@ -697,9 +763,13 @@ def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_serie
     return sum_dev / DUR_a.__len__()
 
 
-def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     Get high and low-flow yearly-average event duration which have a threshold of threshold_factor the median
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -709,8 +779,6 @@ def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshol
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
     :return: deviation of means of baseflow duration
     :rtype: float
 
@@ -721,8 +789,11 @@ def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshol
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
+    s = SuitableInput(datetime_series)
+    section = s.calc()
+
+    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, "baseflow")
+    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, "baseflow")
 
     sum_dev = 0.0
     for y in DUR_a:
@@ -773,16 +844,20 @@ def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshol
     return sum_dev / DUR_a.__len__()
 
 
-def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_flow):
+def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     """
     With a given data set we use the datetime_series and save all continuous floods, measured by a given
-    threshold_factor times the median of the data. The start and end time of this event is recorded. Based on the user's
-    section we create the list of the calculated values per year, month, day, hour.
+    threshold_factor times the median of the data. The start and end time of this event is recorded. Based on the best
+    suitable section we create the list of the calculated values per year, month, day, hour.
     Important to know is that the user can input a date-time object with several intervals, so it could be every second 
     or every day recorded data.
     This does not matter at all, we just save the beginning and ending date-time, the difference of threshold and 
     measurement and the amount of how many steps are in the flood event. 
     This function is used by several "getFlood*"-Functions which then calculate the desired hydrological index.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param data: measurement / simulation of a flow
     :type data: list
@@ -790,14 +865,13 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
     :param which_flow: in ["flood","baseflow"]
     :type which_flow: string
     :return: objects per section with the flood event
     :rtype: dict
     """
-    SuitableInput(datetime_series, section)
+    s = SuitableInput(datetime_series)
+    section = s.calc()
     duration_per_section = {}
     tmp_duration_logger_per_sec = {}
     threshold_on_per_year = {}
@@ -893,9 +967,13 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     return duration_per_section
 
 
-def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -905,9 +983,7 @@ def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: mean of deviation of average flood frequency of a defined section
+    :return: mean of deviation of average flood frequency of the best suitable section
     :rtype: float
 
     
@@ -918,18 +994,21 @@ def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="flood")
-    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="flood")
+    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, flow_level_type="flood")
+    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, flow_level_type="flood")
     sum = 0.0
     for sec in FRE_s:
         sum += __calcDev(FRE_s[sec], FRE_e[sec])
     return sum / FRE_s.__len__()
 
 
-def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_factor=3):
     """
     Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
 
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -939,9 +1018,7 @@ def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_fact
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: mean of deviation of average baseflow frequency of a defined section
+    :return: mean of deviation of average flood frequency of the best suitable section
     :rtype: float
 
 
@@ -952,30 +1029,31 @@ def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_fact
     if simulation.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="baseflow")
-    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="baseflow")
+    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, flow_level_type="baseflow")
+    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, flow_level_type="baseflow")
     sum = 0.0
     for sec in FRE_s:
         sum += __calcDev(FRE_s[sec], FRE_e[sec])
     return sum / FRE_s.__len__()
 
 
-def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, section, flow_level_type):
+def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, flow_level_type):
     """
-        Calc the high and low-flow event frequencies which have a threshold of "threshold_factor" the median
-        
-        :param data: data where the flood frequency is calculated of
-        :type data: list
-        :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
-        :type datetime_series: pandas datetime
-        :param threshold_factor: which times the median as threshold calculation should be used.
-        :type threshold_factor: float
-        :param section: for which section should the function calc a frequency of flood
-        :type section: string
-        :param flow_level_type: in ["flood","baseflow"]:
-        :type flow_level_type: string
-        :return: mean of deviation of average frequency of a defined section, allowed is ["year","month","day","hour"]
-        :rtype: float
+    Calc the high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data where the flood frequency is calculated of
+    :type data: list
+    :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
+    :type datetime_series: pandas datetime
+    :param threshold_factor: which times the median as threshold calculation should be used.
+    :type threshold_factor: float
+    :param flow_level_type: in ["flood","baseflow"]:
+    :type flow_level_type: string
+    :return: mean of deviation of average flood frequency of the best suitable section
+    :rtype: float
     """
 
     if flow_level_type not in ["flood","baseflow"]:
@@ -985,6 +1063,9 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, secti
 
         count_per_section = {}
         index = 0
+
+        s = SuitableInput(datetime_series)
+        section = s.calc()
 
         for d in datetime_series:
             if section == "year":
@@ -1026,6 +1107,8 @@ def getLowFlowVar(evaluation, simulation, datetime_series):
         
          Annualar Data= \\frac{\\sum_{i=1}^{N}(min(d_i)}{N*median(data)}
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -1061,7 +1144,8 @@ def getHighFlowVar(evaluation, simulation, datetime_series):
         
          Annualar Data= \\frac{\\sum_{i=1}^{N}(max(d_i)}{N*median(data)}
 
-
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -1092,6 +1176,9 @@ def __calcAnnularData(data, datetime_series, what):
     Annular Data
     
     :math:`Annualar Data= \\frac{\\sum_{i=1}^{N}(max(d_i)}{N}`
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
     :param data: measurements
     :type data: list
@@ -1136,7 +1223,11 @@ def getBaseflowIndex(evaluation, simulation, datetime_series):
     See https://de.wikipedia.org/wiki/Niedrigwasser and
     see also http://people.ucalgary.ca/~hayashi/kumamoto_2014/lectures/2_3_baseflow.pdf
 
-    For the formular look at: IH_108.pdf
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+    and
+    "Report No. 108, Low flow estimation in the United Kingdom, . Gustard, A. Bullock December 1992 and J. M. Dixon"
+    (IH_108.pdf, page 20 ff)
     
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -1180,6 +1271,12 @@ def __calcBaseflowIndex(data, datetime_series):
 
     :math:`BasefowIndex = \\frac{BF}{TD}` where BF is the median of the data and TD the minimum of the data per year
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+    and
+    "Report No. 108, Low flow estimation in the United Kingdom, . Gustard, A. Bullock December 1992 and J. M. Dixon"
+    (IH_108.pdf, page 20 ff)
+
     :param data: float list
     :type data: list
     :param datetime_series: sorted pandas datetime object
@@ -1210,7 +1307,9 @@ def __calcBaseflowIndex(data, datetime_series):
 def getSlopeFDC(evaluation, simulation):
     """
     Slope of the FDC between the 33 and 66 % exceedance values of streamflow normalised by its mean (Yadav et al., 2007)
-     
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
     
     :param evaluation: Observed data to compared with simulation data.
     :type evaluation: list
@@ -1234,7 +1333,10 @@ def __calcSlopeFDC(data):
     If 33% or 66% exceed does not exists then just give 0 back for a slope of 0 (horizontal line) 
     
     :math:`slope = \\frac{treshold(mean*1,33 <= data)}{treshold(mean*1,66 <= data)}`
-    
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param data: float list
     :type data: list
     :return: float slope

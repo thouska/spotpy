@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 from spotpy.examples.spot_setup_hymod import spot_setup
 import pandas as pd
 import spotpy.signatures as sig
-
+import pprint
 print("INFO: For this example you need the folder >hymod< in the examples folder")
 
 spot_setup = spot_setup()
@@ -26,7 +26,7 @@ timespanlen = simulation.__len__()
 ddd = pd.date_range("2015-01-01 11:00", freq="5min",periods=timespanlen)
 dd_daily = pd.date_range("2015-05-01", periods=timespanlen)
 
-
+pprint.pprint(sig.__calcFloodDuration(simulation,dd_daily,3,"flood"))
 print(sig.getMeanFlow(simulation, observation))
 print(sig.getMedianFlow(simulation, observation))
 print(sig.getSkewness(simulation, observation))
@@ -40,14 +40,14 @@ print(sig.getQ20(simulation, observation))
 print(sig.getQ85(simulation, observation))
 print(sig.getQ95(simulation, observation))
 print(sig.getQ99(simulation, observation))
-print(sig.getAverageFloodOverflowPerSection(simulation, observation,dd_daily,threshold_factor=1, section="day"))
-print(sig.getAverageFloodFrequencyPerSection(simulation, observation,dd_daily,threshold_factor=1, section="day"))
-print(sig.getAverageFloodDuration(simulation, observation,dd_daily,threshold_factor=3, section="day"))
-print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,dd_daily,threshold_factor=4, section="day"))
-print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,dd_daily,3, "day"))
-print(sig.getAverageBaseflowDuration(simulation, observation,dd_daily,threshold_factor=0.2, section="day"))
-print(sig.getFloodFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3, "day"))
-print(sig.getBaseflowFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3, "day"))
+print(sig.getAverageFloodOverflowPerSection(simulation, observation,dd_daily,threshold_factor=1))
+print(sig.getAverageFloodFrequencyPerSection(simulation, observation,dd_daily,threshold_factor=1))
+print(sig.getAverageFloodDuration(simulation, observation,dd_daily,threshold_factor=3))
+print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,dd_daily,threshold_factor=4))
+print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,dd_daily,3))
+print(sig.getAverageBaseflowDuration(simulation, observation,dd_daily,threshold_factor=0.2))
+print(sig.getFloodFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3))
+print(sig.getBaseflowFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3))
 print(sig.getLowFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
 print(sig.getHighFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
 print(sig.getBaseflowIndex(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
