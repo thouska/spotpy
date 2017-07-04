@@ -12,9 +12,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy.examples.spot_setup_hymod import spot_setup
-import pandas as pd
 import spotpy.signatures as sig
 
+import pprint
 print("INFO: For this example you need the folder >hymod< in the examples folder")
 
 spot_setup = spot_setup()
@@ -22,35 +22,117 @@ parameterset = spot_setup.parameters()['random']
 simulation = spot_setup.simulation(parameterset)
 observation = spot_setup.evaluation()
 
-timespanlen = simulation.__len__()
-ddd = pd.date_range("2015-01-01 11:00", freq="5min",periods=timespanlen)
-dd_daily = pd.date_range("2015-05-01", periods=timespanlen)
 
+# Beispiele zum einfachen Copy & Paste
 
-print(sig.getMeanFlow(simulation, observation))
-print(sig.getMedianFlow(simulation, observation))
-print(sig.getSkewness(simulation, observation))
-print(sig.getCoeffVariation(simulation, observation))
-print(sig.getQ001(simulation, observation))
-print(sig.getQ01(simulation, observation))
-print(sig.getQ1(simulation, observation))
-print(sig.getQ5(simulation, observation))
-print(sig.getQ10(simulation, observation))
-print(sig.getQ20(simulation, observation))
-print(sig.getQ85(simulation, observation))
-print(sig.getQ95(simulation, observation))
-print(sig.getQ99(simulation, observation))
-print(sig.getAverageFloodOverflowPerSection(simulation, observation,dd_daily,threshold_factor=1, section="day"))
-print(sig.getAverageFloodFrequencyPerSection(simulation, observation,dd_daily,threshold_factor=1, section="day"))
-print(sig.getAverageFloodDuration(simulation, observation,dd_daily,threshold_factor=3, section="day"))
-print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,dd_daily,threshold_factor=4, section="day"))
-print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,dd_daily,3, "day"))
-print(sig.getAverageBaseflowDuration(simulation, observation,dd_daily,threshold_factor=0.2, section="day"))
-print(sig.getFloodFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3, "day"))
-print(sig.getBaseflowFrequency(simulation, observation,pd.date_range("2015-05-01", periods=timespanlen),3, "day"))
-print(sig.getLowFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
-print(sig.getHighFlowVar(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
-print(sig.getBaseflowIndex(simulation, observation, pd.date_range("2015-05-01", periods=timespanlen)))
-print(sig.getSlopeFDC(simulation, observation))
+print(sig.getMeanFlow(simulation, observation,mode="get_signature"))
+print(sig.getMeanFlow(simulation, observation,mode="get_raw_data"))
+print(sig.getMeanFlow(simulation, observation,mode="calc_Dev"))
+
+print(sig.getMedianFlow(simulation, observation,mode="get_signature"))
+print(sig.getMedianFlow(simulation, observation,mode="get_raw_data"))
+print(sig.getMedianFlow(simulation, observation,mode="calc_Dev"))
+
+print(sig.getSkewness(simulation, observation,mode="get_signature"))
+print(sig.getSkewness(simulation, observation,mode="get_raw_data"))
+print(sig.getSkewness(simulation, observation,mode="calc_Dev"))
+
+print(sig.getCoeffVariation(simulation, observation,mode="get_signature"))
+print(sig.getCoeffVariation(simulation, observation,mode="get_raw_data"))
+print(sig.getCoeffVariation(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ001(simulation, observation,mode="get_signature"))
+print(sig.getQ001(simulation, observation,mode="get_raw_data"))
+print(sig.getQ001(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ01(simulation, observation,mode="get_signature"))
+print(sig.getQ01(simulation, observation,mode="get_raw_data"))
+print(sig.getQ01(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ1(simulation, observation,mode="get_signature"))
+print(sig.getQ1(simulation, observation,mode="get_raw_data"))
+print(sig.getQ1(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ5(simulation, observation,mode="get_signature"))
+print(sig.getQ5(simulation, observation,mode="get_raw_data"))
+print(sig.getQ5(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ10(simulation, observation,mode="get_signature"))
+print(sig.getQ10(simulation, observation,mode="get_raw_data"))
+print(sig.getQ10(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ20(simulation, observation,mode="get_signature"))
+print(sig.getQ20(simulation, observation,mode="get_raw_data"))
+print(sig.getQ20(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ85(simulation, observation,mode="get_signature"))
+print(sig.getQ85(simulation, observation,mode="get_raw_data"))
+print(sig.getQ85(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ95(simulation, observation,mode="get_signature"))
+print(sig.getQ95(simulation, observation,mode="get_raw_data"))
+print(sig.getQ95(simulation, observation,mode="calc_Dev"))
+
+print(sig.getQ99(simulation, observation,mode="get_signature"))
+print(sig.getQ99(simulation, observation,mode="get_raw_data"))
+print(sig.getQ99(simulation, observation,mode="calc_Dev"))
+
+print(sig.getSlopeFDC(simulation, observation,mode="get_signature"))
+print(sig.getSlopeFDC(simulation, observation,mode="get_raw_data"))
+print(sig.getSlopeFDC(simulation, observation,mode="calc_Dev"))
+
+try:
+  import pandas as pd
+  timespanlen = simulation.__len__()
+  ddd = pd.date_range("2015-01-01 11:00", freq="5min",periods=timespanlen)
+  dd_daily = pd.date_range("2015-05-01", periods=timespanlen)
+
+  print(sig.getAverageFloodOverflowPerSection(simulation, observation,mode="get_signature", datetime_series=dd_daily,threshold_factor=1))
+  print(sig.getAverageFloodOverflowPerSection(simulation, observation,mode="get_raw_data", datetime_series=dd_daily,threshold_factor=1))
+  print(sig.getAverageFloodOverflowPerSection(simulation, observation,mode="calc_Dev", datetime_series=dd_daily,threshold_factor=1))
+
+  print(sig.getAverageFloodFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=1,mode="get_signature"))
+  print(sig.getAverageFloodFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=1,mode="get_raw_data"))
+  print(sig.getAverageFloodFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=1,mode="calc_Dev"))
+
+  print(sig.getAverageFloodDuration(simulation, observation,datetime_series=dd_daily,threshold_factor=3,mode="get_signature"))
+  print(sig.getAverageFloodDuration(simulation, observation,datetime_series=dd_daily,threshold_factor=3,mode="get_raw_data"))
+  print(sig.getAverageFloodDuration(simulation, observation,datetime_series=dd_daily,threshold_factor=3,mode="calc_Dev"))
+
+  print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=4,mode="get_signature"))
+  print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=4,mode="get_raw_data"))
+  print(sig.getAverageBaseflowUnderflowPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=4,mode="calc_Dev"))
+
+  print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=3,mode="get_signature"))
+  print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=3,mode="get_raw_data"))
+  print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_factor=3,mode="calc_Dev"))
+
+  print(sig.getAverageBaseflowDuration(simulation, observation,datetime_series=dd_daily,threshold_factor=0.2,mode="get_signature"))
+  print(sig.getAverageBaseflowDuration(simulation, observation,datetime_series=dd_daily,threshold_factor=0.2,mode="get_raw_data"))
+  print(sig.getAverageBaseflowDuration(simulation, observation,datetime_series=dd_daily,threshold_factor=0.2,mode="calc_Dev"))
+
+  print(sig.getFloodFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_factor=3,mode="get_signature"))
+  print(sig.getFloodFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_factor=3,mode="get_raw_data"))
+  print(sig.getFloodFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_factor=3,mode="calc_Dev"))
+
+  print(sig.getBaseflowFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_factor=3,mode="get_signature"))
+  print(sig.getBaseflowFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_factor=3,mode="get_raw_data"))
+  print(sig.getBaseflowFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_factor=3,mode="calc_Dev"))
+
+  print(sig.getLowFlowVar(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="get_signature"))
+  print(sig.getLowFlowVar(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="get_raw_data"))
+  print(sig.getLowFlowVar(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="calc_Dev"))
+
+  print(sig.getHighFlowVar(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="get_signature"))
+  print(sig.getHighFlowVar(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="get_raw_data"))
+  print(sig.getHighFlowVar(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="calc_Dev"))
+
+  print(sig.getBaseflowIndex(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="get_signature"))
+  print(sig.getBaseflowIndex(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="get_raw_data"))
+  print(sig.getBaseflowIndex(simulation, observation, datetime_series=pd.date_range("2015-05-01", periods=timespanlen),mode="calc_Dev"))
+
+except ImportError:
+  print('Please install Pandas to use these signature functions')
+
 
 

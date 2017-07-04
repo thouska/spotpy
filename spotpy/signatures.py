@@ -1,68 +1,46 @@
-# -*- coding: utf-8 -*-
-'''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
-:author: Benjamin Manns
-
-This tool holds functions for caclulation of hyrological signatures. It takes Python-lists of simulation and observation data
-returns the hydrological signature value of interest.
-
-The code is based on:
-
-B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197 Flow variables for ecological studies in temperate streams: groupings based on covariance
-I. K. Westerberg and H. K. McMillan / HESS 19 (2015) 3951-3968 Uncertainty in hydrological signatures
-'''
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-import copy
+import pprint
 import numpy as np
-import datetime
+import random
+import copy
 import warnings
-
-
-class HydroSignaturesError(Exception):
-    """
-    Define an own error class to know it is an error made by a hydroindex calculation to warn the use for wrong inputs
-    """
-    pass
+import datetime
 
 
 class SuitableInput:
-    def __init__(self, datm, section):
+    def __init__(self, datm):
         """
-        Checks whether the date time series suits to a chosen section (year, month, day, hour). So if we may have daily
-         data, a hourly section may not work properly. All of this inappropriate choices generate a warning
+        Calculates which section type the the date time series suits best (year, month, day, hour).
 
         :param datm:
         :type datm: pandas datetime object
-        :param section: section in [year, month, day, hour]
-        :type section: string
+        :return: the section type which suites best
+        :rtype: string
         """
         self.datm = datm
-        self.section = section
-        b, r = self.__calc()
-        if not b:
-            warnings.warn("\nYour chose section was [" + self.section + "] and this is not suitable to you time data.\n"
-                          "Your time data have an interval of [" + str(r) + " " + self.section + "]")
+        self.allowed_sections = ['year', 'month', 'day', 'hour']
 
-    def __calc(self):
+    def calc(self):
         if self.datm.__len__() > 1:
             diff = (self.datm[1].to_pydatetime() - self.datm[0].to_pydatetime()).total_seconds()
-            if self.section == "year":
-                return diff / (3600 * 24 * 365) <= 1.0, diff / (3600 * 24 * 365)
-            elif self.section == "month":
-                return diff / (3600 * 24 * 30) <= 1.0, diff / (3600 * 24 * 30)
-            elif self.section == "day":
-                return diff / (3600 * 24) <= 1.0, diff / (3600 * 24)
-            elif self.section == "hour":
-                return diff <= 3600, diff / 3600
-            else:
-                raise Exception("The section [" + self.section + "] is not defined in "+str(self))
+            anything_found = False
+            found_section = ''
+            while not anything_found:
+                try:
+                    section = self.allowed_sections.pop()
+                except IndexError:
+                    break
+
+                if section == "year":
+                    anything_found, found_section = diff / (3600 * 24 * 365) <= 1.0, 'year'
+                elif section == "month":
+                    anything_found, found_section = diff / (3600 * 24 * 30) <= 1.0, 'month'
+                elif section == "day":
+                    anything_found, found_section = diff / (3600 * 24) <= 1.0, 'day'
+                elif section == "hour":
+                    anything_found, found_section = diff <= 3600, 'hour'
+                else:
+                    raise Exception("The section [" + section + "] is not defined in " + str(self))
+            return found_section
 
 
 def __isSorted(df):
@@ -85,31 +63,27 @@ def __isSorted(df):
         return False
 
 
-def __calcDev(a, b):
+def __calcMedianFlow(data):
     """
-    Calculate the relative error / derivation of two values
-    If one parameter is zero the result is just 1, for example b = 0, so calculate:
-    :math:`\\frac{a+0}{a} = 1` and also
-    :math:`a =  b  \\Leftrightarrow  return =  0` [approximately]
+    Simply calculate the median (flow exceeded 50% of the time) of the data
 
-    :param a: Value a
-    :type a: float
-    :param b: Value b
-    :type b: float
-    :return: relative error of a and b (numeric definition)
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: A list of float data
+    :type data: list
+    :return: Median
     :rtype: float
     """
-    if a != 0:
-        return (a - b) / a
-    elif b != 0:
-        return (a - b) / b
-    else:
-        return 0
+    return np.percentile(data, 50)
 
 
 def __percentilwrapper(array, index):
     """
     A Percentil Wrapper to have a easy chance to modify the percentil calculation for the following functions
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
     :param array: float array
     :type array: list
@@ -125,6 +99,9 @@ def __calcMeanFlow(data):
     """
     Simply calculate the mean of the data
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
     :param data: A list of float data
     :type data: list
     :return: Mean
@@ -133,656 +110,231 @@ def __calcMeanFlow(data):
     return np.mean(data)
 
 
-def __calcMedianFlow(data):
+class HydroSignaturesError(Exception):
     """
-    Simply calculate the median (flow exceeded 50% of the time) of the data
+    Define an own error class to know it is an error made by a hydroindex calculation to warn the use for wrong inputs
+    """
+    pass
 
-    :param data: A list of float data
+
+class _SignaturesBasicFunctionality(object):
+    def __init__(self, data, comparedata=None, mode=None):
+        """
+        A basic class to give a blueprint of a signature calculation class
+        :param data: data to analyze
+        :type data: list
+        :param comparedata: data to analyze and compare with variable data
+        :type comparedata: list
+        :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+        :type mode: string
+        """
+        self.data = data
+        self.mode = mode
+        self.additional_arguments = {}
+        self.preProcessFunction_additional_arguments = {}
+        self.hasPreProcess = False
+        self.preProcessFunction = None
+
+        if comparedata is not None:
+            self.comparedata = comparedata
+            if data.__len__() != comparedata.__len__():
+                raise HydroSignaturesError("Simulation and observation data have not the same length")
+            self.which_case = "compare"
+        else:
+            self.which_case = "single"
+
+    def pre_process(self, pre_func=None, **kwargs):
+        if pre_func is not None:
+            self.hasPreProcess = True
+            for k, v in kwargs.items():
+                self.preProcessFunction_additional_arguments[k] = v
+        self.preProcessFunction = pre_func
+
+    def analyze(self, func, **kwargs):
+
+        # pack the kwargs into a dict so it can be expressed as keyword arguments later on
+
+        for k, v in kwargs.items():
+            self.additional_arguments[k] = v
+
+        if self.mode == 'get_signature':
+            print('Calculation Signature')
+            return self.get_signature(func)
+        elif self.mode == 'get_raw_data':
+            print('Calculation raw data')
+            return self.raw_data(func)
+        elif self.mode == 'calc_Dev':
+            print('Calculation difference')
+            return self.run_compared_signature(func)
+        else:
+            raise ValueError(
+                "'%s' is not a valid keyword for signature processing" % self.mode)
+
+    def get_signature(self, func):
+        if self.which_case == "compare":
+            return self.run_compared_signature(func)
+        elif self.which_case == "single":
+            return self.run_signature(self.data, func)
+        else:
+            raise HydroSignaturesError("No case set!")
+
+    def raw_data(self, func):
+        return func(self.data, **self.additional_arguments)
+
+    def run_signature(self, data, func):
+        return func(data, **self.additional_arguments)
+
+    def run_compared_signature(self, func):
+        if not self.hasPreProcess:
+            return self.calcDev(self.run_signature(self.data, func), self.run_signature(self.comparedata, func))
+        else:
+            return self.preProcessFunction(self.run_signature(self.data, func),
+                                           self.run_signature(self.comparedata, func),
+                                           **self.preProcessFunction_additional_arguments)
+
+    @staticmethod
+    def calcDev(a, b):
+        """
+        Calculate the relative error / derivation of two values
+        If one parameter is zero the result is just 1, for example b = 0, so calculate:
+        :math:`\\frac{a+0}{a} = 1` and also
+        :math:`a =  b  \\Leftrightarrow  return =  0` [approximately]
+
+        See https://en.wikipedia.org/wiki/Approximation_error
+
+        :param a: Value a
+        :type a: float
+        :param b: Value b
+        :type b: float
+        :return: relative error of a and b (numeric definition)
+        :rtype: float
+        """
+        if type(a) == type({}) or type(b) == type({}) or a is None or b is None:
+            raise HydroSignaturesError("You specified no pre process because your data are in a dict or NONE!")
+        else:
+
+            if a != 0:
+                return (a - b) / a
+            elif b != 0:
+                return (a - b) / b
+            else:
+                return 0
+
+
+def getSlopeFDC(data, comparedata=None, mode='get_signature'):
+    """
+    The main idea is to use a threshold by the mean of the data and use the first occurrence of a 33% exceed and a 66%
+    exceed and calculate the factor of how many times is the 66% exceed higher then the 33% exceed.
+    If 33% or 66% exceed does not exists then just give 0 back for a slope of 0 (horizontal line)
+
+    :math:`slope = \\frac{treshold(mean*1,33 <= data)}{treshold(mean*1,66 <= data)}`
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
     :type data: list
-    :return: Median
-    :rtype: float
-    """
-    return np.percentile(data, 50)
-
-
-def getMeanFlow(evaluation, simulation):
-    """
-    Simply calculate the mean of the data
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-    
-    :return: Mean
-    :rtype: float
-    
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __calcMeanFlow(simulation)
-    b = __calcMeanFlow(evaluation)
-    return __calcDev(a, b)
-
-
-def getMedianFlow(evaluation, simulation):
-    """    
-    Simply calculate the median (flow exceeded 50% of the time) of the data
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-    
-    :return: Median
-    :rtype: float
-    
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-    a = __calcMedianFlow(simulation)
-    b = __calcMedianFlow(evaluation)
-    return __calcDev(a, b)
-
-
-def getSkewness(evaluation, simulation):
-    """
-    Skewness, i.e. the mean flow data divided by Q50 (50 percentil / median flow) .
-         
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-    
-    :return: derivation of the skewness
-    :rtype: float
-    
-    """
-
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __calcMeanFlow(simulation) / __calcMedianFlow(simulation)
-    b = __calcMeanFlow(evaluation) / __calcMedianFlow(evaluation)
-    return __calcDev(a, b)
-
-
-def getCoeffVariation(evaluation, simulation):
-    """
-    
-    Coefficient of variation, i.e. standard deviation divided by mean flow
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the coefficient of variation
-    :rtype: float
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :return: the calculation will be return which is set by mode, this might be float numbers or war data in dict format which can be plot to visualize the signatures
+    :rtype: dict / float
 
     """
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = np.std(simulation) / __calcMeanFlow(simulation)
-    b = np.std(evaluation) / __calcMeanFlow(evaluation)
-    return __calcDev(a, b)
+    return basics.analyze(__calcSlopeFDC)
 
 
-def getQ001(evaluation, simulation):
+def __calcSlopeFDC(data):
+    upper33_data = np.sort(data)[np.sort(data) >= 1.33 * np.mean(data)]
+    upper66_data = np.sort(data)[np.sort(data) >= 1.66 * np.mean(data)]
+    if upper33_data.__len__() > 0 and upper66_data.__len__() > 0:
+        if upper66_data[0] != 0:
+            return upper33_data[0] / upper66_data[0]
+        else:
+            return 0.0
+    else:
+        return 0.0
+
+
+def getAverageFloodOverflowPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
+                                      threshold_factor=3):
     """
-    The value of the 0.01 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 0.01 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 0.01)
-    b = __percentilwrapper(evaluation, 0.01)
-    return __calcDev(a, b)
-
-
-def getQ01(evaluation, simulation):
-    """
-    The value of the 0.1 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 0.1 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 0.1)
-    b = __percentilwrapper(evaluation, 0.1)
-    return __calcDev(a, b)
-
-
-def getQ1(evaluation, simulation):
-    """
-    The value of the 1 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 1 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 1)
-    b = __percentilwrapper(evaluation, 1)
-    return __calcDev(a, b)
-
-
-def getQ5(evaluation, simulation):
-    """
-    The value of the 5 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 5 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 5)
-    b = __percentilwrapper(evaluation, 5)
-    return __calcDev(a, b)
-
-
-def getQ10(evaluation, simulation):
-    """
-    The value of the 10 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 10 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 10)
-    b = __percentilwrapper(evaluation, 10)
-    return __calcDev(a, b)
-
-
-def getQ20(evaluation, simulation):
-    """
-    The value of the 20 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 20 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 20)
-    b = __percentilwrapper(evaluation, 20)
-    return __calcDev(a, b)
-
-
-def getQ85(evaluation, simulation):
-    """
-    The value of the 85 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 85 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 85)
-    b = __percentilwrapper(evaluation, 85)
-    return __calcDev(a, b)
-
-
-def getQ95(evaluation, simulation):
-    """
-    The value of the 95 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 95 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 95)
-    b = __percentilwrapper(evaluation, 95)
-    return __calcDev(a, b)
-
-
-def getQ99(evaluation, simulation):
-    """
-    The value of the 99 percentiles
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
-
-    :return: derivation of the 99 percentiles
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    a = __percentilwrapper(simulation, 99)
-    b = __percentilwrapper(evaluation, 99)
-    return __calcDev(a, b)
-
-
-def getAverageFloodOverflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
-    """
-    All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
+    All measurements are scanned where there are overflow events. Based on the section we summarize events per year,
     month, day, hour.
-    Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the 
-    overflow events hourly but you have only daily data it the function will work but not very useful.
-    
+    Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the
+    overflow events hourly but you have only daily data the function will work but not very useful.
+
     However for every section the function collect the overflow value, i.e. value - threshold and calc the deviation
     of the means of this overflows.
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of overflow value
-    :rtype: float
+    :return: deviation of means of overflow value or raw data
+    :rtype: dict / float
     """
 
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
 
-
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    if simulation.__len__() != datetime_series.__len__():
+    if data.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"flood")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"flood")
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    basics.pre_process(__calcDeviationForAverageFloodOverflowPerSection)
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+                          which_flow="flood")
 
 
+def __calcDeviationForAverageFloodOverflowPerSection(a, b):
     for_mean_a = []
     for_mean_b = []
-    for y in DUR_a:
-        if DUR_a[y].__len__() > 0:
-            for elem in range(DUR_a[y].__len__()):
-                for ov in DUR_a[y][elem]["overflow"]:
+
+    for y in a:
+        if a[y].__len__() > 0:
+            for elem in range(a[y].__len__()):
+                for ov in a[y][elem]["overflow"]:
                     for_mean_a.append(ov)
-        for y in DUR_b:
-            if DUR_b[y].__len__() > 0:
-                for elem in range(DUR_b[y].__len__()):
-                    for ov in DUR_b[y][elem]["overflow"]:
+        for y in b:
+            if b[y].__len__() > 0:
+                for elem in range(b[y].__len__()):
+                    for ov in b[y][elem]["overflow"]:
                         for_mean_b.append(ov)
-
-    return __calcDev(np.mean(for_mean_a),np.mean(for_mean_b))
-
-
-def getAverageFloodFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
-    """
-    This function calculates the average frequency per every section in the given interval of the datetime_series. 
-    So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
-     
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    :param datetime_series: datetime series
-    :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of flood frequency per section
-    :rtype: float
-    """
-
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    if simulation.__len__() != datetime_series.__len__():
-        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"flood")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"flood")
-
-    sum_dev = 0.0
-
-    for y in DUR_a:
-        sum_dur_1 = 0.0
-        sum_dur_2 = 0.0
-        for elem in DUR_a[y]:
-            sum_dur_1 += elem["duration"]
-        for elem in DUR_b[y]:
-            sum_dur_2 += elem["duration"]
-
-        sum_dev += __calcDev(sum_dur_1, sum_dur_2)
-
-    return sum_dev / DUR_a.__len__()
+    if for_mean_a.__len__() > 0 and for_mean_b.__len__() > 0:
+        return _SignaturesBasicFunctionality.calcDev(np.mean(for_mean_a), np.mean(for_mean_b))
+    else:
+        warnings.warn("No data in for_mean_a to calculate mean of")
 
 
-def getAverageFloodDuration(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
-    """
-    Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    :param datetime_series: datetime series
-    :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of flood durations
-    :rtype: float
-    """
-
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    if simulation.__len__() != datetime_series.__len__():
-        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"flood")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"flood")
-
-    sum_dev = 0.0
-    for y in DUR_a:
-        sum_diff_1 = 0.0
-        sum_diff_2 = 0.0
-        if DUR_a[y].__len__() > 0:
-            for elem in range(DUR_a[y].__len__()):
-                d_start_a = datetime.datetime.strptime(DUR_a[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
-                d_end_a = datetime.datetime.strptime(DUR_a[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
-                if d_end_a.date() == d_start_a.date():
-                    sum_diff_1 += 24 * 3600
-                else:
-                    d_diff_a = d_end_a - d_start_a
-                    sum_diff_1 += d_diff_a.seconds
-            sum_diff_av_1 = sum_diff_1 / DUR_a[y].__len__()
-        else:
-            sum_diff_av_1 = 0
-
-        if DUR_b[y].__len__() > 0:
-            for elem in range(DUR_b[y].__len__()):
-                d_start_b = datetime.datetime.strptime(DUR_b[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
-                d_end_b = datetime.datetime.strptime(DUR_b[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
-                if d_end_b.date() == d_start_b.date():
-                    d_diff_b = datetime.timedelta(1)
-                else:
-                    d_diff_b = d_end_b - d_start_b
-                sum_diff_2 += d_diff_b.seconds
-                # print(sum_diff_2)
-            sum_diff_av_2 = sum_diff_2 / DUR_b[y].__len__()
-        else:
-            sum_diff_av_2 = 0
-
-        # print(str(sum_diff_av_2) +"|"+ str(sum_diff_av_1))
-        if section == "year":
-            sum_dev += __calcDev(sum_diff_av_1 / (365 * 24 * 3600),
-                                 sum_diff_av_2 / (365 * 24 * 3600))
-        elif section == "month":
-            sum_dev += __calcDev(sum_diff_av_1 / (30 * 24 * 3600),
-                                 sum_diff_av_2 / (30 * 24 * 3600))
-        elif section == "day":
-            sum_dev += __calcDev(sum_diff_av_1 / (24 * 3600),
-                                 sum_diff_av_2 / (24 * 3600))
-        elif section == "hour":
-            sum_dev += __calcDev(sum_diff_av_1 / (3600), sum_diff_av_2 / (3600))
-        else:
-            raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
-
-    return sum_dev / DUR_a.__len__()
-
-
-def getAverageBaseflowUnderflowPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
-    """
-    All measurements are scanned where there are overflow events. Based on the section we summarize events per year, 
-    month, day, hour.
-    Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the 
-    overflow events hourly but you have only daily data it the function will work but not very useful.
-
-    However for every section the function collect the overflow value, i.e. value - threshold  and calc the deviation 
-    of the means of this overflows.
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    :param datetime_series: datetime series
-    :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of underflow value
-    :rtype: float
-
-    """
-
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    if simulation.__len__() != datetime_series.__len__():
-        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
-
-    for_mean_a = []
-    for_mean_b = []
-    for y in DUR_a:
-        if DUR_a[y].__len__() > 0:
-            for elem in range(DUR_a[y].__len__()):
-                for ov in DUR_a[y][elem]["underflow"]:
-                    for_mean_a.append(ov)
-        for y in DUR_b:
-            if DUR_b[y].__len__() > 0:
-                for elem in range(DUR_b[y].__len__()):
-                    for ov in DUR_b[y][elem]["underflow"]:
-                        for_mean_b.append(ov)
-
-    return __calcDev(np.mean(for_mean_a), np.mean(for_mean_b))
-
-
-def getAverageBaseflowFrequencyPerSection(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
-    """
-    This function calculates the average frequency per every section in the given interval of the datetime_series. 
-    So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    :param datetime_series: datetime series
-    :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of baseflow frequency per section
-    :rtype: float
-    """
-
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    if simulation.__len__() != datetime_series.__len__():
-        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
-
-    sum_dev = 0.0
-
-    for y in DUR_a:
-        sum_dur_1 = 0.0
-        sum_dur_2 = 0.0
-        for elem in DUR_a[y]:
-            sum_dur_1 += elem["duration"]
-        for elem in DUR_b[y]:
-            sum_dur_2 += elem["duration"]
-
-        sum_dev += __calcDev(sum_dur_1, sum_dur_2)
-
-    return sum_dev / DUR_a.__len__()
-
-
-def getAverageBaseflowDuration(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
-    """
-    Get high and low-flow yearly-average event duration which have a threshold of threshold_factor the median
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    :param datetime_series: datetime series
-    :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: deviation of means of baseflow duration
-    :rtype: float
-
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    if simulation.__len__() != datetime_series.__len__():
-        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-
-    DUR_a = __calcFloodDuration(simulation, datetime_series, threshold_factor, section,"baseflow")
-    DUR_b = __calcFloodDuration(evaluation, datetime_series, threshold_factor, section,"baseflow")
-
-    sum_dev = 0.0
-    for y in DUR_a:
-        sum_diff_1 = 0.0
-        sum_diff_2 = 0.0
-        if DUR_a[y].__len__() > 0:
-            for elem in range(DUR_a[y].__len__()):
-                d_start_a = datetime.datetime.strptime(DUR_a[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
-                d_end_a = datetime.datetime.strptime(DUR_a[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
-                if d_end_a.date() == d_start_a.date():
-                    sum_diff_1 += 24 * 3600
-                else:
-                    d_diff_a = d_end_a - d_start_a
-                    sum_diff_1 += d_diff_a.seconds
-            sum_diff_av_1 = sum_diff_1 / DUR_a[y].__len__()
-        else:
-            sum_diff_av_1 = 0
-
-        if DUR_b[y].__len__() > 0:
-            for elem in range(DUR_b[y].__len__()):
-                d_start_b = datetime.datetime.strptime(DUR_b[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
-                d_end_b = datetime.datetime.strptime(DUR_b[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
-                if d_end_b.date() == d_start_b.date():
-                    d_diff_b = datetime.timedelta(1)
-                else:
-                    d_diff_b = d_end_b - d_start_b
-                sum_diff_2 += d_diff_b.seconds
-                # print(sum_diff_2)
-            sum_diff_av_2 = sum_diff_2 / DUR_b[y].__len__()
-        else:
-            sum_diff_av_2 = 0
-
-        # print(str(sum_diff_av_2) +"|"+ str(sum_diff_av_1))
-        if section == "year":
-            sum_dev += __calcDev(sum_diff_av_1 / (365 * 24 * 3600),
-                                 sum_diff_av_2 / (365 * 24 * 3600))
-        elif section == "month":
-            sum_dev += __calcDev(sum_diff_av_1 / (30 * 24 * 3600),
-                                 sum_diff_av_2 / (30 * 24 * 3600))
-        elif section == "day":
-            sum_dev += __calcDev(sum_diff_av_1 / (24 * 3600),
-                                 sum_diff_av_2 / (24 * 3600))
-        elif section == "hour":
-            sum_dev += __calcDev(sum_diff_av_1 / (3600), sum_diff_av_2 / (3600))
-        else:
-            raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
-
-    return sum_dev / DUR_a.__len__()
-
-
-def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_flow):
+def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     """
     With a given data set we use the datetime_series and save all continuous floods, measured by a given
-    threshold_factor times the median of the data. The start and end time of this event is recorded. Based on the user's
-    section we create the list of the calculated values per year, month, day, hour.
-    Important to know is that the user can input a date-time object with several intervals, so it could be every second 
+    threshold_factor times the median of the data. The start and end time of this event is recorded. Based on the best
+    suitable section we create the list of the calculated values per year, month, day, hour.
+    Important to know is that the user can input a date-time object with several intervals, so it could be every second
     or every day recorded data.
-    This does not matter at all, we just save the beginning and ending date-time, the difference of threshold and 
-    measurement and the amount of how many steps are in the flood event. 
+    This does not matter at all, we just save the beginning and ending date-time, the difference of threshold and
+    measurement and the amount of how many steps are in the flood event.
     This function is used by several "getFlood*"-Functions which then calculate the desired hydrological index.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
     :param data: measurement / simulation of a flow
     :type data: list
@@ -790,14 +342,13 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
     :param which_flow: in ["flood","baseflow"]
     :type which_flow: string
     :return: objects per section with the flood event
     :rtype: dict
     """
-    SuitableInput(datetime_series, section)
+    s = SuitableInput(datetime_series)
+    section = s.calc()
     duration_per_section = {}
     tmp_duration_logger_per_sec = {}
     threshold_on_per_year = {}
@@ -806,7 +357,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
 
     if which_flow not in ["flood", "baseflow"]:
         raise HydroSignaturesError("which_flow should be flood or baseflow")
-    if section not in ["year","month","day","hour"]:
+    if section not in ["year", "month", "day", "hour"]:
         raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
 
     tmpStdDurLG = {'start': "0000-00-00", 'end': '0000-00-00', 'duration': 0}
@@ -893,98 +444,744 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, section, which_
     return duration_per_section
 
 
-def getFloodFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def getMeanFlow(data, comparedata=None, mode='get_signature'):
     """
-    Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+    Simply calculate the mean of the data
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: Mean
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__calcMeanFlow)
+
+
+def getMedianFlow(data, comparedata=None, mode='get_signature'):
+    """
+    Simply calculate the median (flow exceeded 50% of the time) of the data
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: Median
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__calcMedianFlow)
+
+
+def getSkewness(data, comparedata=None, mode='get_signature'):
+    """
+    Skewness, i.e. the mean flow data divided by Q50 (50 percentil / median flow) .
+
+    See paper "B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197", (M_A1_MeanDailyFlows .pdf,  page 185)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the skewness
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__Skewness)
+
+
+def __Skewness(data):
+    return __calcMeanFlow(data) / __calcMedianFlow(data)
+
+
+def getCoeffVariation(data, comparedata=None, mode='get_signature'):
+    """
+    Coefficient of variation, i.e. standard deviation divided by mean flow
+
+    See paper "B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197", (M_A1_MeanDailyFlows .pdf,  page 185)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the coefficient of variation
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(_CoeffVariation)
+
+
+def _CoeffVariation(data):
+    return np.std(data) / __calcMeanFlow(data)
+
+
+def getQ001(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 0.01 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 0.01 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=0.01)
+
+
+def getQ01(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 0.1 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 0.1 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=0.1)
+
+
+def getQ1(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 1 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 1 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=1)
+
+
+def getQ5(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 5 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 5 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=1)
+
+
+def getQ10(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 10 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 10 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=10)
+
+
+def getQ20(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 20 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 20 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=20)
+
+
+def getQ85(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 85 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 85 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=85)
+
+
+def getQ95(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 95 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 95 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=95)
+
+
+def getQ99(data, comparedata=None, mode='get_signature'):
+    """
+    The value of the 99 percentiles
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
+    :return: derivation of the 99 percentiles
+    :rtype: float
+
+    """
+    basics = _SignaturesBasicFunctionality(data=data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__percentilwrapper, index=99)
+
+
+def getAverageFloodFrequencyPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
+                                       threshold_factor=3):
+    """
+    This function calculates the average frequency per every section in the given interval of the datetime_series.
+    So if the datetime is recorded all 5 min we use this fine interval to count all records which are in flood.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: mean of deviation of average flood frequency of a defined section
-    :rtype: float
-
-    
+    :return: deviation of means of flood frequency per best suitable section or a whole dict if mode was set to raw data
+    :rtype: float / dict
     """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
 
-    if simulation.__len__() != datetime_series.__len__():
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="flood")
-    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="flood")
-    sum = 0.0
-    for sec in FRE_s:
-        sum += __calcDev(FRE_s[sec], FRE_e[sec])
-    return sum / FRE_s.__len__()
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    basics.pre_process(__calcDeviationForAverageFloodFrequencyPerSection)
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+                          which_flow="flood")
 
 
-def getBaseflowFrequency(evaluation, simulation, datetime_series, threshold_factor=3, section="day"):
+def __calcDeviationForAverageFloodFrequencyPerSection(a, b):
+    sum_dev = 0.0
+
+    for y in a:
+        sum_dur_1 = 0.0
+        sum_dur_2 = 0.0
+        for elem in a[y]:
+            sum_dur_1 += elem["duration"]
+        for elem in b[y]:
+            sum_dur_2 += elem["duration"]
+
+        sum_dev += _SignaturesBasicFunctionality.calcDev(sum_dur_1, sum_dur_2)
+    return sum_dev / a.__len__()
+
+
+def getAverageFloodDuration(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
     """
-    Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+    Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
 
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :param section: one of ["year","month","day","hour"]
-    :type section: string
-    :return: mean of deviation of average baseflow frequency of a defined section
-    :rtype: float
-
-
+    :return: deviation of means of flood durations or a dict if mode was set to raw data
+    :rtype: float / dict
     """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
 
-    if simulation.__len__() != datetime_series.__len__():
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
 
-    FRE_s = __calcFlowLevelEventFrequency(simulation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="baseflow")
-    FRE_e = __calcFlowLevelEventFrequency(evaluation, datetime_series, threshold_factor=threshold_factor, section=section, flow_level_type="baseflow")
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    s = SuitableInput(datetime_series)
+    section = s.calc()
+    basics.pre_process(__calcDeviationForAverageFloodDuration, section=section)
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+                          which_flow="flood")
+
+
+def __calcDeviationForAverageFloodDuration(a, b, section):
+    sum_dev = 0.0
+    for y in a:
+        sum_diff_1 = 0.0
+        sum_diff_2 = 0.0
+        if a[y].__len__() > 0:
+            for elem in range(a[y].__len__()):
+                d_start_a = datetime.datetime.strptime(a[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
+                d_end_a = datetime.datetime.strptime(a[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
+                if d_end_a.date() == d_start_a.date():
+                    sum_diff_1 += 24 * 3600
+                else:
+                    d_diff_a = d_end_a - d_start_a
+                    sum_diff_1 += d_diff_a.seconds
+            sum_diff_av_1 = sum_diff_1 / a[y].__len__()
+        else:
+            sum_diff_av_1 = 0
+
+        if b[y].__len__() > 0:
+            for elem in range(b[y].__len__()):
+                d_start_b = datetime.datetime.strptime(b[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
+                d_end_b = datetime.datetime.strptime(b[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
+                if d_end_b.date() == d_start_b.date():
+                    d_diff_b = datetime.timedelta(1)
+                else:
+                    d_diff_b = d_end_b - d_start_b
+                sum_diff_2 += d_diff_b.seconds
+            sum_diff_av_2 = sum_diff_2 / b[y].__len__()
+        else:
+            sum_diff_av_2 = 0
+
+        if section == "year":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (365 * 24 * 3600),
+                                                             sum_diff_av_2 / (365 * 24 * 3600))
+        elif section == "month":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (30 * 24 * 3600),
+                                                             sum_diff_av_2 / (30 * 24 * 3600))
+        elif section == "day":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (24 * 3600),
+                                                             sum_diff_av_2 / (24 * 3600))
+        elif section == "hour":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (3600), sum_diff_av_2 / (3600))
+        else:
+            raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
+
+    return sum_dev / a.__len__()
+
+
+def getAverageBaseflowUnderflowPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
+                                          threshold_factor=3):
+    """
+    All measurements are scanned where there are overflow events. Based on the best suitable section we summarize events
+    per year, month, day, hour.
+    Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the
+    overflow events hourly but you have only daily data it the function will work but not very useful.
+
+    However for every section the function collect the overflow value, i.e. value - threshold  and calc the deviation
+    of the means of this overflows.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :return: deviation of means of underflow value or a dict if mode was set to raw data
+    :rtype: float / dict
+
+    """
+
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
+        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
+
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    basics.pre_process(__calcDeviationForAverageBaseflowUnderflowPerSection)
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+                          which_flow="baseflow")
+
+
+def __calcDeviationForAverageBaseflowUnderflowPerSection(a, b):
+    for_mean_a = []
+    for_mean_b = []
+    for y in a:
+        if a[y].__len__() > 0:
+            for elem in range(a[y].__len__()):
+                for ov in a[y][elem]["underflow"]:
+                    for_mean_a.append(ov)
+        for y in b:
+            if b[y].__len__() > 0:
+                for elem in range(b[y].__len__()):
+                    for ov in b[y][elem]["underflow"]:
+                        for_mean_b.append(ov)
+
+    return _SignaturesBasicFunctionality.calcDev(np.mean(for_mean_a), np.mean(for_mean_b))
+
+
+def getAverageBaseflowFrequencyPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
+                                          threshold_factor=3):
+    """
+    This function calculates the average frequency per every section in the given interval of the datetime_series.
+    So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :return: deviation of means of baseflow frequency per section or a dict if mode was set to raw data
+    :rtype: float / dict
+    """
+
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
+        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
+
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    basics.pre_process(__calcDevForAverageBaseflowFrequencyPerSection)
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+                          which_flow="baseflow")
+
+
+def __calcDevForAverageBaseflowFrequencyPerSection(a, b):
+    sum_dev = 0.0
+
+    for y in a:
+        sum_dur_1 = 0.0
+        sum_dur_2 = 0.0
+        for elem in a[y]:
+            sum_dur_1 += elem["duration"]
+        for elem in b[y]:
+            sum_dur_2 += elem["duration"]
+
+        sum_dev += _SignaturesBasicFunctionality.calcDev(sum_dur_1, sum_dur_2)
+
+    return sum_dev / a.__len__()
+
+
+def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+    """
+    Get high and low-flow yearly-average event duration which have a threshold of threshold_factor the median
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :return: deviation of means of baseflow duration or a dict if mode was set to raw data
+    :rtype: float / dict
+
+    """
+
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
+        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
+
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    # __calcDeviationForAverageFloodFrequencyPerSection
+    s = SuitableInput(datetime_series)
+    section = s.calc()
+    basics.pre_process(__calcDevForAverageBaseflowDuration, section=section)
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+                          which_flow="flood")
+
+
+def __calcDevForAverageBaseflowDuration(a, b, section):
+    sum_dev = 0.0
+    for y in a:
+        sum_diff_1 = 0.0
+        sum_diff_2 = 0.0
+        if a[y].__len__() > 0:
+            for elem in range(a[y].__len__()):
+                d_start_a = datetime.datetime.strptime(a[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
+                d_end_a = datetime.datetime.strptime(a[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
+                if d_end_a.date() == d_start_a.date():
+                    sum_diff_1 += 24 * 3600
+                else:
+                    d_diff_a = d_end_a - d_start_a
+                    sum_diff_1 += d_diff_a.seconds
+            sum_diff_av_1 = sum_diff_1 / a[y].__len__()
+        else:
+            sum_diff_av_1 = 0
+
+        if b[y].__len__() > 0:
+            for elem in range(b[y].__len__()):
+                d_start_b = datetime.datetime.strptime(b[y][elem]["start"], "%Y-%m-%d %H:%M:%S")
+                d_end_b = datetime.datetime.strptime(b[y][elem]["end"], "%Y-%m-%d %H:%M:%S")
+                if d_end_b.date() == d_start_b.date():
+                    d_diff_b = datetime.timedelta(1)
+                else:
+                    d_diff_b = d_end_b - d_start_b
+                sum_diff_2 += d_diff_b.seconds
+            sum_diff_av_2 = sum_diff_2 / b[y].__len__()
+        else:
+            sum_diff_av_2 = 0
+
+        if section == "year":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (365 * 24 * 3600),
+                                                             sum_diff_av_2 / (365 * 24 * 3600))
+        elif section == "month":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (30 * 24 * 3600),
+                                                             sum_diff_av_2 / (30 * 24 * 3600))
+        elif section == "day":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (24 * 3600),
+                                                             sum_diff_av_2 / (24 * 3600))
+        elif section == "hour":
+            sum_dev += _SignaturesBasicFunctionality.calcDev(sum_diff_av_1 / (3600), sum_diff_av_2 / (3600))
+        else:
+            raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
+
+    return sum_dev / a.__len__()
+
+
+def getFloodFrequency(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+    """
+    Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :return: mean of deviation of average flood frequency of the best suitable section or a dict if mode was set to raw data
+    :rtype: float / dict
+
+
+    """
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
+        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
+
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+    basics.pre_process(__calcDevForFloodFrequency)
+    return basics.analyze(__calcFlowLevelEventFrequency, datetime_series=datetime_series,
+                          threshold_factor=threshold_factor,
+                          flow_level_type="flood")
+
+
+def getBaseflowFrequency(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+    """
+    Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+
+    The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
+    JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
+    given, so we developed an own.
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :param datetime_series: datetime series
+    :type datetime_series: pandas datetime object
+    :param threshold_factor: which times the median we use for a threshold
+    :type threshold_factor: float
+    :return: mean of deviation of average flood frequency of the best suitable section or a dict if mode was set to raw data
+    :rtype: float / dict
+
+
+    """
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
+
+    if data.__len__() != datetime_series.__len__():
+        raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
+
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+    basics.pre_process(__calcDevForFloodFrequency)
+    return basics.analyze(__calcFlowLevelEventFrequency, datetime_series=datetime_series,
+                          threshold_factor=threshold_factor,
+                          flow_level_type="baseflow")
+
+
+def __calcDevForFloodFrequency(a, b):
+
     sum = 0.0
-    for sec in FRE_s:
-        sum += __calcDev(FRE_s[sec], FRE_e[sec])
-    return sum / FRE_s.__len__()
+    for sec in a:
+        sum += _SignaturesBasicFunctionality.calcDev(a[sec], b[sec])
+    return sum / b.__len__()
 
 
-def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, section, flow_level_type):
+def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, flow_level_type):
     """
-        Calc the high and low-flow event frequencies which have a threshold of "threshold_factor" the median
-        
-        :param data: data where the flood frequency is calculated of
-        :type data: list
-        :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
-        :type datetime_series: pandas datetime
-        :param threshold_factor: which times the median as threshold calculation should be used.
-        :type threshold_factor: float
-        :param section: for which section should the function calc a frequency of flood
-        :type section: string
-        :param flow_level_type: in ["flood","baseflow"]:
-        :type flow_level_type: string
-        :return: mean of deviation of average frequency of a defined section, allowed is ["year","month","day","hour"]
-        :rtype: float
+    Calc the high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+
+    :param data: data where the flood frequency is calculated of
+    :type data: list
+    :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
+    :type datetime_series: pandas datetime
+    :param threshold_factor: which times the median as threshold calculation should be used.
+    :type threshold_factor: float
+    :param flow_level_type: in ["flood","baseflow"]:
+    :type flow_level_type: string
+    :return: mean of deviation of average flood frequency of the best suitable section
+    :rtype: float
     """
 
-    if flow_level_type not in ["flood","baseflow"]:
+    if flow_level_type not in ["flood", "baseflow"]:
         raise HydroSignaturesError("flow_level_type should flood or baseflow")
 
     if __isSorted(datetime_series):
 
         count_per_section = {}
         index = 0
+
+        s = SuitableInput(datetime_series)
+        section = s.calc()
 
         for d in datetime_series:
             if section == "year":
@@ -1015,83 +1212,91 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, secti
     return count_per_section
 
 
-def getLowFlowVar(evaluation, simulation, datetime_series):
+def getLowFlowVar(data, comparedata=None, mode='get_signature', datetime_series=None):
     """
-    
+
     Mean of annual minimum flow divided by the median flow (Jowett and Duncan, 1990)
-     
+
     Annular Data
-    
+
         .. math::
-        
+
          Annualar Data= \\frac{\\sum_{i=1}^{N}(min(d_i)}{N*median(data)}
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime object
-    :return: mean of deviation of the low flow variation
-    :rtype: float
+    :return: mean of deviation of the low flow variation or a dict if mode was set to raw data
+    :rtype: float / dict
 
     """
 
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
 
-    if simulation.__len__() != datetime_series.__len__():
+    if data.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-    if not __isSorted(datetime_series):
-        raise HydroSignaturesError("datetime_series data are not sorted")
 
-    sim_LFV = __calcAnnularData(simulation, datetime_series, "min") / __calcMedianFlow(simulation)
-    obs_LFV = __calcAnnularData(evaluation, datetime_series, "min") / __calcMedianFlow(evaluation)
-    return __calcDev(sim_LFV, obs_LFV)
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__calcAnnularData, datetime_series=datetime_series,
+                          what="min")
 
 
-def getHighFlowVar(evaluation, simulation, datetime_series):
+
+
+def getHighFlowVar(data, comparedata=None, mode='get_signature', datetime_series=None):
     """
     Mean of annual maximum flow divided by the median flow (Jowett and Duncan, 1990)
 
     Annular Data
-    
+
         .. math::
-        
+
          Annualar Data= \\frac{\\sum_{i=1}^{N}(max(d_i)}{N*median(data)}
 
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime object
-    :return: mean of deviation of the high flow variation
-    :rtype: float
+    :return: mean of deviation of the high flow variation or a dict if mode was set to raw data
+    :rtype: float / dict
 
     """
 
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
 
-    if simulation.__len__() != datetime_series.__len__():
+    if data.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-    if not __isSorted(datetime_series):
-        raise HydroSignaturesError("datetime_series data are not sorted")
 
-    sim_LFV = __calcAnnularData(simulation, datetime_series, "max") / __calcMedianFlow(simulation)
-    obs_LFV = __calcAnnularData(evaluation, datetime_series, "max") / __calcMedianFlow(evaluation)
-    return __calcDev(sim_LFV, obs_LFV)
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+    return basics.analyze(__calcAnnularData, datetime_series=datetime_series,
+                          what="max")
 
 
 def __calcAnnularData(data, datetime_series, what):
     """
     Annular Data
-    
+
     :math:`Annualar Data= \\frac{\\sum_{i=1}^{N}(max(d_i)}{N}`
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
     :param data: measurements
     :type data: list
@@ -1130,48 +1335,54 @@ def __calcAnnularData(data, datetime_series, what):
         raise HydroSignaturesError("The parameter what=" + what + " is not defined")
 
 
-def getBaseflowIndex(evaluation, simulation, datetime_series):
+def getBaseflowIndex(data, comparedata=None, mode='get_signature', datetime_series=None):
     """
     We may have to use baseflow devided with total discharge
     See https://de.wikipedia.org/wiki/Niedrigwasser and
     see also http://people.ucalgary.ca/~hayashi/kumamoto_2014/lectures/2_3_baseflow.pdf
 
-    For the formular look at: IH_108.pdf
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+    and
+    "Report No. 108, Low flow estimation in the United Kingdom, . Gustard, A. Bullock December 1992 and J. M. Dixon"
+    (IH_108.pdf, page 20 ff)
+
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime
-    
+
     :return: deviation of base flow index
     :rtype: float
     """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
+    if datetime_series is None:
+        raise HydroSignaturesError("datetime_series is None. Please specify a datetime_series.")
 
-    if simulation.__len__() != datetime_series.__len__():
+    if data.__len__() != datetime_series.__len__():
         raise HydroSignaturesError("Simulation / observation data and the datetime_series have not the same length")
-    if not __isSorted(datetime_series):
-        raise HydroSignaturesError("datetime_series data are not sorted")
 
-    bfi_sim = __calcBaseflowIndex(simulation, datetime_series)
-    bfi_obs = __calcBaseflowIndex(evaluation, datetime_series)
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+    basics.pre_process(__calcDevForBaseflowIndex)
+    return basics.analyze(__calcBaseflowIndex, datetime_series=datetime_series)
+
+
+def __calcDevForBaseflowIndex(a, b):
     sum_sim = 0.0
     sum_obs = 0.0
 
-    for y in bfi_obs:
-        sum_obs += bfi_obs[y]
-    for y in bfi_sim:
-        sum_sim += bfi_sim[y]
+    for y in a:
+        sum_obs += a[y]
+    for y in b:
+        sum_sim += b[y]
 
-    sum_obs = sum_obs / bfi_obs.__len__()
-    sum_sim = sum_sim / bfi_sim.__len__()
-
-    return __calcDev(sum_sim, sum_obs)
+    sum_obs = sum_obs / a.__len__()
+    sum_sim = sum_sim / b.__len__()
+    return _SignaturesBasicFunctionality.calcDev(sum_sim, sum_obs)
 
 
 def __calcBaseflowIndex(data, datetime_series):
@@ -1179,6 +1390,12 @@ def __calcBaseflowIndex(data, datetime_series):
     Basefow Index
 
     :math:`BasefowIndex = \\frac{BF}{TD}` where BF is the median of the data and TD the minimum of the data per year
+
+    See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
+    19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
+    and
+    "Report No. 108, Low flow estimation in the United Kingdom, . Gustard, A. Bullock December 1992 and J. M. Dixon"
+    (IH_108.pdf, page 20 ff)
 
     :param data: float list
     :type data: list
@@ -1207,49 +1424,24 @@ def __calcBaseflowIndex(data, datetime_series):
     return BFI
 
 
-def getSlopeFDC(evaluation, simulation):
-    """
-    Slope of the FDC between the 33 and 66 % exceedance values of streamflow normalised by its mean (Yadav et al., 2007)
-     
-    
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
-    
-    :return: deviation of the slope
-    :rtype: float
-    """
-    if simulation.__len__() != evaluation.__len__():
-        raise HydroSignaturesError("Simulation and observation data have not the same length")
-
-    return __calcDev(__calcSlopeFDC(simulation), __calcSlopeFDC(evaluation))
-
-
-def __calcSlopeFDC(data):
-    """
-    The main idea is to use a threshold by the mean of the data and use the first occurrence of a 33% exceed and a 66% 
-    exceed and calculate the factor of how many times is the 66% exceed higher then the 33% exceed.
-    If 33% or 66% exceed does not exists then just give 0 back for a slope of 0 (horizontal line) 
-    
-    :math:`slope = \\frac{treshold(mean*1,33 <= data)}{treshold(mean*1,66 <= data)}`
-    
-    :param data: float list
-    :type data: list
-    :return: float slope
-    :rtype: float
-    """
-    upper33_data = np.sort(data)[np.sort(data) >= 1.33 * __calcMeanFlow(data)]
-    upper66_data = np.sort(data)[np.sort(data) >= 1.66 * __calcMeanFlow(data)]
-    if upper33_data.__len__() > 0 and upper66_data.__len__() > 0:
-        if upper66_data[0] != 0:
-            return upper33_data[0] / upper66_data[0]
-        else:
-            return 0.0
-    else:
-        return 0.0
-
-
 def __help():
     print("Use .__doc__ to see description of every function")
+
+
+def rel_error_list(a, b):
+    """
+    See See https://dsp.stackexchange.com/a/8724
+    :param a:
+    :param b:
+    :return:
+    """
+    if a.__len__() == b.__len__():
+        error = 0
+        denominator = 0
+        for i in range(a.__len__()):
+            error += (a[i] - b[i]) ** 2
+            denominator += a[i] * +2
+        normalized = error / denominator
+        return normalized
+    else:
+        raise Exception("Not the same length")
