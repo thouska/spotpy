@@ -120,7 +120,15 @@ class HydroSignaturesError(Exception):
 
 class _SignaturesBasicFunctionality(object):
     def __init__(self, data, comparedata=None, mode=None):
-
+        """
+        A basic class to give a blueprint of a signature calculation class
+        :param data: data to analyze
+        :type data: list
+        :param comparedata: data to analyze and compare with variable data
+        :type comparedata: list
+        :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+        :type mode: string
+        """
         self.data = data
         self.mode = mode
         self.additional_arguments = {}
@@ -215,12 +223,6 @@ class _SignaturesBasicFunctionality(object):
 
 
 def getSlopeFDC(data, comparedata=None, mode='get_signature'):
-    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
-
-    return basics.analyze(_slopeFDC)
-
-
-def _slopeFDC(data):
     """
     The main idea is to use a threshold by the mean of the data and use the first occurrence of a 33% exceed and a 66%
     exceed and calculate the factor of how many times is the 66% exceed higher then the 33% exceed.
@@ -231,11 +233,22 @@ def _slopeFDC(data):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param data: float list
+    :param data: data to analyze
     :type data: list
-    :return: float slope
-    :rtype: float
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
+    :return: the calculation will be return which is set by mode, this might be float numbers or war data in dict format which can be plot to visualize the signatures
+    :rtype: dict / float
+
     """
+    basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
+
+    return basics.analyze(__calcSlopeFDC)
+
+
+def __calcSlopeFDC(data):
     upper33_data = np.sort(data)[np.sort(data) >= 1.33 * np.mean(data)]
     upper66_data = np.sort(data)[np.sort(data) >= 1.66 * np.mean(data)]
     if upper33_data.__len__() > 0 and upper66_data.__len__() > 0:
@@ -262,16 +275,18 @@ def getAverageFloodOverflowPerSection(data, comparedata=None, mode='get_signatur
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: deviation of means of overflow value
-    :rtype: float
+    :return: deviation of means of overflow value or raw data
+    :rtype: dict / float
     """
 
     if datetime_series is None:
@@ -437,11 +452,12 @@ def getMeanFlow(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: Mean
     :rtype: float
@@ -458,11 +474,12 @@ def getMedianFlow(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: Median
     :rtype: float
@@ -478,11 +495,12 @@ def getSkewness(data, comparedata=None, mode='get_signature'):
 
     See paper "B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197", (M_A1_MeanDailyFlows .pdf,  page 185)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the skewness
     :rtype: float
@@ -502,11 +520,12 @@ def getCoeffVariation(data, comparedata=None, mode='get_signature'):
 
     See paper "B. Clausen, B.J.F. Biggs / Journal of Hydrology 237 (2000) 184-197", (M_A1_MeanDailyFlows .pdf,  page 185)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the coefficient of variation
     :rtype: float
@@ -527,11 +546,12 @@ def getQ001(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 0.01 percentiles
     :rtype: float
@@ -548,11 +568,12 @@ def getQ01(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 0.1 percentiles
     :rtype: float
@@ -569,11 +590,12 @@ def getQ1(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 1 percentiles
     :rtype: float
@@ -590,11 +612,12 @@ def getQ5(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 5 percentiles
     :rtype: float
@@ -611,11 +634,12 @@ def getQ10(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 10 percentiles
     :rtype: float
@@ -632,11 +656,12 @@ def getQ20(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 20 percentiles
     :rtype: float
@@ -653,11 +678,12 @@ def getQ85(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 85 percentiles
     :rtype: float
@@ -674,11 +700,12 @@ def getQ95(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 95 percentiles
     :rtype: float
@@ -695,11 +722,12 @@ def getQ99(data, comparedata=None, mode='get_signature'):
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: Simulated data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :return: derivation of the 99 percentiles
     :rtype: float
@@ -719,16 +747,18 @@ def getAverageFloodFrequencyPerSection(data, comparedata=None, mode='get_signatu
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: deviation of means of flood frequency per best suitable section
-    :rtype: float
+    :return: deviation of means of flood frequency per best suitable section or a whole dict if mode was set to raw data
+    :rtype: float / dict
     """
 
     if datetime_series is None:
@@ -767,16 +797,18 @@ def getAverageFloodDuration(data, comparedata=None, mode='get_signature', dateti
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: deviation of means of flood durations
-    :rtype: float
+    :return: deviation of means of flood durations or a dict if mode was set to raw data
+    :rtype: float / dict
     """
 
     if datetime_series is None:
@@ -787,7 +819,6 @@ def getAverageFloodDuration(data, comparedata=None, mode='get_signature', dateti
 
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
-    # __calcDeviationForAverageFloodFrequencyPerSection
     s = SuitableInput(datetime_series)
     section = s.calc()
     basics.pre_process(__calcDeviationForAverageFloodDuration, section=section)
@@ -858,16 +889,18 @@ def getAverageBaseflowUnderflowPerSection(data, comparedata=None, mode='get_sign
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: deviation of means of underflow value
-    :rtype: float
+    :return: deviation of means of underflow value or a dict if mode was set to raw data
+    :rtype: float / dict
 
     """
 
@@ -911,16 +944,18 @@ def getAverageBaseflowFrequencyPerSection(data, comparedata=None, mode='get_sign
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: deviation of means of baseflow frequency per section
-    :rtype: float
+    :return: deviation of means of baseflow frequency per section or a dict if mode was set to raw data
+    :rtype: float / dict
     """
 
     if datetime_series is None:
@@ -960,16 +995,18 @@ def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', dat
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: deviation of means of baseflow duration
-    :rtype: float
+    :return: deviation of means of baseflow duration or a dict if mode was set to raw data
+    :rtype: float / dict
 
     """
 
@@ -1045,16 +1082,18 @@ def getFloodFrequency(data, comparedata=None, mode='get_signature', datetime_ser
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: mean of deviation of average flood frequency of the best suitable section
-    :rtype: float
+    :return: mean of deviation of average flood frequency of the best suitable section or a dict if mode was set to raw data
+    :rtype: float / dict
 
 
     """
@@ -1079,16 +1118,18 @@ def getBaseflowFrequency(data, comparedata=None, mode='get_signature', datetime_
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
     given, so we developed an own.
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
     :param threshold_factor: which times the median we use for a threshold
     :type threshold_factor: float
-    :return: mean of deviation of average flood frequency of the best suitable section
-    :rtype: float
+    :return: mean of deviation of average flood frequency of the best suitable section or a dict if mode was set to raw data
+    :rtype: float / dict
 
 
     """
@@ -1186,14 +1227,16 @@ def getLowFlowVar(data, comparedata=None, mode='get_signature', datetime_series=
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime object
-    :return: mean of deviation of the low flow variation
-    :rtype: float
+    :return: mean of deviation of the low flow variation or a dict if mode was set to raw data
+    :rtype: float / dict
 
     """
 
@@ -1223,14 +1266,16 @@ def getHighFlowVar(data, comparedata=None, mode='get_signature', datetime_series
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime object
-    :return: mean of deviation of the high flow variation
-    :rtype: float
+    :return: mean of deviation of the high flow variation or a dict if mode was set to raw data
+    :rtype: float / dict
 
     """
 
@@ -1303,11 +1348,12 @@ def getBaseflowIndex(data, comparedata=None, mode='get_signature', datetime_seri
     "Report No. 108, Low flow estimation in the United Kingdom, . Gustard, A. Bullock December 1992 and J. M. Dixon"
     (IH_108.pdf, page 20 ff)
 
-    :param evaluation: Observed data to compared with simulation data.
-    :type evaluation: list
-
-    :param simulation: simulation data to compared with evaluation data
-    :type simulation: list
+    :param data: data to analyze
+    :type data: list
+    :param comparedata: data to analyze and compare with variable data
+    :type comparedata: list
+    :param mode: which mode of calculation should be used: one of get_signature, get_raw_data or calc_Dev
+    :type mode: string
 
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime
