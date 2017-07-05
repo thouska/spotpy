@@ -112,7 +112,7 @@ class _algorithm(object):
             
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
-            self.dbdinit = False
+            self.dbinit = False
             self.breakdata = self.readbreakdata(self.dbname)
         #self.initialize_database()
 
