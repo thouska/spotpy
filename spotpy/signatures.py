@@ -1,6 +1,6 @@
 import pprint
 import numpy as np
-import random
+import pandas
 import copy
 import warnings
 import datetime
@@ -179,7 +179,10 @@ class _SignaturesBasicFunctionality(object):
             raise HydroSignaturesError("No case set!")
 
     def raw_data(self, func):
-        return func(self.data, **self.additional_arguments)
+        if func.__name__ == "__calcFloodDuration":
+            return func(self.data, **self.additional_arguments)[1]
+        else:
+            return func(self.data, **self.additional_arguments)
 
     def run_signature(self, data, func):
         return func(data, **self.additional_arguments)
@@ -260,7 +263,7 @@ def __calcSlopeFDC(data):
 
 
 def getAverageFloodOverflowPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
-                                      threshold_factor=3):
+                                      threshold_value=3):
     """
     All measurements are scanned where there are overflow events. Based on the section we summarize events per year,
     month, day, hour.
@@ -282,8 +285,8 @@ def getAverageFloodOverflowPerSection(data, comparedata=None, mode='get_signatur
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: which times the median we use for a threshold
+    :type threshold_value: float
     :return: deviation of means of overflow value or raw data
     :rtype: dict / float
     """
@@ -297,13 +300,15 @@ def getAverageFloodOverflowPerSection(data, comparedata=None, mode='get_signatur
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
     basics.pre_process(__calcDeviationForAverageFloodOverflowPerSection)
-    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
                           which_flow="flood")
 
 
 def __calcDeviationForAverageFloodOverflowPerSection(a, b):
     for_mean_a = []
     for_mean_b = []
+    a = a[0]
+    b = b[0]
 
     for y in a:
         if a[y].__len__() > 0:
@@ -321,10 +326,10 @@ def __calcDeviationForAverageFloodOverflowPerSection(a, b):
         warnings.warn("No data in for_mean_a to calculate mean of")
 
 
-def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
+def __calcFloodDuration(data, datetime_series, threshold_value, which_flow):
     """
     With a given data set we use the datetime_series and save all continuous floods, measured by a given
-    threshold_factor times the median of the data. The start and end time of this event is recorded. Based on the best
+    threshold_value times the median of the data. The start and end time of this event is recorded. Based on the best
     suitable section we create the list of the calculated values per year, month, day, hour.
     Important to know is that the user can input a date-time object with several intervals, so it could be every second
     or every day recorded data.
@@ -340,8 +345,8 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     :type data: list
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: which times the median we use for a threshold
+    :type threshold_value: float
     :param which_flow: in ["flood","baseflow"]
     :type which_flow: string
     :return: objects per section with the flood event
@@ -352,7 +357,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     duration_per_section = {}
     tmp_duration_logger_per_sec = {}
     threshold_on_per_year = {}
-
+    event_mapped_to_datetime = []
     index = 0
 
     if which_flow not in ["flood", "baseflow"]:
@@ -360,7 +365,7 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     if section not in ["year", "month", "day", "hour"]:
         raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
 
-    tmpStdDurLG = {'start': "0000-00-00", 'end': '0000-00-00', 'duration': 0}
+    tmpStdDurLG = {'start': "0000-00-00", 'end': '0000-00-00', 'duration': 0,}
     if which_flow == "flood":
         tmpStdDurLG['overflow'] = []
     elif which_flow == "baseflow":
@@ -369,13 +374,17 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     if __isSorted(datetime_series):
         for d in datetime_series:
             if section == "year":
-                sec_key = d.to_pydatetime().year
+                sec_key = pandas.Timestamp(datetime.datetime(year=d.to_pydatetime().year, month=1, day=1))
             elif section == "month":
-                sec_key = str(d.to_pydatetime().year) + "-" + str(d.to_pydatetime().month)
+                sec_key = pandas.Timestamp(
+                    datetime.datetime(year=d.to_pydatetime().year, month=d.to_pydatetime().month, day=1))
             elif section == "day":
-                sec_key = str(d.to_pydatetime().date())
+                sec_key = d
             elif section == "hour":
-                sec_key = str(d.to_pydatetime().date()) + "-" + str(d.to_pydatetime().hour)
+                sec_key = pandas.Timestamp(datetime.datetime(year=d.to_pydatetime().year, month=d.to_pydatetime().month,
+                                                             day=d.to_pydatetime().day, hour=d.to_pydatetime().hour))
+            else:
+                raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
 
             if sec_key not in duration_per_section:
                 # Define a bunch of arrays to handle, save and organize the analyze of the data as most as possible at the same time
@@ -388,15 +397,20 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
 
                     tmp_lastsec_d = datetime_series[index - 1]
                     if section == "year":
-                        tmp_lastsec = tmp_lastsec_d.to_pydatetime().year
+                        tmp_lastsec = pandas.Timestamp(datetime.datetime(year=tmp_lastsec_d.to_pydatetime().year, month=1, day=1))
                     elif section == "month":
-                        tmp_lastsec = str(tmp_lastsec_d.to_pydatetime().year) + "-" + str(
-                            tmp_lastsec_d.to_pydatetime().month)
+                        tmp_lastsec = pandas.Timestamp(
+                            datetime.datetime(year=tmp_lastsec_d.to_pydatetime().year, month=tmp_lastsec_d.to_pydatetime().month, day=1))
                     elif section == "day":
-                        tmp_lastsec = str(tmp_lastsec_d.to_pydatetime().date())
+                        tmp_lastsec = tmp_lastsec_d
                     elif section == "hour":
-                        tmp_lastsec = str(tmp_lastsec_d.to_pydatetime().date()) + "-" + str(
-                            tmp_lastsec_d.to_pydatetime().hour)
+                        tmp_lastsec = pandas.Timestamp(
+                            datetime.datetime(year=tmp_lastsec_d.to_pydatetime().year, month=tmp_lastsec_d.to_pydatetime().month,
+                                              day=tmp_lastsec_d.to_pydatetime().day, hour=tmp_lastsec_d.to_pydatetime().hour))
+                    else:
+                        raise HydroSignaturesError(
+                            "Your section: " + section + " is not valid. See pydoc of this function")
+
 
                     if tmp_duration_logger_per_sec[tmp_lastsec]["duration"] > 0:
                         tmp_duration_logger_per_sec[tmp_lastsec]["end"] = datetime_series[
@@ -407,25 +421,33 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
 
             event_happend = False
             if which_flow == "flood":
-                if data[index] > threshold_factor * __calcMedianFlow(data):
+                if data[index] > threshold_value:
                     event_happend = True
-                    diff = data[index] - threshold_factor * __calcMedianFlow(data)
+                    diff = data[index] - threshold_value
                     tmp_duration_logger_per_sec[sec_key]["overflow"].append(diff)
                 else:
                     event_happend = False
             elif which_flow == "baseflow":
-                if data[index] < threshold_factor * __calcMedianFlow(data):
+                if data[index] < threshold_value:
                     event_happend = True
-                    diff = data[index] - threshold_factor * __calcMedianFlow(data)
+                    diff = data[index] - threshold_value
                     tmp_duration_logger_per_sec[sec_key]["underflow"].append(diff)
                 else:
                     event_happend = False
+
+            tmp_dict_for_eventMap = {"datetime": d}
             if event_happend:
+
+
+                tmp_dict_for_eventMap[which_flow]=diff
+                event_mapped_to_datetime.append(tmp_dict_for_eventMap)
                 if not threshold_on_per_year[sec_key]:
                     threshold_on_per_year[sec_key] = True
                     tmp_duration_logger_per_sec[sec_key]["start"] = d.to_pydatetime().strftime("%Y-%m-%d %H:%M:%S")
                 tmp_duration_logger_per_sec[sec_key]["duration"] = tmp_duration_logger_per_sec[sec_key]["duration"] + 1
             else:
+                tmp_dict_for_eventMap[which_flow] = 0
+                event_mapped_to_datetime.append(tmp_dict_for_eventMap)
                 if threshold_on_per_year[sec_key]:
                     threshold_on_per_year[sec_key] = False
                     tmp_duration_logger_per_sec[sec_key]["end"] = datetime_series[index - 1].to_pydatetime().strftime(
@@ -441,7 +463,9 @@ def __calcFloodDuration(data, datetime_series, threshold_factor, which_flow):
     else:
         raise HydroSignaturesError("The timeseries is not sorted, so a calculation can not be performed")
 
-    return duration_per_section
+    event_mapped_to_datetime = pandas.DataFrame(event_mapped_to_datetime)
+    event_mapped_to_datetime = event_mapped_to_datetime.set_index("datetime")
+    return duration_per_section, event_mapped_to_datetime
 
 
 def getMeanFlow(data, comparedata=None, mode='get_signature'):
@@ -737,7 +761,7 @@ def getQ99(data, comparedata=None, mode='get_signature'):
 
 
 def getAverageFloodFrequencyPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
-                                       threshold_factor=3):
+                                       threshold_value=3):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series.
     So if the datetime is recorded all 5 min we use this fine interval to count all records which are in flood.
@@ -754,8 +778,8 @@ def getAverageFloodFrequencyPerSection(data, comparedata=None, mode='get_signatu
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a flood event is defined with
+    :type threshold_value: float
     :return: deviation of means of flood frequency per best suitable section or a whole dict if mode was set to raw data
     :rtype: float / dict
     """
@@ -769,13 +793,14 @@ def getAverageFloodFrequencyPerSection(data, comparedata=None, mode='get_signatu
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
     basics.pre_process(__calcDeviationForAverageFloodFrequencyPerSection)
-    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
                           which_flow="flood")
 
 
 def __calcDeviationForAverageFloodFrequencyPerSection(a, b):
     sum_dev = 0.0
-
+    a = a[0]
+    b = b[0]
     for y in a:
         sum_dur_1 = 0.0
         sum_dur_2 = 0.0
@@ -788,9 +813,9 @@ def __calcDeviationForAverageFloodFrequencyPerSection(a, b):
     return sum_dev / a.__len__()
 
 
-def getAverageFloodDuration(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+def getAverageFloodDuration(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_value=3):
     """
-    Get high and low-flow yearly-average event duration which have a threshold of [0.2, 1,3,5,7,9] the median
+    Get high and low-flow yearly-average event duration which has a threshold of threshold_value, this could be any float
 
     The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
@@ -804,8 +829,8 @@ def getAverageFloodDuration(data, comparedata=None, mode='get_signature', dateti
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a flood event is defined with
+    :type threshold_value: float
     :return: deviation of means of flood durations or a dict if mode was set to raw data
     :rtype: float / dict
     """
@@ -821,12 +846,15 @@ def getAverageFloodDuration(data, comparedata=None, mode='get_signature', dateti
     s = SuitableInput(datetime_series)
     section = s.calc()
     basics.pre_process(__calcDeviationForAverageFloodDuration, section=section)
-    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
                           which_flow="flood")
 
 
 def __calcDeviationForAverageFloodDuration(a, b, section):
     sum_dev = 0.0
+    a = a[0]
+    print(a)
+    b = b[0]
     for y in a:
         sum_diff_1 = 0.0
         sum_diff_2 = 0.0
@@ -874,12 +902,10 @@ def __calcDeviationForAverageFloodDuration(a, b, section):
 
 
 def getAverageBaseflowUnderflowPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
-                                          threshold_factor=3):
+                                          threshold_value=3):
     """
     All measurements are scanned where there are overflow events. Based on the best suitable section we summarize events
     per year, month, day, hour.
-    Of course we need a datetime_series which has the the suitable resolution. So, for example, if you group the
-    overflow events hourly but you have only daily data it the function will work but not very useful.
 
     However for every section the function collect the overflow value, i.e. value - threshold  and calc the deviation
     of the means of this overflows.
@@ -896,8 +922,8 @@ def getAverageBaseflowUnderflowPerSection(data, comparedata=None, mode='get_sign
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a baseflow event is defined with
+    :type threshold_value: float
     :return: deviation of means of underflow value or a dict if mode was set to raw data
     :rtype: float / dict
 
@@ -912,13 +938,15 @@ def getAverageBaseflowUnderflowPerSection(data, comparedata=None, mode='get_sign
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
     basics.pre_process(__calcDeviationForAverageBaseflowUnderflowPerSection)
-    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
                           which_flow="baseflow")
 
 
 def __calcDeviationForAverageBaseflowUnderflowPerSection(a, b):
     for_mean_a = []
     for_mean_b = []
+    a = a[0]
+    b = b[0]
     for y in a:
         if a[y].__len__() > 0:
             for elem in range(a[y].__len__()):
@@ -934,10 +962,10 @@ def __calcDeviationForAverageBaseflowUnderflowPerSection(a, b):
 
 
 def getAverageBaseflowFrequencyPerSection(data, comparedata=None, mode='get_signature', datetime_series=None,
-                                          threshold_factor=3):
+                                          threshold_value=3):
     """
     This function calculates the average frequency per every section in the given interval of the datetime_series.
-    So if the datetime is recorded all 5 min we use this fine intervall to count all records which are in flood.
+    So if the datetime is recorded all 5 min we use this fine interval to count all records which are in flood.
 
     The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
@@ -951,8 +979,8 @@ def getAverageBaseflowFrequencyPerSection(data, comparedata=None, mode='get_sign
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a baseflow event is defined with
+    :type threshold_value: float
     :return: deviation of means of baseflow frequency per section or a dict if mode was set to raw data
     :rtype: float / dict
     """
@@ -966,13 +994,14 @@ def getAverageBaseflowFrequencyPerSection(data, comparedata=None, mode='get_sign
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
     basics.pre_process(__calcDevForAverageBaseflowFrequencyPerSection)
-    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
                           which_flow="baseflow")
 
 
 def __calcDevForAverageBaseflowFrequencyPerSection(a, b):
     sum_dev = 0.0
-
+    a = a[0]
+    b = b[0]
     for y in a:
         sum_dur_1 = 0.0
         sum_dur_2 = 0.0
@@ -986,9 +1015,9 @@ def __calcDevForAverageBaseflowFrequencyPerSection(a, b):
     return sum_dev / a.__len__()
 
 
-def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_value=3):
     """
-    Get high and low-flow yearly-average event duration which have a threshold of threshold_factor the median
+    Get high and low-flow yearly-average event duration which have a threshold of threshold_value
 
     The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
@@ -1002,8 +1031,8 @@ def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', dat
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a baseflow event is defined with
+    :type threshold_value: float
     :return: deviation of means of baseflow duration or a dict if mode was set to raw data
     :rtype: float / dict
 
@@ -1017,11 +1046,10 @@ def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', dat
 
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
 
-    # __calcDeviationForAverageFloodFrequencyPerSection
     s = SuitableInput(datetime_series)
     section = s.calc()
     basics.pre_process(__calcDevForAverageBaseflowDuration, section=section)
-    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_factor=threshold_factor,
+    return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
                           which_flow="flood")
 
 
@@ -1073,9 +1101,9 @@ def __calcDevForAverageBaseflowDuration(a, b, section):
     return sum_dev / a.__len__()
 
 
-def getFloodFrequency(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+def getFloodFrequency(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_value=3):
     """
-    Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+    Get high and low-flow event frequencies which have a threshold of "threshold_value"
 
     The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
@@ -1089,8 +1117,8 @@ def getFloodFrequency(data, comparedata=None, mode='get_signature', datetime_ser
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a baseflow event is defined with
+    :type threshold_value: float
     :return: mean of deviation of average flood frequency of the best suitable section or a dict if mode was set to raw data
     :rtype: float / dict
 
@@ -1105,13 +1133,13 @@ def getFloodFrequency(data, comparedata=None, mode='get_signature', datetime_ser
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
     basics.pre_process(__calcDevForFloodFrequency)
     return basics.analyze(__calcFlowLevelEventFrequency, datetime_series=datetime_series,
-                          threshold_factor=threshold_factor,
+                          threshold_value=threshold_value,
                           flow_level_type="flood")
 
 
-def getBaseflowFrequency(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_factor=3):
+def getBaseflowFrequency(data, comparedata=None, mode='get_signature', datetime_series=None, threshold_value=3):
     """
-    Get high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+    Get high and low-flow event frequencies which have a threshold of "threshold_value"
 
     The idea is based on values from "REDUNDANCY AND THE CHOICE OF HYDROLOGIC INDICES FOR CHARACTERIZING STREAMFLOW REGIMES
     JULIAN D. OLDEN* and N. L. POFF" (RiverResearchApp_2003.pdf, page 109). An algorithms to calculate this data is not
@@ -1125,8 +1153,8 @@ def getBaseflowFrequency(data, comparedata=None, mode='get_signature', datetime_
     :type mode: string
     :param datetime_series: datetime series
     :type datetime_series: pandas datetime object
-    :param threshold_factor: which times the median we use for a threshold
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a baseflow event is defined with
+    :type threshold_value: float
     :return: mean of deviation of average flood frequency of the best suitable section or a dict if mode was set to raw data
     :rtype: float / dict
 
@@ -1141,21 +1169,23 @@ def getBaseflowFrequency(data, comparedata=None, mode='get_signature', datetime_
     basics = _SignaturesBasicFunctionality(data, comparedata=comparedata, mode=mode)
     basics.pre_process(__calcDevForFloodFrequency)
     return basics.analyze(__calcFlowLevelEventFrequency, datetime_series=datetime_series,
-                          threshold_factor=threshold_factor,
+                          threshold_value=threshold_value,
                           flow_level_type="baseflow")
 
 
 def __calcDevForFloodFrequency(a, b):
 
     sum = 0.0
-    for sec in a:
-        sum += _SignaturesBasicFunctionality.calcDev(a[sec], b[sec])
+    rows_a = [row[1] for row in a.itertuples()]
+    rows_b = [row[1] for row in b.itertuples()]
+    for j in range(rows_a.__len__()):
+        sum += _SignaturesBasicFunctionality.calcDev(rows_a[j], rows_b[j])
     return sum / b.__len__()
 
 
-def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, flow_level_type):
+def __calcFlowLevelEventFrequency(data, datetime_series, threshold_value, flow_level_type):
     """
-    Calc the high and low-flow event frequencies which have a threshold of "threshold_factor" the median
+    Calc the high and low-flow event frequencies which have a threshold of "threshold_value"
 
     See paper "Uncertainty in hydrological signatures" by I. K. Westerberg and H. K. McMillan, Hydrol. Earth Syst. Sci.,
     19, 3951 - 3968, 2015 (hess-19-3951-2015.pdf, page 3956)
@@ -1164,8 +1194,8 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, flow_
     :type data: list
     :param datetime_series: a pandas data object with sorted (may not be complete but sorted) dates
     :type datetime_series: pandas datetime
-    :param threshold_factor: which times the median as threshold calculation should be used.
-    :type threshold_factor: float
+    :param threshold_value: a threshold where a baseflow event is defined with
+    :type threshold_value: float
     :param flow_level_type: in ["flood","baseflow"]:
     :type flow_level_type: string
     :return: mean of deviation of average flood frequency of the best suitable section
@@ -1178,20 +1208,22 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, flow_
     if __isSorted(datetime_series):
 
         count_per_section = {}
+
         index = 0
 
         s = SuitableInput(datetime_series)
         section = s.calc()
 
         for d in datetime_series:
+
             if section == "year":
-                sec_key = d.to_pydatetime().year
+                sec_key = pandas.Timestamp(datetime.datetime(year=d.to_pydatetime().year, month=1, day=1))
             elif section == "month":
-                sec_key = str(d.to_pydatetime().year) + "-" + str(d.to_pydatetime().month)
+                sec_key = pandas.Timestamp(datetime.datetime(year=d.to_pydatetime().year, month=d.to_pydatetime().month, day=1))
             elif section == "day":
-                sec_key = str(d.to_pydatetime().date())
+                sec_key = d
             elif section == "hour":
-                sec_key = str(d.to_pydatetime().date()) + "-" + str(d.to_pydatetime().hour)
+                sec_key = pandas.Timestamp(datetime.datetime(year=d.to_pydatetime().year, month=d.to_pydatetime().month, day=d.to_pydatetime().day, hour=d.to_pydatetime().hour))
             else:
                 raise HydroSignaturesError("Your section: " + section + " is not valid. See pydoc of this function")
 
@@ -1199,17 +1231,26 @@ def __calcFlowLevelEventFrequency(data, datetime_series, threshold_factor, flow_
                 count_per_section[sec_key] = 0
 
             if flow_level_type == "flood":
-                if data[index] > threshold_factor * __calcMedianFlow(data):
+                if data[index] > threshold_value:
                     count_per_section[sec_key] += 1
             elif flow_level_type == "baseflow":
-                if data[index] < threshold_factor * __calcMedianFlow(data):
+                if data[index] < threshold_value:
                     count_per_section[sec_key] += 1
             index += 1
 
     else:
         raise HydroSignaturesError("The time series is not sorted, so a calculation can not be performed")
 
-    return count_per_section
+    count_per_section_for_pandas = []
+
+    for key in count_per_section:
+        count_per_section_for_pandas.append({'count':count_per_section[key],'datetime':key})
+
+
+    count_per_section_pandas = pandas.DataFrame(count_per_section_for_pandas)
+
+    count_per_section_pandas = count_per_section_pandas.set_index("datetime")
+    return count_per_section_pandas.sort_index()
 
 
 def getLowFlowVar(data, comparedata=None, mode='get_signature', datetime_series=None):
@@ -1379,6 +1420,7 @@ def __calcDevForBaseflowIndex(a, b):
         sum_obs += a[y]
     for y in b:
         sum_sim += b[y]
+
 
     sum_obs = sum_obs / a.__len__()
     sum_sim = sum_sim / b.__len__()
