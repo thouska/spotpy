@@ -1,6 +1,5 @@
 import pprint
 import numpy as np
-import pandas
 import copy
 import warnings
 import datetime
