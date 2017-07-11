@@ -192,9 +192,10 @@ class sql(database):
         self.db = sqlite3.connect(self.dbname + '.db')
         self.db_cursor = self.db.cursor()
         # Create Table
+#        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
+#                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
         self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
-                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
-
+                     ('''+' real ,'.join(self.header)+''')''')
         # store init item only if dbinit
         if kwargs.get('dbinit', True):
             self.save(self.like, self.randompar, self.simulations, self.chains)
@@ -202,12 +203,17 @@ class sql(database):
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
 
         #maybe apply a rounding for the floats?!
+        coll = (self.dim_dict['like'](objectivefunction) +
+                self.dim_dict['par'](parameterlist) +
+                self.dim_dict['simulation'](simulations) +
+                [chains])
         try:
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(self.dim_dict['like'](objectivefunction)[0])+","
-                               +str(self.dim_dict['par'](parameterlist)[0])+","+str(self.dim_dict['par'](parameterlist)[1])+","+str(self.dim_dict['simulation'](simulations)[0])+","+str(chains)+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+
         except Exception:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
 
         self.db.commit()
 
