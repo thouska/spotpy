@@ -5,6 +5,12 @@ import copy
 import warnings
 import datetime
 
+try:
+    import pandas
+except ImportError:
+    print('Please install Pandas to use these signature functions')
+    
+   
 
 class SuitableInput:
     def __init__(self, datm):
