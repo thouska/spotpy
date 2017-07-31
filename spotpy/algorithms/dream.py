@@ -130,58 +130,65 @@ class dream(_algorithm):
         self.bestpar[cur_chain][self.nChainruns[cur_chain]]=par
         self.bestlike[cur_chain]=like
         self.bestsim[cur_chain]=sim
-        
-    def get_r_hat(self,parameter_array): # TODO: Use only the last 50% of each chain (vrugt 2009)
-        # Calculates the \hat{R}-convergence diagnostic
-        # ----------------------------------------------------
-        # For more information please refer to: 
-        # Gelman, A. and D.R. Rubin, (1992) Inference from Iterative Simulation 
-        #      Using Multiple chain, Statistical Science, Volume 7, Issue 4, 
-        #      457-472.
-        # Brooks, S.P. and A. Gelman, (1998) General Methods for Monitoring 
-        #      Convergence of Iterative Simulations, Journal of Computational and 
-        #      Graphical Statistics. Volume 7, 434-455. Note that this function 
-        #      returns square-root definiton of R (see Gelman et al., (2003), 
-        #      Bayesian Data Analsyis, p. 297).
-        # ----------- DREAM Manual -----            
-        # Written by Jasper A. Vrugt
-        # Los Alamos, August 2007
-        # Translated into Python by Tobias Houska in March 2016
-        
 
-        n = self.nChainruns[0] #->hope that the first chain is representative...
-        m = self.nChains
-        N = self.nr_of_pars#number of parameters #TODO: Adjust for more than 1 parameter
-        #x = cur_parameter
-        r_hats =[]
-        try:
-            for x in range(self.nr_of_pars):
-                N = m #chains
-                T = n #chain samples
-                T2 = int(T/2.0) # Analyses just the second half of the chains
-                sums2=[]
-                cmeans=[]
-                for i in range(N):
-                    c_mean = (2.0/(T-2.0))*np.sum(parameter_array[i][T2:self.nChainruns[i]-1][x])
-                    cmeans.append(c_mean)                
-                    sums1=[]                
-                    for j in range(T2):
-                        sums1.append((parameter_array[i][T2+j][x]-c_mean)**2.0)
-                    sums2.append(np.sum(sums1))
-                W  = 2.0/(N*(T-2.0))*np.sum(sums2)
-                sums =[]
-                v_mean = 1.0/N * np.sum(cmeans)
-                for i in range(N):
-                    sums.append((cmeans[i]-v_mean)**2.0)
-                    
-                B  = (1.0 / 2.0*(N-1.0))*np.sum(sums)*T
-                s2 = ((T-2.0)/T) * W + 2.0/T*B
-                R = np.sqrt(((N+1.0)/N)*s2/W-(T-2.0)/(N*T))
-                r_hats.append(R)
-            return r_hats
-        except (ZeroDivisionError, IndexError) as e:
-            return [np.inf]*self.nr_of_pars
-           
+    def get_r_hat(self, parameter_array):
+        """
+        Based on some fancy mathlab code, it return an array [R_stat, MR_stat]
+        :param parameter_array: 3 dim array of parameter estimation sets
+        :type parameter_array: list
+        :return: [R_stat, MR_stat]
+        :rtype: list
+        """
+        n, d, N = parameter_array.shape
+        # I made a big confusion with d, n and  N, I figured it out by tests
+
+        if n > 3:
+
+            mean_chains = np.zeros((n, N))
+            for i in range(n):
+                for j in range(N):
+                    mean_chains[i, j] = np.nanmean(parameter_array[i, :, j])
+
+            B_uni = np.zeros(N)
+            for i in range(N):
+                B_uni[i] = d * np.nanvar(mean_chains[:, i],
+
+                                      ddof=1)  # make numpy Mathalab like: https://stackoverflow.com/a/27600240/5885054
+
+            var_chains = np.zeros((n, N))
+            for i in range(n):
+                for j in range(N):
+                    var_chains[i, j] = np.nanvar(parameter_array[i, :, j], ddof=1)
+
+            W_uni = np.zeros(N)
+            for i in range(N):
+                W_uni[i] = np.mean(var_chains[:, i])
+
+            sigma2 = ((d - 1) / d) * W_uni + (1 / d) * B_uni
+
+            R_stat = np.sqrt((n + 1) / n * (np.divide(sigma2, W_uni)) - (d - 1) / (n * d))
+            W_mult = 0
+            for ii in range(n):
+                W_mult = W_mult + np.cov(np.nan_to_num(np.transpose(parameter_array[ii, :, :])), ddof=1)
+
+            W_mult = W_mult / n + 2e-52 * np.eye(N)
+
+            # Note that numpy.cov() considers its input data matrix to have observations in each column,
+            # and variables in each row, so to get numpy.cov() to return what other packages do,
+            # you have to pass the transpose of the data matrix to numpy.cov().
+            # https://stats.stackexchange.com/a/263508/168054
+
+
+            B_mult = np.cov(np.nan_to_num(np.transpose(mean_chains))) + 2e-52 * np.eye(N)  # 2e-52 avoids problems with eig if var = 0
+
+            M = np.linalg.lstsq(W_mult, B_mult)
+
+            R = np.max(np.abs(np.linalg.eigvals(M[0])))
+
+            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
+
+            return [R_stat, MR_stat]
+
     def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6):
         if nChains <3:
             print('Please use at least n=3 chains!')
