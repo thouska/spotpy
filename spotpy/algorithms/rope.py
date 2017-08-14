@@ -244,10 +244,14 @@ class rope(_algorithm):
         except AttributeError:  # Happens if no database was assigned
             pass
         print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions_first_run +
-            repetitions_following_runs * (subsets - 1),
-            self.status.objectivefunction)
+        if repetitions_following_runs is not None:
+            text = '%i of %i (best like=%g)' % (
+                self.status.rep, repetitions_first_run +
+                repetitions_following_runs * (subsets - 1),
+                self.status.objectivefunction)
+        else:
+            text = '%i of %i (best like=%g)' % (
+                self.status.rep, repetitions, self.status.objectivefunction)
         print(text)
         print('Best parameter set:')
         print((self.status.params))
