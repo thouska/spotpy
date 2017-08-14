@@ -137,7 +137,7 @@ class rope(_algorithm):
                 raise ValueError("Repetition for following runs must be an "
                                  "even number.")
 
-        if repetitions < 30:
+        if repetitions is not None and repetitions < 30:
             raise ValueError("Repetitions must be at least 30")
 
         starttime = time.time()
