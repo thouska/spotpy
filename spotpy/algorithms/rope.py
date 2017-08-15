@@ -97,8 +97,8 @@ class rope(_algorithm):
 
     def sample(self, repetitions=None, repetitions_first_run=None,
                repetitions_following_runs=None,
-               subsets=5, percentage_first_run=0.5,
-               percentage_following_runs=0.2, NDIR=None):
+               subsets=5, percentage_first_run=0.05,
+               percentage_following_runs=0.05, NDIR=None):
         """
         Samples from the ROPE algorithm.
 
