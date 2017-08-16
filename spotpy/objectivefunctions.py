@@ -442,7 +442,7 @@ def rsr(evaluation,simulation):
     RMSE-observations standard deviation ratio 
     
     Corresponding paper: 
-    Moriasi, Arnold, Van Liew, Veith, 2007, Model Evaluation Guidelines for Systematic Quantification of Accuracy in Watershed Simulations
+    Moriasi, Arnold, Van Liew, Bingner, Harmel, Veith, 2007, Model Evaluation Guidelines for Systematic Quantification of Accuracy in Watershed Simulations
     
     output:
         rsr: RMSE-observations standard deviation ratio 
