@@ -700,15 +700,36 @@ class _GRConvergence:
         else:
             self._R = np.random.uniform(0.1,0.9,withinChainVariances.__len__())
 
-        if (withinChainVariances / self._W).all() <=0.0:
-            self._WChange = np.abs(np.log(1.1) ** .5)
-        else:
-            self._WChange = np.abs(np.log(withinChainVariances / self._W)**.5)
+        # self._W can be a float or an array, in both cases I want to exclude 0.0 values
+        try:
+            if self._W != 0.0:
+                if (withinChainVariances / self._W).all() <=0.0:
+                    self._WChange = np.abs(np.log(1.1) ** .5)
+                else:
+                    self._WChange = np.abs(np.log(withinChainVariances / self._W)**.5)
+            else:
+                self._WChange = np.abs(np.log(1.1) ** .5)
+        except ValueError:
+            if self._W.all() != 0.0:
+                if (withinChainVariances / self._W).all() <= 0.0:
+                    self._WChange = np.abs(np.log(1.1) ** .5)
+                else:
+                    # log of values less then 1 gives a negative number, where I replace these values to get square working
+                    tmp_WChDV = varEstimate / self._V
+                    tmp_WChDV[tmp_WChDV < 1.0] = np.random.uniform(1, 5, 1)
+                    self._WChange = np.abs(np.log(tmp_WChDV) ** .5)
+            else:
+                self._WChange = np.abs(np.log(1.1) ** .5)
+
+
         self._W = withinChainVariances
 
-        if (varEstimate / self._V).all() <= 0.0:
+        if (varEstimate / self._V).any() <= 0.0 or np.isnan(varEstimate / self._V).any():
             self._VChange = np.abs(np.log(1.1) ** .5)
         else:
-            self._VChange = np.abs(np.log(varEstimate / self._V) ** .5)
+            # log of values less then 1 gives a negative number, where I replace these values to get square working
+            tmp_EsDV = varEstimate / self._V
+            tmp_EsDV[tmp_EsDV<1.0]=np.random.uniform(1,5,1)
+            self._VChange = np.abs(np.log(tmp_EsDV) ** .5)
 
         self._V = varEstimate
