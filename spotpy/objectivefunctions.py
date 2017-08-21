@@ -435,6 +435,27 @@ def kge(evaluation,simulation, return_all=False):
     else:
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
+    
+    
+def rsr(evaluation,simulation):
+    """
+    RMSE-observations standard deviation ratio 
+    
+    Corresponding paper: 
+    Moriasi, Arnold, Van Liew, Bingner, Harmel, Veith, 2007, Model Evaluation Guidelines for Systematic Quantification of Accuracy in Watershed Simulations
+    
+    output:
+        rsr: RMSE-observations standard deviation ratio 
+    """
+    if len(evaluation)==len(simulation):
+        rsme_temp = rsme(evaluation, simulation)
+        std = _standarddeviation(evaluation)
+        rsr = rsme_temp / std
+        return rsr        
+    else:
+        print("Error: evaluation and simulation lists does not have the same length.")
+        return np.nan
+    
 
 def _variance(evaluation):
     """
