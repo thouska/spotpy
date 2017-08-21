@@ -208,7 +208,7 @@ class demcz(_algorithm):
             history.record(burnInpar[i], self._logPs, 1)
 
         gamma = None
-        self.accepts_ratio = 0
+        self.accepts_ratio = 0.000001
 
 
         # initilize the convergence diagnostic object
@@ -407,6 +407,10 @@ class demcz(_algorithm):
         logMetropHastRatio = (np.array(
             proposalLogPs) - np.array(currentLogPs))  # + (reverseJumpLogP - jumpLogP)
         decision = np.log(np.random.uniform(size=nChains)) < logMetropHastRatio
+
+        # replace values which ecoures an overflow for e^x with 100
+        isATooBigValue = logMetropHastRatio >= 1e3
+        logMetropHastRatio[isATooBigValue] = 1e2
 
         return decision, np.minimum(1, np.exp(logMetropHastRatio))
 
@@ -650,15 +654,13 @@ class _GRConvergence:
     version found in the first paper. It does not check to see whether the variances have been
     stabilizing so it may be misleading sometimes.
     """
-    _R = np.Inf
-    _V = np.Inf
-    _VChange = np.Inf
-
-    _W = np.Inf
-    _WChange = np.Inf
 
     def __init__(self):
-        pass
+        self._W = np.Inf
+        self._R = np.Inf
+        self._V = np.Inf
+        self._VChange = np.Inf
+        self._WChange = np.Inf
 
     def _get_R(self):
         return self._R
@@ -693,10 +695,41 @@ class _GRConvergence:
         varEstimate = (1 - 1.0 / N) * withinChainVariances + \
             (1.0 / N) * betweenChainVariances
 
-        self._R = np.sqrt(varEstimate / withinChainVariances)
+        if np.abs(withinChainVariances).all() > 0:
+            self._R = np.sqrt(varEstimate / withinChainVariances)
+        else:
+            self._R = np.random.uniform(0.1,0.9,withinChainVariances.__len__())
 
-        self._WChange = np.abs(np.log(withinChainVariances / self._W)**.5)
+        # self._W can be a float or an array, in both cases I want to exclude 0.0 values
+        try:
+            if self._W != 0.0:
+                if (withinChainVariances / self._W).all() <=0.0:
+                    self._WChange = np.abs(np.log(1.1) ** .5)
+                else:
+                    self._WChange = np.abs(np.log(withinChainVariances / self._W)**.5)
+            else:
+                self._WChange = np.abs(np.log(1.1) ** .5)
+        except ValueError:
+            if self._W.all() != 0.0:
+                if (withinChainVariances / self._W).all() <= 0.0:
+                    self._WChange = np.abs(np.log(1.1) ** .5)
+                else:
+                    # log of values less then 1 gives a negative number, where I replace these values to get square working
+                    tmp_WChDV = varEstimate / self._V
+                    tmp_WChDV[tmp_WChDV < 1.0] = np.random.uniform(1, 5, 1)
+                    self._WChange = np.abs(np.log(tmp_WChDV) ** .5)
+            else:
+                self._WChange = np.abs(np.log(1.1) ** .5)
+
+
         self._W = withinChainVariances
 
-        self._VChange = np.abs(np.log(varEstimate / self._V)**.5)
+        if (varEstimate / self._V).any() <= 0.0 or np.isnan(varEstimate / self._V).any():
+            self._VChange = np.abs(np.log(1.1) ** .5)
+        else:
+            # log of values less then 1 gives a negative number, where I replace these values to get square working
+            tmp_EsDV = varEstimate / self._V
+            tmp_EsDV[tmp_EsDV<1.0]=np.random.uniform(1,5,1)
+            self._VChange = np.abs(np.log(tmp_EsDV) ** .5)
+
         self._V = varEstimate

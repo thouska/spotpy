@@ -140,6 +140,19 @@ class dream(_algorithm):
         :rtype: list
         """
         n, d, N = parameter_array.shape
+
+        # Use only the last 50% of each chain (vrugt 2009), that means only the half of "d". Cause "d" ist the count
+        # of the repetition and we use the d/2 to d of those values which are already not NAN
+        whereIsNoNAN = np.logical_not(np.isnan(parameter_array))
+
+        alreadyToNum = np.sum(whereIsNoNAN[0, :, 0])
+
+        if alreadyToNum > 3:
+            parameter_array = parameter_array[:, int(np.floor(alreadyToNum / 2)): alreadyToNum, :]
+        else:
+            # the later functions need some data to work right, so we use in this case 100% of NON NAN values
+            parameter_array = parameter_array[:, 0: alreadyToNum, :]
+
         # I made a big confusion with d, n and  N, I figured it out by tests
 
         if n > 3:
@@ -165,6 +178,9 @@ class dream(_algorithm):
                 W_uni[i] = np.mean(var_chains[:, i])
 
             sigma2 = ((d - 1) / d) * W_uni + (1 / d) * B_uni
+
+            whichW_UNIIsNull = W_uni == 0.0
+            W_uni[whichW_UNIIsNull] = np.random.uniform(0.1,1,1)
 
             R_stat = np.sqrt((n + 1) / n * (np.divide(sigma2, W_uni)) - (d - 1) / (n * d))
             W_mult = 0
