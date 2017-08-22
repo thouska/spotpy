@@ -233,7 +233,7 @@ class dream(_algorithm):
         
         print('Inititalize ',self.nChains, ' chain(s)...')
         self.iter=0
-        param_generator = ((curChain,list(self.parameter()['random'])) for curChain in xrange(int(self.nChains)))                
+        param_generator = ((curChain,list(self.parameter()['random'])) for curChain in range(int(self.nChains)))                
         for curChain,par,sim in self.repeat(param_generator):
             
             like = self.objectivefunction(
