@@ -86,14 +86,8 @@ class rope(_algorithm):
 
     def get_best_runs(self, likes, pars, runs, percentage):
         '''
-        Returns the best percentage % of the runs in terms of parameters and
-        objective function.
-        '''
-        new_likes = [new_likes for (new_likes, new_pars) in sorted(zip(
-            likes, pars))[int(len(likes) * (1 - percentage)):]]
-        new_pars = [new_pars for (new_likes, new_pars) in sorted(zip(
-            likes, pars))[int(len(likes) * (1 - percentage)):]]
-        return new_likes, new_pars
+        Returns the best 20% of the runs'''
+        return [new_pars for (new_likes, new_pars) in sorted(zip(likes, pars))[int(len(likes) * (1 - percentage)):]]
 
     def sample(self, repetitions=None, repetitions_first_run=None,
                repetitions_following_runs=None,
@@ -186,14 +180,14 @@ class rope(_algorithm):
                     print(text)
                     intervaltime = time.time()
 
-        likes, pars = self.get_best_runs(likes, pars, runs,
-                                         percentage_first_run)
+        #likes, pars = self.get_best_runs(likes, pars, runs,
+        #                                 percentage_first_run)
         if repetitions_following_runs is not None:
             runs = repetitions_following_runs
 
         for i in range(subsets - 1):
             best_pars = self.get_best_runs(likes, pars, runs,
-                                           percentage_following_runs)[1]
+                                           percentage_following_runs)
             valid = False
             trials = 0
             while valid is False and trials < 10:
