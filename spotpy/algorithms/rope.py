@@ -117,22 +117,17 @@ class rope(_algorithm):
         if repetitions_first_run is None and repetitions is None:
             raise ValueError("Cannot run if neither repetitions nor "
                              "repetitions_first_run is defined")
-        # Define default value for NDIR
-        if NDIR is None and repetitions_first_run is not None:
-            NDIR = repetitions_first_run / 100
-        self.NDIR = NDIR
-        # Define default value for repetitons in the following runs if only
-        # the repetitions for the first run are defined.
         if (repetitions_following_runs is None and repetitions_first_run is
                 not None):
-            repetitions_following_runs = repetitions_first_run / 2
             # Needed to avoid finding a weird integer division somewhere here
             if repetitions_following_runs % 2 != 0:
                 raise ValueError("Repetition for following runs must be an "
                                  "even number.")
-
-        if repetitions is not None and repetitions < 30:
-            raise ValueError("Repetitions must be at least 30")
+            repetitions_following_runs = int(repetitions_first_run / 2.0)
+            
+        if NDIR is None and repetitions_following_runs is not None:
+            NDIR = repetitions_following_runs / 100
+        self.NDIR = NDIR
 
         starttime = time.time()
         intervaltime = starttime
