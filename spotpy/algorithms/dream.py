@@ -183,29 +183,26 @@ class dream(_algorithm):
             W_uni[whichW_UNIIsNull] = np.random.uniform(0.1,1,1)
 
             R_stat = np.sqrt((n + 1) / n * (np.divide(sigma2, W_uni)) - (d - 1) / (n * d))
-            W_mult = 0
-            for ii in range(n):
-                W_mult = W_mult + np.cov(np.nan_to_num(np.transpose(parameter_array[ii, :, :])), ddof=1)
+            
+            
+#            W_mult = 0
+#            for ii in range(n):
+#                W_mult = W_mult + np.cov(np.nan_to_num(np.transpose(parameter_array[ii, :, :])), ddof=1)
+#
+#            W_mult = W_mult / n + 2e-52 * np.eye(N)
+#
+#            # Note that numpy.cov() considers its input data matrix to have observations in each column,
+#            # and variables in each row, so to get numpy.cov() to return what other packages do,
+#            # you have to pass the transpose of the data matrix to numpy.cov().
+#            # https://stats.stackexchange.com/a/263508/168054
+#
+#            B_mult = np.cov(np.nan_to_num(np.transpose(mean_chains))) + 2e-52 * np.eye(N)  # 2e-52 avoids problems with eig if var = 0
+#            M = np.linalg.lstsq(W_mult, B_mult)
+#            R = np.max(np.abs(np.linalg.eigvals(M[0])))
+#            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
+            return R_stat#[R_stat, MR_stat]
 
-            W_mult = W_mult / n + 2e-52 * np.eye(N)
-
-            # Note that numpy.cov() considers its input data matrix to have observations in each column,
-            # and variables in each row, so to get numpy.cov() to return what other packages do,
-            # you have to pass the transpose of the data matrix to numpy.cov().
-            # https://stats.stackexchange.com/a/263508/168054
-
-
-            B_mult = np.cov(np.nan_to_num(np.transpose(mean_chains))) + 2e-52 * np.eye(N)  # 2e-52 avoids problems with eig if var = 0
-
-            M = np.linalg.lstsq(W_mult, B_mult)
-
-            R = np.max(np.abs(np.linalg.eigvals(M[0])))
-
-            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
-
-            return [R_stat, MR_stat]
-
-    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6):
+    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2):
         if nChains <3:
             print('Please use at least n=3 chains!')
             return None
@@ -306,21 +303,30 @@ class dream(_algorithm):
                 self.nChainruns[cChain] +=1
                 if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
                     self.r_hats.append(self.get_r_hat(self.bestpar))                
-                    print(self.r_hats[-1])
+                    #print(self.r_hats[-1])
                     text = '%i of %i (best like=%g)' % (
                         self.iter + self.burnIn, repetitions, self.status.objectivefunction)
 
-            self.r_hats.append(self.get_r_hat(self.bestpar))
+            r_hat = self.get_r_hat(self.bestpar)
+            #print((r_hat < 1.2).all())
+            self.r_hats.append(r_hat)
             # Refresh progressbar every second
             if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
                 self.r_hats.append(self.get_r_hat(self.bestpar))                
-                print(self.r_hats[-1])
                 text = '%i of %i (best like=%g)' % (
                     self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                print(text)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
+                text = "Convergence rates =" +str(np.around((r_hat),decimals=4)).strip('array([])')
+                print(text)
                 intervaltime = time.time()
-                
+            
+            if (r_hat < convergence_limit).all():
+                #Stop sampling
+                print('Convergence has been achieved after '+str(self.iter)+' of '+str(self.repetitions)+' runs! Sampling stopped.')
+                self.iter+=self.repetitions
+
 
 
         try:
