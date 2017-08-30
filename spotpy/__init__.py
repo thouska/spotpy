@@ -27,14 +27,15 @@ sampling and an analyser class for the plotting of results by the sampling.
 For general things about parameter optimization techniques have a look at:
 https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
 
-Pleas cite our paper, if you are using SPOTPY.
+Please cite our paper, if you are using SPOTPY.
 '''
-from . import database
-from . import algorithms
-from . import analyser #Acitivate if you want to have the analyser imported by default (not recommended for High Performance Computing Clusters, because of dependencies on Matplotlib)
-from . import objectivefunctions
-from . import parameter
-from . import examples
-from . import signatures #Acitivate if you want to use hydrological signatures/indices as objective function
-from . import likelihoods
-__version__ = '1.3.3'
+from . import database           # Writes the results of the sampler in a user defined output file
+from . import algorithms         # Contains all the different algorithms implemented in SPOTPY 
+from . import parameter          # Contains different distributions to discribe the prior information for every model parameter
+from . import analyser           # Contains some examples to analyse the results of the different algorithms
+from . import objectivefunctions # Quantifies goodness of fit between simulation and evaluation data with objectivefunctions
+from . import signatures         # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
+from . import likelihoods        # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
+from . import examples           # Contains tutorials how to use SPOTPY
+
+__version__ = '1.3.4'

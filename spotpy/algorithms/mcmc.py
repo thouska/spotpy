@@ -73,9 +73,30 @@ class mcmc(_algorithm):
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
+    def check_par_validity_reflect(self, par):
+        new_par = []
+        if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
+            for i in range(len(par)):
+                if par[i] < self.min_bound[i]:
+                    new_par.append(self.min_bound[i] + (self.min_bound[i]- par[i]))
+                elif par[i] > self.max_bound[i]:
+                    new_par.append(self.max_bound[i] - (par[i] - self.max_bound[i]))
+                else:
+                    new_par.append(par[i])
+            # Postprocessing if reflecting jumped out of bounds
+            for i in range(len(par)):
+                if new_par[i] < self.min_bound[i]:
+                    new_par[i] = self.min_bound[i]
+                if new_par[i] > self.max_bound[i]:
+                    new_par[i] = self.max_bound[i]
+        else:
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
+        return new_par
+        
     def get_new_proposal_vector(self,old_par):
         new_par = np.random.normal(loc=old_par, scale=self.stepsizes)
-        new_par = self.check_par_validity(new_par)
+        #new_par = self.check_par_validity(new_par)
+        new_par = self.check_par_validity_reflect(new_par)
         return new_par
 
     def update_mcmc_status(self,par,like,sim,cur_chain):  
@@ -102,9 +123,6 @@ class mcmc(_algorithm):
         self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        
-        firstcall = True
-        
         print('Inititalize ',self.nChains, ' chain(s)...')
         self.iter=0
         param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
