@@ -120,10 +120,12 @@ class rope(_algorithm):
         if (repetitions_following_runs is None and repetitions_first_run is
                 not None):
             # Needed to avoid finding a weird integer division somewhere here
-            if repetitions_following_runs % 2 != 0:
-                raise ValueError("Repetition for following runs must be an "
-                                 "even number.")
+
             repetitions_following_runs = int(repetitions_first_run / 2.0)
+           
+        if repetitions_following_runs % 2 != 0:
+            raise ValueError("Repetition for following runs must be an "
+                         "even number.")
             
         if NDIR is None and repetitions_following_runs is not None:
             NDIR = repetitions_following_runs / 100
