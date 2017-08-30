@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
   name = 'spotpy',
-  version = '1.3.3',
+  version = '1.3.4',
   description = 'A Statistical Parameter Optimization Tool',
 
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
