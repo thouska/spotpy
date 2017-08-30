@@ -205,8 +205,6 @@ class rope(_algorithm):
                 # Save everything in the database
                 self.save(like, ropepar, simulations=simulations)
 
-                pars.append(ropepar)
-                likes.append(like)
                 self.status(rep + runs * i, like, ropepar)
                 # Progress bar
                 acttime = time.time()
