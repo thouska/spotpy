@@ -122,6 +122,11 @@ class rope(_algorithm):
         if (repetitions_following_runs is None and repetitions_first_run is
                 not None):
             repetitions_following_runs = int(repetitions_first_run / 2.0)
+
+        if repetitions is not None and repetitions_following_runs is None \
+                and repetitions_first_run is None:
+            repetitions_first_run = int(repetitions / subsets)
+            repetitions_following_runs = int(repetitions / subsets)
             
         # Needed to avoid finding a weird integer division somewhere here
         if repetitions_following_runs % 2 != 0:
