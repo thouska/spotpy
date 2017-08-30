@@ -226,4 +226,21 @@ class sql(database):
         back = [row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)]
         self.db.close()
         return back
+        
+class noData(database):
+    """
+    This class saves the process in the working storage. It can be used if
+    safety matters.
+    """
 
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
+        pass
+
+    def finalize(self):
+        pass
+
+    def getdata(self):
+        pass
