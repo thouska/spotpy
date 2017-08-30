@@ -74,24 +74,22 @@ class dream(_algorithm):
         return par
 
     def check_par_validity_reflect(self, par):
-        new_par = []
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
                 if par[i] < self.min_bound[i]:
-                    new_par.append(self.min_bound[i] + (self.min_bound[i]- par[i]))
+                    par[i] = self.min_bound[i] + (self.min_bound[i]- par[i])
                 elif par[i] > self.max_bound[i]:
-                    new_par.append(self.max_bound[i] - (par[i] - self.max_bound[i]))
-                else:
-                    new_par.append(par[i])
+                    par[i] = self.max_bound[i] - (par[i] - self.max_bound[i])
+
             # Postprocessing if reflecting jumped out of bounds
             for i in range(len(par)):
-                if new_par[i] < self.min_bound[i]:
-                    new_par[i] = self.min_bound[i]
-                if new_par[i] > self.max_bound[i]:
-                    new_par[i] = self.max_bound[i]
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i]
+                if par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i]
         else:
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
-        return new_par
+        return par
 
     def _get_gamma(self,N):
         #N = Number of parameters
