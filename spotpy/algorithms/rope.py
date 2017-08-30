@@ -137,7 +137,6 @@ class rope(_algorithm):
         simulations = self.model(randompar)
         like = self.objectivefunction(
             evaluation=self.evaluation, simulation=simulations)
-#        self.percentage = percentage
         if repetitions_following_runs is None:
             runs = int(repetitions / subsets)
         else:
@@ -156,8 +155,6 @@ class rope(_algorithm):
             # Save everything in the database
             self.save(like, ropepar, simulations=simulations)
 
-            pars.append(ropepar)
-            likes.append(like)
             self.status(rep, like, ropepar)
             # Progress bar
             acttime = time.time()
@@ -175,14 +172,16 @@ class rope(_algorithm):
                     print(text)
                     intervaltime = time.time()
 
-        #likes, pars = self.get_best_runs(likes, pars, runs,
-        #                                 percentage_first_run)
         if repetitions_following_runs is not None:
             runs = repetitions_following_runs
 
         for i in range(subsets - 1):
-            best_pars = self.get_best_runs(likes, pars, runs,
-                                           percentage_following_runs)
+            if subsets == 0:
+                best_pars = self.get_best_runs(likes, pars, runs, 
+                                               percentage_first_run)
+            else:
+                best_pars = self.get_best_runs(likes, pars, runs,
+                                               percentage_following_runs)
             valid = False
             trials = 0
             while valid is False and trials < 10:
