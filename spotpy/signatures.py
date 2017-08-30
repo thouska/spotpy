@@ -1,4 +1,12 @@
-import pprint
+# -*- coding: utf-8 -*-
+'''
+Copyright 2017 by Tobias Houska
+This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+:author: Tobias Houska, Benjamin Manns
+This module contains a framework to analyze data sets of hydrological signatures.
+'''
+
+
 import numpy as np
 import copy
 import warnings
