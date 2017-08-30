@@ -395,7 +395,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None):
 
     beta = Stats.getKyrtosis(data)
 
-    omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / (1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3)
+    omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3))
     M_1 = math.gamma(1 + beta) / (np.sqrt(math.gamma(3 * (1 + beta) / 2)) * np.sqrt(math.gamma((1 + beta) / 2)))
     M_2 = 1
     xsi = Stats.getSkewnessParameter(data)
