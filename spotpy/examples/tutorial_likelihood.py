@@ -8,61 +8,61 @@ This code shows how to use the likelihood framework and present all existing fun
 '''
 
 import numpy as np
-from spotpy.likelihood import *
+import spotpy
 
 
 data, comparedata = np.random.uniform(150, 250, 20), np.random.uniform(15, 25, 20)
 data, comparedata = np.random.normal(150, 250, 20), np.random.normal(15, 25, 20)
 
 
-l = logLikelihood(data, comparedata)
+l = spotpy.likelihoods.logLikelihood(data, comparedata)
 print("logLikelihood: " + str(l))
 
-l = gaussianLikelihoodMeasErrorOut(data, comparedata)
+l = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(data, comparedata)
 print("gaussianLikelihoodMeasErrorOut: " + str(l))
 
-l = gaussianLikelihoodHomoHeteroDataError(data, comparedata)
+l = spotpy.likelihoods.gaussianLikelihoodHomoHeteroDataError(data, comparedata)
 print("gaussianLikelihoodHomoHeteroDataError: " + str(l))
 
-l = LikelihoodAR1NoC(data, comparedata)
+l = spotpy.likelihoods.LikelihoodAR1NoC(data, comparedata)
 print("LikelihoodAR1NoC: " + str(l))
 
-l = LikelihoodAR1WithC(data, comparedata)
+l = spotpy.likelihoods.LikelihoodAR1WithC(data, comparedata)
 print("LikelihoodAR1WithC: " + str(l))
 
-l = generalizedLikelihoodFunction(data, comparedata)
+l = spotpy.likelihoods.generalizedLikelihoodFunction(data, comparedata)
 print("generalizedLikelihoodFunction: " + str(l))
 
-l = LaplacianLikelihood(data, comparedata)
+l = spotpy.likelihoods.LaplacianLikelihood(data, comparedata)
 print("LaplacianLikelihood: " + str(l))
 
-l = SkewedStudentLikelihoodHomoscedastic(data, comparedata)
+l = spotpy.likelihoods.SkewedStudentLikelihoodHomoscedastic(data, comparedata)
 print("SkewedStudentLikelihoodHomoscedastic: " + str(l))
 
-l = SkewedStudentLikelihoodHeteroscedastic(data, comparedata)
+l = spotpy.likelihoods.SkewedStudentLikelihoodHeteroscedastic(data, comparedata)
 print("SkewedStudentLikelihoodHeteroscedastic: " + str(l))
 
-l = SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata)
+l = spotpy.likelihoods.SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata)
 print("SkewedStudentLikelihoodHeteroscedasticAdvancedARModel: " + str(l))
 
-l = NoisyABCGaussianLikelihood(data, comparedata)
+l = spotpy.likelihoods.NoisyABCGaussianLikelihood(data, comparedata)
 print("NoisyABCGaussianLikelihood: " + str(l))
 
-l = ABCBoxcarLikelihood(data, comparedata)
+l = spotpy.likelihoods.ABCBoxcarLikelihood(data, comparedata)
 print("ABCBoxcarLikelihood: " + str(l))
 
-l = LimitsOfAcceptability(data, comparedata)
+l = spotpy.likelihoods.LimitsOfAcceptability(data, comparedata)
 print("LimitsOfAcceptability: " + str(l))
 
-l = InverseErrorVarianceShapingFactor(data, comparedata)
+l = spotpy.likelihoods.InverseErrorVarianceShapingFactor(data, comparedata)
 print("inverseErrorVarianceShapingFactor: " + str(l))
 
-l = ExponentialTransformErrVarShapingFactor(data, comparedata)
+l = spotpy.likelihoods.ExponentialTransformErrVarShapingFactor(data, comparedata)
 print("inverseErrorVarianceShapingFactor: " + str(l))
 
-l = NashSutcliffeEfficiencyShapingFactor(data, comparedata)
+l = spotpy.likelihoods.NashSutcliffeEfficiencyShapingFactor(data, comparedata)
 print("NashSutcliffeEfficiencyShapingFactor: " + str(l))
 
-l = sumOfAbsoluteErrorResiduals(data, comparedata)
+l = spotpy.likelihoods.sumOfAbsoluteErrorResiduals(data, comparedata)
 print("sumOfAbsoluteErrorResiduals: " + str(l))
 
