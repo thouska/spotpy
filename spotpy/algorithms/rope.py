@@ -114,15 +114,16 @@ class rope(_algorithm):
                 not None):
             raise ValueError("repetitions_following_runs can only be defined "
                              "when repetitons_first_run is defined")
+            
         if repetitions_first_run is None and repetitions is None:
             raise ValueError("Cannot run if neither repetitions nor "
                              "repetitions_first_run is defined")
+            
         if (repetitions_following_runs is None and repetitions_first_run is
                 not None):
-            # Needed to avoid finding a weird integer division somewhere here
-
             repetitions_following_runs = int(repetitions_first_run / 2.0)
-           
+            
+        # Needed to avoid finding a weird integer division somewhere here
         if repetitions_following_runs % 2 != 0:
             raise ValueError("Repetition for following runs must be an "
                          "even number.")
