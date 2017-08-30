@@ -185,7 +185,9 @@ class _algorithm(object):
             return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)[1:]
         if self.dbformat == 'sql':
             return self.datawriter.getdata
-
+        if self.dbformat == 'noData':
+            return self.datawriter.getdata
+            
     def simulate(self, id_params_tuple):
         """This is a simple wrapper of the model, returning the result together with
         the run id and the parameters. This is needed, because some parallel things
