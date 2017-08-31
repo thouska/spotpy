@@ -183,8 +183,8 @@ class rope(_algorithm):
         if repetitions_following_runs is not None:
             runs = repetitions_following_runs
 
-        for i in range(subsets - 1):
-            if subsets == 0:
+        for subset in range(subsets - 1):
+            if subset == 0:
                 best_pars = self.get_best_runs(likes, pars, runs, 
                                                percentage_first_run)
             else:
