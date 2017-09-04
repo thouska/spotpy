@@ -203,7 +203,7 @@ def gaussianLikelihoodMeasErrorOut(data, comparedata, measerror=None):
     return -data.__len__() / 2 * np.log(np.sum(errorArr ** 2))
 
 
-def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
+def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None, params=None):
     """
     Assuming the data error is normal distributed with zero mean and sigma is the measerror, the standart deviation of
     the meassurment errors
@@ -226,6 +226,8 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
     :return: the p value as a likelihood
     :rtype: float
     """
+    randomparset, parameternames = params
+    beta = randomparset[np.where(parameternames == 'beta')]
     # With the assumption that the error residuals are uncorrelated
     __standartChecksBeforeStart(data, comparedata)
     if measerror is None:
