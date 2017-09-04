@@ -54,7 +54,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
-import time
+
 
 
 class DEMCZError(Exception):
@@ -122,7 +122,7 @@ class demcz(_algorithm):
     # def simulate(self):
 
 
-    def sample(self, repetitions, nChains=5, burnIn=100, thin=1, 
+    def sample(self, repetitions, nChains=3, burnIn=100, thin=1, 
                convergenceCriteria=.8, variables_of_interest=None,
                DEpairs=2, adaptationRate='auto', eps=5e-2,
                mConvergence=True, mAccept=True):
@@ -152,8 +152,9 @@ class demcz(_algorithm):
                 self.burnIn which is the number of burn in iterations done
                 self.R  which is the gelman rubin convergence diagnostic for each dimension
         """
-        starttime = time.time()
-        intervaltime = starttime
+        print('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
+
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
         repetitions = int(repetitions / nChains)
@@ -195,16 +196,18 @@ class demcz(_algorithm):
             for rep, vector, simulations in self.repeat(param_generator):
 
                 burnInpar[i][rep] = vector
-                likelist = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
+
+                likelist = self.postprocessing(i, list(vector), simulations, chains=rep)
+                #likelist = self.objectivefunction(
+                #evaluation=self.evaluation, simulation=simulations)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
                 old_like[rep] = likelist
                 
                 burnInpar[i][rep] = vector
                 # Save everything in the database
-                self.save(likelist, list(vector), simulations=simulations)
-                self.status(rep, likelist, vector)
+                #self.save(likelist, list(vector), simulations=simulations)
+                #self.status(rep, likelist, vector)
             history.record(burnInpar[i], self._logPs, 1)
 
         gamma = None
@@ -266,12 +269,14 @@ class demcz(_algorithm):
                 (rep, list(proposalVectors[rep])) for rep in range(int(nChains)))
             for rep, vector, simulations in self.repeat(param_generator):
                 new_simulationlist.append(simulations)
-                like = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+                like = self.postprocessing(cur_iter+nSeedIterations, list(vector), simulations, chains=rep)
+                
+                #like = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=simulations)
                 self._logPs.append(like)
                 new_likelist.append(like)
                 proposalLogPs.append(like)
-                self.status(rep, like, vector)
+                #self.status(rep, like, vector)
 
             # for i in range(nChains):
             #     simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
@@ -339,12 +344,12 @@ class demcz(_algorithm):
 
                 history.record(
                     currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
-                for chain in range(nChains):
-                    if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
-                        self.save(save_likes[chain],
-                                             save_pars[chain],
-                                             simulations=save_sims[chain],
-                                             chains=chain)
+                #for chain in range(nChains):
+                #    if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
+                #        self.save(save_likes[chain],
+                #                             save_pars[chain],
+                #                             simulations=save_sims[chain],
+                #                             chains=chain)
 
             if history.nsamples > 0 and cur_iter > lastRecalculation * 1.1 and history.nsequence_histories > dimensions:
                 lastRecalculation = cur_iter
@@ -362,12 +367,12 @@ class demcz(_algorithm):
             #     print 'A proposal vector was ignored'
 
             # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = str(cur_iter) + ' of ' + str(repetitions)
-                print(text)
-                intervaltime = time.time()
+            #acttime = time.time()
+            ## Refresh progressbar every second
+            #if acttime - intervaltime >= 2:
+            #    text = str(cur_iter) + ' of ' + str(repetitions)
+            #    print(text)
+            #    intervaltime = time.time()
 
         # 3) finalize
         # only make the second half of draws available because that's the only
@@ -379,21 +384,22 @@ class demcz(_algorithm):
         self.R = grConvergence.R
         text = 'Gelman Rubin R=' + str(self.R)
         print(text)
-
-        self.repeat.terminate()
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-
-        print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
+        self.final_call()
+        
+        #self.repeat.terminate()
+        #try:
+        #    self.datawriter.finalize()
+        #except AttributeError:  # Happens if no database was assigned
+        #    pass
+#
+#        print('End of sampling')
+#        text = '%i of %i (best like=%g)' % (
+#            self.status.rep, repetitions, self.status.objectivefunction)
+#        print(text)
+#        print('Best parameter set')
+#        print(self.status.params)
+#        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
+#        print(text)
 
     def _update_accepts_ratio(self, weighting, acceptances):
         self.accepts_ratio = weighting * \

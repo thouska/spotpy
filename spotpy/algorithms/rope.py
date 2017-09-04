@@ -110,6 +110,9 @@ class rope(_algorithm):
         next step after in all following subsets
         NDIR = The number of samples to draw
         """
+        print('Starting the ROPE algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
+        
         if (repetitions_first_run is None and repetitions_following_runs is
                 not None):
             raise ValueError("repetitions_following_runs can only be defined "
@@ -141,10 +144,9 @@ class rope(_algorithm):
         intervaltime = starttime
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        randompar = list(self.parameter()['optguess'])
-        simulations = self.model(randompar)
-        like = self.objectivefunction(
-            evaluation=self.evaluation, simulation=simulations)
+        #randompar = list(self.parameter()['optguess'])
+        #simulations = self.model(randompar)
+        #like = self.postprocessing(rep, randompar, simulations)
         if repetitions_following_runs is None:
             runs = int(repetitions / subsets)
         else:
@@ -156,14 +158,10 @@ class rope(_algorithm):
                            for rep in range(int(runs)))
         for rep, ropepar, simulations in self.repeat(param_generator):
             # Calculate the objective function
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
+            like = self.postprocessing(rep, ropepar, simulations)
             likes.append(like)
             pars.append(ropepar)
-            # Save everything in the database
-            self.save(like, ropepar, simulations=simulations)
 
-            self.status(rep, like, ropepar)
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second
@@ -205,14 +203,13 @@ class rope(_algorithm):
                 (rep, new_pars[rep]) for rep in range(int(runs)))
             for rep, ropepar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+                like = self.postprocessing(rep + runs * i, ropepar, simulations)
                 likes.append(like)
                 pars.append(ropepar)
                 # Save everything in the database
-                self.save(like, ropepar, simulations=simulations)
+                #self.save(like, ropepar, simulations=simulations)
 
-                self.status(rep + runs * i, like, ropepar)
+                #self.status(rep + runs * i, like, ropepar)
                 # Progress bar
                 acttime = time.time()
                 if repetitions_following_runs is not None:
@@ -232,25 +229,8 @@ class rope(_algorithm):
                         print(text)
                         intervaltime = time.time()
 
-        self.repeat.terminate()
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        if repetitions_following_runs is not None:
-            text = '%i of %i (best like=%g)' % (
-                self.status.rep, repetitions_first_run +
-                repetitions_following_runs * (subsets - 1),
-                self.status.objectivefunction)
-        else:
-            text = '%i of %i (best like=%g)' % (
-                self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set:')
-        print((self.status.params))
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
+        self.final_call()
+        
 
     def programm_depth(self, pars, runs):
         X = np.array(pars)
