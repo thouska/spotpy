@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2017 by Tobias Houska
+Copyright 2017 by Tobias Houska, Benjamin Manns
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Benjamin Manns
 This module contains a framework to summarize the distance between the model simulations and corresponding observations
@@ -16,6 +16,7 @@ class LikelihoodError(Exception):
     Define an own error class to know it is an error made by a likelihood calculation to warn the use for wrong inputs
     """
     pass
+
 
 
 def __generateMeaserror(data):
@@ -40,6 +41,17 @@ def __standartChecksBeforeStart(data, comparedata):
     if data.__len__() == 0:
         raise LikelihoodError("Data with no content can not be used as a foundation of calculation a likelihood")
 
+def __byteArrayToString(a):
+    """
+    Convert a whole list of bytestrings to a list of strings
+    :param a:
+    :return:
+    """
+    b = []
+    for i in a:
+        b.append(i.decode("utf-8"))
+    return b
+
 
 class TimeSeries:
     """
@@ -58,7 +70,7 @@ class TimeSeries:
             acf(h) = \\frac{1}{n} \\sum_{t=1}^{n-h}(x_{t+h}-mean(x))(x_t-mean(x))
 
         :param data: numerical values whereof a acf at lag `h` should be calculated
-        :type data: array
+        :type data: list
         :param lag: lag defines how many steps between each values should be taken to where of a of correlation should be calculated
 
         :type lag: int
@@ -90,8 +102,8 @@ class TimeSeries:
         For further information look for example in "Zeitreihenanalyse", pages 17, by Matti Schneider, Sebastian Mentemeier,
         SS 2010.
 
-        :param data: numerical array
-        :type data: array
+        :param data: numerical list
+        :type data: list
         :return: autocorrelation coefficient
         :rtype: float
         """
@@ -104,8 +116,8 @@ class Stats:
         """
         Calculate the forth central moment, see https://de.wikipedia.org/wiki/W%C3%B6lbung_(Statistik)
 
-        :param data: a numerical array
-        :type data: array
+        :param data: a numerical list
+        :type data: list
         :return: the kyrtosis of the data
         :rtype: float
         """
@@ -121,8 +133,8 @@ class Stats:
         """
         Calculate the third central moment, see https://de.wikipedia.org/wiki/Schiefe_(Statistik)
 
-        :param data: a numerical array
-        :type data: array
+        :param data: a numerical list
+        :type data: list
         :return: the skewness of the data
         :rtype: float
         """
@@ -148,16 +160,18 @@ def logLikelihood(data, comparedata, measerror=None):
 
     `Usage:` Minimizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
     :return: the p value as a likelihood
     :rtype: float
     """
     __standartChecksBeforeStart(data, comparedata)
+    data = np.array(data)
+    comparedata = np.array(comparedata)
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
@@ -171,7 +185,7 @@ def logLikelihood(data, comparedata, measerror=None):
     return -data.__len__()/2*np.log(2*np.pi)-np.sum(np.log(measerror))-0.5*np.sum(((data-comparedata)/measerror)**2)
 
 
-def gaussianLikelihoodMeasErrorOut(data, comparedata, measerror=None):
+def gaussianLikelihoodMeasErrorOut(data, comparedata):
     """
     This formular called `Gaussian likelihood: measurement error integrated out` and simply calculates
 
@@ -186,18 +200,14 @@ def gaussianLikelihoodMeasErrorOut(data, comparedata, measerror=None):
     `Usage:` The value is always negative, but the "bigger" it is (closer to zero) the better is the fitting.
     So in comparing models, a bigger value leass or equal zero is the goal.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
-    :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type comparedata: list
     :return: the p value as a likelihood
     :rtype: float
     """
     __standartChecksBeforeStart(data, comparedata)
-    if measerror is None:
-        measerror = __generateMeaserror(data)
     errorArr = np.array(__calcSimpleDeviation(data, comparedata))
 
     return -data.__len__() / 2 * np.log(np.sum(errorArr ** 2))
@@ -217,35 +227,33 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
 
     `Usage:` Minimizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
     :return: the p value as a likelihood
     :rtype: float
     """
     # With the assumption that the error residuals are uncorrelated
     __standartChecksBeforeStart(data, comparedata)
+    data = np.array(data)
+    comparedata = np.array(comparedata)
     if measerror is None:
         measerror = __generateMeaserror(data)
-
-    result = 1
     measerror = np.array(measerror)
-    measerror[measerror == 0.0] = np.random.uniform(0.1,0.2,[measerror == 0.0].__len__())
+    size = measerror[measerror == 0.0].size
+    if size > 0:
+        warnings.warn("[gaussianLikelihoodHomoHeteroDataError] reaslized that you use distinct distributed values, that makes no sense at all"
+                      "Please use another model for your study. The result will not makes sense.")
+        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
-    for t in range(data.__len__()):
-        likhoodRes = (1 / (np.sqrt(2 * np.pi * measerror[t] ** 2)) * np.exp(
-            -0.5 * ((data[t] - comparedata[t]) / (measerror[t])) ** 2))
-        if likhoodRes == 0:
-            likhoodRes = np.finfo(float).eps ** 2 ** 2 # You can call this a zero or like a hessian would say: 'ebbes'
-
-        result *= likhoodRes
-    return result
+    return np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
 
 
-def LikelihoodAR1WithC(data, comparedata, measerror=None):
+
+def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
     """
 
     Suppose the error residuals assume an AR(1)-process
@@ -267,12 +275,15 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None):
 
     `Usage:` Minimizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
+    :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
+        Following parameter are needed in this function: ["likelihood_beta"]
+    :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -281,20 +292,40 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None):
     if measerror is None:
         measerror = __generateMeaserror(data)
 
+    measerror = np.array(measerror)
+    size = measerror[measerror == 0.0].size
+    if size > 0:
+        warnings.warn(
+            "[LikelihoodAR1WithC] reaslized that you use distinct distributed values, that makes no sense at all"
+            "Please use another model for your study. The result will not makes sense.")
+        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+
+    paramDependencies = ["likelihood_phi"]
+
+    if params is None:
+        phi = TimeSeries.AR_1_Coeff(data)
+    else:
+        missingparams = []
+        randomparset, parameternames = params
+        parameternames = __byteArrayToString(parameternames)
+        for nm in paramDependencies:
+            if nm not in parameternames:
+                missingparams.append(nm)
+
+        if missingparams.__len__() > 0:
+            raise LikelihoodError(
+                            "Unfortunately contains your param list not all parameters which are needed for this class."
+                            "Following parameter are needed, too: "+str(missingparams))
+
+
+        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+
     expect = np.nanmean(data)
     errorArr = np.array(__calcSimpleDeviation(data, comparedata))
-    phi = TimeSeries.AR_1_Coeff(data)
     c = expect * (1 - phi)
 
     # I summarize from 2 to n, but range starts in 1 (in python it is zero index), so just shift it with one
-    measerror = np.array(measerror)
-
-    size = measerror[measerror == 0.0]
-    if size > 0:
-        warnings.warn("[LikelihoodAR1WithC] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
-
+    n = data.__len__()
     sum_1 = np.sum(np.log(measerror[1:]))
 
     sum_2 = np.sum(((errorArr[1:] - c - phi * errorArr[:-1]) / (measerror[1:])) ** 2)
@@ -303,7 +334,7 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None):
         (errorArr[0] - (c / (1 - phi))) ** 2 / (2 * measerror[0] ** 2 / (1 - phi ** 2))) - sum_1 - 0.5 * sum_2
 
 
-def LikelihoodAR1NoC(data, comparedata, measerror=None):
+def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
     """
 
     Based on the formula in `LikelihoodAR1WithC` we assuming that :math:`c = 0` and that means that the formula of `log-likelihood` is:
@@ -314,12 +345,15 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None):
 
     `Usage:` Minimizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
+    :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
+        Following parameter are needed in this function: ["likelihood_phi"]
+    :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -329,26 +363,46 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None):
         measerror = __generateMeaserror(data)
 
     errorArr = np.array(__calcSimpleDeviation(data, comparedata))
-    phi = TimeSeries.AR_1_Coeff(data)
+
 
     # I summarize from 2 to n, but range starts in 1 (in python it is zero index), so just shift it with one
     measerror = np.array(measerror)
     size = measerror[measerror == 0.0]
     if size > 0:
         warnings.warn(
-            "[LikelihoodAR1WithC] reaslized that you use distinct distributed values, that makes no sense at all"
+            "[LikelihoodAR1NoC] reaslized that you use distinct distributed values, that makes no sense at all"
             "Please use another model for your study. The result will not makes sense.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
+    paramDependencies = ["likelihood_phi"]
+
+    if params is None:
+        phi = TimeSeries.AR_1_Coeff(data)
+    else:
+        missingparams = []
+        randomparset, parameternames = params
+        parameternames = __byteArrayToString(parameternames)
+        for nm in paramDependencies:
+            if nm not in parameternames:
+                missingparams.append(nm)
+        if missingparams.__len__() > 0:
+            raise LikelihoodError(
+                            "Unfortunately contains your param list not all parameters which are needed for this class."
+                            "Following parameter are needed, too: "+str(missingparams))
+
+        parameternames = np.array(parameternames)
+        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+
     sum_1 = np.sum(np.log(measerror[1:]))
-    sum_2 = np.sum(((errorArr[1:] - phi * errorArr[:-1]) /measerror[1:]) ** 2)
+    sum_2 = np.sum(( (errorArr[1:] - phi * errorArr[:-1]) / measerror[1:]) ** 2)
 
 
     return -(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
                                                                        errorArr[0] ** 2 - sum_1 - 0.5 * sum_2
 
 
-def generalizedLikelihoodFunction(data, comparedata, measerror=None):
+
+def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None):
     """
     Under the assumption of having correlated, heteroscedastic, and non‐Gaussian errors and assuming that the data are
     coming from a time series modeled as
@@ -377,30 +431,73 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None):
 
     `Usage:` Maximizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to
         simulate measurement errors
-    :type measerror: array
+    :type measerror: list
+    :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
+        Following parameter are needed in this function: ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+    :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
     """
+
+
+
     __standartChecksBeforeStart(data, comparedata)
     errorArr = __calcSimpleDeviation(data, comparedata)
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
 
-    beta = Stats.getKyrtosis(data)
+    paramDependencies = ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
 
-    omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / (1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3)
-    M_1 = math.gamma(1 + beta) / (np.sqrt(math.gamma(3 * (1 + beta) / 2)) * np.sqrt(math.gamma((1 + beta) / 2)))
-    M_2 = 1
-    xsi = Stats.getSkewnessParameter(data)
-    sigma_xsi = np.sqrt(np.abs((M_2 - M_1 ** 2) * (xsi **2 + xsi ** (-2)) + 2 * M_1 ** 2 - M_2))
-    cBeta = (math.gamma(3 * (1 + beta) / 2) / math.gamma((1 + beta) / 2)) ** (1 / (1 + beta))
+    if params is None:
+        # for this params look into http://onlinelibrary.wiley.com/doi/10.1029/2009WR008933/epdf, page 5
+        beta = np.random.uniform(-0.99,1,1)
+        xsi = np.random.uniform(0.1,10,1)
+        sigma0 = np.random.uniform(0,1,1)
+        sigma1 = np.random.uniform(0, 1, 1)
+        phi1 = np.random.uniform(0, 1, 1)
+        muh = np.random.uniform(0, 100, 1)
+
+    else:
+        missingparams=[]
+        randomparset, parameternames = params
+        parameternames = np.array(__byteArrayToString(parameternames))
+
+        for nm in paramDependencies:
+            if nm not in parameternames:
+                missingparams.append(nm)
+
+        if missingparams.__len__() > 0:
+            raise LikelihoodError(
+                            "Unfortunately contains your param list not all parameters which are needed for this class."
+                            "Following parameter are needed, too: "+str(missingparams))
+
+        beta = randomparset[np.where(parameternames == 'likelihood_beta')]
+        xsi = randomparset[np.where(parameternames == 'likelihood_xsi')]
+        sigma0 = randomparset[np.where(parameternames == 'likelihood_sigma0')]
+        sigma1 = randomparset[np.where(parameternames == 'likelihood_sigma1')]
+        phi1 = randomparset[np.where(parameternames == 'likelihood_phi1')]
+        muh = randomparset[np.where(parameternames == 'likelihood_muh')]
+
+
+    if beta <=-1:
+        raise LikelihoodError("The parameter 'beta' must be greater then -1")
+
+    try:
+        omegaBeta = np.sqrt((math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2))) ** 3)
+        M_1 = math.gamma(1 + beta) / (np.sqrt(math.gamma(3 * (1 + beta) / 2)) * np.sqrt(math.gamma((1 + beta) / 2)))
+        M_2 = 1
+        sigma_xsi = np.sqrt(np.abs((M_2 - M_1 ** 2) * (xsi ** 2 + xsi ** (-2)) + 2 * M_1 ** 2 - M_2))
+        cBeta = (math.gamma(3 * (1 + beta) / 2) / math.gamma((1 + beta) / 2)) ** (1 / (1 + beta))
+    except ValueError:
+        raise LikelihoodError("Please check your parameter input there is something wrong with the parameter")
+
 
     if xsi != 0.0:
         mu_xsi = M_1 * (xsi - (xsi) ** (-1))
@@ -409,27 +506,40 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None):
 
     n = data.__len__()
 
-    phi = TimeSeries.AR_1_Coeff(data)
 
     sum_at = 0
-    measerror = np.array(measerror)
-    measerror[measerror == 0.0] = np.random.uniform(0.1, 0.2, [measerror == 0.0].__len__())
+    #formula for a_t is from page 3, (6)
     for j in range(n - 1):
         t = j + 1
         if t > 0 and t < n and type(t) == type(1):
-            a_t = (errorArr[t] - phi * errorArr[t - 1]) / (measerror[t])
+            a_t = (errorArr[t] - phi1 * errorArr[t - 1]) / (measerror[t])
         else:
-
-            warnings.warn("Your parameter 't' does not suit to the given data array")
+            warnings.warn("Your parameter 't' does not suit to the given data list")
             return None
 
         a_xsi_t = xsi ** (-1 * np.sign(mu_xsi + sigma_xsi * a_t)) * (mu_xsi + sigma_xsi * a_t)
 
         sum_at += np.abs(a_xsi_t) ** (2 / (1 + beta))
 
+    # page 3 formula 5 of this paper expalin that sigma[t] = sigma0 + sigma1*E[t]
+    # where E[t] is calles y(x) in the main paper (discrepance) and sigma0 and sigma1 are input parameter which also
+    # can be generate by the function itself. Then
+    # E[t] = Y_{ht}*mu[t]
+    # where Y_{ht} should be the simulated model data and mu_t = exp(mu_h * Y_{ht}).
+    # So, mu_h is "a bias parameter to be inferred from the model." (cite, page 3, formula (3))
 
-    return n * np.log(omegaBeta * (2 * sigma_xsi) / np.abs(xsi + (1 / xsi))) - np.sum(
-        np.log(measerror)) - cBeta * sum_at
+    mu_t = np.mean(muh*comparedata)
+
+    E = comparedata*mu_t
+    sigmas = sigma0 +sigma1*E
+    if sigmas[sigmas <= 0.0].size > 0:
+        raise LikelihoodError("Sorry, you comparedata have negative values. Maybe you model has some inaccurate"
+                              " assumptions or there is another error."
+                              " We cannot calculate this likelihood")
+
+    return float(n * np.log(omegaBeta * (2 * sigma_xsi) / np.abs(xsi + (1 / xsi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at)
+
+
 
 
 def LaplacianLikelihood(data, comparedata, measerror=None):
@@ -445,13 +555,13 @@ def LaplacianLikelihood(data, comparedata, measerror=None):
     `Usage:` Maximizing the likelihood value guides to the best model, because the less :math:`\\sum_{t=1}^n (\\frac{|e_t(x)|}{\\sigma_t})`
     is the better fits the model simulation data to the observed data.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to
         simulate measurement errors
-    :type measerror: array
+    :type measerror: list
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -485,10 +595,10 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
     `Usage:` Minimizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
     a result which makes sense.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: a constant measurement error
     :type measerror: int
     :return: the p value as a likelihood
@@ -505,7 +615,7 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
     return np.prod(1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2)))
 
 
-def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None):
+def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,params=None):
     """
     Under the assumption that the data are heteroscedastic, i.e. the they have for every measurement another error and
     that the residuals are non-Gaussian distributed we perform a likelihoodcalculation based on this formualar, having
@@ -550,12 +660,15 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None):
     `Usage:` Minimizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
     a result which makes sense.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
+    :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
+        Following parameter are needed in this function: ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+    :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -566,11 +679,36 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None):
     measerror = np.array(measerror)
 
     res = np.array(__calcSimpleDeviation(data, comparedata))
-    phi = TimeSeries.AR_1_Coeff(res)
 
-    nu = Stats.getKyrtosis(res)
+    paramDependencies = ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]
+
+    if params is None:
+        # based on VRUGTS paper, footnote "YING", page 307
+        nu = np.random.uniform(2.001, 100, 1)
+        k = np.random.uniform(0.001, 100, 1)
+        phi = np.random.uniform(-0.99, 0.99, 1)
+
+    else:
+        missingparams = []
+        randomparset, parameternames = params
+        parameternames = np.array(__byteArrayToString(parameternames))
+
+        for nm in paramDependencies:
+            if nm not in parameternames:
+                missingparams.append(nm)
+
+        if missingparams.__len__() > 0:
+            raise LikelihoodError(
+                "Unfortunately contains your param list not all parameters which are needed for this class."
+                "Following parameter are needed, too: " + str(missingparams))
+
+        nu = randomparset[np.where(parameternames == 'likelihood_nu')]
+        k = randomparset[np.where(parameternames == 'likelihood_kappa')]
+        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+
+
     eta_all = res[1:] - phi * res[:-1] * np.sqrt(1 - phi ** 2)
-    k = Stats.getSkewnessParameter(res)
+
 
     if nu > 2:
 
@@ -604,7 +742,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None):
         return np.NAN
 
 
-def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, measerror=None):
+def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, measerror=None,params=None):
     """
 
     This function is based of the previos one, called `SkewedStudentLikelihoodHeteroscedastic`. We expand
@@ -621,12 +759,15 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
     `Usage:` Minimizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
     a result which makes sense.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
+    :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
+        Following parameter are needed in this function: ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+    :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -636,13 +777,48 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
 
     measerror = np.array(measerror)
     res = np.array(__calcSimpleDeviation(data, comparedata))
-    phi = TimeSeries.AR_1_Coeff(res)
-    nu = Stats.getKyrtosis(res)
+
+    paramDependencies = ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]
+
+    if params is None:
+        # based on VRUGTS paper, footnote "YING", page 307
+        nu = np.random.uniform(2.001, 100, 1)
+        k = np.random.uniform(0.001, 100, 1)
+        phi = np.random.uniform(-0.99, 0.99, 1)
+
+    else:
+        missingparams = []
+        randomparset, parameternames = params
+        parameternames = np.array(__byteArrayToString(parameternames))
+
+        for nm in paramDependencies:
+            if nm not in parameternames:
+                missingparams.append(nm)
+
+        if missingparams.__len__() > 0:
+            raise LikelihoodError(
+                "Unfortunately contains your param list not all parameters which are needed for this class."
+                "Following parameter are needed, too: " + str(missingparams))
+
+        nu = randomparset[np.where(parameternames == 'likelihood_nu')]
+        k = randomparset[np.where(parameternames == 'likelihood_kappa')]
+        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+
     N = data.__len__()
     eta_all = (res[1:] - phi * res[:-1] + phi / (N) * np.sum(res)) * np.sqrt(1 - phi ** 2)
-    k = Stats.getSkewnessParameter(res)
 
-    if nu > 2:
+    if nu <= 2 :
+        warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The kurtosis parameter is " + str(
+            nu) + " and should be > 2")
+        return np.NAN
+    elif abs(phi) >= 1:
+        warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The absolute value of the phi parameter is " + str(
+            abs(phi)) + " and should be < 1")
+    elif k <=0:
+        warnings.warn(
+            "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The kappa is " + str(
+                k) + " and should be > 1")
+    else:
 
         c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
             (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
@@ -672,9 +848,7 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
                            -(nu + 1) / 2))
 
 
-    else:
-        warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The kurtosis parameter is " + str(nu) + " and should be > 2")
-        return np.NAN
+
 
 def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
     """
@@ -693,12 +867,12 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
 
     `Usage:` Maximizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -736,12 +910,12 @@ def ABCBoxcarLikelihood(data, comparedata, measerror=None):
 
     `Usage:` Minimizing the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -778,12 +952,12 @@ def LimitsOfAcceptability(data, comparedata, measerror=None):
     `Usage:` The bigger the value the better the model returns the observed dataset. Values are all greater equal zero
     and discrete and integer numbers.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
-    :type measerror: array
+    :type measerror: list
     :return: the p value as a likelihood
     :rtype: float
     """
@@ -820,10 +994,10 @@ def InverseErrorVarianceShapingFactor(data, comparedata, G=10):
 
     `Usage:` Maximize the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param G: DREAMPar model parameter `G`
     :type G: float
     :return: the p value as a likelihood
@@ -854,10 +1028,10 @@ def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):
     `Usage:` Maximize the likelihood value guides to the best model. If the function return NAN, than you can not use this
     calculation method or the `comparedata` is too far away from `data`.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param G: DREAMPar model parameter `G`
     :type G: float
     :return: the p value as a likelihood
@@ -895,10 +1069,10 @@ def ExponentialTransformErrVarShapingFactor(data, comparedata,G=10):
 
     `Usage:` Maximize the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :param G: DREAMPar model parameter `G`
     :type G: float
     :return: the p value as a likelihood
@@ -921,10 +1095,10 @@ def sumOfAbsoluteErrorResiduals(data, comparedata):
 
     `Usage:` Maximize the likelihood value guides to the best model.
 
-    :param data: observed measurements as a numerical array
-    :type data: array
+    :param data: observed measurements as a numerical list
+    :type data: list
     :param comparedata: simulated data from a model which should fit the original data somehow
-    :type comparedata: array
+    :type comparedata: list
     :return: the p value as a likelihood
     :rtype: float
     """
