@@ -15,10 +15,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
-from .. import database
 import numpy as np
 import random
-import time
 
 
 class lhs(_algorithm):
@@ -69,6 +67,8 @@ class lhs(_algorithm):
         repetitions: int 
             Maximum number of runs.
         """
+        print('Starting the LHS algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
         print('Creating LatinHyperCube Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']
@@ -80,56 +80,20 @@ class lhs(_algorithm):
             'maxbound']
 
         # Create an matrx to store the parameter sets
-        matrx = np.empty((repetitions, len(parmin)))
+        matrix = np.empty((repetitions, len(parmin)))
         # Create the LatinHypercube matrx as in McKay et al. (1979):
         for i in range(int(repetitions)):
             segmentMin = i * segment
             pointInSegment = segmentMin + (random.random() * segment)
             parset = pointInSegment * (parmax - parmin) + parmin
-            matrx[i] = parset
+            matrix[i] = parset
         for i in range(len(names)):
-            random.shuffle(matrx[:, i])
+            random.shuffle(matrix[:, i])
 
-        print('Start sampling')
-        starttime = time.time()
-        intervaltime = starttime
         # A generator that produces the parameters
-        # param_generator = iter(matrx)
-
-        param_generator = ((rep, matrx[rep])
+        param_generator = ((rep, matrix[rep])
                            for rep in range(int(repetitions) - 1))
         for rep, randompar, simulations in self.repeat(param_generator):
-            # Calculate the objective function
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
-         
-            
-            # Save everything in the database
-            self.save(like, randompar, simulations=simulations)
-            self.status(rep, like, randompar)
-            # Progress bar
-            acttime = time.time()
-            
-            #create string of the aproximate time left to complete all runs
-            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
-                       (rep + 1)) * (repetitions - (rep + 1)))))
-            # Refresh progressbar every second 
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
-                    self.status.objectivefunction, timestr)
-                print(text)
-                intervaltime = time.time()
-        self.repeat.terminate()
-
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
+            # A function that calculates the fitness of the run and the manages the database 
+            self.postprocessing(rep, randompar, simulations)
+        self.final_call()

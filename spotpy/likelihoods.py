@@ -490,7 +490,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         raise LikelihoodError("The parameter 'beta' must be greater then -1")
 
     try:
-        omegaBeta = np.sqrt((math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2))) ** 3)
+        omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3))
         M_1 = math.gamma(1 + beta) / (np.sqrt(math.gamma(3 * (1 + beta) / 2)) * np.sqrt(math.gamma((1 + beta) / 2)))
         M_2 = 1
         sigma_xsi = np.sqrt(np.abs((M_2 - M_1 ** 2) * (xsi ** 2 + xsi ** (-2)) + 2 * M_1 ** 2 - M_2))

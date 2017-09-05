@@ -78,8 +78,15 @@ class dream(_algorithm):
             for i in range(len(par)):
                 if par[i] < self.min_bound[i]:
                     par[i] = self.min_bound[i] + (self.min_bound[i]- par[i])
-                if par[i] > self.max_bound[i]:
+                elif par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i] - (par[i] - self.max_bound[i])
+
+            # Postprocessing if reflecting jumped out of bounds
+            for i in range(len(par)):
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i]
+                if par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i]
         else:
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
@@ -203,6 +210,8 @@ class dream(_algorithm):
             return R_stat#[R_stat, MR_stat]
 
     def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2):
+        print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
         if nChains <3:
             print('Please use at least n=3 chains!')
             return None
@@ -232,26 +241,26 @@ class dream(_algorithm):
         self.iter=0
         param_generator = ((curChain,list(self.parameter()['random'])) for curChain in range(int(self.nChains)))                
         for curChain,par,sim in self.repeat(param_generator):
-            
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=sim)
+            like = self.postprocessing(self.iter, par, sim, chains=curChain)
+            #like = self.objectivefunction(
+            #    evaluation=self.evaluation, simulation=sim)
 
 #            if firstcall==True:
 #                self.initialize_database(par, self.parameter()['name'], sim, like)
 #                firstcall=False
             self.update_mcmc_status(par,like,sim,curChain)
-            self.save(like, par, simulations=sim,chains=curChain)
-            self.status(self.iter, like, par)
+            #self.save(like, par, simulations=sim,chains=curChain)
+            #self.status(self.iter, like, par)
             self.iter+=1
             self.nChainruns[curChain] +=1
             # Progress bar
-            acttime = time.time()
+            #acttime = time.time()
             # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    self.iter, repetitions, self.status.objectivefunction)
-                print(text)
-                intervaltime = time.time()
+            #if acttime - intervaltime >= 2:
+            #    text = '%i of %i (best like=%g)' % (
+            #        self.iter, repetitions, self.status.objectivefunction)
+            #    print(text)
+            #    intervaltime = time.time()
 
         print('Beginn of Random Walk')
         #Walf through chains
@@ -282,40 +291,42 @@ class dream(_algorithm):
                     ids=[np.random.randint(0,self.N)]
                     nrN=1
                 #print(self.bestpar[cChain][self.nChainruns[cChain]-1])
-                like = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=sim)
-                self.status(self.iter, like, par)
+                like = self.postprocessing(self.iter, par, sim, chains=cChain)
+                #like = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=sim)
+                #self.status(self.iter, like, par)
                 logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
                 u = np.random.uniform(low=0.5, high=1)
              
                 if logMetropHastRatio>u:
                     self.update_mcmc_status(par,like,sim,cChain)   
                     self.accepted[cChain] += 1  # monitor acceptance
-                    self.save(like, par, simulations=sim,chains=cChain)
+                    #self.save(like, par, simulations=sim,chains=cChain)
                 else:
                     self.update_mcmc_status(self.bestpar[cChain][self.nChainruns[cChain]-1],self.bestlike[cChain],self.bestsim[cChain],cChain)   
-                    self.save(self.bestlike[cChain], self.bestpar[cChain][self.nChainruns[cChain]], 
-                                         simulations=self.bestsim[cChain],chains=cChain)
+                    #self.save(self.bestlike[cChain], self.bestpar[cChain][self.nChainruns[cChain]], 
+                    #                     simulations=self.bestsim[cChain],chains=cChain)
                 # Progress bar
                 
-                acttime = time.time()
+                #acttime = time.time()
                 self.iter+=1
                 self.nChainruns[cChain] +=1
-                if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
-                    self.r_hats.append(self.get_r_hat(self.bestpar))                
-                    #print(self.r_hats[-1])
-                    text = '%i of %i (best like=%g)' % (
-                        self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                #if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
+                #    self.r_hats.append(self.get_r_hat(self.bestpar))                
+                #    #print(self.r_hats[-1])
+                #    text = '%i of %i (best like=%g)' % (
+                #        self.iter + self.burnIn, repetitions, self.status.objectivefunction)
 
             r_hat = self.get_r_hat(self.bestpar)
             #print((r_hat < 1.2).all())
             self.r_hats.append(r_hat)
-            # Refresh progressbar every second
+            # Refresh progressbar every two seconds
+            acttime = time.time()
             if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
                 self.r_hats.append(self.get_r_hat(self.bestpar))                
-                text = '%i of %i (best like=%g)' % (
-                    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
-                print(text)
+                #text = '%i of %i (best like=%g)' % (
+                #    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                #print(text)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 text = "Convergence rates =" +str(np.around((r_hat),decimals=4)).strip('array([])')
@@ -326,19 +337,20 @@ class dream(_algorithm):
                 #Stop sampling
                 print('Convergence has been achieved after '+str(self.iter)+' of '+str(self.repetitions)+' runs! Sampling stopped.')
                 self.iter+=self.repetitions
+                
+        self.final_call()
 
 
-
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
+        #try:
+        #    self.datawriter.finalize()
+        #except AttributeError:  # Happens if no database was assigned
+        #    pass
+        #print('End of sampling')
+        #text = '%i of %i (best like=%g)' % (
+        #    self.status.rep, repetitions, self.status.objectivefunction)
+        #print(text)
+        #print('Best parameter set')
+        #print(self.status.params)
+        #text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
+        #print(text)
         return self.r_hats
