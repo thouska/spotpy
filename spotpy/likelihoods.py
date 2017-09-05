@@ -5,6 +5,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Benjamin Manns
 This module contains a framework to summarize the distance between the model simulations and corresponding observations
 by calculating likelihood values.
+We modified the formula so, that a best fit of model can be archived by maximizing negative likelihood to zero
 '''
 
 import numpy as np
@@ -676,7 +677,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
     """
     Under the assumption that the data are heteroscedastic, i.e. the they have for every measurement another error and
     that the residuals are non-Gaussian distributed we perform a likelihoodcalculation based on this formualar, having
-    :math:`k` as the skewness parameter from the data and where we assume that the kurtosis parameter :math:`nu > 2`:
+    :math:`k` as the skewness parameter from the data and where we assume that the kurtosis parameter :math:`\\nu > 2`:
 
 
      .. math::
@@ -694,14 +695,14 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
 
     .. math::
 
-            p_i = \\frac{2c_2\\Gamma(\\frac{\\nu+1}{2})\\sqrt{\\frac{nu}{nu-2}}}{\\Gamma(\\frac{nu}{2})\\sqrt{\\pi \\nu}\\sqrt{1-\\phi^2}\\sigma_i} \\times (1+\\frac{1}{nu-2}(\\frac{c_1+c_2+eta_i}{k^{sign(c_1+c_2+eta_i)}})^2)^{-\\frac{nu+1}{2}}
+            p_i = \\frac{2c_2\\Gamma(\\frac{\\nu+1}{2})\\sqrt{\\frac{\\nu}{\\nu-2}}}{\\Gamma(\\frac{\\nu}{2})\\sqrt{\\pi \\nu}\\sqrt{1-\\phi^2}\\sigma_i} \\times (1+\\frac{1}{\\nu-2}(\\frac{c_1+c_2+eta_i}{k^{sign(c_1+c_2+eta_i)}})^2)^{-\\frac{\\nu+1}{2}}
 
 
     and
 
     .. math::
 
-            c_1 = \\frac{(k^2-\\frac{1}{2})2\\Gamma(\\frac{nu+1}{2})\\sqrt{\\frac{nu}{nu-2}}(nu-2)}{k+\\frac{1}{k}\\Gamma(\\frac{nu}{2})\\sqrt{\\pi nu}(nu-1)}
+            c_1 = \\frac{(k^2-\\frac{1}{2})2\\Gamma(\\frac{\\nu+1}{2})\\sqrt{\\frac{\\nu}{\\nu-2}}(\\nu-2)}{k+\\frac{1}{k}\\Gamma(\\frac{\\nu}{2})\\sqrt{\\pi \\nu}(\\nu-1)}
 
 
     and
