@@ -49,7 +49,10 @@ def __byteArrayToString(a):
     """
     b = []
     for i in a:
-        b.append(i.decode("utf-8"))
+        try:
+            b.append(i.decode("utf-8"))
+        except:
+            b.append(i)
     return b
 
 
@@ -177,8 +180,8 @@ def logLikelihood(data, comparedata, measerror=None):
     measerror = np.array(measerror)
     size = measerror[measerror == 0.0].size
     if size > 0:
-        warnings.warn("[logLikelihood] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
+        warnings.warn("[logLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
+
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
 
@@ -245,8 +248,8 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
     measerror = np.array(measerror)
     size = measerror[measerror == 0.0].size
     if size > 0:
-        warnings.warn("[gaussianLikelihoodHomoHeteroDataError] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
+        warnings.warn("[gaussianLikelihoodHomoHeteroDataError] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
+
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     return np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
@@ -282,7 +285,9 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
     :type measerror: list
     :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
-        Following parameter are needed in this function: ["likelihood_beta"]
+        Following parameter are needed in this function:
+
+        -1 < `likelihood_phi` < 1
     :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
@@ -296,8 +301,7 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
     size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn(
-            "[LikelihoodAR1WithC] reaslized that you use distinct distributed values, that makes no sense at all"
-            "Please use another model for your study. The result will not makes sense.")
+            "[LikelihoodAR1WithC] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     paramDependencies = ["likelihood_phi"]
@@ -308,6 +312,7 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
         missingparams = []
         randomparset, parameternames = params
         parameternames = __byteArrayToString(parameternames)
+        randomparset = np.array(randomparset)
         for nm in paramDependencies:
             if nm not in parameternames:
                 missingparams.append(nm)
@@ -318,7 +323,11 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
                             "Following parameter are needed, too: "+str(missingparams))
 
 
-        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+        phi = float(randomparset[parameternames == 'likelihood_phi'])
+        # Break the calculation if given parameter are not valid
+        if abs(phi) >= 1:
+            warnings.warn("The parameter 'phi' should be real between -1 and 1 and is: " + str(phi))
+            return np.NAN
 
     expect = np.nanmean(data)
     errorArr = np.array(__calcSimpleDeviation(data, comparedata))
@@ -352,7 +361,9 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
     :type measerror: list
     :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
-        Following parameter are needed in this function: ["likelihood_phi"]
+        Following parameter are needed in this function:
+
+        -1 < `likelihood_phi` < 1
     :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
@@ -367,17 +378,16 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
 
     # I summarize from 2 to n, but range starts in 1 (in python it is zero index), so just shift it with one
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0]
+    size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn(
-            "[LikelihoodAR1NoC] reaslized that you use distinct distributed values, that makes no sense at all"
-            "Please use another model for your study. The result will not makes sense.")
+            "[LikelihoodAR1NoC] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     paramDependencies = ["likelihood_phi"]
 
     if params is None:
-        phi = TimeSeries.AR_1_Coeff(data)
+        phi = np.random.uniform(-0.99, 0.99, 1)
     else:
         missingparams = []
         randomparset, parameternames = params
@@ -387,18 +397,26 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
                 missingparams.append(nm)
         if missingparams.__len__() > 0:
             raise LikelihoodError(
-                            "Unfortunately contains your param list not all parameters which are needed for this class."
-                            "Following parameter are needed, too: "+str(missingparams))
+                "Unfortunately contains your param list not all parameters which are needed for this class."
+                "Following parameter are needed, too: "+str(missingparams))
+
 
         parameternames = np.array(parameternames)
-        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+        randomparset = np.array(randomparset)
+        phi = float(randomparset[parameternames == 'likelihood_phi'])
+
+        # Break the calculation if given parameter are not valid
+        if abs(phi) >= 1:
+            warnings.warn("The parameter 'phi' should be real between -1 and 1 and is: " + str(phi))
+            return np.NAN
+
 
     sum_1 = np.sum(np.log(measerror[1:]))
     sum_2 = np.sum(( (errorArr[1:] - phi * errorArr[:-1]) / measerror[1:]) ** 2)
 
 
-    return -(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
-                                                                       errorArr[0] ** 2 - sum_1 - 0.5 * sum_2
+    return float(-(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
+                                                                       errorArr[0] ** 2 - sum_1 - 0.5 * sum_2)
 
 
 
@@ -439,7 +457,19 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         simulate measurement errors
     :type measerror: list
     :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
-        Following parameter are needed in this function: ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+        Following parameter are needed in this function:
+
+        -1 < `likelihood_beta`   < 1,
+
+        0  < `likelihood_xsi`    <= 10,
+
+        0 <= `likelihood_sigma0` <= 1,
+
+        0 <= `likelihood_sigma1` <= 1,
+
+        0 <= `likelihood_phi1`    < 1,
+
+        0 <= `likelihood_muh`    <= 100
     :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
@@ -452,22 +482,30 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
+    comparedata = np.array(comparedata)
+
+    size = measerror[measerror == 0.0].size
+    if size > 0:
+        warnings.warn(
+            "[generalizedLikelihoodFunction] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
+        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     paramDependencies = ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
 
     if params is None:
         # for this params look into http://onlinelibrary.wiley.com/doi/10.1029/2009WR008933/epdf, page 5
         beta = np.random.uniform(-0.99,1,1)
-        xsi = np.random.uniform(0.1,10,1)
+        xsi = np.random.uniform(0.01,10,1)
         sigma0 = np.random.uniform(0,1,1)
         sigma1 = np.random.uniform(0, 1, 1)
-        phi1 = np.random.uniform(0, 1, 1)
+        phi1 = np.random.uniform(0, .99, 1)
         muh = np.random.uniform(0, 100, 1)
 
     else:
         missingparams=[]
         randomparset, parameternames = params
         parameternames = np.array(__byteArrayToString(parameternames))
+        randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
             if nm not in parameternames:
@@ -478,30 +516,30 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
                             "Unfortunately contains your param list not all parameters which are needed for this class."
                             "Following parameter are needed, too: "+str(missingparams))
 
-        beta = randomparset[np.where(parameternames == 'likelihood_beta')]
-        xsi = randomparset[np.where(parameternames == 'likelihood_xsi')]
-        sigma0 = randomparset[np.where(parameternames == 'likelihood_sigma0')]
-        sigma1 = randomparset[np.where(parameternames == 'likelihood_sigma1')]
-        phi1 = randomparset[np.where(parameternames == 'likelihood_phi1')]
-        muh = randomparset[np.where(parameternames == 'likelihood_muh')]
+        beta = float(randomparset[np.where(parameternames == 'likelihood_beta')])
+        xsi = float(randomparset[np.where(parameternames == 'likelihood_xsi')])
+        sigma0 = float(randomparset[np.where(parameternames == 'likelihood_sigma0')])
+        sigma1 = float(randomparset[parameternames == 'likelihood_sigma0'])
+        phi1 = float(randomparset[np.where(parameternames == 'likelihood_phi1')])
+        muh = float(randomparset[np.where(parameternames == 'likelihood_muh')])
 
-        # Break the calculation if given parameter are not in the
+        # Break the calculation if given parameter are not valid
         if beta <=-1 or beta > 1:
             warnings.warn("The parameter 'beta' should be greater then -1 and less equal 1 and is: "+str(beta))
             return np.NAN
         if xsi < 0.1 or xsi > 10:
             warnings.warn("The parameter 'xsi' should be between 0.1 and 10 and is: "+str(xsi))
             return np.NAN
-        if sigma0 < 0 or xsi > 1:
+        if sigma0 < 0 or sigma0 > 1:
             warnings.warn("The parameter 'sigma0' should be between 0 and 1 and is: "+str(sigma0))
             return np.NAN
-        if sigma1 < 0 or xsi > 1:
+        if sigma1 < 0 or sigma1 > 1:
             warnings.warn("The parameter 'sigma1' should be between 0 and 1 and is: "+str(sigma1))
             return np.NAN
-        if phi1 < 0 or xsi > 1:
+        if phi1 < 0 or phi1 > 1:
             warnings.warn("The parameter 'phi1' should be between 0 and 1 and is: "+str(phi1))
             return np.NAN
-        if muh < 0 or xsi > 100:
+        if muh < 0 or muh > 100:
             warnings.warn("The parameter 'muh' should be between 0 and 100 and is: "+str(muh))
             return np.NAN
 
@@ -511,7 +549,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3))
         M_1 = math.gamma(1 + beta) / (np.sqrt(math.gamma(3 * (1 + beta) / 2)) * np.sqrt(math.gamma((1 + beta) / 2)))
         M_2 = 1
-        sigma_xsi = np.sqrt(np.abs((M_2 - M_1 ** 2) * (xsi ** 2 + xsi ** (-2)) + 2 * M_1 ** 2 - M_2))
+        sigma_xsi = np.sqrt(np.abs(float((M_2 - M_1 ** 2) * (xsi ** 2 + xsi ** (-2)) + 2 * M_1 ** 2 - M_2)))
         cBeta = (math.gamma(3 * (1 + beta) / 2) / math.gamma((1 + beta) / 2)) ** (1 / (1 + beta))
     except ValueError:
         raise LikelihoodError("Please check your parameter input there is something wrong with the parameter")
@@ -549,6 +587,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     mu_t = np.mean(muh*comparedata)
 
     E = comparedata*mu_t
+
     sigmas = sigma0 +sigma1*E
     if sigmas[sigmas <= 0.0].size > 0:
         warnings.warn("Sorry, you comparedata have negative values. Maybe you model has some inaccurate"
@@ -556,7 +595,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
                               " We cannot calculate this likelihood")
         return np.NAN
 
-    return float(n * np.log(omegaBeta * (2 * sigma_xsi) / np.abs(xsi + (1 / xsi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at)
+    return n * np.log(omegaBeta * (2 * sigma_xsi) / np.abs(xsi + (1 / xsi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at
 
 
 
@@ -592,8 +631,7 @@ def LaplacianLikelihood(data, comparedata, measerror=None):
 
     size = measerror[measerror == 0.0].size
     if size > 0:
-        warnings.warn("[LaplacianLikelihood] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
+        warnings.warn("[LaplacianLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
     return -1 * np.sum(np.log(2 * measerror)) - np.sum(np.abs(errArr) / measerror)
@@ -686,7 +724,13 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
     :type measerror: list
     :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
-        Following parameter are needed in this function: ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+        Following parameter are needed in this function:
+
+        `likelihood_nu` > 2
+
+        `likelihood_kappa` > 0
+
+        -1 < `likelihood_phi` < 1
     :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
@@ -697,11 +741,10 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
 
     measerror = np.array(measerror)
 
-    size = measerror[measerror == 0.0]
+    size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn(
-            "[SkewedStudentLikelihoodHeteroscedastic] reaslized that you use distinct distributed values, that makes no sense at all"
-            "Please use another model for your study. The result will not makes sense.")
+            "[SkewedStudentLikelihoodHeteroscedastic] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     res = np.array(__calcSimpleDeviation(data, comparedata))
@@ -719,6 +762,9 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
         randomparset, parameternames = params
         parameternames = np.array(__byteArrayToString(parameternames))
 
+
+        randomparset = np.array(randomparset)
+
         for nm in paramDependencies:
             if nm not in parameternames:
                 missingparams.append(nm)
@@ -728,9 +774,9 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
                 "Unfortunately contains your param list not all parameters which are needed for this class."
                 "Following parameter are needed, too: " + str(missingparams))
 
-        nu = randomparset[np.where(parameternames == 'likelihood_nu')]
-        k = randomparset[np.where(parameternames == 'likelihood_kappa')]
-        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+        nu = randomparset[parameternames == 'likelihood_nu']
+        k = randomparset[parameternames == 'likelihood_kappa']
+        phi = randomparset[parameternames == 'likelihood_phi']
 
         if abs(phi) > 1:
             warnings.warn("[SkewedStudentLikelihoodHeteroscedastic] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
@@ -786,7 +832,13 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
     :param measerror: measurement errors of every data input, if nothing is given a standart calculation is done to simulate measurement errors
     :type measerror: list
     :param params: Contains a tuple of model parameter which are needed for calculating the likelihood. Where the first component contains the values and the second the names of the valules.
-        Following parameter are needed in this function: ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+        Following parameter are needed in this function:
+
+        `likelihood_nu` > 2
+
+        `likelihood_kappa` > 0
+
+        -1 < `likelihood_phi` < 1
     :type params: tuple
     :return: the p value as a likelihood
     :rtype: float
@@ -796,17 +848,17 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         measerror = __generateMeaserror(data)
 
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0]
+
+    size = measerror[measerror == 0.0].size
+
     if size > 0:
         warnings.warn(
-            "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] reaslized that you use distinct distributed values, that makes no sense at all"
-            "Please use another model for your study. The result will not makes sense.")
+            "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
     paramDependencies = ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]
-
     if params is None:
         # based on VRUGTS paper, footnote "YING", page 307
         nu = np.random.uniform(2.001, 100, 1)
@@ -817,6 +869,7 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         missingparams = []
         randomparset, parameternames = params
         parameternames = np.array(__byteArrayToString(parameternames))
+        randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
             if nm not in parameternames:
@@ -827,9 +880,9 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
                 "Unfortunately contains your param list not all parameters which are needed for this class."
                 "Following parameter are needed, too: " + str(missingparams))
 
-        nu = randomparset[np.where(parameternames == 'likelihood_nu')]
-        k = randomparset[np.where(parameternames == 'likelihood_kappa')]
-        phi = randomparset[np.where(parameternames == 'likelihood_phi')]
+        nu = randomparset[parameternames == 'likelihood_nu']
+        k = randomparset[parameternames == 'likelihood_kappa']
+        phi = randomparset[parameternames == 'likelihood_phi']
 
         if abs(phi) > 1:
             warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
@@ -897,11 +950,13 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
 
     size = sigmas[sigmas == 0.0].size
     if size > 0:
-        warnings.warn("[NoisyABCGaussianLikelihood] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
+        warnings.warn("[NoisyABCGaussianLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         sigmas[sigmas == 0.0] = np.random.uniform(0.01,0.1,size)
 
-
+    if measerror == 0.0:
+        warnings.warn(
+            "[NoisyABCGaussianLikelihood] reaslized that the mean of the measerror is zero and therefore is no likelihood calculation possible")
+        return np.NAN
 
     m = data.__len__()
     data = np.array(data)
@@ -941,8 +996,7 @@ def ABCBoxcarLikelihood(data, comparedata, measerror=None):
     measerror = np.array(measerror)
     size = measerror[measerror == 0.0].size
     if size > 0:
-        warnings.warn("[ABCBoxcarLikelihood] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
+        warnings.warn("[ABCBoxcarLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
     # Usage of euclidean distance changes the formula a bit
@@ -983,8 +1037,7 @@ def LimitsOfAcceptability(data, comparedata, measerror=None):
     measerror = np.array(measerror)
     size = measerror[measerror == 0.0].size
     if size > 0:
-        warnings.warn("[LimitsOfAcceptability] reaslized that you use distinct distributed values, that makes no sense at all"
-                      "Please use another model for your study. The result will not makes sense.")
+        warnings.warn("[LimitsOfAcceptability] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     # Use simple non euclidean but weighted distance measurement.
@@ -1018,9 +1071,13 @@ def InverseErrorVarianceShapingFactor(data, comparedata, G=10):
 
     __standartChecksBeforeStart(data, comparedata)
 
-    errArr = np.array(__calcSimpleDeviation(data, comparedata))
-
-    return -G*np.log(np.nanvar(errArr))
+    errArr = np.nanvar(np.array(__calcSimpleDeviation(data, comparedata)))
+    if errArr == 0.0:
+        warnings.warn(
+            "[InverseErrorVarianceShapingFactor] reaslized that the variance in y(x)-y is zero and that makes no sence and also impossible to calculate the likelihood.")
+        return np.NAN
+    else:
+        return -G*np.log(errArr)
 
 
 def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):
@@ -1054,16 +1111,20 @@ def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):
 
     errArr = np.array(__calcSimpleDeviation(data, comparedata))
 
-    ratio = np.nanvar(errArr)/np.nanvar(data)
-
-    if ratio > 1:
-        warnings.warn("[NashSutcliffeEfficiencyShapingFactor]: The ratio between residual variation and observation "
-                      "variation is bigger then one and therefore"
-                      "we can not calculate the liklihood. Please use another function which fits to this data and / or "
-                      "model")
+    if np.nanvar(data) == 0.0:
+        warnings.warn("[NashSutcliffeEfficiencyShapingFactor] reaslized that the variance of the data is zero. Thereforee is no likelihood calculation possible")
         return np.NAN
     else:
-        return G*np.log(1-ratio)
+        ratio = np.nanvar(errArr)/np.nanvar(data)
+
+        if ratio > 1:
+            warnings.warn("[NashSutcliffeEfficiencyShapingFactor]: The ratio between residual variation and observation "
+                          "variation is bigger then one and therefore"
+                          "we can not calculate the liklihood. Please use another function which fits to this data and / or "
+                          "model")
+            return np.NAN
+        else:
+            return G*np.log(1-ratio)
 
 
 def ExponentialTransformErrVarShapingFactor(data, comparedata,G=10):
@@ -1117,5 +1178,4 @@ def sumOfAbsoluteErrorResiduals(data, comparedata):
     __standartChecksBeforeStart(data, comparedata)
 
     errArr = np.array(__calcSimpleDeviation(data,comparedata))
-
     return -1*np.log(np.sum(np.abs(errArr)))
