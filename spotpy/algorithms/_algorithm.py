@@ -62,8 +62,8 @@ class _RunStatistic(object):
         acttime = time.time()
         # Refresh progressbar every two second
         if acttime - self.last_print >= 2:
-            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - self.starttime) /
-                                                (rep + 1)) * (self.repetitions - (self.rep + 1)))))
+            avg_time_per_run = (acttime - self.starttime) / (rep + 1)
+            timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (rep + 1)))))
                     
             text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, self.repetitions,
                                                                         self.objectivefunction, timestr)
@@ -179,10 +179,9 @@ class _algorithm(object):
         except AttributeError:  # Happens if no database was assigned
             pass
         print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
+        text = 'Best run at %i of %i (best like=%g) with parameter set:' % (
             self.status.rep, self.status.repetitions, self.status.objectivefunction)
         print(text)
-        print('Best parameter set')
         print(self.status.params)
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
         print(text)
