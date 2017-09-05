@@ -20,11 +20,7 @@ class LikelihoodError(Exception):
 
 
 def __generateMeaserror(data):
-    mse = []
-    for t in range(data.__len__()):
-        # calculate the sd of one data point, i.e. sqrt((dataPointWithError-RealDataPoint)^2)
-        mse.append(np.sqrt((data[t] * 2 * 0.1 + data[t] * 2 * 0.1 - data[t]) ** 2))
-    return mse
+    return np.array(data)*0.1
 
 
 def __calcSimpleDeviation(data, comparedata):
