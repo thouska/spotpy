@@ -485,9 +485,27 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         phi1 = randomparset[np.where(parameternames == 'likelihood_phi1')]
         muh = randomparset[np.where(parameternames == 'likelihood_muh')]
 
+        # Break the calculation if given parameter are not in the
+        if beta <=-1 or beta > 1:
+            warnings.warn("The parameter 'beta' should be greater then -1 and less equal 1 and is: "+str(beta))
+            return np.NAN
+        if xsi < 0.1 or xsi > 10:
+            warnings.warn("The parameter 'xsi' should be between 0.1 and 10 and is: "+str(xsi))
+            return np.NAN
+        if sigma0 < 0 or xsi > 1:
+            warnings.warn("The parameter 'sigma0' should be between 0 and 1 and is: "+str(sigma0))
+            return np.NAN
+        if sigma1 < 0 or xsi > 1:
+            warnings.warn("The parameter 'sigma1' should be between 0 and 1 and is: "+str(sigma1))
+            return np.NAN
+        if phi1 < 0 or xsi > 1:
+            warnings.warn("The parameter 'phi1' should be between 0 and 1 and is: "+str(phi1))
+            return np.NAN
+        if muh < 0 or xsi > 100:
+            warnings.warn("The parameter 'muh' should be between 0 and 100 and is: "+str(muh))
+            return np.NAN
 
-    if beta <=-1:
-        raise LikelihoodError("The parameter 'beta' must be greater then -1")
+
 
     try:
         omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3))
@@ -500,7 +518,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
 
 
     if xsi != 0.0:
-        mu_xsi = M_1 * (xsi - (xsi) ** (-1))
+        mu_xsi = M_1 * (xsi - (xsi ** (-1)))
     else:
         mu_xsi = 0.0
 
@@ -533,9 +551,10 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     E = comparedata*mu_t
     sigmas = sigma0 +sigma1*E
     if sigmas[sigmas <= 0.0].size > 0:
-        raise LikelihoodError("Sorry, you comparedata have negative values. Maybe you model has some inaccurate"
+        warnings.warn("Sorry, you comparedata have negative values. Maybe you model has some inaccurate"
                               " assumptions or there is another error."
                               " We cannot calculate this likelihood")
+        return np.NAN
 
     return float(n * np.log(omegaBeta * (2 * sigma_xsi) / np.abs(xsi + (1 / xsi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at)
 
@@ -678,6 +697,13 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
 
     measerror = np.array(measerror)
 
+    size = measerror[measerror == 0.0]
+    if size > 0:
+        warnings.warn(
+            "[SkewedStudentLikelihoodHeteroscedastic] reaslized that you use distinct distributed values, that makes no sense at all"
+            "Please use another model for your study. The result will not makes sense.")
+        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
     paramDependencies = ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]
@@ -706,40 +732,34 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
         k = randomparset[np.where(parameternames == 'likelihood_kappa')]
         phi = randomparset[np.where(parameternames == 'likelihood_phi')]
 
+        if abs(phi) > 1:
+            warnings.warn("[SkewedStudentLikelihoodHeteroscedastic] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
+            return np.NAN
+        if nu <= 2:
+            warnings.warn(
+                "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'nu' should be greater then 2 and is: " + str(
+                    nu))
+            return np.NAN
+        if k <= 0:
+            warnings.warn(
+                "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'k' should be greater then 0 and is: " + str(
+                    k))
+            return np.NAN
 
     eta_all = res[1:] - phi * res[:-1] * np.sqrt(1 - phi ** 2)
 
+    c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
+        (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
 
-    if nu > 2:
+    for_c2 = -1 * (c_1) ** 2 + (k ** 3 + 1 / k ** 3) / (k + 1 / k)
 
-        c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
-            (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
+    c_2 = np.sqrt(for_c2)
 
-        for_c2 = -1 * (c_1) ** 2 + (k ** 3 + 1 / k ** 3) / (k + 1 / k)
-        if for_c2 < 0:
-            warnings.warn("[SkewedStudentLikelihoodHeteroscedastic]: The correction term c2 is negative and that means that the assumption failed."
-                                  "A heteroscedastic skewed student likelihood can not be calculated. We are sorry.")
-            return np.NAN
-        else:
-            c_2 = np.sqrt(for_c2)
-
-        measerror = np.array(measerror)
-        size = measerror[measerror == 0.0]
-        if size > 0:
-            warnings.warn(
-                "[SkewedStudentLikelihoodHeteroscedastic] reaslized that you use distinct distributed values, that makes no sense at all"
-                "Please use another model for your study. The result will not makes sense.")
-            measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
-
-        return np.prod( (2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
-            (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
-                       * (1 + (1 / (nu - 2)) * (
-                           (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
-                           -(nu + 1) / 2))
-
-    else:
-        warnings.warn("[SkewedStudentLikelihoodHeteroscedastic]: The kurtosis parameter is " + str(nu) + " and should be > 2")
-        return np.NAN
+    return np.prod( (2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
+        (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
+                   * (1 + (1 / (nu - 2)) * (
+                       (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
+                       -(nu + 1) / 2))
 
 
 def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, measerror=None,params=None):
@@ -776,6 +796,13 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         measerror = __generateMeaserror(data)
 
     measerror = np.array(measerror)
+    size = measerror[measerror == 0.0]
+    if size > 0:
+        warnings.warn(
+            "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] reaslized that you use distinct distributed values, that makes no sense at all"
+            "Please use another model for your study. The result will not makes sense.")
+        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
     paramDependencies = ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]
@@ -804,48 +831,33 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         k = randomparset[np.where(parameternames == 'likelihood_kappa')]
         phi = randomparset[np.where(parameternames == 'likelihood_phi')]
 
+        if abs(phi) > 1:
+            warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
+            return np.NAN
+        if nu <= 2:
+            warnings.warn(
+                "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'nu' should be greater then 2 and is: " + str(
+                    nu))
+            return np.NAN
+        if k <= 0:
+            warnings.warn(
+                "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'k' should be greater then 0 and is: " + str(
+                    k))
+            return np.NAN
+
     N = data.__len__()
     eta_all = (res[1:] - phi * res[:-1] + phi / (N) * np.sum(res)) * np.sqrt(1 - phi ** 2)
 
-    if nu <= 2 :
-        warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The kurtosis parameter is " + str(
-            nu) + " and should be > 2")
-        return np.NAN
-    elif abs(phi) >= 1:
-        warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The absolute value of the phi parameter is " + str(
-            abs(phi)) + " and should be < 1")
-    elif k <=0:
-        warnings.warn(
-            "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The kappa is " + str(
-                k) + " and should be > 1")
-    else:
+    c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / ((k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
+    for_c2 = -1 * (c_1) ** 2 + (k ** 3 + 1 / k ** 3) / (k + 1 / k)
 
-        c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
-            (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
+    c_2 = np.sqrt(for_c2)
 
-        for_c2 = -1 * (c_1) ** 2 + (k ** 3 + 1 / k ** 3) / (k + 1 / k)
-        if for_c2 < 0:
-            warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel]: The correction term c2 is negative and that means that the assumption failed."
-                                  "An advanced AR-Model skewed student likelihood can not be calculated. We are sorry.")
-            return np.NAN
-
-        else:
-            c_2 = np.sqrt(for_c2)
-
-        measerror = np.array(measerror)
-        size = measerror[measerror == 0.0]
-        if size > 0:
-            warnings.warn(
-                "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] reaslized that you use distinct distributed values, that makes no sense at all"
-                "Please use another model for your study. The result will not makes sense.")
-            measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
-
-
-        return np.prod((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
-            (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
-                       * (1 + (1 / (nu - 2)) * (
-            (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
-                           -(nu + 1) / 2))
+    return np.prod((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
+        (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
+                   * (1 + (1 / (nu - 2)) * (
+        (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
+                       -(nu + 1) / 2))
 
 
 
