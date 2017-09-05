@@ -73,9 +73,28 @@ class mcmc(_algorithm):
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
+    def check_par_validity_reflect(self, par):
+        if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
+            for i in range(len(par)):
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i] + (self.min_bound[i]- par[i])
+                elif par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i] - (par[i] - self.max_bound[i])
+
+            # Postprocessing if reflecting jumped out of bounds
+            for i in range(len(par)):
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i]
+                if par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i]
+        else:
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
+        return par
+        
     def get_new_proposal_vector(self,old_par):
         new_par = np.random.normal(loc=old_par, scale=self.stepsizes)
-        new_par = self.check_par_validity(new_par)
+        #new_par = self.check_par_validity(new_par)
+        new_par = self.check_par_validity_reflect(new_par)
         return new_par
 
     def update_mcmc_status(self,par,like,sim,cur_chain):  
@@ -85,15 +104,15 @@ class mcmc(_algorithm):
 
             
     def sample(self, repetitions,nChains=1):
+        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
         # Prepare storing MCMC chain as array of arrays.
-        # define stepsize of MCMC.
-        self.repetitions = int(repetitions)
         self.nChains = int(nChains)
         #Ensure initialisation of chains and database
         self.burnIn = self.nChains
+        # define stepsize of MCMC.        
         self.stepsizes = self.parameter()['step']  # array of stepsizes
-        starttime = time.time()
-        intervaltime = starttime
+
         # Metropolis-Hastings iterations.
         self.bestpar=np.array([[np.nan]*len(self.stepsizes)]*self.nChains)
         self.bestlike=[[-np.inf]]*self.nChains
@@ -102,70 +121,37 @@ class mcmc(_algorithm):
         self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        
-        firstcall = True
-        
         print('Inititalize ',self.nChains, ' chain(s)...')
         self.iter=0
         param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
-        for curChain,par,sim in self.repeat(param_generator):
-            
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=sim)
-            
-            self.update_mcmc_status(par,like,sim,curChain)
-            self.save(like, par, simulations=sim,chains=curChain)
-            self.status(self.iter, like, par)
+        for curChain,randompar,simulations in self.repeat(param_generator):
+            # A function that calculates the fitness of the run and the manages the database 
+            like = self.postprocessing(self.iter, randompar, simulations, chains=curChain)
+            self.update_mcmc_status(randompar, like, simulations, curChain)
             self.iter+=1
-            # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    self.iter, repetitions, self.status.objectivefunction)
-                print(text)
-                intervaltime = time.time()
 
+        intervaltime = time.time()
         print('Beginn of Random Walk')
-        #Walf through chains
-        while self.iter <= self.repetitions - self.burnIn:
+        # Walk through chains
+        while self.iter <= repetitions - self.burnIn:
             param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in range(int(self.nChains)))                
-            for cChain,par,sim in self.repeat(param_generator):
-                
-                like = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=sim)
+            for cChain,randompar,simulations in self.repeat(param_generator):
+                # A function that calculates the fitness of the run and the manages the database                 
+                like = self.postprocessing(self.iter, randompar, simulations, chains=cChain)
                 logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
                 u = np.random.uniform(low=0.3, high=1)
                 if logMetropHastRatio>1.0 or logMetropHastRatio>u:
-                    self.update_mcmc_status(par,like,sim,cChain)   
+                    self.update_mcmc_status(randompar,like,simulations,cChain)   
                     self.accepted[cChain] += 1  # monitor acceptance
-                    self.save(like, par, simulations=sim,chains=cChain)
-                else:
-                    self.save(self.bestlike[cChain], self.bestpar[cChain], 
-                                         simulations=self.bestsim[cChain],chains=cChain)
-                self.status(self.iter, like, par)                                
+                self.iter+=1                             
                 # Progress bar
                 acttime = time.time()
-                self.iter+=1
-            # Refresh progressbar every second
+            #Refresh MCMC progressbar every two second
             if acttime - intervaltime >= 2 and self.iter >=2:
                 text = '%i of %i (best like=%g)' % (
                     self.iter + self.burnIn, repetitions, self.status.objectivefunction)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 intervaltime = time.time()
-                
+        self.final_call()       
 
-
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)

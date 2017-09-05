@@ -14,6 +14,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
 import numpy as np
+import time
 
 
 class _RunStatistic(object):
@@ -32,7 +33,14 @@ class _RunStatistic(object):
         self.params = None
         self.objectivefunction = -1e308
 
+        self.starttime = time.time()
+        self.last_print = time.time()
+        
+        self.repetitions = None
+
+
     def __call__(self, rep, objectivefunction, params):
+        self.curparmeterset = params
         if type(objectivefunction) == type([]):
             if objectivefunction[0] > self.objectivefunction:
                 # Show only the first best objectivefunction when working with
@@ -45,9 +53,23 @@ class _RunStatistic(object):
                 self.params = params
                 self.objectivefunction = objectivefunction
                 self.rep = rep
-            return True
-        return False
+        self.print_status(rep)
+            #return True
+        #return False
 
+    def print_status(self, rep):
+        # get str showing approximate timeleft to end of simulation in H, M, S
+        acttime = time.time()
+        # Refresh progressbar every two second
+        if acttime - self.last_print >= 2:
+            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - self.starttime) /
+                                                (rep + 1)) * (self.repetitions - (self.rep + 1)))))
+                    
+            text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, self.repetitions,
+                                                                        self.objectivefunction, timestr)
+            print(text)
+            self.last_print = time.time()
+        
     def __repr__(self):
         return 'Best objectivefunction: %g' % self.objectivefunction
 
@@ -97,6 +119,7 @@ class _algorithm(object):
         self.setup = spot_setup
         self.model = self.setup.simulation
         self.parameter = self.setup.parameters
+        self.parnames = self.parameter()['name']
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
         self.objectivefunction = getattr(
@@ -146,14 +169,32 @@ class _algorithm(object):
         self.repeat.start()
         self.status = _RunStatistic()
 
+    def set_repetiton(self, repetitions):
+        self.status.repetitions = repetitions
+        
+    def final_call(self):
+        self.repeat.terminate()
+        try:
+            self.datawriter.finalize()
+        except AttributeError:  # Happens if no database was assigned
+            pass
+        print('End of sampling')
+        text = '%i of %i (best like=%g)' % (
+            self.status.rep, self.status.repetitions, self.status.objectivefunction)
+        print(text)
+        print('Best parameter set')
+        print(self.status.params)
+        text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
+        print(text)
+    
     def save(self, like, randompar, simulations, chains=1):
         # Initialize the database if no run was performed so far
         if self.dbformat and self.status.rep == None:
             print('Initialize database...')
             writerclass = getattr(database, self.dbformat)
-            parnames = self.setup.parameters()['name']
+            
             self.datawriter = writerclass(
-                self.dbname, parnames, like, randompar, simulations, save_sim=self.save_sim, 
+                self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
                 dbinit=self.dbinit)
             self.status.rep = 1
         else:
@@ -185,7 +226,36 @@ class _algorithm(object):
             return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)[1:]
         if self.dbformat == 'sql':
             return self.datawriter.getdata
+        if self.dbformat == 'noData':
+            return self.datawriter.getdata
 
+    def postprocessing(self, rep, randompar, simulation, chains=1, save=True, negativlike=False):
+        like = self.getfitness(simulation=simulation, params=randompar)
+        # Save everything in the database, if save is True
+        # This is needed as some algorithms just want to know the fitness,
+        # before they actually save the run in a database (e.g. sce-ua)
+        if save is True:
+            if negativlike is True:
+                self.save(-like, randompar, simulations=simulation, chains=chains)              
+                self.status(rep, -like, randompar)
+            else:
+                self.save(like, randompar, simulations=simulation, chains=chains)
+                self.status(rep, like, randompar)        
+        return like
+    
+    
+    def getfitness(self, simulation, params):
+        """
+        Calls the user defined spot_setup objectivefunction
+        """
+        try:
+            #print('Using parameters in fitness function')
+            return self.objectivefunction(evaluation=self.evaluation, simulation=simulation, params = (params,self.parnames))
+
+        except TypeError: # Happens if the user does not allow to pass parameter in the spot_setup.objectivefunction
+            #print('Not using parameters in fitness function')            
+            return self.objectivefunction(evaluation=self.evaluation, simulation=simulation)
+    
     def simulate(self, id_params_tuple):
         """This is a simple wrapper of the model, returning the result together with
         the run id and the parameters. This is needed, because some parallel things

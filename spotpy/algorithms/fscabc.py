@@ -92,6 +92,8 @@ class fscabc(_algorithm):
         backup_every_rep: int
             writes a breakpoint after every generation, if more at least the specified number of samples are carried out after writing the last breakpoint
         """
+        print('Starting the FSCABC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
         # Initialize the progress bar
         starttime = time.time()
         intervaltime = starttime
@@ -132,31 +134,32 @@ class fscabc(_algorithm):
                 (rep, self.parameter()['random']) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                like = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+                like = self.postprocessing(rep, randompar, simulations)
+                #like = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=simulations)
 
                 # Save everything in the database
-                self.save(like, randompar, simulations=simulations)
+                #self.save(like, randompar, simulations=simulations)
                 
                 # Update status information (always do that after saving)
-                self.status(rep, like, randompar)
+                #self.status(rep, like, randompar)
 
                 c = 0
                 p = 0
                 # (fit_x,x,fit_v,v,limit,normalized fitness)
                 work.append([like, randompar, like, randompar, c, p])
                 # Progress bar
-                acttime = time.time()
+                #acttime = time.time()
                 # get str showing approximate timeleft to end of simulation in H,
                 # M, S
 #                timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
 #                                                                    (rep + 1)) * (repetitions - (rep + 1)))))
                 # Refresh progressbar every second
-                if acttime - intervaltime >= 2:
-                    text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
-                                                                                self.status.objectivefunction, timestr)
-                    print(text)
-                    intervaltime = time.time()
+#                if acttime - intervaltime >= 2:
+#                    text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
+#                                                                                self.status.objectivefunction, timestr)
+#                    print(text)
+#                    intervaltime = time.time()
 
 
         #Bee Phases
@@ -184,8 +187,9 @@ class fscabc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+                clike = self.postprocessing(icall, randompar, simulations, chains=1)
+                #clike = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=simulations)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -194,11 +198,11 @@ class fscabc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 
                 # Save everything in the database
-                self.save(
-                    clike, work[rep][3], simulations=simulations, chains=icall)
+                #self.save(
+                #    clike, work[rep][3], simulations=simulations, chains=icall)
                 
                 # Update status information (always do that after saving)
-                self.status(rep, work[rep][0], work[rep][1])
+                #self.status(rep, work[rep][0], work[rep][1])
                 icall += 1
             # Fitness scaling
             bn = []
@@ -234,17 +238,18 @@ class fscabc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+                clike = self.postprocessing(icall, randompar, simulations, chains=2)
+                #clike = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=simulations)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
                     work[rep][4] = work[rep][4] + 1
-                self.status(rep, work[rep][0], work[rep][1])
-                self.save(
-                    clike, work[rep][3], simulations=simulations, chains=icall)
+                #self.status(rep, work[rep][0], work[rep][1])
+                #self.save(
+                #    clike, work[rep][3], simulations=simulations, chains=icall)
                 icall += 1
         # Scout bee phase
             for i, val in enumerate(work):
@@ -255,16 +260,17 @@ class fscabc(_algorithm):
                     work[i][4] = 0
                     t, work[i][0], simulations = self.simulate(
                         (icall, work[i][1]))
-                    clike = self.objectivefunction(
-                        evaluation=self.evaluation, simulation=simulations)
-                    self.save(
-                        clike, work[rep][3], simulations=simulations, chains=icall)
+                    clike = self.postprocessing(icall, randompar, simulations, chains=3)
+                    #clike = self.objectivefunction(
+                    #    evaluation=self.evaluation, simulation=simulations)
+                    #self.save(
+                    #    clike, work[rep][3], simulations=simulations, chains=icall)
                     work[i][0] = clike
                     icall += 1
             gnrng = -self.status.objectivefunction
-            text = '%i of %i (best like=%g)' % (
-                icall, repetitions, self.status.objectivefunction)
-            print(text)
+            #text = '%i of %i (best like=%g)' % (
+            #    icall, repetitions, self.status.objectivefunction)
+            #print(text)
             if self.breakpoint == 'write' or self.breakpoint == 'readandwrite' and icall >= lastbackup+self.backup_every_rep:
                 self.writebreakdata(self.dbname, work,r,icall,gnrng)
                 lastbackup=icall
@@ -277,13 +283,5 @@ class fscabc(_algorithm):
             if gnrng < peps:
                 print(
                     'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
-        print('Best parameter set:')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(-self.status.objectivefunction)
-        print(icall)
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
+        self.final_call()
 
