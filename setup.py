@@ -1,19 +1,22 @@
+# Copyright (c) 2015, Tobias Houska
+
 from setuptools import setup
+import os
 
 setup(
   name = 'spotpy',
   version = '1.3.5',
   description = 'A Statistical Parameter Optimization Tool',
-
+  long_description=open(os.path.join(os.path.dirname(__file__),
+                                       "README.rst")).read(),
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
-  #download_url = 'svn://fb09-pasig.umwelt.uni-giessen.de/spotpy/trunk/', 
   license = 'MIT',
   packages = ["spotpy", "spotpy.examples", "spotpy.examples.hymod", "spotpy.algorithms", "spotpy.parallel"],
   include_package_data = True,
   use_2to3 = True,
-  keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model', 'Signatures'],
+  keywords = ['Monte Carlo', 'MCMC','MLE', 'SCE-UA', 'Simulated Annealing', 'DE-MCz', 'DREAM', 'ROPE', 'Artifical Bee Colony', 'Uncertainty', 'Calibration', 'Model', 'Signatures'],
   classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
