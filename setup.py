@@ -5,10 +5,9 @@ import os
 
 setup(
   name = 'spotpy',
-  version = '1.3.5',
   description = 'A Statistical Parameter Optimization Tool',
   long_description=open(os.path.join(os.path.dirname(__file__),
-                                       "README.md")).read(),
+                                       "README.rst")).read(),
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
