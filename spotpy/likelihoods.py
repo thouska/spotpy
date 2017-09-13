@@ -156,9 +156,11 @@ def logLikelihood(data, comparedata, measerror=None):
 
     .. math::
 
-            p = -n/2\\log(2*\\pi)-\\sum_{t=1}^n \\log(\\sigma_t)-0.5*\\sum_{t=1}^n (\\frac{y_t-y_t(x)}{\\sigma_t})^2
+            p = \\frac{n}{2}\\log(2\\cdot\\pi)+\\sum_{t=1}^n \\log(\\sigma_t)+0.5\\cdot\\sum_{t=1}^n (\\frac{y_t-y_t(x)}{\\sigma_t})^2
 
-    `Usage:` Minimizing the likelihood value guides to the best model.
+
+    `Usage:` Maximizing the likelihood value guides to the best model. To do so, we modified the original formula of the
+    paper.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -181,8 +183,8 @@ def logLikelihood(data, comparedata, measerror=None):
 
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
-
-    return -data.__len__()/2*np.log(2*np.pi)-np.sum(np.log(measerror))-0.5*np.sum(((data-comparedata)/measerror)**2)
+    # TODO: Maximize is done but in positive way (from negative to zero is hard)
+    return data.__len__()/2*np.log(2*np.pi) + np.nansum(np.log(measerror)) + 0.5*np.sum(((data-comparedata)/measerror)**2)
 
 
 def gaussianLikelihoodMeasErrorOut(data, comparedata):
@@ -197,8 +199,7 @@ def gaussianLikelihoodMeasErrorOut(data, comparedata):
     with :math:`e_t` is the error residual from `data` and `comparedata`
 
 
-    `Usage:` The value is always negative, but the "bigger" it is (closer to zero) the better is the fitting.
-    So in comparing models, a bigger value leass or equal zero is the goal.
+    `Usage:` Maximizing the likelihood value guides to the best model.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -225,7 +226,7 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
             p = \\prod_{t=1}^{n}\\frac{1}{\\sqrt{2\\pi\\sigma_t^2}}exp(-0.5(\\frac{\\bar y_t - y_t(x) }{sigma_t})^2)
 
 
-    `Usage:` Minimizing the likelihood value guides to the best model.
+    `Usage:` Maximizing the likelihood value guides to the best model.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -249,7 +250,8 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
 
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
-    return np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
+    # TODO Maximizing with negative to zero?
+    return -np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
 
 
 
@@ -273,7 +275,7 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
 
             p = -n/2*\\log(2\\pi)-0.5*\\log(\\sigma_1^2/(1-\\phi^2))-\\frac{(e_1(x)-(c/(1-\\phi)))^2}{2\\sigma^2/(1-\\phi^2)}-\\sum_{t=2}^{n}\\log(\\sigma_t)-0.5\\sum_{t=2}^{n}(\\frac{(e_t(x)-c-\\phi e_{t-1}(x))}{\\sigma_t})^2
 
-    `Usage:` Minimizing the likelihood value guides to the best model.
+    `Usage:` Maximizing the likelihood value guides to the best model.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -336,8 +338,10 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
 
     sum_2 = np.sum(((errorArr[1:] - c - phi * errorArr[:-1]) / (measerror[1:])) ** 2)
 
-    return -(n / 2) * np.log(2 * np.pi) - 0.5 * np.log(measerror[0] ** 2 / (1 - phi ** 2)) - (
-        (errorArr[0] - (c / (1 - phi))) ** 2 / (2 * measerror[0] ** 2 / (1 - phi ** 2))) - sum_1 - 0.5 * sum_2
+    #TODO Its maximaized but maybe from negative to zero, is that possible?
+    return -(-(n / 2) * np.log(2 * np.pi) - 0.5 * np.log(measerror[0] ** 2 / (1 - phi ** 2)) - (
+        (errorArr[0] - (c / (1 - phi))) ** 2 / (2 * measerror[0] ** 2 / (1 - phi ** 2))) - sum_1 - 0.5 * sum_2)
+
 
 
 def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
@@ -349,7 +353,7 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
 
             p = -n/2*\\log(2\\pi)+0.5\\log(1-\\phi^2)-0.5(1-\\phi^2)\\sigma_1^{-2}e_1(x)^2-\\sum_{t=2}^{n}\\log(\\sigma_t)-0.5\\sum_{t=2}^{n}(\\frac{e_t(x)-\\phi e_{t-1}(x)}{\\sigma_t})^2
 
-    `Usage:` Minimizing the likelihood value guides to the best model.
+    `Usage:` Maximizing the likelihood value guides to the best model.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -411,8 +415,8 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
     sum_1 = np.sum(np.log(measerror[1:]))
     sum_2 = np.sum(( (errorArr[1:] - phi * errorArr[:-1]) / measerror[1:]) ** 2)
 
-
-    return float(-(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
+    # TODO Maximizing with negative to zero?
+    return -float(-(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
                                                                        errorArr[0] ** 2 - sum_1 - 0.5 * sum_2)
 
 
@@ -432,14 +436,14 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
 
     .. math::
 
-            p = \\frac{2\\sigma_i}{\\xsi+\\xsi^{-1}}\\omega_\\beta exp(-c_\\beta |a_{\\xsi,t}|^{2/(1+\\beta)})
+            p = \\frac{2\\sigma_i}{\\xi+\\xi^{-1}}\\omega_\\beta exp(-c_\\beta |a_{\\xi,t}|^{2/(1+\\beta)})
 
 
     where
 
      .. math::
 
-            a_{\\xsi,t} = \\xsi^{-sign(\\mu_\\xsi+\\sigma_\\xsi a_t )}(\\mu_\\xsi+\\sigma_\\xsi a_t)
+            a_{\\xi,t} = \\xi^{-sign(\\mu_\\xi+\\sigma_\\xi a_t )}(\\mu_\\xi+\\sigma_\\xi a_t)
 
 
     For more detailes see: http://onlinelibrary.wiley.com/doi/10.1029/2009WR008933/epdf, page 3, formualar (6) and pages 15, Appendix A.
@@ -458,7 +462,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
 
         -1 < `likelihood_beta`   < 1,
 
-        0  < `likelihood_xsi`    <= 10,
+        0  < `likelihood_xi`    <= 10,
 
         0 <= `likelihood_sigma0` <= 1,
 
@@ -487,12 +491,12 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
             "[generalizedLikelihoodFunction] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
-    paramDependencies = ["likelihood_beta","likelihood_xsi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+    paramDependencies = ["likelihood_beta","likelihood_xi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
 
     if params is None:
         # for this params look into http://onlinelibrary.wiley.com/doi/10.1029/2009WR008933/epdf, page 5
         beta = np.random.uniform(-0.99,1,1)
-        xsi = np.random.uniform(0.01,10,1)
+        xi = np.random.uniform(0.01,10,1)
         sigma0 = np.random.uniform(0,1,1)
         sigma1 = np.random.uniform(0, 1, 1)
         phi1 = np.random.uniform(0, .99, 1)
@@ -514,7 +518,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
                             "Following parameter are needed, too: "+str(missingparams))
 
         beta = float(randomparset[np.where(parameternames == 'likelihood_beta')])
-        xsi = float(randomparset[np.where(parameternames == 'likelihood_xsi')])
+        xi = float(randomparset[np.where(parameternames == 'likelihood_xi')])
         sigma0 = float(randomparset[np.where(parameternames == 'likelihood_sigma0')])
         sigma1 = float(randomparset[parameternames == 'likelihood_sigma0'])
         phi1 = float(randomparset[np.where(parameternames == 'likelihood_phi1')])
@@ -524,8 +528,8 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         if beta <=-1 or beta > 1:
             warnings.warn("The parameter 'beta' should be greater then -1 and less equal 1 and is: "+str(beta))
             return np.NAN
-        if xsi < 0.1 or xsi > 10:
-            warnings.warn("The parameter 'xsi' should be between 0.1 and 10 and is: "+str(xsi))
+        if xi < 0.1 or xi > 10:
+            warnings.warn("The parameter 'xi' should be between 0.1 and 10 and is: "+str(xi))
             return np.NAN
         if sigma0 < 0 or sigma0 > 1:
             warnings.warn("The parameter 'sigma0' should be between 0 and 1 and is: "+str(sigma0))
@@ -546,16 +550,16 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3))
         M_1 = math.gamma(1 + beta) / (np.sqrt(math.gamma(3 * (1 + beta) / 2)) * np.sqrt(math.gamma((1 + beta) / 2)))
         M_2 = 1
-        sigma_xsi = np.sqrt(np.abs(float((M_2 - M_1 ** 2) * (xsi ** 2 + xsi ** (-2)) + 2 * M_1 ** 2 - M_2)))
+        sigma_xi = np.sqrt(np.abs(float((M_2 - M_1 ** 2) * (xi ** 2 + xi ** (-2)) + 2 * M_1 ** 2 - M_2)))
         cBeta = (math.gamma(3 * (1 + beta) / 2) / math.gamma((1 + beta) / 2)) ** (1 / (1 + beta))
     except ValueError:
         raise LikelihoodError("Please check your parameter input there is something wrong with the parameter")
 
 
-    if xsi != 0.0:
-        mu_xsi = M_1 * (xsi - (xsi ** (-1)))
+    if xi != 0.0:
+        mu_xi = M_1 * (xi - (xi ** (-1)))
     else:
-        mu_xsi = 0.0
+        mu_xi = 0.0
 
     n = data.__len__()
 
@@ -570,9 +574,9 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
             warnings.warn("Your parameter 't' does not suit to the given data list")
             return None
 
-        a_xsi_t = xsi ** (-1 * np.sign(mu_xsi + sigma_xsi * a_t)) * (mu_xsi + sigma_xsi * a_t)
+        a_xi_t = xi ** (-1 * np.sign(mu_xi + sigma_xi * a_t)) * (mu_xi + sigma_xi * a_t)
 
-        sum_at += np.abs(a_xsi_t) ** (2 / (1 + beta))
+        sum_at += np.abs(a_xi_t) ** (2 / (1 + beta))
 
     # page 3 formula 5 of this paper expalin that sigma[t] = sigma0 + sigma1*E[t]
     # where E[t] is calles y(x) in the main paper (discrepance) and sigma0 and sigma1 are input parameter which also
@@ -592,7 +596,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
                               " We cannot calculate this likelihood")
         return np.NAN
 
-    return n * np.log(omegaBeta * (2 * sigma_xsi) / np.abs(xsi + (1 / xsi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at
+    return n * np.log(omegaBeta * (2 * sigma_xi) / np.abs(xi + (1 / xi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at
 
 
 
@@ -641,12 +645,12 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
 
      .. math::
 
-            p = \\prod \\frac{1}{\\sqrt{2\\pi}\\sigma_{const}}exp(-\\frac{\\epsilon_i}{2})
+            p = \\prod_{i=1}^n \\frac{1}{\\sqrt{2\\pi}\\sigma_{const}}exp(-\\frac{\\epsilon_i}{2})
 
     For detailed mathematical question take a look into hessd-12-2155-2015.pdf
     (https://www.hydrol-earth-syst-sci-discuss.net/12/2155/2015/hessd-12-2155-2015.pdf) pages 2164-2165
 
-    `Usage:` Minimizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
+    `Usage:` Maximizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
     a result which makes sense.
 
     :param data: observed measurements as a numerical list
@@ -666,7 +670,8 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
 
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
-    return np.prod(1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2)))
+    #TODO Maximizing with negative to zero?
+    return -np.prod(1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2)))
 
 
 def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,params=None):
@@ -678,7 +683,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
 
      .. math::
 
-            p = \\prod p_i
+            p = \\prod_{i=1}^n p_i
 
 
     Where
@@ -711,7 +716,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
     For detailed mathematical question take a look into hessd-12-2155-2015.pdf
     (https://www.hydrol-earth-syst-sci-discuss.net/12/2155/2015/hessd-12-2155-2015.pdf) pages 2165-2169, formular (15).
 
-    `Usage:` Minimizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
+    `Usage:` Maximizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
     a result which makes sense.
 
     :param data: observed measurements as a numerical list
@@ -744,7 +749,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
             "[SkewedStudentLikelihoodHeteroscedastic] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
-    res = np.array(__calcSimpleDeviation(data, comparedata))
+    diff = np.array(__calcSimpleDeviation(data, comparedata))
 
     paramDependencies = ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]
 
@@ -789,8 +794,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
                     k))
             return np.NAN
 
-    eta_all = res[1:] - phi * res[:-1] * np.sqrt(1 - phi ** 2)
-
+    eta_all = diff[1:] - phi * diff[:-1] * np.sqrt(1 - phi ** 2)
     c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
         (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
 
@@ -798,11 +802,12 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
 
     c_2 = np.sqrt(for_c2)
 
-    return np.prod( (2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
+    # TODO Maximizing with negative to zero?
+    return np.log(-np.prod( (2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
         (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
                    * (1 + (1 / (nu - 2)) * (
                        (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
-                       -(nu + 1) / 2))
+                       -(nu + 1) / 2)))
 
 
 def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, measerror=None,params=None):
@@ -819,7 +824,7 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
     For detailed mathematical question take a look into hessd-12-2155-2015.pdf
     (https://www.hydrol-earth-syst-sci-discuss.net/12/2155/2015/hessd-12-2155-2015.pdf) pages 2170 formular (20).
 
-    `Usage:` Minimizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
+    `Usage:` Maximizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
     a result which makes sense.
 
     :param data: observed measurements as a numerical list
@@ -903,11 +908,18 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
 
     c_2 = np.sqrt(for_c2)
 
-    return np.prod((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
+    # TODO Maximizing with negative to zero?
+    datas = ((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
         (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
                    * (1 + (1 / (nu - 2)) * (
         (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
                        -(nu + 1) / 2))
+
+    return np.log(-np.prod((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
+        (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
+                   * (1 + (1 / (nu - 2)) * (
+        (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
+                       -(nu + 1) / 2)))
 
 
 
@@ -924,7 +936,7 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
     A epsilon is used to define :math:`P(\\theta|\\rho(S_1(Y),S_2(Y(X))) < \\epsilon).
     Using the means of the standart observation is a good value for \\epsilon.
 
-    An Euclidean distance calculatino is used, which is based on https://www.reading.ac.uk/web/files/maths/Preprint_MPS_15_09_Prangle.pdf
+    An Euclidean distance calculation is used, which is based on https://www.reading.ac.uk/web/files/maths/Preprint_MPS_15_09_Prangle.pdf
     , page 2.
 
     `Usage:` Maximizing the likelihood value guides to the best model.
@@ -967,12 +979,14 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
 def ABCBoxcarLikelihood(data, comparedata, measerror=None):
     """
     A simple ABC likelihood function is the Boxcar likelihood given by the formular:
+    
     .. math::
 
-            p = \\max{i=1}^N(\\epsilon_j - \\rho(S(Y),S(Y(X)))).
+            p = \\max_{i=1}^N(\\epsilon_j - \\rho(S(Y),S(Y(X)))).
+            
+    :math:`\\rho(S(Y),S(Y(X)))` is the eucledean distance.
 
-
-    `Usage:` Minimizing the likelihood value guides to the best model.
+    `Usage:` Maximizing the likelihood value guides to the best model.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -997,7 +1011,9 @@ def ABCBoxcarLikelihood(data, comparedata, measerror=None):
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
     # Usage of euclidean distance changes the formula a bit
-    return np.min(measerror-np.sqrt(((data-comparedata)/measerror)**2))
+
+    # TODO Maximizing with negative to zero?
+    return -np.min(measerror-np.sqrt(((data-comparedata)/measerror)**2))
 
 
 
@@ -1012,8 +1028,7 @@ def LimitsOfAcceptability(data, comparedata, measerror=None):
 
     Variable :math:`I(a)` returns one if `a` is true, zero otherwise.
 
-    `Usage:` The bigger the value the better the model returns the observed dataset. Values are all greater equal zero
-    and discrete and integer numbers.
+    `Usage:` Maximizing the likelihood value guides to the best model.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -1048,7 +1063,7 @@ def InverseErrorVarianceShapingFactor(data, comparedata, G=10):
 
     .. math::
 
-            p=-G \\log(\\var(E(x)))
+            p=-G \\log(Var(E(x)))
 
     The factor `G` comes from the DREAMPar model. So this factor can be changed according to the used model.
 
@@ -1085,7 +1100,7 @@ def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):
 
     .. math::
 
-            p=G*\\log(1-\\frac{Var(E(x)}{Var(Y)})
+            p=G\\cdot\\log(1-\\frac{Var(E(x)}{Var(Y)})
 
     The factor `G` comes from the DREAMPar model. So this factor can be changed according to the used model.
 
@@ -1131,7 +1146,7 @@ def ExponentialTransformErrVarShapingFactor(data, comparedata,G=10):
 
     .. math::
 
-            p=-G*Var(E(x))
+            p=-G\\cdot Var(E(x))
 
     The factor `G` comes from the DREAMPar model. So this factor can be changed according to the used model.
 
