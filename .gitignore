@@ -7,7 +7,7 @@ __pycache__/
 *.so
 
 #other files
-*.rst
+#*.rst
 *.gitignore
 *.yml
 *.csv
