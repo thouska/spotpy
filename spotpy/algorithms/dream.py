@@ -16,6 +16,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
+import random
 import time
 
 
@@ -73,6 +74,18 @@ class dream(_algorithm):
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
+    def get_regular_startingpoint(self,nChains):
+        randompar=self.parameter()['random']        
+        for i in range(1000):
+            randompar=np.column_stack((randompar,self.parameter()['random']))
+        startpoints = []
+        for j in range(nChains):
+            startpoints.append(np.percentile(randompar,(j+1)/float(nChains+1)*100,axis=1))#,np.amax(randompar,axis=1)
+        startpoints = np.array(startpoints)
+        for k in range(len(randompar)):
+            random.shuffle(startpoints[:, k])
+        return startpoints
+    
     def check_par_validity_reflect(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -95,7 +108,7 @@ class dream(_algorithm):
         #N = Number of parameters
         p = np.random.uniform(low=0,high=1)
         if p >=0.2:
-            gamma = 2.38/np.sqrt(2*int(N))
+            gamma = 2.38/np.sqrt(2*int(N))#/self.gammalevel
         else:
             gamma = 1
         return gamma
@@ -121,7 +134,7 @@ class dream(_algorithm):
         for i in range(self.N):#Go through parameters
             
             if newN[i] == True:
-                new_parameterset.append(cur_par_set[i] + gamma*np.array(random_par_set1[i]-random_par_set2[i]) + np.random.uniform(0,self.eps))
+                new_parameterset.append(cur_par_set[i] + gamma*np.array(random_par_set1[i]-random_par_set2[i]) + np.random.normal(0,self.eps))
             else:
                 new_parameterset.append(cur_par_set[i])
                 
@@ -209,7 +222,7 @@ class dream(_algorithm):
 #            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
             return R_stat#[R_stat, MR_stat]
 
-    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2):
+    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100):
         print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
         if nChains <3:
@@ -223,6 +236,7 @@ class dream(_algorithm):
         self.burnIn = self.nChains
         self.stepsizes = self.parameter()['step']  # array of stepsizes
         self.nr_of_pars = len(self.stepsizes)
+        self.gammalevel=1
         starttime = time.time()
         intervaltime = starttime
         # Metropolis-Hastings iterations.
@@ -239,30 +253,19 @@ class dream(_algorithm):
         
         print('Inititalize ',self.nChains, ' chain(s)...')
         self.iter=0
-        param_generator = ((curChain,list(self.parameter()['random'])) for curChain in range(int(self.nChains)))                
+        #for i in range(10):
+        startpoints = self.get_regular_startingpoint(nChains)
+        #param_generator = ((curChain,list(self.parameter()['random'])) for curChain in range(int(self.nChains)))   #TODO: Start with regular interval raster             
+        param_generator = ((curChain,list(startpoints[curChain])) for curChain in range(int(self.nChains)))   #TODO: Start with regular interval raster             
         for curChain,par,sim in self.repeat(param_generator):
             like = self.postprocessing(self.iter, par, sim, chains=curChain)
-            #like = self.objectivefunction(
-            #    evaluation=self.evaluation, simulation=sim)
-
-#            if firstcall==True:
-#                self.initialize_database(par, self.parameter()['name'], sim, like)
-#                firstcall=False
             self.update_mcmc_status(par,like,sim,curChain)
-            #self.save(like, par, simulations=sim,chains=curChain)
-            #self.status(self.iter, like, par)
             self.iter+=1
             self.nChainruns[curChain] +=1
-            # Progress bar
-            #acttime = time.time()
-            # Refresh progressbar every second
-            #if acttime - intervaltime >= 2:
-            #    text = '%i of %i (best like=%g)' % (
-            #        self.iter, repetitions, self.status.objectivefunction)
-            #    print(text)
-            #    intervaltime = time.time()
+
 
         print('Beginn of Random Walk')
+        convergence = False
         #Walf through chains
         self.r_hats=[]
         self.eps           = eps 
@@ -295,12 +298,20 @@ class dream(_algorithm):
                 #like = self.objectivefunction(
                 #    evaluation=self.evaluation, simulation=sim)
                 #self.status(self.iter, like, par)
-                logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
-                u = np.random.uniform(low=0.5, high=1)
+                
+#                logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like) #Fast convergence high uncertainty
+#                u = np.random.uniform(low=0.0, high=1)
+             
+#                logMetropHastRatio = like - self.bestlike[cChain] # Slow convergence, low uncertainty
+#                u = np.log(np.random.uniform(low=0.0, high=1))
+             
+                logMetropHastRatio = np.exp(like - self.bestlike[cChain])
+                u = np.random.uniform(low=0.0, high=1)
              
                 if logMetropHastRatio>u:
                     self.update_mcmc_status(par,like,sim,cChain)   
                     self.accepted[cChain] += 1  # monitor acceptance
+                    
                     #self.save(like, par, simulations=sim,chains=cChain)
                 else:
                     self.update_mcmc_status(self.bestpar[cChain][self.nChainruns[cChain]-1],self.bestlike[cChain],self.bestsim[cChain],cChain)   
@@ -318,12 +329,13 @@ class dream(_algorithm):
                 #        self.iter + self.burnIn, repetitions, self.status.objectivefunction)
 
             r_hat = self.get_r_hat(self.bestpar)
+            #self.gammalevel+=.1
             #print((r_hat < 1.2).all())
             self.r_hats.append(r_hat)
             # Refresh progressbar every two seconds
             acttime = time.time()
             if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
-                self.r_hats.append(self.get_r_hat(self.bestpar))                
+                #self.r_hats.append(self.get_r_hat(self.bestpar))                
                 #text = '%i of %i (best like=%g)' % (
                 #    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
                 #print(text)
@@ -333,10 +345,15 @@ class dream(_algorithm):
                 print(text)
                 intervaltime = time.time()
             
-            if (r_hat < convergence_limit).all():
+            if (r_hat < convergence_limit).all() and not convergence and self.nChainruns[-1] >=5:
                 #Stop sampling
-                print('Convergence has been achieved after '+str(self.iter)+' of '+str(self.repetitions)+' runs! Sampling stopped.')
-                self.iter+=self.repetitions
+                print('#############')
+                print('Convergence has been achieved after '+str(self.iter)+' of '+str(self.repetitions)+' runs! Finally, '+str(runs_after_convergence)+' runs will be additionally sampled to form the posterior distribution')
+                print('#############')
+                self.repetitions = self.iter + runs_after_convergence
+                self.set_repetiton(self.repetitions)
+                #self.iter =self.repetitions - runs_after_convergence
+                convergence=True
                 
         self.final_call()
 
