@@ -81,7 +81,7 @@ print("sumOfAbsoluteErrorResiduals: " + str(l))
 class spot_setup_gauss(object):
     def __init__(self):
         self.params = [
-            # Original 12,23
+            # Original mean: 12, sd:23
             spotpy.parameter.Uniform('mean', -20, 20, 2, 3.0, -20, 20),
             spotpy.parameter.Uniform('sd', 1, 30, 2, 3.01, 1, 30),
 
@@ -155,7 +155,8 @@ class spot_setup_gauss(object):
         # Some functions do not nee a `param` attribute, you will see that in the documentation or if an error occur.
         # objectivefunction = spotpy.likelihoods.LimitsOfAcceptability(evaluation, simulation,params=params)
         #objectivefunction = spotpy.likelihoods.NoisyABCGaussianLikelihood(evaluation, simulation)
-        objectivefunction = spotpy.likelihoods.sumOfAbsoluteErrorResiduals(evaluation, simulation)
+        #objectivefunction = spotpy.likelihoods.LimitsOfAcceptability(evaluation, simulation)
+        objectivefunction = spotpy.objectivefunctions.rmse(simulation=simulation,evaluation=evaluation)
         #print(objectivefunction)
 
         return objectivefunction
@@ -342,17 +343,17 @@ class spot_setup_generalizedGauss(object):
 
 
 results = []
-spot_setup = spot_setup_ar_1_gauss_res()
-rep = 6000
+spot_setup = spot_setup_gauss()
+rep = 1000
 
 # TODO alt_objfun immer wieder anschalten sonst Trick 17!
-sampler = spotpy.algorithms.mle(spot_setup, dbname='RosenMC', dbformat='csv')#, alt_objfun=None)
+sampler = spotpy.algorithms.lhs(spot_setup, dbname='RosenMC', dbformat='csv', alt_objfun=None)
 sampler.sample(rep)
 results.append(sampler.getdata())
 import pprint
 import pickle
 
-pickle.dump(results, open('mle_LikelihoodAR1WithC.p', 'wb'))
+pickle.dump(results, open('mle_LimitsOfAcceptability_v2.p', 'wb'))
 
 # from matplotlib import pyplot as plt
 # plt.plot(results)
