@@ -18,6 +18,7 @@ Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
 from . import _algorithm
 import time
 import numpy as np
+import random
 
 
 class rope(_algorithm):
@@ -86,13 +87,12 @@ class rope(_algorithm):
 
     def get_best_runs(self, likes, pars, runs, percentage):
         '''
-        Returns the best 20% of the runs'''
+        Returns the best xx% of the runs'''
         return [new_pars for (new_likes, new_pars) in sorted(zip(likes, pars))[int(len(likes) * (1 - percentage)):]]
 
     def sample(self, repetitions=None, repetitions_first_run=None,
-               repetitions_following_runs=None,
-               subsets=5, percentage_first_run=0.05,
-               percentage_following_runs=0.05, NDIR=None):
+               subsets=5, percentage_first_run=0.10,
+               percentage_following_runs=0.10, NDIR=None):
         """
         Samples from the ROPE algorithm.
 
@@ -110,34 +110,30 @@ class rope(_algorithm):
         next step after in all following subsets
         NDIR = The number of samples to draw
         """
+        # Repetitions_following_runs raus
+        # Braucht zu lang (npar >8)
+        # wenn mehr parameter produziert werden sollen als reingehen, rechnet er sich tot (ngen>n)
+        #Subsets < 5 führt manchmal zu Absturz
         print('Starting the ROPE algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
-        
-        if (repetitions_first_run is None and repetitions_following_runs is
-                not None):
-            raise ValueError("repetitions_following_runs can only be defined "
-                             "when repetitons_first_run is defined")
-            
-        if repetitions_first_run is None and repetitions is None:
-            raise ValueError("Cannot run if neither repetitions nor "
-                             "repetitions_first_run is defined")
-            
-        if (repetitions_following_runs is None and repetitions_first_run is
-                not None):
-            repetitions_following_runs = int(repetitions_first_run / 2.0)
 
-        if repetitions is not None and repetitions_following_runs is None \
-                and repetitions_first_run is None:
-            repetitions_first_run = int(repetitions / subsets)
-            repetitions_following_runs = int(repetitions / subsets)
-            
-        # Needed to avoid finding a weird integer division somewhere here
+        if repetitions_first_run is None:
+            #Take the first have of the repetitions as burn-in
+            first_run = int(repetitions / 2)
+
+        else:
+            #Make user defined number of burn-in repetitions
+            first_run = repetitions_first_run
+
+        repetitions_following_runs = int((repetitions-first_run) 
+                                          / (subsets-1))
+        # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
-            raise ValueError("Repetition for following runs must be an "
-                         "even number.")
+            repetitions_following_runs+=1
+
             
-        if NDIR is None and repetitions_following_runs is not None:
-            NDIR = repetitions_following_runs / 100
+        if NDIR is None:
+            NDIR = int(repetitions_following_runs / 100)
         self.NDIR = NDIR
 
         starttime = time.time()
@@ -147,52 +143,81 @@ class rope(_algorithm):
         #randompar = list(self.parameter()['optguess'])
         #simulations = self.model(randompar)
         #like = self.postprocessing(rep, randompar, simulations)
-        if repetitions_following_runs is None:
-            runs = int(repetitions / subsets)
-        else:
-            runs = repetitions_first_run
+
         # Init ROPE with one subset
         likes = []
         pars = []
-        param_generator = ((rep, self.parameter()['random'])
-                           for rep in range(int(runs)))
-        for rep, ropepar, simulations in self.repeat(param_generator):
-            # Calculate the objective function
-            like = self.postprocessing(rep, ropepar, simulations)
-            likes.append(like)
-            pars.append(ropepar)
+        
+        
+        
+        
+        # Get the names of the parameters to analyse
+        names = self.parameter()['name']# distribution        
+        parmin, parmax = self.parameter()['minbound'], self.parameter()[
+            'maxbound']
+        segment = 1 / float(repetitions)
+        # Get the minimum and maximum value for each parameter from the
 
+        # Create an matrx to store the parameter sets
+        matrix = np.empty((repetitions, len(parmin)))
+        # Create the LatinHypercube matrx as in McKay et al. (1979):
+        for i in range(int(repetitions)):
+            segmentMin = i * segment
+            pointInSegment = segmentMin + (random.random() * segment)
+            parset = pointInSegment * (parmax - parmin) + parmin
+            matrix[i] = parset
+        for i in range(len(names)):
+            random.shuffle(matrix[:, i])
+
+        # A generator that produces the parameters
+        param_generator = ((rep, matrix[rep])
+                           for rep in range(int(repetitions) - 1))
+        for rep, randompar, simulations in self.repeat(param_generator):
+            # A function that calculates the fitness of the run and the manages the database 
+            like = self.postprocessing(rep, randompar, simulations)
+            likes.append(like)
+            pars.append(randompar)
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second
-            if repetitions_first_run is not None:
-                if acttime - intervaltime >= 2:
-                    text = '1 Subset: Run %i of %i (best like=%g)' % (
-                        rep, repetitions_first_run, self.status.objectivefunction)
-                    print(text)
-                    intervaltime = time.time()
-            else:
-                if acttime - intervaltime >= 2:
-                    text = '%i of %i (best like=%g)' % (
-                        rep, repetitions, self.status.objectivefunction)
-                    print(text)
-                    intervaltime = time.time()
+            if acttime - intervaltime >= 2:
+                text = '1 Subset: Run %i of %i (best like=%g)' % (
+                    rep, first_run, self.status.objectivefunction)
+                print(text)
+                intervaltime = time.time()
 
-        if repetitions_following_runs is not None:
-            runs = repetitions_following_runs
+
+#
+#        param_generator = ((rep, self.parameter()['random'])
+#                           for rep in range(int(first_run)))
+#        for rep, ropepar, simulations in self.repeat(param_generator):
+#            # Calculate the objective function
+#            like = self.postprocessing(rep, ropepar, simulations)
+#            likes.append(like)
+#            pars.append(ropepar)
+#
+#            # Progress bar
+#            acttime = time.time()
+#            # Refresh progressbar every second
+#            if acttime - intervaltime >= 2:
+#                text = '1 Subset: Run %i of %i (best like=%g)' % (
+#                    rep, first_run, self.status.objectivefunction)
+#                print(text)
+#                intervaltime = time.time()
+
 
         for i in range(subsets - 1):
             if i == 0:
-                best_pars = self.get_best_runs(likes, pars, runs, 
+                best_pars = self.get_best_runs(likes, pars, repetitions_following_runs, 
                                                percentage_first_run)
             else:
-                best_pars = self.get_best_runs(likes, pars, runs,
+                best_pars = self.get_best_runs(likes, pars, repetitions_following_runs,
                                                percentage_following_runs)
             valid = False
             trials = 0
             while valid is False and trials < 10:
-                new_pars = self.programm_depth(best_pars, runs)
-                if len(new_pars) == runs:
+                new_pars = self.programm_depth(best_pars, repetitions_following_runs)
+                if len(new_pars) == repetitions_following_runs:
                     valid = True
                 else:
                     trials += 1
@@ -200,10 +225,10 @@ class rope(_algorithm):
             likes = []
             print(len(new_pars))
             param_generator = (
-                (rep, new_pars[rep]) for rep in range(int(runs)))
+                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))
             for rep, ropepar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.postprocessing(rep + runs * i, ropepar, simulations)
+                like = self.postprocessing(rep + repetitions_following_runs * i, ropepar, simulations)
                 likes.append(like)
                 pars.append(ropepar)
                 # Save everything in the database
@@ -243,10 +268,6 @@ class rope(_algorithm):
         print(('Generating ' + str(Ngen) + ' parameters:'))
 
         NPOSI = Ngen   # Number of points to generate
-        if self.NDIR is not None:
-            NDIR = self.NDIR
-        else:
-            NDIR = Ngen / 100
 
         EPS = 0.00001
 
@@ -264,29 +285,38 @@ class rope(_algorithm):
 
         CL = np.zeros(NP)
         TL = np.zeros(shape=(LLEN, NP))
+        #test=[np.zeros(NP)]
         while (IPOS < NPOSI):
             for IM in range(LLEN):   # LLEN=1000 Random Vectors of dim NP
                 for j in range(NP):
                     DRAND = np.random.rand()
                     TL[IM, j] = XMIN[j] + DRAND * (XMAX[j] - XMIN[j])
-            LNDEP = self.fHDEPTHAB(N, NP, NDIR, X, TL, EPS, LLEN)
+            LNDEP = self.fHDEPTHAB(N, NP, X, TL, EPS, LLEN)
             for L in range(LLEN):
                 ITRY = ITRY + 1
                 if LNDEP[L] > 1:
+                    #test.append(TL[L, :])
                     CL = np.vstack((CL, TL[L, :]))
                     IPOS = IPOS + 1
             print((IPOS, ITRY))
+        #CL=np.array(test)
+        #print('##')
+        #print(type(CL[0]))
+        #print('###')
+        #print(type(np.array(test)[0]))
+        #print('####')
+        #CL=np.array(test)
         CL = np.delete(CL, 0, 0)
         CL = CL[:NPOSI]
         return CL
 
-    def fHDEPTHAB(self, N, NP, NDIR, X, TL, EPS, LLEN):
-        LNDEP = self.fDEP(N, NP, NDIR, X, TL, EPS, LLEN)
+    def fHDEPTHAB(self, N, NP, X, TL, EPS, LLEN):
+        LNDEP = self.fDEP(N, NP, X, TL, EPS, LLEN)
         return LNDEP
 
-    def fDEP(self, N, NP, NDIR, X, TL, EPS, LLEN):
+    def fDEP(self, N, NP, X, TL, EPS, LLEN):
         LNDEP = np.array([N for i in range(N)])
-        for NRAN in range(int(NDIR)):
+        for NRAN in range(int(self.NDIR)):
 
             #       Random sample of size NP
             JSAMP = np.zeros(N)
