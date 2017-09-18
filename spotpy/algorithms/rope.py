@@ -155,13 +155,13 @@ class rope(_algorithm):
         names = self.parameter()['name']# distribution        
         parmin, parmax = self.parameter()['minbound'], self.parameter()[
             'maxbound']
-        segment = 1 / float(repetitions)
+        segment = 1 / float(first_run)
         # Get the minimum and maximum value for each parameter from the
 
         # Create an matrx to store the parameter sets
-        matrix = np.empty((repetitions, len(parmin)))
+        matrix = np.empty((first_run, len(parmin)))
         # Create the LatinHypercube matrx as in McKay et al. (1979):
-        for i in range(int(repetitions)):
+        for i in range(int(first_run)):
             segmentMin = i * segment
             pointInSegment = segmentMin + (random.random() * segment)
             parset = pointInSegment * (parmax - parmin) + parmin
@@ -171,7 +171,7 @@ class rope(_algorithm):
 
         # A generator that produces the parameters
         param_generator = ((rep, matrix[rep])
-                           for rep in range(int(repetitions) - 1))
+                           for rep in range(int(first_run) - 1))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database 
             like = self.postprocessing(rep, randompar, simulations)
@@ -187,27 +187,9 @@ class rope(_algorithm):
                 intervaltime = time.time()
 
 
-#
-#        param_generator = ((rep, self.parameter()['random'])
-#                           for rep in range(int(first_run)))
-#        for rep, ropepar, simulations in self.repeat(param_generator):
-#            # Calculate the objective function
-#            like = self.postprocessing(rep, ropepar, simulations)
-#            likes.append(like)
-#            pars.append(ropepar)
-#
-#            # Progress bar
-#            acttime = time.time()
-#            # Refresh progressbar every second
-#            if acttime - intervaltime >= 2:
-#                text = '1 Subset: Run %i of %i (best like=%g)' % (
-#                    rep, first_run, self.status.objectivefunction)
-#                print(text)
-#                intervaltime = time.time()
 
-
-        for i in range(subsets - 1):
-            if i == 0:
+        for subset in range(subsets - 1):
+            if subset == 0:
                 best_pars = self.get_best_runs(likes, pars, repetitions_following_runs, 
                                                percentage_first_run)
             else:
@@ -228,29 +210,20 @@ class rope(_algorithm):
                 (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))
             for rep, ropepar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.postprocessing(rep + repetitions_following_runs * i, ropepar, simulations)
+                like = self.postprocessing(first_run + rep + repetitions_following_runs * subset, ropepar, simulations)
                 likes.append(like)
                 pars.append(ropepar)
-                # Save everything in the database
-                #self.save(like, ropepar, simulations=simulations)
 
-                #self.status(rep + runs * i, like, ropepar)
                 # Progress bar
                 acttime = time.time()
                 if repetitions_following_runs is not None:
                     # Refresh progressbar every second
                     if acttime - intervaltime >= 2:
                         text = '%i Subset: Run %i of %i (best like=%g)' % (
-                            i + 2,
+                            subset + 2,
                             rep,
                             repetitions_following_runs,
                             self.status.objectivefunction)
-                        print(text)
-                        intervaltime = time.time()
-                else:
-                    if acttime - intervaltime >= 2:
-                        text = '%i of %i (best like=%g)' % (
-                            rep, repetitions, self.status.objectivefunction)
                         print(text)
                         intervaltime = time.time()
 
