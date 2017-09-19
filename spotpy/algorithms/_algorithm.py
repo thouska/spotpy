@@ -29,7 +29,7 @@ class _RunStatistic(object):
     """
 
     def __init__(self):
-        self.rep = None
+        self.rep = 0
         self.params = None
         self.objectivefunction = -1e308
 
@@ -41,31 +41,32 @@ class _RunStatistic(object):
 
     def __call__(self, rep, objectivefunction, params):
         self.curparmeterset = params
+        self.rep+=1
         if type(objectivefunction) == type([]):
             if objectivefunction[0] > self.objectivefunction:
                 # Show only the first best objectivefunction when working with
                 # more than one objectivefunction
                 self.objectivefunction = objectivefunction[0]
                 self.params = params
-                self.rep = rep
+                #self.rep = rep
         else:
             if objectivefunction > self.objectivefunction:
                 self.params = params
                 self.objectivefunction = objectivefunction
-                self.rep = rep
-        self.print_status(rep)
+                #self.rep = rep
+        self.print_status()
             #return True
         #return False
 
-    def print_status(self, rep):
+    def print_status(self):
         # get str showing approximate timeleft to end of simulation in H, M, S
         acttime = time.time()
         # Refresh progressbar every two second
         if acttime - self.last_print >= 2:
-            avg_time_per_run = (acttime - self.starttime) / (rep + 1)
-            timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (rep + 1)))))
+            avg_time_per_run = (acttime - self.starttime) / (self.rep + 1)
+            timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (self.rep + 1)))))
                     
-            text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, self.repetitions,
+            text = '%i of %i (best like=%g) est. time remaining: %s' % (self.rep, self.repetitions,
                                                                         self.objectivefunction, timestr)
             print(text)
             self.last_print = time.time()
@@ -188,17 +189,16 @@ class _algorithm(object):
     
     def save(self, like, randompar, simulations, chains=1):
         # Initialize the database if no run was performed so far
-        if self.dbformat and self.status.rep == None:
+        if self.dbformat and self.status.rep == 0:
             print('Initialize database...')
             writerclass = getattr(database, self.dbformat)
             
             self.datawriter = writerclass(
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
                 dbinit=self.dbinit)
-            self.status.rep = 1
         else:
             self.datawriter.save(like, randompar, simulations, chains=chains)
-            #self.datawriter = self.setup
+
 
     def readbreakdata(self, dbname):
         import pickle
