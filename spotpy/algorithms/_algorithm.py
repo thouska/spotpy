@@ -32,7 +32,7 @@ class _RunStatistic(object):
         self.rep = 0
         self.params = None
         self.objectivefunction = -1e308
-
+        self.bestrep = 0
         self.starttime = time.time()
         self.last_print = time.time()
         
@@ -48,12 +48,12 @@ class _RunStatistic(object):
                 # more than one objectivefunction
                 self.objectivefunction = objectivefunction[0]
                 self.params = params
-                #self.rep = rep
+                self.bestrep = self.rep
         else:
             if objectivefunction > self.objectivefunction:
                 self.params = params
                 self.objectivefunction = objectivefunction
-                #self.rep = rep
+                self.bestrep = self.rep
         self.print_status()
             #return True
         #return False
