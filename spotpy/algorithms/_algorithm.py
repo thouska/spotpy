@@ -181,7 +181,7 @@ class _algorithm(object):
             pass
         print('End of sampling')
         text = 'Best run at %i of %i (best like=%g) with parameter set:' % (
-            self.status.rep, self.status.repetitions, self.status.objectivefunction)
+            self.status.bestrep, self.status.repetitions, self.status.objectivefunction)
         print(text)
         print(self.status.params)
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
