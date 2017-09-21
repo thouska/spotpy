@@ -102,7 +102,7 @@ min_vs,max_vs = find_min_max(spot_setup)
 
 fig= plt.figure(figsize=(16,16))
 plt.subplot(5,2,1)
-x = results['par'+spot_setup.parameters()['name'][0]]
+x = results['par'+str(spot_setup.parameters()['name'][0].decode())]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -111,7 +111,7 @@ plt.ylim(min_vs[0],max_vs[0])
 
 
 plt.subplot(5,2,2)
-x = results['par'+spot_setup.parameters()['name'][0]][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][0].decode()][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -123,7 +123,7 @@ plt.xlim(min_vs[0],max_vs[0])
 
 
 plt.subplot(5,2,3)
-x = results['par'+spot_setup.parameters()['name'][1]]
+x = results['par'+spot_setup.parameters()['name'][1].decode()]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -131,7 +131,7 @@ plt.ylabel('x2')
 plt.ylim(min_vs[1],max_vs[1])
 
 plt.subplot(5,2,4)
-x = results['par'+spot_setup.parameters()['name'][1]][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][1].decode()][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -143,7 +143,7 @@ plt.xlim(min_vs[1],max_vs[1])
 
 
 plt.subplot(5,2,5)
-x = results['par'+spot_setup.parameters()['name'][2]]
+x = results['par'+spot_setup.parameters()['name'][2].decode()]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -152,7 +152,7 @@ plt.ylim(min_vs[2],max_vs[2])
 
 
 plt.subplot(5,2,6)
-x = results['par'+spot_setup.parameters()['name'][2]][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][2].decode()][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -163,7 +163,7 @@ plt.xlim(min_vs[2],max_vs[2])
 
 
 plt.subplot(5,2,7)
-x = results['par'+spot_setup.parameters()['name'][3]]
+x = results['par'+spot_setup.parameters()['name'][3].decode()]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -172,7 +172,7 @@ plt.ylim(min_vs[3],max_vs[3])
 
 
 plt.subplot(5,2,8)
-x = results['par'+spot_setup.parameters()['name'][3]][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][3].decode()][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -183,7 +183,7 @@ plt.xlim(min_vs[3],max_vs[3])
 
 
 plt.subplot(5,2,9)
-x = results['par'+spot_setup.parameters()['name'][4]]
+x = results['par'+spot_setup.parameters()['name'][4].decode()]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -192,7 +192,7 @@ plt.ylim(min_vs[4],max_vs[4])
 plt.xlabel('Iterations')
 
 plt.subplot(5,2,10)
-x = results['par'+spot_setup.parameters()['name'][4]][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][4].decode()][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -201,6 +201,7 @@ plt.bar(bins[:-1], hist, widths)
 plt.ylabel('x5')
 plt.xlabel('Parameter range')
 plt.xlim(min_vs[4],max_vs[4])
+plt.show()
 fig.savefig('python_parameters.png',dpi=300)
 ########################################################
 
