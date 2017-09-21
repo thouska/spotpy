@@ -239,11 +239,13 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
     """
     # With the assumption that the error residuals are uncorrelated
     __standartChecksBeforeStart(data, comparedata)
+    n = data.__len__()
     data = np.array(data)
     comparedata = np.array(comparedata)
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
+
     size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn("[gaussianLikelihoodHomoHeteroDataError] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
@@ -251,7 +253,8 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     # TODO Maximizing with negative to zero?
-    return -np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
+    # original: -np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
+    return -np.sum((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
 
 
 
@@ -671,7 +674,8 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
     #TODO Maximizing with negative to zero?
-    return -np.prod(1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2)))
+    # Original: -np.prod(1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2)))
+    return -np.sum( ( 1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2))))
 
 
 def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,params=None):
@@ -1089,7 +1093,9 @@ def InverseErrorVarianceShapingFactor(data, comparedata, G=10):
             "[InverseErrorVarianceShapingFactor] reaslized that the variance in y(x)-y is zero and that makes no sence and also impossible to calculate the likelihood.")
         return np.NAN
     else:
-        return -G*np.log(errArr)
+        # Gives an better convergence, so close values are more less and apart values are more great.
+        # (0 is the best so to say).
+        return -G*np.log(errArr)**3
 
 
 def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):

@@ -7,11 +7,13 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
     # For more details to that headless file see: bound_units.xlsx
     for line in open('bound.txt', 'r'):
         fn, sn, av, na, nb, nc, nd, ne, nr = line.strip().split('  ')
-        print([fn, sn, av, na, nb, nc, nd, ne, nr])
-        PET.append(nd)
-        Precip.append(nc)
-        MaxT.append(nb)
+        #print([fn, sn, av, na, nb, nc, nd, ne, nr])
+        PET.append(float(nd))
+        Precip.append(float(nc))
+        MaxT.append(float(nb))
 
+    m = MaxT.__len__()
+    MaxT = max(MaxT)
     # HYMOD PROGRAM IS SIMPLE RAINFALL RUNOFF MODEL
     x_loss = 0.0
     # Initialize slow tank state
@@ -22,7 +24,8 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
     outflow = []
     output = np.array([])
     # START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
-    while t < MaxT + 1:
+
+    while t < m:
         Pval = Precip[t]
         PETval = PET[t]
         # Compute excess precipitation and evaporation
@@ -42,10 +45,12 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
 
         # Compute total flow for timestep
 
-        print("it should be pos: "+str(t))
-        output = np.append(output,(QS + outflow) * 22.5)
 
-    return output[64:np.floor(MaxT)]
+        output = np.append(output,(QS + outflow) * 22.5)
+        t = t+1
+
+
+    return output[64:m]
 
 def power(X,Y):
     return X**Y
