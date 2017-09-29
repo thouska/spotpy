@@ -73,7 +73,8 @@ class spot_setup(object):
         #    SimRR = 795 * [0]
         os.chdir(self.owd)
         simulations = np.array(hyMod_sims)*self.Factor
-        simulations = simulations[0:730]
+        # TODO: Discard the first 64 (but it is already done in the script, so what is to do?
+        simulations = simulations[64:730+64]
 
         return simulations
         
@@ -83,5 +84,5 @@ class spot_setup(object):
     def objectivefunction(self,simulation,evaluation):
         #like = spotpy.objectivefunctions.log_p(evaluation,simulation)
         #like = spotpy.objectivefunctions.nashsutcliff(evaluation,simulation)-1
-        like = spotpy.likelihoods.InverseErrorVarianceShapingFactor(evaluation, simulation)
+        like = spotpy.likelihoods.ABCBoxcarLikelihood(evaluation, simulation)
         return like

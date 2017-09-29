@@ -107,5 +107,10 @@ ENV/
 # hymod example
 spotpy/examples/hymod/*
 
+# Test Cases
+spotpy/hymod/testHymod/*
+spotpy/hymod/RunsWithNewHymod/*
+spotpy/hymod/likelihood_test/*
+
 # a doc folder for some notices
 _doc
