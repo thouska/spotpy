@@ -184,7 +184,7 @@ def logLikelihood(data, comparedata, measerror=None):
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
     # TODO: Maximize is done but in positive way (from negative to zero is hard)
-    return data.__len__()/2*np.log(2*np.pi) + np.nansum(np.log(measerror)) + 0.5*np.sum(((data-comparedata)/measerror)**2)
+    return -data.__len__()/2*np.log(2*np.pi) + np.nansum(np.log(measerror)) + 0.5*np.sum(((data-comparedata)/measerror)**2)
 
 
 def gaussianLikelihoodMeasErrorOut(data, comparedata):
@@ -1017,7 +1017,7 @@ def ABCBoxcarLikelihood(data, comparedata, measerror=None):
     # Usage of euclidean distance changes the formula a bit
 
     # TODO Maximizing with negative to zero?
-    return -np.min(measerror-np.sqrt(((data-comparedata)/measerror)**2))
+    return np.min(measerror-np.sqrt(((data-comparedata)/measerror)**2))
 
 
 
