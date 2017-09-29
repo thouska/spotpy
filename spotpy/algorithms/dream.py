@@ -268,11 +268,11 @@ class dream(_algorithm):
         convergence = False
         #Walf through chains
         self.r_hats=[]
-        self.eps           = eps 
+        self.eps = eps
         self.CR = []
         for i in range(nCr):
             self.CR.append((i+1)/nCr)
-        self.N             = len(self.parameter()['random'])
+        self.N = len(self.parameter()['random'])
         nrN=1
         newN = [True]*self.N
         while self.iter <= self.repetitions - self.burnIn:
@@ -304,8 +304,33 @@ class dream(_algorithm):
              
 #                logMetropHastRatio = like - self.bestlike[cChain] # Slow convergence, low uncertainty
 #                u = np.log(np.random.uniform(low=0.0, high=1))
-             
-                logMetropHastRatio = np.exp(like - self.bestlike[cChain])
+
+                # set a option which type of comparision should be choose:
+
+                metro_opt=6
+
+                if metro_opt == 1:
+                    logMetropHastRatio = like/self.bestlike[cChain]
+
+                elif metro_opt == 2 or metro_opt == 4:
+                    logMetropHastRatio = np.exp(like - self.bestlike[cChain])
+
+                elif metro_opt == 3:
+                    # SSR probability evaluation
+                    # nrN is defined in this loop so it will increase every step
+                    logMetropHastRatio = (like / self.bestlike[cChain]) ** (-nrN * (1 + self._get_gamma(nrN)) / 2)
+
+                elif metro_opt == 5:
+                    # SSR probability evaluation, but now weighted with mesurement error
+                    # Note that measurement error is single number --> homoscedastic; variance can be taken out of sum sign
+                    # SIGMA will be calculated from the orginal data
+                    Sigma = np.mean(np.array(self.evaluation)*0.1)
+                    logMetropHastRatio = np.exp(-0.5 * (-like + self.bestlike[cChain])/ (Sigma ** 2))  # signs are different because we write -SSR
+
+                elif metro_opt == 6:  # SSR probability evaluation, but now weighted with mesurement error
+                    # Note that measurement error is a vector --> heteroscedastic; variance within sum sign  -- see CompDensity.m
+                    logMetropHastRatio = np.exp(-0.5 * (-like + self.bestlike[cChain]))  # signs are different because we write -SSR
+
                 u = np.random.uniform(low=0.0, high=1)
              
                 if logMetropHastRatio>u:
