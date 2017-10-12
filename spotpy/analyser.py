@@ -300,26 +300,30 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
             Error: Number of samples in model output file must be a multiple of D, 
             where D is the number of parameters in your parameter file.
           """)
-        exit()
+        return np.nan
 
     # Recreate the vector omega used in the sampling
     omega = np.empty([parnumber])
     omega[0] = math.floor((N - 1) / (2 * M))
     m = math.floor(omega[0] / (2 * M))
-
+    print(m)
     if m >= (parnumber - 1):
         omega[1:] = np.floor(np.linspace(1, m, parnumber - 1))
     else:
         omega[1:] = np.arange(parnumber - 1) % m + 1
 
+    print(omega)
     # Calculate and Output the First and Total Order Values
     if print_to_console:
         print("Parameter First Total")
     Si = dict((k, [None] * parnumber) for k in ['S1', 'ST'])
+    print(Si)
     for i in range(parnumber):
         l = np.arange(i * N, (i + 1) * N)
+        print(l)
         Si['S1'][i] = _compute_first_order(likes[l], N, M, omega[0])
         Si['ST'][i] = _compute_total_order(likes[l], N, omega[0])
+        print(Si)
         if print_to_console:
             print("%s %f %f" %
                   (parnames[i], Si['S1'][i], Si['ST'][i]))
@@ -344,40 +348,123 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     :return: Parameter names which are sensitive, Sensitivity indices for every parameter, Parameter names which are not sensitive
     :rtype: Three lists
     """
+    
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
 
     parnames=get_parameternames(results)
-    fig=plt.figure(figsize=(16,12))
-    all_names=[]
-    all_no_names=[]
-    for i in range(len(likes)):
-        ax  = plt.subplot(len(likes),1,i+1)
-        if like_indices==None:
-            Si=get_sensitivity_of_fast(results['like'],parnames)
+    fig=plt.figure(figsize=(16,6))
+
+    ax  = plt.subplot(1,1,1)
+    Si  = get_sensitivity_of_fast(results)
+
+    names = []
+    values = []
+    no_names = []
+    no_values = []
+    index=[]
+    no_index=[]
+    #threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+    threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+    print(threshold)
+    for j in range(len(list(Si.values())[1])):
+        if list(Si.values())[1][j]>threshold:
+            names.append(parnames[j])
+            values.append(list(Si.values())[1][j])
+            index.append(j)
         else:
-            Si=get_sensitivity_of_fast(results['like'+str(like_indices[i])],parnames)
-        names=[]
-        values=[]
-        no_names=[]
-        for j in range(len(list(Si.values())[1])):
-            if list(Si.values())[1][j]>=sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]:
-                names.append(parnames[j])
-                values.append(list(Si.values())[1][j])
-            else:
-                no_names.append(parnames[j])
-        print(names)
-        ax.plot([sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]]*len(list(Si.values())[1]),'r--')
-        #ax.bar(np.arange(0,len(Si.values()[1])),sorted(np.sort(Si.values()[1]),reverse=True),label=str(names))
-        ax.bar(np.arange(0,len(list(Si.values())[1])),list(Si.values())[1],label=str(names))        
-        ax.set_ylim([0,1])
-        #ax.set_xlabel(names)
-        ax.set_ylabel(likes[i])
-        ax.legend()
-        all_names.append(names)
-        all_no_names.append(no_names)
-    return all_names,values,all_no_names
+            no_names.append(parnames[j])
+            no_values.append(list(Si.values())[1][j])
+            no_index.append(j)
+    print(names)
+
+
+    print(index,values)
+    print(no_index,no_values)
+    ax.bar(index,values,color='blue', label ='Sensitive Parameters')
+    ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')            
+#    
+#        if Si.values()[1][i] > threshold:
+#            if not senslabelset:
+#                #ax.bar(i,Si.values()[1][i],color='blue', label =str(number_of_sensitiv_pars)+' most sensitive Parameters')            
+#                ax.bar(i,Si.values()[1][i],color='blue', label ='Sensitive Parameters')            
+#                senslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='blue')            
+#                
+#        else:
+#            if not insenslabelset:
+#                ax.bar(i,Si.values()[1][i],color='orange', label = 'Insensitive parameter')            
+#                insenslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='orange')            
+                
+    ax.set_ylim([0,1])
+    
+    ax.set_xlabel('Model Paramters')
+    ax.set_ylabel('Total Sensititivity Index')
+    ax.legend()
+    #ax.set_xticklabels(names[1:])
+    ax.set_xticklabels(['0']+parnames)
+    ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
+    ax.set_xlim(-0.5,len(parnames)-0.5)
+    fig.savefig('FAST_sensitivity.png',dpi=300)
+#    
+#    import matplotlib.pyplot as plt
+#    from matplotlib import colors
+#    cnames=list(colors.cnames)
+#
+#    parnames=get_parameternames(results)
+#    fig=plt.figure(figsize=(16,6))
+##    all_names=[]
+##    all_no_names=[]
+#    for i in range(len(likes)):
+#        ax  = plt.subplot(len(likes),1,i+1)
+#        Si=get_sensitivity_of_fast(results)
+#
+#    names=[0,0]
+#    values=[]
+#    no_names=[]
+#    for j in range(len(list(Si.values())[1])):
+#        if list(Si.values())[1][j]>=sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]:
+#            names.append(parnames[j])
+#            values.append(list(Si.values())[1][j])
+#        else:
+#            no_names.append(parnames[j])
+#    print(names)
+#    threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+#    threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+#    print(threshold)
+#    #ax.bar(np.arange(0,len(Si.values()[1])),sorted(np.sort(Si.values()[1]),reverse=True),label=str(names))
+#    #ax.bar(np.arange(0,len(list(Si.values())[1])),list(Si.values())[1],label=names)            
+#    senslabelset=False
+#    insenslabelset=False
+#    for i in range(len(parnames)):
+#        if Si.values()[1][i] > threshold:
+#            if not senslabelset:
+#                ax.bar(i,Si.values()[1][i],color='blue', label =str(number_of_sensitiv_pars)+' most sensitive Parameters')            
+#                senslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='blue')            
+#                
+#        else:
+#            if not insenslabelset:
+#                ax.bar(i,Si.values()[1][i],color='orange', label = 'Insensitive parameter')            
+#                insenslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='orange')            
+#                
+#    ax.set_ylim([0,1])
+#    
+#    ax.set_xlabel('Model Paramters')
+#    ax.set_ylabel('Total Sensititivity Index')
+#    ax.legend()
+#    ax.set_xticklabels(names[1:])
+#    ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
+#    ax.set_xlim(-0.5,len(parnames)-0.5)
+#    fig.savefig('FAST_sensitivity.png',dpi=300)
+##    all_names.append(names)
+##    all_no_names.append(no_names)
+
 
 
    
@@ -1027,6 +1114,7 @@ def _compute_first_order(outputs, N, M, omega):
 def _compute_total_order(outputs, N, omega):
     '''Needed for FAST sensitivity''' 
     f = np.fft.fft(outputs)
+    #print(f)
     Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
     V = 2 * np.sum(Sp)
     Dt = 2 * sum(Sp[np.arange(int(omega / 2))])

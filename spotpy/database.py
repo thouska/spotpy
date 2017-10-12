@@ -38,7 +38,7 @@ class database(object):
         self.dim_dict = {}
         self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [(
             'like', like), ('par', randompar), ('simulation', simulations)]]
-        self._make_header(parnames)
+        self._make_header(simulations,parnames)
 
     def _check_dims(self, name, obj):
         '''checks dimensionality of obj and stores function in dict'''
@@ -69,24 +69,47 @@ class database(object):
         return []
 
     def _scalar_to_list(self, obj):
+        #print('scalar')
         return [obj]
 
     def _iterable_to_list(self, obj):
+        #print('iterable')
         return list(obj)
 
     def _array_to_list(self, obj):
-        return obj.flatten().tolist()
+        #print('array')
+        values = []        
+        for val in obj:
+            values.append(val)
+        return values
+        #return obj.flatten().tolist()
 
     def _nestediterable_to_list(self, obj):
-        return np.array(obj).flatten().tolist()
+        #print('nested')
+        values = []        
+        for nestedlist in obj:
+            #print(len(nestedlist))
+            for val in nestedlist:
+                values.append(val)
+        #print(len(values))
+        return values
+        #return np.array(obj).flatten().tolist()
 
-    def _make_header(self, parnames):
+    def _make_header(self, simulations,parnames):
         self.header = []
         self.header.extend(['like' + '_'.join(map(str, x))
                             for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
         self.header.extend(['par{0}'.format(x.decode()) for x in parnames])
-        self.header.extend(['simulation' + '_'.join(map(str, x))
-                            for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
+        #print(self.singular_data_lens[2])
+        #print(type(self.singular_data_lens[2]))        
+        if type(simulations) == type([]):
+            for i in range(len(simulations)):
+                for j in range(len(simulations[i])):
+                    self.header.extend(['simulation' + str(i+1)+'_'+str(j+1)])
+                
+        else:
+            self.header.extend(['simulation' + '_'.join(map(str, x))
+                                for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
         self.header.append('chain')
 
     def _tuple_2_xrange(self, t):
@@ -157,11 +180,13 @@ class csv(database):
                 [chains])
         try:
             # maybe apply a rounding for the floats?!
+            coll = map(np.float16, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
         except IOError:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
+            coll = map(np.float16, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
 
