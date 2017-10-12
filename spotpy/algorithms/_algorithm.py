@@ -239,8 +239,11 @@ class _algorithm(object):
                 self.status(rep, -like, randompar)
             else:
                 self.save(like, randompar, simulations=simulation, chains=chains)
-                self.status(rep, like, randompar)        
-        return like
+                self.status(rep, like, randompar)
+        if type(like)==type([]):
+            return like[0]
+        else:        
+            return like
     
     
     def getfitness(self, simulation, params):
