@@ -40,7 +40,25 @@ def load_csv_results(filename, usecols=None):
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,invalid_raise=False)  
     else:
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,skip_footer=1,invalid_raise=False,usecols=usecols)[1:]   
-        
+
+def get_header(results):
+    return results.dtype.names
+    
+def get_like_fields(results):
+    header = get_header(results)
+    fields=[word for word in header if word.startswith('like')]    
+    return fields
+    
+def get_parameter_fields(results):
+    header = get_header(results)
+    fields=[word for word in header if word.startswith('par')]    
+    return fields
+    
+def get_simulation_fields(results):
+    header = get_header(results)
+    fields=[word for word in header if word.startswith('sim')] 
+    return fields
+    
 def get_modelruns(results):
     """
     Get an shorter array out of your result array, containing just the 
@@ -90,7 +108,7 @@ def get_parameternames(results):
         parnames.append(field[3:])
     return parnames
     
-def get_maxlikeindex(results):
+def get_maxlikeindex(results,verbose=True):
     """
     Get the maximum objectivefunction of your result array
     
@@ -107,10 +125,12 @@ def get_maxlikeindex(results):
         likes=results['like1']
     maximum=np.nanmax(likes)
     value=str(round(maximum,4))
-    text=str('The best model run has an objectivefunction of: ')
-    textv=text+value
-    print(textv)
+    text=str('Run number ' )
     index=np.where(likes==maximum)
+    text2=str(' has the highest objectivefunction with: ')     
+    textv=text+str(index[0][0])+text2+value
+    if verbose:
+        print(textv)    
     return index, maximum
 
 def get_minlikeindex(results):
@@ -129,12 +149,14 @@ def get_minlikeindex(results):
     except ValueError:
         likes=results['like1']
     minimum=np.nanmin(likes)    
-    value=str(round(maximum,4))
-    text=str('The best model run has an objectivefunction of: ')
-    textv=text+value
-    print(textv)
+    value=str(round(minimum,4))
+    text=str('Run number ' )
     index=np.where(likes==minimum)
-    return index, minimum    
+    text2=str(' has the lowest objectivefunction with: ')     
+    textv=text+str(index[0][0])+text2+value
+    print(textv)
+        
+    return index, minimum
 
 
 def get_percentiles(results,sim_number=''):
@@ -202,7 +224,7 @@ def compare_different_objectivefunctions(like1,like2):
         print('like1 is signifikant different to like2: p<0.05' )
     return out
     
-def get_posterior(results,threshold=0.9):
+def get_posterior(results,percentage=10):
     """
     Get the best XX% of your result array (e.g. best 10% model runs would be a threshold setting of 0.9)
     
@@ -215,8 +237,39 @@ def get_posterior(results,threshold=0.9):
     :return: Posterior result array
     :rtype: array
     """
-    return np.sort(results,axis=0)[int(len(results))*threshold:]
+    reduction_factor = (100-percentage)/100
+    return np.sort(results,axis=0)[int(len(results))*reduction_factor:]
 
+def plot_parameter_uncertainty(posterior_results,evaluation):
+    import pylab as plt
+    
+    simulation_fields = get_simulation_fields(posterior_results)
+    fig= plt.figure(figsize=(16,9))
+    for i in range(len(evaluation)):
+        if evaluation[i] == -9999:
+            evaluation[i] = np.nan 
+    ax = plt.subplot(1,1,1)
+    q5,q95=[],[]
+    for field in simulation_fields:
+        q5.append(np.percentile(list(posterior_results[field]),2.5))
+        q95.append(np.percentile(list(posterior_results[field]),97.5))
+    ax.plot(q5,color='dimgrey',linestyle='solid')
+    ax.plot(q95,color='dimgrey',linestyle='solid')
+    ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
+                    linewidth=0,label='parameter uncertainty')  
+    ax.plot(evaluation,'r.',markersize=1, label='Observation data')
+    
+    bestindex,bestobjf = get_maxlikeindex(posterior_results,verbose=False)
+    plt.plot(list(posterior_results[simulation_fields][bestindex][0]),'b-',label='Obj='+str(round(bestobjf,2)))
+    plt.xlabel('Number of Observation Points')
+    plt.ylabel ('Simulated value')
+    plt.legend(loc='upper right')
+    fig.savefig('Posteriot_parameter_uncertainty.png',dpi=300)
+    text='A plot of the parameter uncertainty has been saved as "Posteriot_parameter_uncertainty.png"'
+    print(text)
+    
+    
+    
 def sort_like(results):
     return np.sort(results,axis=0)
 
@@ -242,6 +295,14 @@ def get_best_parameterset(results,maximize=True):
     else:
         best=np.nanmin(likes)
     index=np.where(likes==best)
+    
+    best_parameter_set = get_parameters(results[index])[0]
+    parameter_names = get_parameternames(results)
+    
+    text=''
+    for i in range(len(parameter_names)):
+        text+=parameter_names[i]+'='+str(best_parameter_set[i])+', '
+    print('Best parameter set:\n'+text[:-2])
     return get_parameters(results[index])
 
 def get_min_max(spotpy_setup):
@@ -779,7 +840,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     print(text)
     
 
-def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True):
+def plot_bestmodelrun(results,evaluation):
     """
     Get a plot with the maximum objectivefunction of your simulations in your result 
     array.
@@ -790,18 +851,6 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
               objectivefunctions and "sim" for simulations.
   
         evaluation (list): Should contain the values of your observations. Expects that this list has the same lenght as the number of simulations in your result array.
-    Kwargs:
-        dates (list): A list of datetime values, equivalent to the evaluation data.
-        
-        ylabel (str): Labels the y-axis with the given string.
-
-        xlabel (str): Labels the x-axis with the given string.
-                
-        objectivefunction (str): Name of the objectivefunction function used for the simulations.
-        
-        objectivefunctionmax (boolean): If True the maximum value of the objectivefunction will be searched. If false, the minimum will be searched.
-        
-        calculatelike (boolean): If True, the NSE will be calulated for each simulation in the result array.
     
     Returns: 
         figure. Plot of the simulation with the maximum objectivefunction value in the result array as a blue line and dots for the evaluation data.
@@ -810,54 +859,69 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
     >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
         
     """
-    import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
-    plt.rc('font', **font)       
-    if calculatelike:
-        likes=[]
-        sim=get_modelruns(results)
-        par=get_parameters(results)
-        for s in sim:
-            likes.append(spotpy.objectivefunctions.nashsutcliff(s,evaluation))
-        maximum=max(likes)
-        index=likes.index(maximum)
-        bestmodelrun=list(sim[index])
-        bestparameterset=list(par[index])
-        
-    else:
-        if objectivefunctionmax==True:
-            index,maximum=get_maxlikeindex(results)
-        else:
-            index,maximum=get_minlikeindex(results)
-        bestmodelrun=list(get_modelruns(results)[index][0])#Transform values into list to ensure plotting
-        bestparameterset=list(get_parameters(results)[index][0])
-        
-    parameternames=list(get_parameternames(results)    )
-    bestparameterstring=''
-    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
-    for i in range(len(parameternames)):
-        if i%8==0:
-            bestparameterstring+='\n'
-        bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
-    fig=plt.figure(figsize=(16,8))
-    if dates is not None:
-        plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))        
-        plt.plot(dates,evaluation,'ro',label='Evaluation')
-    else:
-        plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
-        plt.plot(evaluation,'ro',label='Evaluation')
-    plt.legend()
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
-    plt.ylim(0,70) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
-    plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
-#    plt.text(0, 0, bestparameterstring[0:-2],
-#        horizontalalignment='left',
-#        verticalalignment='bottom')
-    fig.savefig('bestmodelrun.png')
-    text='The figure as been saved as "bestmodelrun.png"'
+    import pylab as plt
+    fig= plt.figure(figsize=(16,9))
+    for i in range(len(evaluation)):
+        if evaluation[i] == -9999:
+            evaluation[i] = np.nan                               
+    plt.plot(evaluation,'ro',markersize=1, label='Observation data')
+    simulation_fields = get_simulation_fields(results)
+    bestindex,bestobjf = get_maxlikeindex(results,verbose=False)
+    plt.plot(list(results[simulation_fields][bestindex][0]),'b-',label='Obj='+str(round(bestobjf,2)))
+    plt.xlabel('Number of Observation Points')
+    plt.ylabel ('Simulated value')
+    plt.legend(loc='upper right')
+    text='A plot of the best model run has been saved as "Best_model_run.png"'
     print(text)
+    fig.savefig('Best_model_run.png',dpi=300)
+
+#    from matplotlib import colors
+#    cnames=list(colors.cnames)
+#    plt.rc('font', **font)       
+#    if calculatelike:
+#        likes=[]
+#        sim=get_modelruns(results)
+#        par=get_parameters(results)
+#        for s in sim:
+#            likes.append(spotpy.objectivefunctions.nashsutcliff(s,evaluation))
+#        maximum=max(likes)
+#        index=likes.index(maximum)
+#        bestmodelrun=list(sim[index])
+#        bestparameterset=list(par[index])
+#        
+#    else:
+#        if objectivefunctionmax==True:
+#            index,maximum=get_maxlikeindex(results)
+#        else:
+#            index,maximum=get_minlikeindex(results)
+#        bestmodelrun=list(get_modelruns(results)[index][0])#Transform values into list to ensure plotting
+#        bestparameterset=list(get_parameters(results)[index][0])
+#        
+#    parameternames=list(get_parameternames(results)    )
+#    bestparameterstring=''
+#    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
+#    for i in range(len(parameternames)):
+#        if i%8==0:
+#            bestparameterstring+='\n'
+#        bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
+#    fig=plt.figure(figsize=(16,8))
+#    if dates is not None:
+#        plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))        
+#        plt.plot(dates,evaluation,'ro',label='Evaluation')
+#    else:
+#        plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
+#        plt.plot(evaluation,'ro',label='Evaluation')
+#    plt.legend()
+#    plt.ylabel(ylabel)
+#    plt.xlabel(xlabel)
+#    plt.ylim(0,70) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
+#    plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
+##    plt.text(0, 0, bestparameterstring[0:-2],
+##        horizontalalignment='left',
+##        verticalalignment='bottom')
+#    fig.savefig('bestmodelrun.png')
+#    text='The figure as been saved as "bestmodelrun.png"'
+#    print(text)
 
 
 def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True):
@@ -994,7 +1058,8 @@ def plot_parameterInteraction(results):
     parameternames=get_parameternames(results)  
     df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
     
-    pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
+    #pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
+    pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     plt.savefig('ParameterInteraction',dpi=300)    
     
     
