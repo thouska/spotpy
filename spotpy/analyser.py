@@ -237,7 +237,7 @@ def get_posterior(results,percentage=10):
     :return: Posterior result array
     :rtype: array
     """
-    reduction_factor = (100-percentage)/100
+    reduction_factor = (100.0-percentage)/100.0
     return np.sort(results,axis=0)[int(len(results))*reduction_factor:]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):
@@ -1058,8 +1058,8 @@ def plot_parameterInteraction(results):
     parameternames=get_parameternames(results)  
     df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
     
-    #pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
-    pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
+    pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
+    #pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     plt.savefig('ParameterInteraction',dpi=300)    
     
     
