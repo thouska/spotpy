@@ -204,7 +204,7 @@ def compare_different_objectivefunctions(like1,like2):
     
 def get_posterior(results,threshold=0.9):
     """
-    Get the best XX% of your result array
+    Get the best XX% of your result array (e.g. best 10% model runs would be a threshold setting of 0.9)
     
     :results: Expects an numpy array which should have as first axis an index "like". This will be sorted. 
     :type: array  
@@ -215,7 +215,7 @@ def get_posterior(results,threshold=0.9):
     :return: Posterior result array
     :rtype: array
     """
-    return np.sort(results,axis=0)[len(results)*threshold:]
+    return np.sort(results,axis=0)[int(len(results))*threshold:]
 
 def sort_like(results):
     return np.sort(results,axis=0)
