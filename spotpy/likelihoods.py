@@ -8,6 +8,17 @@ by calculating likelihood values.
 We modified the formula so, that a best fit of model can be archived by maximizing negative likelihood to zero
 '''
 
+
+#### TEST RESULTS WITH DREAM and hymod.py ####
+# Dream has now a bunch of options. We tested only likelihoods, which do not need a additional parameter
+# from this we saw that
+# ExponentialTransformErrVarShapingFactor with option 2 and 6 is good
+# InverseErrorVarianceShapingFactor with option 2 ist good
+# gaussianLikelihoodMeasErrorOut with option 6 is good
+# NoisyABCGaussianLikelihood with Option 6 is good
+# ABCBoxcarLikelihood with Option 2 and 6 is good
+# logLikelihood with option 2 and 6 is good
+
 import numpy as np
 import math
 import warnings
