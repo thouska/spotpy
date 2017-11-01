@@ -103,12 +103,13 @@ class database(object):
         #print(self.singular_data_lens[2])
         #print(type(self.singular_data_lens[2]))        
         for i in range(len(simulations)):
-            if type(simulations[0]) == type([]):
+            if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
                 for j in range(len(simulations[i])):
                     self.header.extend(['simulation' + str(i+1)+'_'+str(j+1)])
             else:
-                self.header.extend(['simulation' + '_'.join(map(str, x))
-                                for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
+                self.header.extend(['simulation' + '_'+str(i)])
+                                #for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
+
         self.header.append('chain')
 
     def _tuple_2_xrange(self, t):
