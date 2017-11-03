@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
 import numpy as np
 import time
-
+from collections import namedtuple
 
 class _RunStatistic(object):
     """
@@ -121,6 +121,9 @@ class _algorithm(object):
         self.model = self.setup.simulation
         self.parameter = self.setup.parameters
         self.parnames = self.parameter()['name']
+        # Create a type to hold the parameter values using a namedtuple
+        self.partype = namedtuple('Par' + type(self.setup).__name__, # Type name created from the setup name
+                                  [n.decode() for n in self.parnames]) # get parameter names
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
         self.objectivefunction = getattr(
@@ -264,4 +267,5 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
-        return id, params, self.model(params)
+        # Call self.model with a namedtuple instead of another sequence
+        return id, params, self.model(self.partype(*params))
