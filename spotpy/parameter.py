@@ -52,6 +52,12 @@ class Base(object):
         Returns a tuple of a realization and the other parameter properties
         """
         return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound
+    
+    def __repr__(self):
+        """
+        Returns a textual representation of the parameter
+        """
+        return '{tname}({p.name}, {p.rndargs})'.format(tname=type(self).__name__, p=self)
 
 
 class Uniform(Base):
