@@ -54,7 +54,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
-import time
+
+
+
+class DEMCZError(Exception):
+    pass
 
 
 class demcz(_algorithm):
@@ -95,8 +99,8 @@ class demcz(_algorithm):
     alt_objfun: str or None, default: 'log_p'
         alternative objectivefunction to be used for algorithm
         * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions, 
-            this objectivefunction is used, else falls back to None 
+        * any str: if str is found in spotpy.objectivefunctions,
+            this objectivefunction is used, else falls back to None
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
      '''
 
@@ -117,7 +121,8 @@ class demcz(_algorithm):
         return par
     # def simulate(self):
 
-    def sample(self, repetitions, nChains=5, burnIn=100, thin=1, 
+
+    def sample(self, repetitions, nChains=3, burnIn=100, thin=1, 
                convergenceCriteria=.8, variables_of_interest=None,
                DEpairs=2, adaptationRate='auto', eps=5e-2,
                mConvergence=True, mAccept=True):
@@ -147,8 +152,9 @@ class demcz(_algorithm):
                 self.burnIn which is the number of burn in iterations done
                 self.R  which is the gelman rubin convergence diagnostic for each dimension
         """
-        starttime = time.time()
-        intervaltime = starttime
+        print('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
+
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
         repetitions = int(repetitions / nChains)
@@ -156,9 +162,9 @@ class demcz(_algorithm):
         maxChainDraws = int(ndraw_max / nChains)
 
         dimensions = len(self.parameter()['random'])
-        history = _SimulationHistory(maxChainDraws, nChains, dimensions)
 
         # minbound,maxbound=self.find_min_max()
+        # select variables if necessary
 
         if variables_of_interest is not None:
             slices = []
@@ -167,59 +173,46 @@ class demcz(_algorithm):
         else:
             slices = [slice(None, None)]
 
+
+        # make a list of starting chains that at least span the dimension space
+        # in this case it will be of size 2*dim
+        nSeedIterations = max(int(np.ceil(dimensions * 2 / nChains)), 2)
+
+        # init a simulationhistory instance
+        history = _SimulationHistory(maxChainDraws + nSeedIterations,
+                                     nChains, dimensions)
         history.add_group('interest', slices)
 
-        # initialize the temporary storage vectors
-        currentVectors = np.zeros((nChains, dimensions))
-        currentLogPs = np.zeros(nChains)
-
-        self.accepts_ratio = 0
-        #) make a list of starting chains that at least spans the dimension space
-        # in this case it will be of size 2*dim
-        nSeedChains = int(np.ceil(dimensions * 2 / nChains) * nChains)
-        nSeedIterations = int(nSeedChains / nChains)
-        if nSeedIterations <= 2:
-            nSeedIterations = 2
-        burnInpar = []
+        ### BURN_IN
+        burnInpar = [np.zeros((nChains, dimensions))] * nSeedIterations
         for i in range(nSeedIterations):
-            vectors = np.zeros((nChains, dimensions))
-            for j in range(nChains):
-                # +np.random.uniform(low=-1,high=1)
-                randompar = self.parameter()['random']
-                vectors[j] = randompar
-                # print randompar
-            burnInpar.append(vectors)
-            history.record(vectors, 0, 0)
-
-        # use the last nChains chains as the actual chains to track
-        # add the starting positions to the history
-
-        
-        for i in range(len(burnInpar)):
             self._logPs = []
-            param_generator = (
-                (rep, burnInpar[i][rep]) for rep in xrange(int(nChains)))
-
             simulationlist = []
+            old_like = np.empty(nChains)
+            param_generator = (
+                (rep, self.parameter()['random']) for rep in range(int(nChains)))
+
+
             for rep, vector, simulations in self.repeat(param_generator):
-                likelist = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+
+                burnInpar[i][rep] = vector
+
+                likelist = self.postprocessing(i, list(vector), simulations, chains=rep)
+                #likelist = self.objectivefunction(
+                #evaluation=self.evaluation, simulation=simulations)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
+                old_like[rep] = likelist
+                
+                burnInpar[i][rep] = vector
                 # Save everything in the database
-                self.datawriter.save(likelist, vector, simulations=simulations)
-            # print len(self._logPs)
-            # print len(burnInpar[i])
+                #self.save(likelist, list(vector), simulations=simulations)
+                #self.status(rep, likelist, vector)
             history.record(burnInpar[i], self._logPs, 1)
-#        for chain in range(nChains):
-#            simulationlist=self.model(vectors[chain])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
-#            likelist=self.objectivefunction(self.evaluation, simulations)
-#            self._logPs.append(likelist)
-#            self.datawriter.save(likelist,list(vectors[chain]),simulations=list(simulationlist),chains=chain)
-
-#        history.record(vectors,self._logPs,1)
 
         gamma = None
+        self.accepts_ratio = 0.000001
+
 
         # initilize the convergence diagnostic object
         grConvergence = _GRConvergence()
@@ -227,7 +220,9 @@ class demcz(_algorithm):
 
         # get the starting log objectivefunction and position for each of the
         # chains
-        currentVectors = vectors
+
+        currentVectors = burnInpar[-1]
+
         currentLogPs = self._logPs[-1]
 
         # 2)now loop through and sample
@@ -266,44 +261,72 @@ class demcz(_algorithm):
            # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
             proposalLogPs = []
             old_simulationlist = simulationlist
-            old_likelist = likelist
+            old_likelist = self._logPs[-1]
             new_simulationlist = []
             new_likelist = []
 
             param_generator = (
-                (rep, list(proposalVectors[rep])) for rep in xrange(int(nChains)))
+                (rep, list(proposalVectors[rep])) for rep in range(int(nChains)))
             for rep, vector, simulations in self.repeat(param_generator):
                 new_simulationlist.append(simulations)
-                like = self.objectivefunction(
-                    evaluation=self.evaluation, simulation=simulations)
+                like = self.postprocessing(cur_iter+nSeedIterations, list(vector), simulations, chains=rep)
+                
+                #like = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=simulations)
                 self._logPs.append(like)
                 new_likelist.append(like)
                 proposalLogPs.append(like)
+                #self.status(rep, like, vector)
 
+            # for i in range(nChains):
+            #     simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
+            #     new_simulationlist.append(simulations)
+            #     like=self.objectivefunction(self.evaluation, simulations)
+            #     new_likelist.append(like)
+            #     proposalLogPs.append(like)
 
-#            for i in range(nChains):
-#                simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
-#                new_simulationlist.append(simulations)
-#                like=self.objectivefunction(self.evaluation, simulations)
-#                new_likelist.append(like)
-#                proposalLogPs.append(like)
 
             # apply the metrop decision to decide whether to accept or reject
             # each chain proposal
             decisions, acceptance = self._metropolis_hastings(
                 currentLogPs, proposalLogPs, nChains)
-            self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
-#            if mAccept and cur_iter % 20 == 0:
-#                print self.accepts_ratio
+            try:
+                self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
+            except DEMCZError:
+                pass
+
+            # if mAccept and cur_iter % 20 == 0:
+            #     print self.accepts_ratio
+
 
             # choose from list of possible choices if 1d_decision is True at
             # specific index, else use default choice
             # np.choose(1d_decision[:,None], (list of possible choices, default
             # choice)
+            save_likes=[]
+            save_pars=[]
+            save_sims=[]
+            #print(len(self._logPs))
+
+            for curchain in range(nChains):
+                if decisions[curchain]:
+                   save_likes.append(float(new_likelist[curchain]))
+                   old_like[curchain]=float(new_likelist[curchain])
+                   save_pars.append(proposalVectors[curchain])
+                   save_sims.append(new_simulationlist[curchain])
+                else:
+                   save_likes.append(old_like[curchain])
+                   save_pars.append(currentVectors[curchain])
+                   save_sims.append(old_simulationlist[curchain])
+                      
+            #print(len(save_pars)     )
             currentVectors = np.choose(
                 decisions[:, np.newaxis], (currentVectors, proposalVectors))
             currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
-            simulationlist = [[new_simulationlist, old_simulationlist][int(x)][ix] for ix,x in enumerate(decisions)]
+
+            simulationlist = [[new_simulationlist, old_simulationlist][
+                int(x)][ix] for ix, x in enumerate(decisions)]
+
             likelist = list(
                 np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
 
@@ -321,12 +344,12 @@ class demcz(_algorithm):
 
                 history.record(
                     currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
-                for chain in range(nChains):
-                    if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
-                        self.datawriter.save(likelist[chain][0],
-                                             currentVectors[chain],
-                                             simulations=simulationlist[chain],
-                                             chains=chain)
+                #for chain in range(nChains):
+                #    if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
+                #        self.save(save_likes[chain],
+                #                             save_pars[chain],
+                #                             simulations=save_sims[chain],
+                #                             chains=chain)
 
             if history.nsamples > 0 and cur_iter > lastRecalculation * 1.1 and history.nsequence_histories > dimensions:
                 lastRecalculation = cur_iter
@@ -339,15 +362,17 @@ class demcz(_algorithm):
                         'All chains fullfil the convergence criteria. Sampling stopped.')
             cur_iter += 1
 
-#            else:
-#                print 'A proposal vector was ignored'
+
+            # else:
+            #     print 'A proposal vector was ignored'
+
             # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = str(cur_iter) + ' of ' + str(repetitions)
-                print(text)
-                intervaltime = time.time()
+            #acttime = time.time()
+            ## Refresh progressbar every second
+            #if acttime - intervaltime >= 2:
+            #    text = str(cur_iter) + ' of ' + str(repetitions)
+            #    print(text)
+            #    intervaltime = time.time()
 
         # 3) finalize
         # only make the second half of draws available because that's the only
@@ -359,14 +384,22 @@ class demcz(_algorithm):
         self.R = grConvergence.R
         text = 'Gelman Rubin R=' + str(self.R)
         print(text)
-
-        self.repeat.terminate()
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
+        self.final_call()
+        
+        #self.repeat.terminate()
+        #try:
+        #    self.datawriter.finalize()
+        #except AttributeError:  # Happens if no database was assigned
+        #    pass
+#
+#        print('End of sampling')
+#        text = '%i of %i (best like=%g)' % (
+#            self.status.rep, repetitions, self.status.objectivefunction)
+#        print(text)
+#        print('Best parameter set')
+#        print(self.status.params)
+#        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
+#        print(text)
 
     def _update_accepts_ratio(self, weighting, acceptances):
         self.accepts_ratio = weighting * \
@@ -380,6 +413,10 @@ class demcz(_algorithm):
         logMetropHastRatio = (np.array(
             proposalLogPs) - np.array(currentLogPs))  # + (reverseJumpLogP - jumpLogP)
         decision = np.log(np.random.uniform(size=nChains)) < logMetropHastRatio
+
+        # replace values which ecoures an overflow for e^x with 100
+        isATooBigValue = logMetropHastRatio >= 1e3
+        logMetropHastRatio[isATooBigValue] = 1e2
 
         return decision, np.minimum(1, np.exp(logMetropHastRatio))
 
@@ -404,7 +441,7 @@ class _SimulationHistory(object):
         self.relevantHistoryEnd = 0
 
     def add_group(self, name, slices):
-        indexes = range(self._dimensions)
+        indexes = list(range(self._dimensions))
         indicies = []
         for s in slices:
             indicies.extend(indexes[s])
@@ -420,25 +457,20 @@ class _SimulationHistory(object):
                     vectors[:, :, i], logPs[:, i], increment, grConvergence)
 
     def _record(self, vectors, logPs, increment, grConvergence):
-        try:
-            self._sequence_histories[:, :, self.relevantHistoryEnd] = vectors
-            self._combined_history[(self.relevantHistoryEnd * self._nChains):(
-                self.relevantHistoryEnd * self._nChains + self._nChains), :] = vectors
-            self._logPSequences[:, self.relevantHistoryEnd] = logPs
-            self._logPHistory[(self.relevantHistoryEnd * self._nChains):
-                              (self.relevantHistoryEnd * self._nChains + self._nChains)] = logPs
-            self.relevantHistoryEnd += 1
-            if np.isnan(increment):
-                self.relevantHistoryStart += 0
-            else:
-                self.relevantHistoryStart += increment
-            self.r_hat.append(grConvergence)
 
-        except IndexError:
-            print('index error')
-            self.relevantHistoryEnd += 1
+        self._sequence_histories[:, :, self.relevantHistoryEnd] = vectors
+        self._combined_history[(self.relevantHistoryEnd * self._nChains):(
+            self.relevantHistoryEnd * self._nChains + self._nChains), :] = vectors
+        self._logPSequences[:, self.relevantHistoryEnd] = logPs
+        self._logPHistory[(self.relevantHistoryEnd * self._nChains):
+                          (self.relevantHistoryEnd * self._nChains + self._nChains)] = logPs
+        self.relevantHistoryEnd += 1
+        if np.isnan(increment):
+            self.relevantHistoryStart += 0
+        else:
             self.relevantHistoryStart += increment
-            pass
+        self.r_hat.append(grConvergence)
+
 
     def start_sampling(self):
         self._sampling_start = self.relevantHistoryEnd
@@ -598,7 +630,8 @@ def _dream_proposals(currentVectors, history, dimensions, nChains, DEpairs, gamm
     return proposalVectors
 
 
-def _dream2_proposals(currentVectors, history, dimensions, nChains, DEpairs, 
+def _dream2_proposals(currentVectors, history, dimensions, nChains, DEpairs,
+
                       gamma, jitter, eps):
     """
     generates and returns proposal vectors given the current states
@@ -627,15 +660,13 @@ class _GRConvergence:
     version found in the first paper. It does not check to see whether the variances have been
     stabilizing so it may be misleading sometimes.
     """
-    _R = np.Inf
-    _V = np.Inf
-    _VChange = np.Inf
-
-    _W = np.Inf
-    _WChange = np.Inf
 
     def __init__(self):
-        pass
+        self._W = np.Inf
+        self._R = np.Inf
+        self._V = np.Inf
+        self._VChange = np.Inf
+        self._WChange = np.Inf
 
     def _get_R(self):
         return self._R
@@ -670,10 +701,41 @@ class _GRConvergence:
         varEstimate = (1 - 1.0 / N) * withinChainVariances + \
             (1.0 / N) * betweenChainVariances
 
-        self._R = np.sqrt(varEstimate / withinChainVariances)
+        if np.abs(withinChainVariances).all() > 0:
+            self._R = np.sqrt(varEstimate / withinChainVariances)
+        else:
+            self._R = np.random.uniform(0.1,0.9,withinChainVariances.__len__())
 
-        self._WChange = np.abs(np.log(withinChainVariances / self._W)**.5)
+        # self._W can be a float or an array, in both cases I want to exclude 0.0 values
+        try:
+            if self._W != 0.0:
+                if (withinChainVariances / self._W).all() <=0.0:
+                    self._WChange = np.abs(np.log(1.1) ** .5)
+                else:
+                    self._WChange = np.abs(np.log(withinChainVariances / self._W)**.5)
+            else:
+                self._WChange = np.abs(np.log(1.1) ** .5)
+        except ValueError:
+            if self._W.all() != 0.0:
+                if (withinChainVariances / self._W).all() <= 0.0:
+                    self._WChange = np.abs(np.log(1.1) ** .5)
+                else:
+                    # log of values less then 1 gives a negative number, where I replace these values to get square working
+                    tmp_WChDV = varEstimate / self._V
+                    tmp_WChDV[tmp_WChDV < 1.0] = np.random.uniform(1, 5, 1)
+                    self._WChange = np.abs(np.log(tmp_WChDV) ** .5)
+            else:
+                self._WChange = np.abs(np.log(1.1) ** .5)
+
+
         self._W = withinChainVariances
 
-        self._VChange = np.abs(np.log(varEstimate / self._V)**.5)
+        if (varEstimate / self._V).any() <= 0.0 or np.isnan(varEstimate / self._V).any():
+            self._VChange = np.abs(np.log(1.1) ** .5)
+        else:
+            # log of values less then 1 gives a negative number, where I replace these values to get square working
+            tmp_EsDV = varEstimate / self._V
+            tmp_EsDV[tmp_EsDV<1.0]=np.random.uniform(1,5,1)
+            self._VChange = np.abs(np.log(tmp_EsDV) ** .5)
+
         self._V = varEstimate

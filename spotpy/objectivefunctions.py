@@ -76,9 +76,9 @@ def pbias(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def nashsutcliff(evaluation,simulation):   
+def nashsutcliffe(evaluation,simulation):   
     """
-    Nash-Sutcliff model efficinecy
+    Nash-Sutcliffe model efficinecy
     
         .. math::
 
@@ -109,9 +109,9 @@ def nashsutcliff(evaluation,simulation):
         return np.nan
 
         
-def lognashsutcliff(evaluation,simulation):
+def lognashsutcliffe(evaluation,simulation):
     """
-    log Nash-Sutcliff model efficiency
+    log Nash-Sutcliffe model efficiency
    
         .. math::
 
@@ -148,7 +148,10 @@ def log_p(evaluation=None,simulation=None,scale=0.1):
     :rtype: float
     """ 
     #from scipy import stats    
-    #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )    
+    #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )
+    scale = np.mean(evaluation)/10
+    if scale < .01:
+        scale = .01
     if len(evaluation)==len(simulation):
         y        = (np.array(evaluation)-np.array(simulation))/scale
         normpdf = -y**2 / 2 - np.log(np.sqrt(2*np.pi))
@@ -406,7 +409,7 @@ def decomposed_mse(evaluation,simulation):
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
 
-def kge(evaluationsimulation, return_all=False):
+def kge(evaluation,simulation, return_all=False):
     """
     Kling-Gupta Efficiency
     
@@ -432,6 +435,27 @@ def kge(evaluationsimulation, return_all=False):
     else:
         print("Error: evaluation and simulation lists does not have the same length.")
         return np.nan
+    
+    
+def rsr(evaluation,simulation):
+    """
+    RMSE-observations standard deviation ratio 
+    
+    Corresponding paper: 
+    Moriasi, Arnold, Van Liew, Bingner, Harmel, Veith, 2007, Model Evaluation Guidelines for Systematic Quantification of Accuracy in Watershed Simulations
+    
+    output:
+        rsr: RMSE-observations standard deviation ratio 
+    """
+    if len(evaluation)==len(simulation):
+        rsme_temp = rsme(evaluation, simulation)
+        std = _standarddeviation(evaluation)
+        rsr = rsme_temp / std
+        return rsr        
+    else:
+        print("Error: evaluation and simulation lists does not have the same length.")
+        return np.nan
+    
 
 def _variance(evaluation):
     """

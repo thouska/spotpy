@@ -194,6 +194,8 @@ class fast(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
+        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
         print('Creating FAST Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']
@@ -208,42 +210,43 @@ class fast(_algorithm):
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
         Matrix = self.matrix(bounds, N, M=4)
-        print('Start sampling')
-        starttime = time.time()
-        intervaltime = starttime
+        #print('Start sampling')
+        #starttime = time.time()
+        #intervaltime = starttime
         # A generator that produces the parameters
         #param_generator = iter(Matrix)
+        #firstcall = True
         param_generator = (
-            (rep, Matrix[rep]) for rep in xrange(len(Matrix)))
+            (rep, Matrix[rep]) for rep in range(len(Matrix)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
-            self.status(rep, like, randompar)
+            self.postprocessing(rep, randompar, simulations)
+            #like = self.objectivefunction(
+            #    evaluation=self.evaluation, simulation=simulations)
             # Save everything in the database
-            self.datawriter.save(like, randompar, simulations=simulations)
+            #self.save(like, randompar, simulations=simulations)
+            #self.status(rep, like, randompar)
             # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    rep, len(Matrix), self.status.objectivefunction)
-                print(text)
-                intervaltime = time.time()
-        self.repeat.terminate()
-
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
-
-        try:
-            self.datawriter.finalize()
+#            acttime = time.time()
+#            # Refresh progressbar every second
+#            if acttime - intervaltime >= 2:
+#                text = '%i of %i (best like=%g)' % (
+#                    rep, len(Matrix), self.status.objectivefunction)
+#                print(text)
+#                intervaltime = time.time()
+#        self.repeat.terminate()
+#
+#        text = '%i of %i (best like=%g)' % (
+#            self.status.rep, repetitions, self.status.objectivefunction)
+#        print(text)
+#        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
+#        print(text)
+        self.final_call()
+        
+        try:            
             data = self.datawriter.getdata()
             # this is likely to crash if database does not assign name 'like1'
             Si = self.analyze(
                 bounds, data['like1'], len(bounds), names, print_to_console=True)
-
         except AttributeError:  # Happens if no database was assigned
             pass

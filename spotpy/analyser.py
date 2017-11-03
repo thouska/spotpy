@@ -40,7 +40,25 @@ def load_csv_results(filename, usecols=None):
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,invalid_raise=False)  
     else:
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,skip_footer=1,invalid_raise=False,usecols=usecols)[1:]   
-        
+
+def get_header(results):
+    return results.dtype.names
+    
+def get_like_fields(results):
+    header = get_header(results)
+    fields=[word for word in header if word.startswith('like')]    
+    return fields
+    
+def get_parameter_fields(results):
+    header = get_header(results)
+    fields=[word for word in header if word.startswith('par')]    
+    return fields
+    
+def get_simulation_fields(results):
+    header = get_header(results)
+    fields=[word for word in header if word.startswith('sim')] 
+    return fields
+    
 def get_modelruns(results):
     """
     Get an shorter array out of your result array, containing just the 
@@ -90,7 +108,7 @@ def get_parameternames(results):
         parnames.append(field[3:])
     return parnames
     
-def get_maxlikeindex(results):
+def get_maxlikeindex(results,verbose=True):
     """
     Get the maximum objectivefunction of your result array
     
@@ -101,12 +119,18 @@ def get_maxlikeindex(results):
         value and value of the maximum objectivefunction of your result array
     :rtype: int and float
     """        
-    maximum=np.nanmax(results['like'])
+    try:
+        likes=results['like']
+    except ValueError:
+        likes=results['like1']
+    maximum=np.nanmax(likes)
     value=str(round(maximum,4))
-    text=str('The best model run has an objectivefunction of: ')
-    textv=text+value
-    print(textv)
-    index=np.where(results['like']==maximum)
+    text=str('Run number ' )
+    index=np.where(likes==maximum)
+    text2=str(' has the highest objectivefunction with: ')     
+    textv=text+str(index[0][0])+text2+value
+    if verbose:
+        print(textv)    
     return index, maximum
 
 def get_minlikeindex(results):
@@ -120,13 +144,19 @@ def get_minlikeindex(results):
         value and value of the minimum objectivefunction of your result array
     :rtype: int and float
     """            
-    minimum=np.nanmin(results['like'])    
-    value=str(round(maximum,4))
-    text=str('The best model run has an objectivefunction of: ')
-    textv=text+value
+    try:
+        likes=results['like']
+    except ValueError:
+        likes=results['like1']
+    minimum=np.nanmin(likes)    
+    value=str(round(minimum,4))
+    text=str('Run number ' )
+    index=np.where(likes==minimum)
+    text2=str(' has the lowest objectivefunction with: ')     
+    textv=text+str(index[0][0])+text2+value
     print(textv)
-    index=np.where(results['like']==minimum)
-    return index, minimum    
+        
+    return index, minimum
 
 
 def get_percentiles(results,sim_number=''):
@@ -194,9 +224,9 @@ def compare_different_objectivefunctions(like1,like2):
         print('like1 is signifikant different to like2: p<0.05' )
     return out
     
-def get_posterior(results,threshold=0.9):
+def get_posterior(results,percentage=10):
     """
-    Get the best XX% of your result array
+    Get the best XX% of your result array (e.g. best 10% model runs would be a threshold setting of 0.9)
     
     :results: Expects an numpy array which should have as first axis an index "like". This will be sorted. 
     :type: array  
@@ -207,8 +237,39 @@ def get_posterior(results,threshold=0.9):
     :return: Posterior result array
     :rtype: array
     """
-    return np.sort(results,axis=0)[len(results)*threshold:]
+    reduction_factor = (100.0-percentage)/100.0
+    return np.sort(results,axis=0)[int(len(results))*reduction_factor:]
 
+def plot_parameter_uncertainty(posterior_results,evaluation):
+    import pylab as plt
+    
+    simulation_fields = get_simulation_fields(posterior_results)
+    fig= plt.figure(figsize=(16,9))
+    for i in range(len(evaluation)):
+        if evaluation[i] == -9999:
+            evaluation[i] = np.nan 
+    ax = plt.subplot(1,1,1)
+    q5,q95=[],[]
+    for field in simulation_fields:
+        q5.append(np.percentile(list(posterior_results[field]),2.5))
+        q95.append(np.percentile(list(posterior_results[field]),97.5))
+    ax.plot(q5,color='dimgrey',linestyle='solid')
+    ax.plot(q95,color='dimgrey',linestyle='solid')
+    ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
+                    linewidth=0,label='parameter uncertainty')  
+    ax.plot(evaluation,'r.',markersize=1, label='Observation data')
+    
+    bestindex,bestobjf = get_maxlikeindex(posterior_results,verbose=False)
+    plt.plot(list(posterior_results[simulation_fields][bestindex][0]),'b-',label='Obj='+str(round(bestobjf,2)))
+    plt.xlabel('Number of Observation Points')
+    plt.ylabel ('Simulated value')
+    plt.legend(loc='upper right')
+    fig.savefig('Posteriot_parameter_uncertainty.png',dpi=300)
+    text='A plot of the parameter uncertainty has been saved as "Posteriot_parameter_uncertainty.png"'
+    print(text)
+    
+    
+    
 def sort_like(results):
     return np.sort(results,axis=0)
 
@@ -234,6 +295,14 @@ def get_best_parameterset(results,maximize=True):
     else:
         best=np.nanmin(likes)
     index=np.where(likes==best)
+    
+    best_parameter_set = get_parameters(results[index])[0]
+    parameter_names = get_parameternames(results)
+    
+    text=''
+    for i in range(len(parameter_names)):
+        text+=parameter_names[i]+'='+str(best_parameter_set[i])+', '
+    print('Best parameter set:\n'+text[:-2])
     return get_parameters(results[index])
 
 def get_min_max(spotpy_setup):
@@ -267,7 +336,7 @@ def get_parbounds(spotpy_setup):
         bounds.append([parmin[i],parmax[i]])
     return bounds
     
-def get_sensitivity_of_fast(results,like_index=None,M=4, print_to_console=True):
+def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
     """
     Get the sensitivity for every parameter of your result array, created with the FAST algorithm 
     
@@ -292,26 +361,30 @@ def get_sensitivity_of_fast(results,like_index=None,M=4, print_to_console=True):
             Error: Number of samples in model output file must be a multiple of D, 
             where D is the number of parameters in your parameter file.
           """)
-        exit()
+        return np.nan
 
     # Recreate the vector omega used in the sampling
     omega = np.empty([parnumber])
     omega[0] = math.floor((N - 1) / (2 * M))
     m = math.floor(omega[0] / (2 * M))
-
+    print(m)
     if m >= (parnumber - 1):
         omega[1:] = np.floor(np.linspace(1, m, parnumber - 1))
     else:
         omega[1:] = np.arange(parnumber - 1) % m + 1
 
+    print(omega)
     # Calculate and Output the First and Total Order Values
     if print_to_console:
         print("Parameter First Total")
     Si = dict((k, [None] * parnumber) for k in ['S1', 'ST'])
+    print(Si)
     for i in range(parnumber):
         l = np.arange(i * N, (i + 1) * N)
+        print(l)
         Si['S1'][i] = _compute_first_order(likes[l], N, M, omega[0])
         Si['ST'][i] = _compute_total_order(likes[l], N, omega[0])
+        print(Si)
         if print_to_console:
             print("%s %f %f" %
                   (parnames[i], Si['S1'][i], Si['ST'][i]))
@@ -336,40 +409,123 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     :return: Parameter names which are sensitive, Sensitivity indices for every parameter, Parameter names which are not sensitive
     :rtype: Three lists
     """
+    
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
 
     parnames=get_parameternames(results)
-    fig=plt.figure(figsize=(16,12))
-    all_names=[]
-    all_no_names=[]
-    for i in range(len(likes)):
-        ax  = plt.subplot(len(likes),1,i+1)
-        if like_indices==None:
-            Si=get_sensitivity_of_fast(results['like'],parnames)
+    fig=plt.figure(figsize=(16,6))
+
+    ax  = plt.subplot(1,1,1)
+    Si  = get_sensitivity_of_fast(results)
+
+    names = []
+    values = []
+    no_names = []
+    no_values = []
+    index=[]
+    no_index=[]
+    #threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+    threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+    print(threshold)
+    for j in range(len(list(Si.values())[1])):
+        if list(Si.values())[1][j]>threshold:
+            names.append(parnames[j])
+            values.append(list(Si.values())[1][j])
+            index.append(j)
         else:
-            Si=get_sensitivity_of_fast(results['like'+str(like_indices[i])],parnames)
-        names=[]
-        values=[]
-        no_names=[]
-        for j in range(len(list(Si.values())[1])):
-            if list(Si.values())[1][j]>=sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]:
-                names.append(parnames[j])
-                values.append(list(Si.values())[1][j])
-            else:
-                no_names.append(parnames[j])
-        print(names)
-        ax.plot([sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]]*len(list(Si.values())[1]),'r--')
-        #ax.bar(np.arange(0,len(Si.values()[1])),sorted(np.sort(Si.values()[1]),reverse=True),label=str(names))
-        ax.bar(np.arange(0,len(list(Si.values())[1])),list(Si.values())[1],label=str(names))        
-        ax.set_ylim([0,1])
-        #ax.set_xlabel(names)
-        ax.set_ylabel(likes[i])
-        ax.legend()
-        all_names.append(names)
-        all_no_names.append(no_names)
-    return all_names,values,all_no_names
+            no_names.append(parnames[j])
+            no_values.append(list(Si.values())[1][j])
+            no_index.append(j)
+    print(names)
+
+
+    print(index,values)
+    print(no_index,no_values)
+    ax.bar(index,values,color='blue', label ='Sensitive Parameters')
+    ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')            
+#    
+#        if Si.values()[1][i] > threshold:
+#            if not senslabelset:
+#                #ax.bar(i,Si.values()[1][i],color='blue', label =str(number_of_sensitiv_pars)+' most sensitive Parameters')            
+#                ax.bar(i,Si.values()[1][i],color='blue', label ='Sensitive Parameters')            
+#                senslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='blue')            
+#                
+#        else:
+#            if not insenslabelset:
+#                ax.bar(i,Si.values()[1][i],color='orange', label = 'Insensitive parameter')            
+#                insenslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='orange')            
+                
+    ax.set_ylim([0,1])
+    
+    ax.set_xlabel('Model Paramters')
+    ax.set_ylabel('Total Sensititivity Index')
+    ax.legend()
+    #ax.set_xticklabels(names[1:])
+    ax.set_xticklabels(['0']+parnames)
+    ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
+    ax.set_xlim(-0.5,len(parnames)-0.5)
+    fig.savefig('FAST_sensitivity.png',dpi=300)
+#    
+#    import matplotlib.pyplot as plt
+#    from matplotlib import colors
+#    cnames=list(colors.cnames)
+#
+#    parnames=get_parameternames(results)
+#    fig=plt.figure(figsize=(16,6))
+##    all_names=[]
+##    all_no_names=[]
+#    for i in range(len(likes)):
+#        ax  = plt.subplot(len(likes),1,i+1)
+#        Si=get_sensitivity_of_fast(results)
+#
+#    names=[0,0]
+#    values=[]
+#    no_names=[]
+#    for j in range(len(list(Si.values())[1])):
+#        if list(Si.values())[1][j]>=sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]:
+#            names.append(parnames[j])
+#            values.append(list(Si.values())[1][j])
+#        else:
+#            no_names.append(parnames[j])
+#    print(names)
+#    threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+#    threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
+#    print(threshold)
+#    #ax.bar(np.arange(0,len(Si.values()[1])),sorted(np.sort(Si.values()[1]),reverse=True),label=str(names))
+#    #ax.bar(np.arange(0,len(list(Si.values())[1])),list(Si.values())[1],label=names)            
+#    senslabelset=False
+#    insenslabelset=False
+#    for i in range(len(parnames)):
+#        if Si.values()[1][i] > threshold:
+#            if not senslabelset:
+#                ax.bar(i,Si.values()[1][i],color='blue', label =str(number_of_sensitiv_pars)+' most sensitive Parameters')            
+#                senslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='blue')            
+#                
+#        else:
+#            if not insenslabelset:
+#                ax.bar(i,Si.values()[1][i],color='orange', label = 'Insensitive parameter')            
+#                insenslabelset = True
+#            else:
+#                ax.bar(i,Si.values()[1][i],color='orange')            
+#                
+#    ax.set_ylim([0,1])
+#    
+#    ax.set_xlabel('Model Paramters')
+#    ax.set_ylabel('Total Sensititivity Index')
+#    ax.legend()
+#    ax.set_xticklabels(names[1:])
+#    ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
+#    ax.set_xlim(-0.5,len(parnames)-0.5)
+#    fig.savefig('FAST_sensitivity.png',dpi=300)
+##    all_names.append(names)
+##    all_no_names.append(no_names)
+
 
 
    
@@ -684,7 +840,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     print(text)
     
 
-def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True):
+def plot_bestmodelrun(results,evaluation):
     """
     Get a plot with the maximum objectivefunction of your simulations in your result 
     array.
@@ -695,18 +851,6 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
               objectivefunctions and "sim" for simulations.
   
         evaluation (list): Should contain the values of your observations. Expects that this list has the same lenght as the number of simulations in your result array.
-    Kwargs:
-        dates (list): A list of datetime values, equivalent to the evaluation data.
-        
-        ylabel (str): Labels the y-axis with the given string.
-
-        xlabel (str): Labels the x-axis with the given string.
-                
-        objectivefunction (str): Name of the objectivefunction function used for the simulations.
-        
-        objectivefunctionmax (boolean): If True the maximum value of the objectivefunction will be searched. If false, the minimum will be searched.
-        
-        calculatelike (boolean): If True, the NSE will be calulated for each simulation in the result array.
     
     Returns: 
         figure. Plot of the simulation with the maximum objectivefunction value in the result array as a blue line and dots for the evaluation data.
@@ -715,54 +859,69 @@ def plot_bestmodelrun(results,evaluation,dates=None,ylabel='Best model simulatio
     >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
         
     """
-    import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
-    plt.rc('font', **font)       
-    if calculatelike:
-        likes=[]
-        sim=get_modelruns(results)
-        par=get_parameters(results)
-        for s in sim:
-            likes.append(spotpy.objectivefunctions.nashsutcliff(s,evaluation))
-        maximum=max(likes)
-        index=likes.index(maximum)
-        bestmodelrun=list(sim[index])
-        bestparameterset=list(par[index])
-        
-    else:
-        if objectivefunctionmax==True:
-            index,maximum=get_maxlikeindex(results)
-        else:
-            index,maximum=get_minlikeindex(results)
-        bestmodelrun=list(get_modelruns(results)[index][0])#Transform values into list to ensure plotting
-        bestparameterset=list(get_parameters(results)[index][0])
-        
-    parameternames=list(get_parameternames(results)    )
-    bestparameterstring=''
-    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
-    for i in range(len(parameternames)):
-        if i%8==0:
-            bestparameterstring+='\n'
-        bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
-    fig=plt.figure(figsize=(16,8))
-    if dates is not None:
-        plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))        
-        plt.plot(dates,evaluation,'ro',label='Evaluation')
-    else:
-        plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
-        plt.plot(evaluation,'ro',label='Evaluation')
-    plt.legend()
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
-    plt.ylim(0,70) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
-    plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
-#    plt.text(0, 0, bestparameterstring[0:-2],
-#        horizontalalignment='left',
-#        verticalalignment='bottom')
-    fig.savefig('bestmodelrun.png')
-    text='The figure as been saved as "bestmodelrun.png"'
+    import pylab as plt
+    fig= plt.figure(figsize=(16,9))
+    for i in range(len(evaluation)):
+        if evaluation[i] == -9999:
+            evaluation[i] = np.nan                               
+    plt.plot(evaluation,'ro',markersize=1, label='Observation data')
+    simulation_fields = get_simulation_fields(results)
+    bestindex,bestobjf = get_maxlikeindex(results,verbose=False)
+    plt.plot(list(results[simulation_fields][bestindex][0]),'b-',label='Obj='+str(round(bestobjf,2)))
+    plt.xlabel('Number of Observation Points')
+    plt.ylabel ('Simulated value')
+    plt.legend(loc='upper right')
+    text='A plot of the best model run has been saved as "Best_model_run.png"'
     print(text)
+    fig.savefig('Best_model_run.png',dpi=300)
+
+#    from matplotlib import colors
+#    cnames=list(colors.cnames)
+#    plt.rc('font', **font)       
+#    if calculatelike:
+#        likes=[]
+#        sim=get_modelruns(results)
+#        par=get_parameters(results)
+#        for s in sim:
+#            likes.append(spotpy.objectivefunctions.nashsutcliff(s,evaluation))
+#        maximum=max(likes)
+#        index=likes.index(maximum)
+#        bestmodelrun=list(sim[index])
+#        bestparameterset=list(par[index])
+#        
+#    else:
+#        if objectivefunctionmax==True:
+#            index,maximum=get_maxlikeindex(results)
+#        else:
+#            index,maximum=get_minlikeindex(results)
+#        bestmodelrun=list(get_modelruns(results)[index][0])#Transform values into list to ensure plotting
+#        bestparameterset=list(get_parameters(results)[index][0])
+#        
+#    parameternames=list(get_parameternames(results)    )
+#    bestparameterstring=''
+#    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
+#    for i in range(len(parameternames)):
+#        if i%8==0:
+#            bestparameterstring+='\n'
+#        bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
+#    fig=plt.figure(figsize=(16,8))
+#    if dates is not None:
+#        plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))        
+#        plt.plot(dates,evaluation,'ro',label='Evaluation')
+#    else:
+#        plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
+#        plt.plot(evaluation,'ro',label='Evaluation')
+#    plt.legend()
+#    plt.ylabel(ylabel)
+#    plt.xlabel(xlabel)
+#    plt.ylim(0,70) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
+#    plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
+##    plt.text(0, 0, bestparameterstring[0:-2],
+##        horizontalalignment='left',
+##        verticalalignment='bottom')
+#    fig.savefig('bestmodelrun.png')
+#    text='The figure as been saved as "bestmodelrun.png"'
+#    print(text)
 
 
 def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True):
@@ -900,6 +1059,7 @@ def plot_parameterInteraction(results):
     df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
     
     pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
+    #pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     plt.savefig('ParameterInteraction',dpi=300)    
     
     
@@ -1019,6 +1179,7 @@ def _compute_first_order(outputs, N, M, omega):
 def _compute_total_order(outputs, N, omega):
     '''Needed for FAST sensitivity''' 
     f = np.fft.fft(outputs)
+    #print(f)
     Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
     V = 2 * np.sum(Sp)
     Dt = 2 * sum(Sp[np.arange(int(omega / 2))])

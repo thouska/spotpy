@@ -1,5 +1,5 @@
 # spotpy
-A Statistical Parameter Optimization Framework for Python
+A Statistical Parameter Optimization Tool for Python
 
 ---
 
@@ -18,11 +18,11 @@ A Statistical Parameter Optimization Framework for Python
 [license-link]: http://opensource.org/licenses/MIT
 
 
-=================
+
 Purpose
 =================
 
-SPOTPY is a Python tool that enables the use of Computational optimization techniques for calibration, uncertainty 
+SPOTPY is a Python framework that enables the use of Computational optimization techniques for calibration, uncertainty 
 and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One:
 
 Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE, 
@@ -37,7 +37,7 @@ algorithms of almost any model, without the need of complex codes::
 	spotpy.analyser.plot_parametertrace(results)         # Show the results
 
 
-=================
+
 Features
 =================
 
@@ -54,8 +54,9 @@ Some features you can use with the SPOTPY package are:
   * Latin-Hypercube Sampling (`LHS`) 
   * Simulated Annealing (`SA`)
   * Shuffled Complex Evolution Algorithm (`SCE-UA`)
-  * Differential Evolution Adaptive Metropolis Algorithm (`DE-MCz`) 
-  * RObust Parameter Estimation (`ROPE`).
+  * Differential Evolution Markov Chain Algorithm (`DE-MCz`)
+  * Differential Evolution Adaptive Metropolis Algorithm (`DREAM`)
+  * RObust Parameter Estimation (`ROPE`)
   * Fourier Amplitude Sensitivity Test (`FAST`)
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
@@ -88,6 +89,48 @@ Some features you can use with the SPOTPY package are:
   * Wald
   * Weilbull
 
+* A toolbox of hydrological signatures, to see a hydrological fit of modeled data to the measured one. 
+
+To use this signatures, you call the _get_**HydrologicalSignature** function and entering the measured and the modeled data.
+Setting `mode='calc_Dev'` performs our desired calculation. Sometimes additional parameters are needed, as for example
+a timestamp list (in a pandas object) or threshold values. The closer the return value is to zero, the more fits the simulated 
+data with measured one. 
+
+
+	spotpy.signatures.getSlopeFDC(measured_data,results,mode='calc_Dev')
+
+By changing the value of `mode` to `'get_signature'`, we get the signature value _only_ for the parameter `data`.
+
+By changing the value of `mode` to `'get_raw_data'`, we get a raw calculation of flood-signatures, belonging to each signature calculation.
+
+**tutorial_signatures.py** contains al available functions and it's mode settings.
+
+  * List of available hydrological signatures, additional required parameters are in brackets
+    * getMeanFlow
+    * getMedianFlow
+    * getSkewness
+    * getCoeffVariation
+    * getQ001
+    * getQ01
+    * getQ1
+    * getQ5
+    * getQ10
+    * getQ20
+    * getQ85
+    * getQ95
+    * getQ99
+    * getSlopeFDC
+    * getAverageFloodOverflowPerSection(datetime_series, threshold_value)
+    * getAverageFloodFrequencyPerSection(datetime_series, threshold_value)
+    * getAverageFloodDuration(datetime_series, threshold_value)
+    * getAverageBaseflowUnderflowPerSection(datetime_series, threshold_value)
+    * getAverageBaseflowFrequencyPerSection(datetime_series, threshold_value)
+    * getFloodFrequency(datetime_series, threshold_value)
+    * getBaseflowFrequency (datetime_series, threshold_value)
+    * getLowFlowVar(datetime_series)
+    * getHighFlowVar(datetime_series)
+    * getBaseflowIndex(datetime_series)
+
 * Wide range to adapt algorithms to perform uncertainty-, sensitivity analysis or calibration
   of a model.
 
@@ -114,7 +157,7 @@ Some features you can use with the SPOTPY package are:
 
 * Convergence diagnostics with Gelman-Rubin and the Geweke plot
 
-=================
+
 Install
 =================
 
@@ -125,8 +168,8 @@ Installing SPOTPY is easy. Just use:
 Or, after downloading the [source code](https://pypi.python.org/pypi/spotpy "source code") and making sure python is in your OS path:
 
 	python setup.py install
+
 	
-=================
 Support
 =================
 
@@ -136,44 +179,11 @@ Support
 
 * Please contact the authors in case of any bug.
 
-* If you use this package for a scientific research paper, please cite SPOTPY. It is peer-reviewed.
+* If you use this package for a scientific research paper, please cite SPOTPY. It is [peer-reviewed](http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0145180 "SPOTting Model Parameters Using a Ready-Made Python Package").
 
 * Patches/enhancements and any other contributions to this package are very welcome!
 
-* GitHub: https://github.com/thouska/spotpy
 
+Getting started
 =================
-Version 1.1.0
-=================
-
-* Changed `likelihood` to `objectivefunction`. Checkout new [example spotpy_setup files](http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/#creating-the-setup-file).  
-
-=================
-Version 1.1.1 - 1.1.3
-=================
-
-* Minor bugfixes
-
-=================
-Version 1.1.4
-=================
-
-* Added a new functionality to sample parameters from a given list. Checkout the corresponding [example tutorial](http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/6-Advanced_hints/#sampling-from-a-given-parameter-list) and [code](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_Parameterlist_iterator.py)
-
-=================
-Version 1.2.0
-=================
-
-* Added Python 3 support
-
-=================
-Version 1.2.1
-=================
-
-* Spotpy supports now userdefined databases. Checkout the corresponding [example tutorial](http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/6-Advanced_hints/#create-a-own-database) and [code](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_ownDatabase.py).
-
-=================
-Version 1.2.2
-=================
-
-* Minor bugfix in Monte Carlo sampler
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
