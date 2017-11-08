@@ -5,7 +5,7 @@ import numpy as np
 
 #https://docs.python.org/3/library/unittest.html
 
-class TestSignatures(unittest.TestCase):
+class TestDatabase(unittest.TestCase):
 
     def setUp(self):
         self.parnames = [b'x1',b'x2',b'x3',b'x4',b'x5']
@@ -31,8 +31,12 @@ class TestSignatures(unittest.TestCase):
         csv.save(self.like ,self.randompar,self.simulations_multi)
         # Save Simulations
 
-        self.assertEqual(len(csv.header),32)
         csv.finalize()
+        csvdata = csv.getdata()
+        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(csvdata[0]), 32)
+        self.assertEqual(len(csvdata), 2)
+        self.assertEqual(len(csv.header), 32)
 
 
     def test_csv_multiline_false(self):
@@ -41,30 +45,50 @@ class TestSignatures(unittest.TestCase):
                      chains=1, save_sim=False)
 
         csv.save(self.like, self.randompar, self.simulations_multi)
-        self.assertEqual(len(csv.header), 7)
+
         csv.finalize()
+        csvdata = csv.getdata()
+        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(csvdata[0]), 7)
+        self.assertEqual(len(csvdata), 2)
+        self.assertEqual(len(csv.header), 7)
 
     def test_csv_single(self):
         csv = db.csv("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations,
                           chains=1, save_sim=True)
 
         csv.save(self.like, self.randompar, self.simulations)
-        self.assertEqual(len(csv.header), 12)
+
         csv.finalize()
+        csvdata = csv.getdata()
+        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(csvdata[0]), 12)
+        self.assertEqual(len(csvdata), 2)
+        self.assertEqual(len(csv.header), 12)
 
     def test_csv_single_false(self):
         csv = db.csv("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations,
                      chains=1, save_sim=False)
 
         csv.save(self.like, self.randompar, self.simulations)
-        self.assertEqual(len(csv.header), 7)
+
         csv.finalize()
+        csvdata = csv.getdata()
+        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(csvdata[0]), 7)
+        self.assertEqual(len(csvdata), 2)
+        self.assertEqual(len(csv.header), 7)
+
 
     def test_sql_multiline(self):
         sql = db.sql("UnitTest_tmp",self.parnames, self.like, self.randompar, simulations=self.simulations_multi,
                           chains=1, save_sim=True)
         sql.save(self.like, self.randompar, self.simulations_multi)
         sql.finalize()
+        sqldata = sql.getdata()
+        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(len(sqldata[0]), 32)
+        self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 32)
 
 
@@ -73,6 +97,10 @@ class TestSignatures(unittest.TestCase):
                           chains=1, save_sim=False)
         sql.save(self.like, self.randompar, self.simulations_multi)
         sql.finalize()
+        sqldata = sql.getdata()
+        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(len(sqldata[0]), 7)
+        self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 7)
 
     def test_sql_single(self):
@@ -80,6 +108,10 @@ class TestSignatures(unittest.TestCase):
                           chains=1, save_sim=True)
         sql.save(self.like, self.randompar, self.simulations)
         sql.finalize()
+        sqldata = sql.getdata()
+        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(len(sqldata[0]), 12)
+        self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 12)
 
     def test_sql_single_false(self):
@@ -87,34 +119,63 @@ class TestSignatures(unittest.TestCase):
                           chains=1, save_sim=False)
         sql.save(self.like, self.randompar, self.simulations)
         sql.finalize()
+
+        sqldata = sql.getdata()
+        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(len(sqldata[0]), 7)
+        self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 7)
 
     def test_ram_multiline(self):
         ram = db.ram("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations_multi,
                      chains=1, save_sim=True)
         ram.save(self.like, self.randompar, self.simulations_multi)
-        # self.csv.finalize()
+        ram.finalize()
+
+        ramdata = ram.getdata()
+        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
         self.assertEqual(len(ram.header), 32)
+        self.assertEqual(len(ramdata[0]), 32)
+        self.assertEqual(len(ramdata), 2)
+        self.assertEqual(len(ramdata.dtype),len(ram.header))
 
     def test_ram_multiline_false(self):
         ram = db.ram("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations_multi,
                      chains=1, save_sim=False)
         ram.save(self.like, self.randompar, self.simulations_multi)
-        # self.csv.finalize()
+
+        ram.finalize()
+        ramdata = ram.getdata()
+        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(ramdata[0]), 7)
+        self.assertEqual(len(ramdata), 2)
+        self.assertEqual(len(ramdata.dtype), len(ram.header))
         self.assertEqual(len(ram.header), 7)
 
     def test_ram_single(self):
-        ram = db.sql("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations,
+        ram = db.ram("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations,
                      chains=1, save_sim=True)
         ram.save(self.like, self.randompar, self.simulations)
-        # self.csv.finalize()
+
+        ram.finalize()
+        ramdata = ram.getdata()
+        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(ramdata[0]), 12)
+        self.assertEqual(len(ramdata), 2)
+        self.assertEqual(len(ramdata.dtype), len(ram.header))
         self.assertEqual(len(ram.header), 12)
 
     def test_ram_single_false(self):
-        ram = db.sql("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations,
+        ram = db.ram("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations,
                      chains=1, save_sim=False)
         ram.save(self.like, self.randompar, self.simulations)
-        # self.csv.finalize()
+
+        ram.finalize()
+        ramdata = ram.getdata()
+        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(len(ramdata[0]), 7)
+        self.assertEqual(len(ramdata), 2)
+        self.assertEqual(len(ramdata.dtype), len(ram.header))
         self.assertEqual(len(ram.header), 7)
 
 
