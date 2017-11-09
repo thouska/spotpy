@@ -4,7 +4,12 @@ import spotpy
 import spotpy.hymod.hymod
 import numpy as np
 import os
-import pandas as pd
+
+try:
+    import pandas as pd
+except ImportError:
+    print('Please install Pandas to use these signature functions')
+
 
 #https://docs.python.org/3/library/unittest.html
 
@@ -62,10 +67,14 @@ class TestSignatures(unittest.TestCase):
         self.observation = self.spot_setup.evaluation()
 
         self.timespanlen = self.simulation.__len__()
-        self.ddd = pd.date_range("2015-01-01 11:00", freq="5min", periods=self.timespanlen)
-        self.dd_daily = pd.date_range("2015-05-01", periods=self.timespanlen)
+        try:
 
-
+            self.ddd = pd.date_range("2015-01-01 11:00", freq="5min", periods=self.timespanlen)
+            self.dd_daily = pd.date_range("2015-05-01", periods=self.timespanlen)
+            self.usepandas = True
+        except NameError:
+            print('Please install Pandas to use these signature functions')
+            self.usepandas = False
 
     def test_getSlopeFDC(self):
         sig_val = sig.getSlopeFDC(self.simulation,self.observation, mode="get_signature")
@@ -77,23 +86,23 @@ class TestSignatures(unittest.TestCase):
 
 
     def test_getAverageFloodOverflowPerSection(self):
+        if self.usepandas:
+            for th in range(-10,10):
 
-        for th in range(-10,10):
-
-            sig_val = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_signature", datetime_series=self.dd_daily,
+                sig_val = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_signature", datetime_series=self.dd_daily,
+                                                            threshold_value=th)
+                sig_raw = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_raw_data", datetime_series=self.dd_daily,
                                                         threshold_value=th)
-            sig_raw = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_raw_data", datetime_series=self.dd_daily,
-                                                    threshold_value=th)
-            sig_dev = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="calc_Dev", datetime_series=self.dd_daily,
-                                                    threshold_value=th)
-            self.assertEqual(type(float(sig_val.astype(float))),type(1.0))
+                sig_dev = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="calc_Dev", datetime_series=self.dd_daily,
+                                                        threshold_value=th)
+                self.assertEqual(type(float(sig_val.astype(float))),type(1.0))
 
 
 
-            self.assertEqual(sig_raw.dtypes[0],"float64")
-            self.assertEqual(sig_raw["flood"].__len__(), 730)
-            self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
-            self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
+                self.assertEqual(sig_raw.dtypes[0],"float64")
+                self.assertEqual(sig_raw["flood"].__len__(), 730)
+                self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
 
 
     def test_getMeanFlow(self):
@@ -190,232 +199,242 @@ class TestSignatures(unittest.TestCase):
 
 
     def test_getAverageFloodFrequencyPerSection(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1, 1, 1)[0]
-            sig_val = sig.getAverageFloodFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
-                                                       mode="get_signature")
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1, 1, 1)[0]
+                sig_val = sig.getAverageFloodFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
+                                                           mode="get_signature")
 
-            sig_raw = sig.getAverageFloodFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
-                                                       mode="get_raw_data")
+                sig_raw = sig.getAverageFloodFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
+                                                           mode="get_raw_data")
 
-            sig_dev = sig.getAverageFloodFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
-                                                   mode="calc_Dev")
+                sig_dev = sig.getAverageFloodFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
+                                                       mode="calc_Dev")
 
-            self.assertEqual(sig_raw.dtypes[0], "float64")
-            self.assertEqual(sig_raw["flood"].__len__(), 730)
+                self.assertEqual(sig_raw.dtypes[0], "float64")
+                self.assertEqual(sig_raw["flood"].__len__(), 730)
 
-            self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
-            self.assertEqual(type(sig_dev), type(1.0))
-            self.assertEqual(type(sig_val), type(1.0))
+                self.assertEqual(type(sig_dev), type(1.0))
+                self.assertEqual(type(sig_val), type(1.0))
 
 
     def test_getAverageFloodDuration(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1, 1, 1)[0]
-            sig_val = sig.getAverageFloodDuration(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
-                                          mode="get_signature")
-            sig_raw = sig.getAverageFloodDuration(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
-                                          mode="get_raw_data")
-            sig_dev = sig.getAverageFloodDuration(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
-                                          mode="calc_Dev")
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1, 1, 1)[0]
+                sig_val = sig.getAverageFloodDuration(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
+                                              mode="get_signature")
+                sig_raw = sig.getAverageFloodDuration(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
+                                              mode="get_raw_data")
+                sig_dev = sig.getAverageFloodDuration(self.simulation, self.observation, datetime_series=self.dd_daily, threshold_value=th,
+                                              mode="calc_Dev")
 
-            self.assertEqual(sig_raw.dtypes[0], "float64")
-            self.assertEqual(sig_raw["flood"].__len__(), 730)
+                self.assertEqual(sig_raw.dtypes[0], "float64")
+                self.assertEqual(sig_raw["flood"].__len__(), 730)
 
-            self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
-            self.assertEqual(type(sig_dev), type(1.0))
-            self.assertEqual(type(sig_val), type(1.0))
+                self.assertEqual(type(sig_dev), type(1.0))
+                self.assertEqual(type(sig_val), type(1.0))
 
 
     def test_getAverageBaseflowUnderflowPerSection(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1, 1, 1)[0]
-            sig_val =sig.getAverageBaseflowUnderflowPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="get_signature")
-            sig_raw = sig.getAverageBaseflowUnderflowPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="get_raw_data")
-            sig_dev = sig.getAverageBaseflowUnderflowPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="calc_Dev")
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1, 1, 1)[0]
+                sig_val =sig.getAverageBaseflowUnderflowPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="get_signature")
+                sig_raw = sig.getAverageBaseflowUnderflowPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="get_raw_data")
+                sig_dev = sig.getAverageBaseflowUnderflowPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="calc_Dev")
 
-            self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
-            self.assertEqual(sig_raw["baseflow"].__len__(), 730)
+                self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
+                self.assertEqual(sig_raw["baseflow"].__len__(), 730)
 
-            self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
-            self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
+                self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
 
-            self.assertEqual(type(float(sig_val.astype(float))), type(1.0))
+                self.assertEqual(type(float(sig_val.astype(float))), type(1.0))
 
     def test_getAverageBaseflowFrequencyPerSection(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1,1,1)[0]
-            sig_val = sig.getAverageBaseflowFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="get_signature")
-            sig_raw = sig.getAverageBaseflowFrequencyPerSection(self.simulation, self.observation, datetime_series=self.ddd, threshold_value=th,
-                                                            mode="get_raw_data")
-            sig_dev = sig.getAverageBaseflowFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="calc_Dev")
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1,1,1)[0]
+                sig_val = sig.getAverageBaseflowFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="get_signature")
+                sig_raw = sig.getAverageBaseflowFrequencyPerSection(self.simulation, self.observation, datetime_series=self.ddd, threshold_value=th,
+                                                                mode="get_raw_data")
+                sig_dev = sig.getAverageBaseflowFrequencyPerSection(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="calc_Dev")
 
-            self.assertTrue(sig_raw.dtypes[0] ==  "int64" or sig_raw.dtypes[0] ==  "float64")
-            self.assertEqual(sig_raw["baseflow"].__len__(), 730)
+                self.assertTrue(sig_raw.dtypes[0] ==  "int64" or sig_raw.dtypes[0] ==  "float64")
+                self.assertEqual(sig_raw["baseflow"].__len__(), 730)
 
-            self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
-            self.assertEqual(type(sig_dev), type(1.0))
-            self.assertEqual(type(sig_val), type(1.0))
+                self.assertEqual(type(sig_dev), type(1.0))
+                self.assertEqual(type(sig_val), type(1.0))
 
     def test_getAverageBaseflowDuration(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1,1,1)[0]
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1,1,1)[0]
 
-            sig_val = sig.getAverageBaseflowDuration(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="get_signature")
+                sig_val = sig.getAverageBaseflowDuration(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="get_signature")
 
-            sig_raw = sig.getAverageBaseflowDuration(self.simulation, self.observation, datetime_series=self.ddd, threshold_value=th,
-                                                            mode="get_raw_data")
-            sig_dev = sig.getAverageBaseflowDuration(self.simulation, self.observation, datetime_series=self.dd_daily,
-                                                            threshold_value=th, mode="calc_Dev")
+                sig_raw = sig.getAverageBaseflowDuration(self.simulation, self.observation, datetime_series=self.ddd, threshold_value=th,
+                                                                mode="get_raw_data")
+                sig_dev = sig.getAverageBaseflowDuration(self.simulation, self.observation, datetime_series=self.dd_daily,
+                                                                threshold_value=th, mode="calc_Dev")
 
-            self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
-            self.assertEqual(sig_raw["baseflow"].__len__(), 730)
+                self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
+                self.assertEqual(sig_raw["baseflow"].__len__(), 730)
 
-            self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
-            self.assertEqual(type(sig_dev), type(1.0))
-            self.assertEqual(type(sig_val), type(1.0))
+                self.assertEqual(type(sig_dev), type(1.0))
+                self.assertEqual(type(sig_val), type(1.0))
 
 
 
 
     def test_getFloodFrequency(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1, 1, 1)[0]
-            sig_val = sig.getFloodFrequency(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
-                                    mode="get_signature")
-            sig_raw_dd = sig.getFloodFrequency(self.simulation, self.observation,
-                                    datetime_series=self.dd_daily, threshold_value=th,
-                                    mode="get_raw_data")
-            sig_raw_ddd = sig.getFloodFrequency(self.simulation, self.observation,
-                                           datetime_series=self.ddd, threshold_value=th,
-                                           mode="get_raw_data")
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1, 1, 1)[0]
+                sig_val = sig.getFloodFrequency(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
+                                        mode="get_signature")
+                sig_raw_dd = sig.getFloodFrequency(self.simulation, self.observation,
+                                        datetime_series=self.dd_daily, threshold_value=th,
+                                        mode="get_raw_data")
+                sig_raw_ddd = sig.getFloodFrequency(self.simulation, self.observation,
+                                               datetime_series=self.ddd, threshold_value=th,
+                                               mode="get_raw_data")
 
-            sig_dev = sig.getFloodFrequency(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
-                                    mode="calc_Dev")
-
-
-
-
-            self.assertEqual(sig_raw_dd.dtypes[0], "int64")
-            self.assertEqual(sig_raw_dd["count"].__len__(), 730)
-
-            self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
-            self.assertEqual(sig_raw_ddd["count"].__len__(), 61)
+                sig_dev = sig.getFloodFrequency(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
+                                        mode="calc_Dev")
 
 
-            self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
-            self.assertEqual(str(type(sig_raw_ddd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
 
-            self.assertEqual(type(float(sig_dev.astype(float))), type(42.0) )
-            self.assertEqual(type(float(sig_val.astype(float))), type(1.0))
+                self.assertEqual(sig_raw_dd.dtypes[0], "int64")
+                self.assertEqual(sig_raw_dd["count"].__len__(), 730)
+
+                self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
+                self.assertEqual(sig_raw_ddd["count"].__len__(), 61)
+
+
+                self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw_ddd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+
+
+                self.assertEqual(type(float(sig_dev.astype(float))), type(42.0) )
+                self.assertEqual(type(float(sig_val.astype(float))), type(1.0))
 
     def test_getBaseflowFrequency(self):
-        for th in range(-10, 10):
-            th = th + np.random.uniform(-1, 1, 1)[0]
-            sig_val = sig.getBaseflowFrequency(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
-                                    mode="get_signature")
-            sig_raw_dd = sig.getBaseflowFrequency(self.simulation, self.observation,
-                                    datetime_series=self.dd_daily, threshold_value=th,
-                                    mode="get_raw_data")
-            sig_raw_ddd = sig.getBaseflowFrequency(self.simulation, self.observation,
-                                           datetime_series=self.ddd, threshold_value=th,
-                                           mode="get_raw_data")
+        if self.usepandas:
+            for th in range(-10, 10):
+                th = th + np.random.uniform(-1, 1, 1)[0]
+                sig_val = sig.getBaseflowFrequency(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
+                                        mode="get_signature")
+                sig_raw_dd = sig.getBaseflowFrequency(self.simulation, self.observation,
+                                        datetime_series=self.dd_daily, threshold_value=th,
+                                        mode="get_raw_data")
+                sig_raw_ddd = sig.getBaseflowFrequency(self.simulation, self.observation,
+                                               datetime_series=self.ddd, threshold_value=th,
+                                               mode="get_raw_data")
 
-            sig_dev = sig.getBaseflowFrequency(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
-                                    mode="calc_Dev")
+                sig_dev = sig.getBaseflowFrequency(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen), threshold_value=th,
+                                        mode="calc_Dev")
 
-            self.assertEqual(sig_raw_dd.dtypes[0], "int64")
-            self.assertEqual(sig_raw_dd["count"].__len__(), 730)
+                self.assertEqual(sig_raw_dd.dtypes[0], "int64")
+                self.assertEqual(sig_raw_dd["count"].__len__(), 730)
 
-            self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
-            self.assertEqual(sig_raw_ddd["count"].__len__(), 61)
-
-
-            self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
-            self.assertEqual(str(type(sig_raw_ddd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
+                self.assertEqual(sig_raw_ddd["count"].__len__(), 61)
 
 
-            self.assertEqual(type(float(sig_dev)), type(42.0) )
-            self.assertEqual(type(float(sig_val)), type(1.0))
+                self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                self.assertEqual(str(type(sig_raw_ddd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+
+
+                self.assertEqual(type(float(sig_dev)), type(42.0) )
+                self.assertEqual(type(float(sig_val)), type(1.0))
 
     def test_getLowFlowVar(self):
-        sig_sig_1 = sig.getLowFlowVar(self.simulation, self.observation, datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),mode="get_signature")
-        sig_sig_2 = sig.getLowFlowVar(self.simulation, None,
-                                            datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                            mode="get_signature")
-        sig_raw = sig.getLowFlowVar(self.simulation, self.observation, datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),mode="get_raw_data")
-        sig_raw_2 = sig.getLowFlowVar(self.simulation, None,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                    mode="get_raw_data")
-        sig_dev = sig.getLowFlowVar(self.simulation, self.observation, datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),mode="calc_Dev")
+        if self.usepandas:
+            sig_sig_1 = sig.getLowFlowVar(self.simulation, self.observation, datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),mode="get_signature")
+            sig_sig_2 = sig.getLowFlowVar(self.simulation, None,
+                                                datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                                mode="get_signature")
+            sig_raw = sig.getLowFlowVar(self.simulation, self.observation, datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),mode="get_raw_data")
+            sig_raw_2 = sig.getLowFlowVar(self.simulation, None,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                        mode="get_raw_data")
+            sig_dev = sig.getLowFlowVar(self.simulation, self.observation, datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),mode="calc_Dev")
 
-        self.assertEqual(type(1.0), type(float(sig_sig_1)))
-        self.assertEqual(type(1.0), type(float(sig_sig_2)))
-        self.assertEqual(type(1.0), type(float(sig_raw)))
-        self.assertEqual(type(1.0), type(float(sig_raw_2)))
-        self.assertEqual(type(1.0), type(float(sig_dev)))
+            self.assertEqual(type(1.0), type(float(sig_sig_1)))
+            self.assertEqual(type(1.0), type(float(sig_sig_2)))
+            self.assertEqual(type(1.0), type(float(sig_raw)))
+            self.assertEqual(type(1.0), type(float(sig_raw_2)))
+            self.assertEqual(type(1.0), type(float(sig_dev)))
 
     def test_getHighFlowVar(self):
-        sig_sig_1 = sig.getHighFlowVar(self.simulation, self.observation,
-                                      datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                      mode="get_signature")
-        sig_sig_2 = sig.getHighFlowVar(self.simulation, None,
-                                      datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                      mode="get_signature")
-        sig_raw = sig.getHighFlowVar(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                    mode="get_raw_data")
-        sig_raw_2 = sig.getHighFlowVar(self.simulation, None,
-                                      datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                      mode="get_raw_data")
-        sig_dev = sig.getHighFlowVar(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                    mode="calc_Dev")
+        if self.usepandas:
+            sig_sig_1 = sig.getHighFlowVar(self.simulation, self.observation,
+                                          datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                          mode="get_signature")
+            sig_sig_2 = sig.getHighFlowVar(self.simulation, None,
+                                          datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                          mode="get_signature")
+            sig_raw = sig.getHighFlowVar(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                        mode="get_raw_data")
+            sig_raw_2 = sig.getHighFlowVar(self.simulation, None,
+                                          datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                          mode="get_raw_data")
+            sig_dev = sig.getHighFlowVar(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                        mode="calc_Dev")
 
-        self.assertEqual(type(1.0), type(float(sig_sig_1)))
-        self.assertEqual(type(1.0), type(float(sig_sig_2)))
-        self.assertEqual(type(1.0), type(float(sig_raw)))
-        self.assertEqual(type(1.0), type(float(sig_raw_2)))
-        self.assertEqual(type(1.0), type(float(sig_dev)))
+            self.assertEqual(type(1.0), type(float(sig_sig_1)))
+            self.assertEqual(type(1.0), type(float(sig_sig_2)))
+            self.assertEqual(type(1.0), type(float(sig_raw)))
+            self.assertEqual(type(1.0), type(float(sig_raw_2)))
+            self.assertEqual(type(1.0), type(float(sig_dev)))
 
     def test_getBaseflowIndex(self):
-        sig_raw = sig.getBaseflowIndex(self.simulation, self.observation,
-                                   datetime_series=self.dd_daily,
-                                   mode="get_raw_data")
+        if self.usepandas:
+            sig_raw = sig.getBaseflowIndex(self.simulation, self.observation,
+                                       datetime_series=self.dd_daily,
+                                       mode="get_raw_data")
 
-        self.assertEqual(type(sig_raw) , type({}))
-        self.assertGreater(sig_raw.__len__(),0)
+            self.assertEqual(type(sig_raw) , type({}))
+            self.assertGreater(sig_raw.__len__(),0)
 
-        sig_sig_1 = sig.getBaseflowIndex(self.simulation, self.observation,
-                                       datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                       mode="get_signature")
-        sig_sig_2 = sig.getBaseflowIndex(self.simulation, None,
-                                       datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                       mode="get_signature")
+            sig_sig_1 = sig.getBaseflowIndex(self.simulation, self.observation,
+                                           datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                           mode="get_signature")
+            sig_sig_2 = sig.getBaseflowIndex(self.simulation, None,
+                                           datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                           mode="get_signature")
 
-        sig_dev = sig.getBaseflowIndex(self.simulation, self.observation,
-                                    datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
-                                    mode="calc_Dev")
+            sig_dev = sig.getBaseflowIndex(self.simulation, self.observation,
+                                        datetime_series=pd.date_range("2015-05-01", periods=self.timespanlen),
+                                        mode="calc_Dev")
 
-        self.assertEqual(type(1.0), type(float(sig_sig_1)))
-        self.assertEqual(type({}), type(sig_sig_2))
-        self.assertEqual(type(1.0), type(float(sig_dev)))
+            self.assertEqual(type(1.0), type(float(sig_sig_1)))
+            self.assertEqual(type({}), type(sig_sig_2))
+            self.assertEqual(type(1.0), type(float(sig_dev)))
 
 if __name__ == '__main__':
     unittest.main()
