@@ -11,21 +11,8 @@ import numpy as np
 import sys
 if sys.version_info.major == 3:
     unicode = str
+from collections import namedtuple
 
-def _get_name_from_args(args):
-    """
-    Gets the name from the otherwise float arguments
-    If is args[0] is a string, return args[0], args[1:]
-    else return '', args 
-    :param args: An argument tuple given to a parameter constructor
-    :return: name, remaining args
-    """
-
-    # Check if args[0] is string like
-    if unicode(args[0]) == args[0]:
-        return args[0], args[1:]
-    else:
-        return '', args[:]
 
 class Base(object):
     """
@@ -57,7 +44,7 @@ class Base(object):
                                      np.percentile(self(size=1000), 40))
         self.minbound = minbound or np.min(self(size=1000))
         self.maxbound = maxbound or np.max(self(size=1000))
-
+        self.description = kwargs.get('doc')
 
 
     def __call__(self, **kwargs):
@@ -76,7 +63,60 @@ class Base(object):
         """
         Returns a textual representation of the parameter
         """
-        return '{tname}({p.name}, {p.rndargs})'.format(tname=type(self).__name__, p=self)
+        return "{tname}('{p.name}', {p.rndargs})".format(tname=type(self).__name__, p=self)
+
+    def __str__(self):
+        """
+        Returns the description of the parameter, if available, else repr(self)
+        :return: 
+        """
+        if vars(self).get('description'):
+            return '{} ({})'.format(vars(self).get('description'), repr(self))
+        else:
+            return repr(self)
+
+    def _get_name_from_args(self, params, *args, **kwargs)->tuple:
+        """
+        Gets the name from the otherwise float arguments
+        If is args[0] is a string, return args[0] as the name else return '' or kwargs['name'] if present.
+        The other parameters of the distribution, (given as the params string) are deduced from args and kwargs.
+        The returned args and kwargs are without the distribution parameters
+        
+        :param params: A space seperated string of the expected parameter names of the distribution
+        :param args: An argument tuple given to a parameter constructor
+        :param kwargs: The keyword arguments
+        :return: name, distributionparam1, distributionparam2, remaining_args, remaining_kwargs
+        """
+        args = list(args) # Make args mutable
+        # Check if args[0] is string like
+        if unicode(args[0]) == args[0]:
+            name = args.pop(0)
+        elif 'name' in kwargs:
+            name = kwargs.pop('name')
+        else:
+            name = ''
+
+        plist = []
+        missing = []
+
+        for i, pname in enumerate(params.split()):
+            if args:
+                plist.append(args.pop(0))
+            elif pname in kwargs:
+                plist.append(kwargs.pop(pname))
+            else:
+                missing.append(pname)
+                plist.append(None)
+
+        if missing:
+            raise ValueError(
+                '{T} expected values for the parameters {m}'.format(
+                    T=type(self).__name__,
+                    m=', '.join(missing)
+                )
+            )
+
+        return (name,) + tuple(plist) + (tuple(args), kwargs)
 
 
 class Uniform(Base):
@@ -96,8 +136,7 @@ class Uniform(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        low, high, *args = args
+        name, low, high, args, kwargs = self._get_name_from_args('low high', *args, **kwargs)
         super(Uniform, self).__init__(name,
                                       rnd.uniform,
                                       (low, high),
@@ -145,13 +184,12 @@ class Normal(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        mean, stddev, *args = args
+        name, mean, stddev, args, kwargs = self._get_name_from_args('mean stddev', *args, **kwargs)
 
         super(Normal, self).__init__(name,
                                      rnd.normal,
                                      (mean, stddev),
-                                      *args,
+                                     *args,
                                      **kwargs)
 
 
@@ -172,9 +210,7 @@ class logNormal(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        mean, sigma, *args = args
-
+        name, mean, sigma, args, kwargs = self._get_name_from_args('mean sigma', *args, **kwargs)
         super(logNormal, self).__init__(name,
                                         rnd.lognormal,
                                         (mean, sigma),
@@ -198,9 +234,7 @@ class Chisquare(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        dt, *args = args
-
+        name, dt, args, kwargs = self._get_name_from_args('dt', *args, **kwargs)
         super(Chisquare, self).__init__(name,
                                         rnd.chisquare,
                                         (dt,),
@@ -224,9 +258,7 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        scale, *args = args
-
+        name, mean, scale, args, kwargs = self._get_name_from_args('mean scale', *args, **kwargs)
         super(Exponential, self).__init__(name,
                                           rnd.exponential,
                                           (scale,),
@@ -250,8 +282,7 @@ class Gamma(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        shape, *args = args
+        name, shape, args, kwargs = self._get_name_from_args('shape', *args, **kwargs)
 
         super(Gamma, self).__init__(name,
                                     rnd.gamma,
@@ -277,8 +308,7 @@ class Wald(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        mean, scale, *args = args
+        name, mean, scale, args, kwargs = self._get_name_from_args('mean scale', *args, **kwargs)
 
         super(Wald, self).__init__(name,
                                    rnd.wald,
@@ -303,8 +333,7 @@ class Weibull(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, args = _get_name_from_args(args)
-        a, *args = args
+        name, a, args, kwargs = self._get_name_from_args('a', *args, **kwargs)
 
         super(Weibull, self).__init__(name,
                                       rnd.weibull,
@@ -312,6 +341,29 @@ class Weibull(Base):
                                       *args,
                                       **kwargs)
 
+class Triangular(Base):
+    """
+    A parameter sampling from a triangular distribution
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        :name: Name of the parameter
+        :left: Lower limit of the parameter
+        :mode: The value where the peak of the distribution occurs.
+        :right: Upper limit, should be larger than `left`.
+        :step:     (optional) number for step size required for some algorithms, 
+                eg. mcmc need a parameter of the variance for the next step
+                default is median of rndfunc(*rndargs, size=1000)
+        :optguess: (optional) number for start point of parameter
+                default is quantile(0.5) - quantile(0.4) of 
+                rndfunc(*rndargs, size=1000) 
+        """
+        name, left, mode, right, args, kwargs = self._get_name_from_args('left mode right', *args, **kwargs)
+        super(Triangular, self).__init__(name,
+                                         rnd.triangular,
+                                         (left, mode, right),
+                                         *args,
+                                         **kwargs)
 
 def generate(parameters):
     """
@@ -325,6 +377,18 @@ def generate(parameters):
 
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
+def get_namedtuple_from_paramnames(owner, parnames):
+    """
+    Returns the namedtuple classname for parameter names
+    :param owner: Owner of the parameters, usually the spotpy setup
+    :param parnames: Sequence of parameter names
+    :return: Class
+    """
+
+    # Get name of owner class
+    typename = type(owner).__name__
+    return namedtuple('Par_' + typename,  # Type name created from the setup name
+                      [n.decode() for n in parnames])  # get parameter names
 
 def get_parameters_from_class(cls):
     """
@@ -355,3 +419,8 @@ def get_parameters_from_class(cls):
             parameters.append(attrobj)
 
     return parameters
+
+
+if __name__ == '__main__':
+    t = Triangular(0, 1, right=10, doc='A Triangular parameter')
+    print(t)

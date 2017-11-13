@@ -17,7 +17,7 @@ from spotpy import database, objectivefunctions
 from spotpy import parameter
 import numpy as np
 import time
-from collections import namedtuple
+
 
 
 class _RunStatistic(object):
@@ -41,7 +41,6 @@ class _RunStatistic(object):
         
         self.repetitions = None
 
-
     def __call__(self, rep, objectivefunction, params):
         self.curparmeterset = params
         self.rep+=1
@@ -58,8 +57,6 @@ class _RunStatistic(object):
                 self.objectivefunction = objectivefunction
                 self.bestrep = self.rep
         self.print_status()
-            #return True
-        #return False
 
     def print_status(self):
         # get str showing approximate timeleft to end of simulation in H, M, S
@@ -123,9 +120,10 @@ class _algorithm(object):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
-        print('spotpy by Philipp')
         # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
-        # as well as the parameters function. My new function can deal with a missing parameters function
+        # as well as the parameters function. The new method get_parameters
+        # can deal with a missing parameters function
+        #
         # For me (Philipp) it is totally unclear why all the samplers should call this function
         # again and again instead of
         # TODO: just storing a definite list of parameter objects here
@@ -133,8 +131,8 @@ class _algorithm(object):
         self.parnames = self.parameter()['name']
 
         # Create a type to hold the parameter values using a namedtuple
-        self.partype = namedtuple('Par' + type(self.setup).__name__, # Type name created from the setup name
-                                  [n.decode() for n in self.parnames]) # get parameter names
+        self.partype = parameter.get_namedtuple_from_paramnames(
+            self.setup, self.parnames)
 
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
@@ -246,14 +244,8 @@ class _algorithm(object):
 
     def readbreakdata(self, dbname):
         import pickle
-        #import pprint
-        with open(dbname+'.break', 'rb') as csvfile:
-            work,r,icall,gnrg =pickle.load(csvfile)
-#            pprint.pprint(work)
-#            pprint.pprint(r)
-#            pprint.pprint(icall)
-#            pprint.pprint(gnrg)
-            #icall = 1000 #TODO:Just for testing purpose
+        with open(dbname+'.break', 'rb') as breakfile:
+            work, r, icall, gnrg = pickle.load(breakfile)
         return work, r, icall, gnrg
 
     def writebreakdata(self, dbname, work, r, icall, gnrg):
