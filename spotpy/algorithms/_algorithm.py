@@ -137,7 +137,7 @@ class _algorithm(object):
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
             self.dbinit = False
-            self.breakdata = self.readbreakdata(self.dbname)
+            self.breakdata = self.read_breakdata(self.dbname)
         #self.initialize_database()
 
         # Now a repeater (ForEach-object) is loaded
@@ -199,25 +199,29 @@ class _algorithm(object):
         else:
             self.datawriter.save(like, randompar, simulations, chains=chains)
 
-
-    def readbreakdata(self, dbname):
+    def read_breakdata(self, dbname):
+        ''' Read data from a pickle file if a breakpoint is set.
+            Reason: In case of incomplete optimizations, old data can be restored. 
+        '''
         import pickle
         #import pprint
         with open(dbname+'.break', 'rb') as csvfile:
-            work,r,icall,gnrg =pickle.load(csvfile)
+            icall, work, gnrg, r = pickle.load(csvfile)
 #            pprint.pprint(work)
 #            pprint.pprint(r)
 #            pprint.pprint(icall)
 #            pprint.pprint(gnrg)
-            #icall = 1000 #TODO:Just for testing purpose
-        return work, r, icall, gnrg
+            # icall = 1000 #TODO:Just for testing purpose
+        return icall, work, gnrg, r
 
-    def writebreakdata(self, dbname, work, r, icall, gnrg):
+    def write_breakdata(self, dbname, icall, work, gnrg, r=None):
+        ''' Write data to a pickle file if a breakpoint has been set.
+        '''
         import pickle
         with open(str(dbname)+'.break', 'wb') as csvfile:
-            work=work,r,icall,gnrg
-            pickle.dump(work,csvfile)
-            
+            work = icall, work, gnrg, r
+            pickle.dump(work, csvfile)
+
     def getdata(self):
         if self.dbformat == 'ram':
             return self.datawriter.data
