@@ -176,7 +176,7 @@ class sceua(_algorithm):
         peps: float
             Convergence criterium        
         """
-        print('Starting the SCE-UA algotrithm with '+str(repetitions)+ ' repetitions...')
+        print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
         # Initialize the Progress bar
         starttime = time.time()
@@ -193,44 +193,56 @@ class sceua(_algorithm):
         self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
             'maxbound']
         bound = self.bu - self.bl  # np.array
+        # ######### ######### ########### ########## ##########
+        # ######### HERE THERE SHOULD BE AN IF BLOCK ##########
+        # ######### ########## ########## ########## ##########
+        #######################################################
+        if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
+            data_frombreak = self.read_breakdata(self.dbname)
+            icall = data_frombreak[0]
+            x = data_frombreak[1][0]
+            xf = data_frombreak[1][1]
+            print(xf)
+            gnrng = data_frombreak[2]
+            acttime = time.time()
+        elif self.breakpoint is None or self.breakpoint == 'write':
+            # Create an initial population to fill array x(npt,self.self.nopt):
+            x = self._sampleinputmatrix(npt, self.nopt)
 
-        # Create an initial population to fill array x(npt,self.self.nopt):
-        x = self._sampleinputmatrix(npt, self.nopt)
+            # Set Ininitial parameter position
+            # iniflg=1
 
-        # Set Ininitial parameter position
-        # iniflg=1
+            nloop = 0
+            icall = 0
+            xf = np.zeros(npt)
 
-        nloop = 0
-        icall = 0
-        xf = np.zeros(npt)
+            # Burn in
+            param_generator = ((rep, x[rep]) for rep in range(int(npt)))
+            for rep, randompar, simulations in self.repeat(param_generator):
+                # Calculate the objective function
+                like = self.postprocessing(icall, randompar, simulations, negativlike=True)
+                
+                #like = self.objectivefunction(
+                #    evaluation=self.evaluation, simulation=simulations)
+                # Save everything in the database
+                
+                xf[rep] = like
+                #self.save(-like, randompar, simulations=simulations)
+                #self.status(rep, -like, randompar)
+                icall += 1
+                # Progress bar
+                #acttime = time.time()
+                #if acttime - intervaltime >= 2:
+                #    text = '%i of %i (best like=%g)' % (
+                #        rep, repetitions, self.status.objectivefunction)
+                #    print(text)
+                #    intervaltime = time.time()
 
-        # Burn in
-        param_generator = ((rep, x[rep]) for rep in range(int(npt)))
-        for rep, randompar, simulations in self.repeat(param_generator):
-            # Calculate the objective function
-            like = self.postprocessing(icall, randompar, simulations, negativlike=True)
-            
-            #like = self.objectivefunction(
-            #    evaluation=self.evaluation, simulation=simulations)
-            # Save everything in the database
-            
-            xf[rep] = like
-            #self.save(-like, randompar, simulations=simulations)
-            #self.status(rep, -like, randompar)
-            icall += 1
-            # Progress bar
-            #acttime = time.time()
-            #if acttime - intervaltime >= 2:
-            #    text = '%i of %i (best like=%g)' % (
-            #        rep, repetitions, self.status.objectivefunction)
-            #    print(text)
-            #    intervaltime = time.time()
-
-        # Sort the population in order of increasing function values;
-        idx = np.argsort(xf)
-        xf = np.sort(xf)
-        x = x[idx, :]
-
+            # Sort the population in order of increasing function values;
+            idx = np.argsort(xf)
+            xf = np.sort(xf)
+            x = x[idx, :]
+        
         # Record the best and worst points;
         bestx = x[0, :]
         bestf = xf[0]
@@ -240,7 +252,6 @@ class sceua(_algorithm):
         BESTF = bestf
         BESTX = bestx
         ICALL = icall
-
         # Compute the standard deviation for each parameter
         # xnstd=np.std(x,axis=0)
 
@@ -272,6 +283,7 @@ class sceua(_algorithm):
         self.repeat.setphase('ComplexEvo')
 
         while icall < repetitions and gnrng > peps and criter_change > pcento:
+            print('Ashish')
             nloop += 1
             # print nloop
             # print 'Start MPI'
@@ -348,7 +360,6 @@ class sceua(_algorithm):
                     print(text)
                     print(
                         'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
-
         # End of the Outer Loops
         text = 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % icall
         print(text)
@@ -357,10 +368,15 @@ class sceua(_algorithm):
         text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' % (
             kstop, criter_change)
         print(text)
-
+        ####### NOT SURE ABOUT THIS LOOP
+        if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
+                and icall >= self.backup_every_rep:
+                work = (icall, (x, xf), gnrng)
+                self.write_breakdata(self.dbname, work)
         # reshape BESTX
         BESTX = BESTX.reshape(BESTX.size // self.nopt, self.nopt)
         self.final_call()
+        
 
     def _cceua(self, s, sf, icall):
             #  This is the subroutine for generating a new point in a simplex
