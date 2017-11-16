@@ -283,7 +283,6 @@ class sceua(_algorithm):
         self.repeat.setphase('ComplexEvo')
 
         while icall < repetitions and gnrng > peps and criter_change > pcento:
-            print('Ashish')
             nloop += 1
             # print nloop
             # print 'Start MPI'
