@@ -193,10 +193,6 @@ class sceua(_algorithm):
         self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
             'maxbound']
         bound = self.bu - self.bl  # np.array
-        # ######### ######### ########### ########## ##########
-        # ######### HERE THERE SHOULD BE AN IF BLOCK ##########
-        # ######### ########## ########## ########## ##########
-        #######################################################
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
