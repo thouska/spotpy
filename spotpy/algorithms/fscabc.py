@@ -112,7 +112,6 @@ class fscabc(_algorithm):
         while r == 0.25 or r == 0.5 or r == 0.75:
             r = random.random()
             
-        
         icall = 0
         gnrng = 1e100
         # and criter_change>pcento:
@@ -272,7 +271,8 @@ class fscabc(_algorithm):
             #print(text)
             if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
                     and icall >= lastbackup+self.backup_every_rep:
-                self.write_breakdata(self.dbname, icall, work, gnrng, r)
+                work = (icall, work, gnrng, r)
+                self.write_breakdata(self.dbname, work)
                 lastbackup = icall
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
