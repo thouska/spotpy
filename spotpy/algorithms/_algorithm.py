@@ -206,20 +206,18 @@ class _algorithm(object):
         import pickle
         #import pprint
         with open(dbname+'.break', 'rb') as csvfile:
-            icall, work, gnrg, r = pickle.load(csvfile)
+            return pickle.load(csvfile)
 #            pprint.pprint(work)
 #            pprint.pprint(r)
 #            pprint.pprint(icall)
 #            pprint.pprint(gnrg)
             # icall = 1000 #TODO:Just for testing purpose
-        return icall, work, gnrg, r
 
-    def write_breakdata(self, dbname, icall, work, gnrg, r=None):
+    def write_breakdata(self, dbname, work):
         ''' Write data to a pickle file if a breakpoint has been set.
         '''
         import pickle
         with open(str(dbname)+'.break', 'wb') as csvfile:
-            work = icall, work, gnrg, r
             pickle.dump(work, csvfile)
 
     def getdata(self):
