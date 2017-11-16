@@ -363,7 +363,7 @@ class sceua(_algorithm):
         text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' % (
             kstop, criter_change)
         print(text)
-        ####### NOT SURE ABOUT THIS LOOP
+
         if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
                 and icall >= self.backup_every_rep:
                 work = (icall, (x, xf), gnrng)
