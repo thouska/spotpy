@@ -198,7 +198,6 @@ class sceua(_algorithm):
             icall = data_frombreak[0]
             x = data_frombreak[1][0]
             xf = data_frombreak[1][1]
-            print(xf)
             gnrng = data_frombreak[2]
             acttime = time.time()
         elif self.breakpoint is None or self.breakpoint == 'write':

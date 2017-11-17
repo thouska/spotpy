@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
 import numpy as np
 import time
-
+import os
 
 class _RunStatistic(object):
     """
@@ -129,11 +129,10 @@ class _algorithm(object):
         self.save_sim = save_sim
         self.dbname = dbname
         self.dbformat = dbformat
-        
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
-            
+        
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
             self.dbinit = False
