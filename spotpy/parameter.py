@@ -5,9 +5,13 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Philipp Kraft and Tobias Houska
 Contains classes to generate random parameter sets
 '''
-
+from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
+import sys
+if sys.version_info.major == 3:
+    unicode = str
+from collections import namedtuple
 
 
 class Base(object):
@@ -40,6 +44,8 @@ class Base(object):
                                      np.percentile(self(size=1000), 40))
         self.minbound = minbound or np.min(self(size=1000))
         self.maxbound = maxbound or np.max(self(size=1000))
+        self.description = kwargs.get('doc')
+
 
     def __call__(self, **kwargs):
         """
@@ -52,6 +58,65 @@ class Base(object):
         Returns a tuple of a realization and the other parameter properties
         """
         return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound
+    
+    def __repr__(self):
+        """
+        Returns a textual representation of the parameter
+        """
+        return "{tname}('{p.name}', {p.rndargs})".format(tname=type(self).__name__, p=self)
+
+    def __str__(self):
+        """
+        Returns the description of the parameter, if available, else repr(self)
+        :return: 
+        """
+        if vars(self).get('description'):
+            return '{} ({})'.format(vars(self).get('description'), repr(self))
+        else:
+            return repr(self)
+
+    def _get_name_from_args(self, params, *args, **kwargs):
+        """
+        Gets the name from the otherwise float arguments
+        If is args[0] is a string, return args[0] as the name else return '' or kwargs['name'] if present.
+        The other parameters of the distribution, (given as the params string) are deduced from args and kwargs.
+        The returned args and kwargs are without the distribution parameters
+        
+        :param params: A space seperated string of the expected parameter names of the distribution
+        :param args: An argument tuple given to a parameter constructor
+        :param kwargs: The keyword arguments
+        :return: name, distributionparam1, distributionparam2, remaining_args, remaining_kwargs
+        """
+        args = list(args) # Make args mutable
+        # Check if args[0] is string like
+        if unicode(args[0]) == args[0]:
+            name = args.pop(0)
+        elif 'name' in kwargs:
+            name = kwargs.pop('name')
+        else:
+            name = ''
+
+        plist = []
+        missing = []
+
+        for i, pname in enumerate(params.split()):
+            if args:
+                plist.append(args.pop(0))
+            elif pname in kwargs:
+                plist.append(kwargs.pop(pname))
+            else:
+                missing.append(pname)
+                plist.append(None)
+
+        if missing:
+            raise ValueError(
+                '{T} expected values for the parameters {m}'.format(
+                    T=type(self).__name__,
+                    m=', '.join(missing)
+                )
+            )
+
+        return (name,) + tuple(plist) + (tuple(args), kwargs)
 
 
 class Uniform(Base):
@@ -59,7 +124,7 @@ class Uniform(Base):
     A specialization of the Base parameter for uniform distributions
     """
 
-    def __init__(self, name, low, high, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :low: lower bound of the uniform distribution
@@ -71,6 +136,7 @@ class Uniform(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, low, high, args, kwargs = self._get_name_from_args('low high', *args, **kwargs)
         super(Uniform, self).__init__(name,
                                       rnd.uniform,
                                       (low, high),
@@ -106,7 +172,7 @@ class Normal(Base):
     A specialization of the Base parameter for normal distributions
     """
 
-    def __init__(self, name, mean, stddev, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :mean: center of the normal distribution
@@ -118,10 +184,12 @@ class Normal(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, mean, stddev, args, kwargs = self._get_name_from_args('mean stddev', *args, **kwargs)
+
         super(Normal, self).__init__(name,
                                      rnd.normal,
                                      (mean, stddev),
-                                      *args,
+                                     *args,
                                      **kwargs)
 
 
@@ -130,7 +198,7 @@ class logNormal(Base):
     A specialization of the Base parameter for normal distributions
     """
 
-    def __init__(self, name, mean, sigma, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :mean: Mean value of the underlying normal distribution
@@ -142,6 +210,7 @@ class logNormal(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, mean, sigma, args, kwargs = self._get_name_from_args('mean sigma', *args, **kwargs)
         super(logNormal, self).__init__(name,
                                         rnd.lognormal,
                                         (mean, sigma),
@@ -154,7 +223,7 @@ class Chisquare(Base):
     A specialization of the Base parameter for chisquare distributions
     """
 
-    def __init__(self, name, dt, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :dt: Number of degrees of freedom.
@@ -165,6 +234,7 @@ class Chisquare(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, dt, args, kwargs = self._get_name_from_args('dt', *args, **kwargs)
         super(Chisquare, self).__init__(name,
                                         rnd.chisquare,
                                         (dt,),
@@ -177,7 +247,7 @@ class Exponential(Base):
     A specialization of the Base parameter for exponential distributions
     """
 
-    def __init__(self, name, scale, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :scale: The scale parameter, \beta = 1/\lambda.
@@ -188,6 +258,7 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, mean, scale, args, kwargs = self._get_name_from_args('mean scale', *args, **kwargs)
         super(Exponential, self).__init__(name,
                                           rnd.exponential,
                                           (scale,),
@@ -200,7 +271,7 @@ class Gamma(Base):
     A specialization of the Base parameter for gamma distributions
     """
 
-    def __init__(self, name, shape, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :shape: The shape of the gamma distribution.
@@ -211,6 +282,8 @@ class Gamma(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, shape, args, kwargs = self._get_name_from_args('shape', *args, **kwargs)
+
         super(Gamma, self).__init__(name,
                                     rnd.gamma,
                                     (shape,),
@@ -223,7 +296,7 @@ class Wald(Base):
     A specialization of the Base parameter for Wald distributions
     """
 
-    def __init__(self, name, mean, scale, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :mean: Shape of the distribution.
@@ -235,6 +308,8 @@ class Wald(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
+        name, mean, scale, args, kwargs = self._get_name_from_args('mean scale', *args, **kwargs)
+
         super(Wald, self).__init__(name,
                                    rnd.wald,
                                    (mean, scale),
@@ -247,7 +322,7 @@ class Weibull(Base):
     A specialization of the Base parameter for Weibull distributions
     """
 
-    def __init__(self, name, a, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
         :a: Shape of the distribution.
@@ -258,12 +333,37 @@ class Weibull(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Weibull, self).__init__(name,
-                                       rnd.weibull,
-                                       (a,),
-                                       *args,
-                                       **kwargs)
+        name, a, args, kwargs = self._get_name_from_args('a', *args, **kwargs)
 
+        super(Weibull, self).__init__(name,
+                                      rnd.weibull,
+                                      (a,),
+                                      *args,
+                                      **kwargs)
+
+class Triangular(Base):
+    """
+    A parameter sampling from a triangular distribution
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        :name: Name of the parameter
+        :left: Lower limit of the parameter
+        :mode: The value where the peak of the distribution occurs.
+        :right: Upper limit, should be larger than `left`.
+        :step:     (optional) number for step size required for some algorithms, 
+                eg. mcmc need a parameter of the variance for the next step
+                default is median of rndfunc(*rndargs, size=1000)
+        :optguess: (optional) number for start point of parameter
+                default is quantile(0.5) - quantile(0.4) of 
+                rndfunc(*rndargs, size=1000) 
+        """
+        name, left, mode, right, args, kwargs = self._get_name_from_args('left mode right', *args, **kwargs)
+        super(Triangular, self).__init__(name,
+                                         rnd.triangular,
+                                         (left, mode, right),
+                                         *args,
+                                         **kwargs)
 
 def generate(parameters):
     """
@@ -271,7 +371,75 @@ def generate(parameters):
     is given as a structured array in the format the parameters function of a setup expects
     :parameters: A sequence of parameter objects
     """
-    dtype = [('random', '<f8'), ('name', '|S30'),
+    dtype = [('random', '<f8'), ('name', '|U30'),
              ('step', '<f8'), ('optguess', '<f8'),
              ('minbound', '<f8'), ('maxbound', '<f8')]
+
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
+
+def get_namedtuple_from_paramnames(owner, parnames):
+    """
+    Returns the namedtuple classname for parameter names
+    :param owner: Owner of the parameters, usually the spotpy setup
+    :param parnames: Sequence of parameter names
+    :return: Class
+    """
+
+    # Get name of owner class
+    typename = type(owner).__name__
+    return namedtuple('Par_' + typename,  # Type name created from the setup name
+                      list(parnames))  # get parameter names
+
+def get_parameters_from_class(cls):
+    """
+    Returns a list of the class defined parameters, and
+    overwrites the names of the parameters. 
+    By defining parameters as class members, as shown below,
+    one can omit the parameters function of the setup.
+    
+    Usage:
+    
+    >>> from spotpy import parameter
+    >>> class SpotpySetup:
+    >>>     # Add parameters p1 & p2 to the setup. 
+    >>>     p1 = parameter.Uniform(20, 100)
+    >>>     p2 = parameter.Gamma(2.3)
+    """
+
+    # Get all class variables
+    class_variables = vars(cls).items()
+
+    parameters = []
+    for attrname, attrobj in class_variables:
+        # Check if it is an spotpy parameter
+        if isinstance(attrobj, Base):
+            # Set the attribute name
+            if not attrobj.name:
+                attrobj.name = attrname
+            # Add parameter to dict
+            parameters.append(attrobj)
+
+    # starting with Python 3.6 the order of the class defined parameters are presevered with vars,
+    # prior the sorting changes.
+    # For a MPI parallized run with spotpy, this is terrible, since the spotpy code expects
+    # the list of parameters to be ordered
+    # For older pythons, we will sort the list of parameters by their name. For >=3.6, we keep
+    # the order.
+    if sys.version_info[:3] < (3, 6, 0):
+        # Sort the list parameters by name
+        parameters.sort(key=lambda p: p.name)
+
+    return parameters
+
+
+if __name__ == '__main__':
+    class TestSetup:
+        a = Uniform(0, 1)
+        b = Triangular(0, 1, right=10, doc='A Triangular parameter')
+
+    params = get_parameters_from_class(TestSetup)
+    assert len(params) == 2, 'Expected 2 Parameters in the test setup, got {}'.format(len(params))
+    assert params[0] is TestSetup.a, 'Expected parameter a to be first in params'
+    assert params[1] is TestSetup.b
+    print('\n'.join(str(p) for p in params))
+

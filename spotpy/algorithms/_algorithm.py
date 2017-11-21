@@ -12,10 +12,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 from spotpy import database, objectivefunctions
+from spotpy import parameter
 import numpy as np
 import time
 import os
+
 
 class _RunStatistic(object):
     """
@@ -38,7 +41,6 @@ class _RunStatistic(object):
         
         self.repetitions = None
 
-
     def __call__(self, rep, objectivefunction, params):
         self.curparmeterset = params
         self.rep+=1
@@ -55,8 +57,6 @@ class _RunStatistic(object):
                 self.objectivefunction = objectivefunction
                 self.bestrep = self.rep
         self.print_status()
-            #return True
-        #return False
 
     def print_status(self):
         # get str showing approximate timeleft to end of simulation in H, M, S
@@ -116,11 +116,24 @@ class _algorithm(object):
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100):
+
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
-        self.parameter = self.setup.parameters
+        # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
+        # as well as the parameters function. The new method get_parameters
+        # can deal with a missing parameters function
+        #
+        # For me (Philipp) it is totally unclear why all the samplers should call this function
+        # again and again instead of
+        # TODO: just storing a definite list of parameter objects here
+        self.parameter = self.get_parameters
         self.parnames = self.parameter()['name']
+
+        # Create a type to hold the parameter values using a namedtuple
+        self.partype = parameter.get_namedtuple_from_paramnames(
+            self.setup, self.parnames)
+
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
         self.objectivefunction = getattr(
@@ -149,8 +162,6 @@ class _algorithm(object):
         elif parallel == 'mpc':
             print('Multiprocessing is in still testing phase and may result in errors')
             from spotpy.parallel.mproc import ForEach
-            #raise NotImplementedError(
-            #    'Sorry, mpc is not available by now. Please use seq or mpi')
         else:
             raise ValueError(
                 "'%s' is not a valid keyword for parallel processing" % parallel)
@@ -168,6 +179,38 @@ class _algorithm(object):
         # simulate function, new calculation phases and the termination
         self.repeat.start()
         self.status = _RunStatistic()
+
+    def get_parameters(self):
+        """
+        Returns the parameter array from the setup      
+        """
+
+        # Put the parameter arrays as needed here, they will be merged at the end of this
+        # function
+        param_arrays = []
+        # Get parameters defined with the setup class
+        param_arrays.append(
+            parameter.generate( # generate creates the array as defined in the setup API
+                # gets parameters defined in the setup class, see function docstring
+                parameter.get_parameters_from_class(
+                    type(self.setup)
+                )
+            )
+        )
+
+        # object parameters, the old school way to create parameters
+        if hasattr(self.setup, 'parameters'):
+            if callable(self.setup.parameters):
+                # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
+                param_arrays.append(self.setup.parameters())
+            else:
+                # parameters is not callable, assume a list of parameter objects.
+                # Generate the parameters array from it and append it to our list
+                param_arrays.append(parameter.generate(self.setup.parameters))
+
+
+        # Return the class and the object parameters together
+        return np.concatenate(param_arrays)
 
     def set_repetiton(self, repetitions):
         self.status.repetitions = repetitions
@@ -203,14 +246,9 @@ class _algorithm(object):
             Reason: In case of incomplete optimizations, old data can be restored. 
         '''
         import pickle
-        #import pprint
-        with open(dbname+'.break', 'rb') as csvfile:
-            return pickle.load(csvfile)
-#            pprint.pprint(work)
-#            pprint.pprint(r)
-#            pprint.pprint(icall)
-#            pprint.pprint(gnrg)
-            # icall = 1000 #TODO:Just for testing purpose
+        with open(dbname+'.break', 'rb') as breakfile:
+            work, r, icall, gnrg = pickle.load(breakfile)
+        return work, r, icall, gnrg
 
     def write_breakdata(self, dbname, work):
         ''' Write data to a pickle file if a breakpoint has been set.
@@ -265,4 +303,5 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
-        return id, params, self.model(params)
+        # Call self.model with a namedtuple instead of another sequence
+        return id, params, self.model(self.partype(*params))

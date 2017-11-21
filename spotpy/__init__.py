@@ -39,4 +39,4 @@ from . import likelihoods        # Quantifies goodness of fit between simulation
 from . import examples           # Contains tutorials how to use SPOTPY
 from . import hymod
 
-__version__ = '1.3.13'
+__version__ = '1.3.15p'

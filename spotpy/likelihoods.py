@@ -49,19 +49,6 @@ def __standartChecksBeforeStart(data, comparedata):
     if data.__len__() == 0:
         raise LikelihoodError("Data with no content can not be used as a foundation of calculation a likelihood")
 
-def __byteArrayToString(a):
-    """
-    Convert a whole list of bytestrings to a list of strings
-    :param a:
-    :return:
-    """
-    b = []
-    for i in a:
-        try:
-            b.append(i.decode("utf-8"))
-        except:
-            b.append(i)
-    return b
 
 
 class TimeSeries:
@@ -324,7 +311,6 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = __byteArrayToString(parameternames)
         randomparset = np.array(randomparset)
         for nm in paramDependencies:
             if nm not in parameternames:
@@ -406,7 +392,6 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = __byteArrayToString(parameternames)
         for nm in paramDependencies:
             if nm not in parameternames:
                 missingparams.append(nm)
@@ -519,7 +504,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     else:
         missingparams=[]
         randomparset, parameternames = params
-        parameternames = np.array(__byteArrayToString(parameternames))
+        parameternames = np.array(parameternames)
         randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
@@ -777,7 +762,6 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = np.array(__byteArrayToString(parameternames))
 
 
         randomparset = np.array(randomparset)
@@ -885,7 +869,6 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = np.array(__byteArrayToString(parameternames))
         randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
