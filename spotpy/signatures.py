@@ -171,14 +171,19 @@ class _SignaturesBasicFunctionality(object):
             self.additional_arguments[k] = v
 
         if self.mode == 'get_signature':
-            print('Calculation Signature')
+            #print('Calculation Signature')
             return self.get_signature(func)
         elif self.mode == 'get_raw_data':
-            print('Calculation raw data')
+            #print('Calculation raw data')
             return self.raw_data(func)
         elif self.mode == 'calc_Dev':
-            print('Calculation difference')
-            return self.run_compared_signature(func)
+            #print('Calculation difference')
+            try:
+                return self.run_compared_signature(func)
+            except AttributeError:
+                warnings.warn("The signature method need a not None value for `comparedata` if you use `calc_Dev`")
+                return None
+
         else:
             raise ValueError(
                 "'%s' is not a valid keyword for signature processing" % self.mode)
@@ -866,7 +871,7 @@ def getAverageFloodDuration(data, comparedata=None, mode='get_signature', dateti
 def __calcDeviationForAverageFloodDuration(a, b, section):
     sum_dev = 0.0
     a = a[0]
-    print(a)
+
     b = b[0]
     for y in a:
         sum_diff_1 = 0.0
@@ -1063,11 +1068,14 @@ def getAverageBaseflowDuration(data, comparedata=None, mode='get_signature', dat
     section = s.calc()
     basics.pre_process(__calcDevForAverageBaseflowDuration, section=section)
     return basics.analyze(__calcFloodDuration, datetime_series=datetime_series, threshold_value=threshold_value,
-                          which_flow="flood")
+                          which_flow="baseflow")
 
 
 def __calcDevForAverageBaseflowDuration(a, b, section):
     sum_dev = 0.0
+    a = a[0]
+    b = b[0]
+
     for y in a:
         sum_diff_1 = 0.0
         sum_diff_2 = 0.0
