@@ -5,7 +5,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Philipp Kraft and Tobias Houska
 Contains classes to generate random parameter sets
 '''
-
+from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
 import sys
@@ -75,7 +75,7 @@ class Base(object):
         else:
             return repr(self)
 
-    def _get_name_from_args(self, params, *args, **kwargs)->tuple:
+    def _get_name_from_args(self, params, *args, **kwargs):
         """
         Gets the name from the otherwise float arguments
         If is args[0] is a string, return args[0] as the name else return '' or kwargs['name'] if present.
@@ -371,7 +371,7 @@ def generate(parameters):
     is given as a structured array in the format the parameters function of a setup expects
     :parameters: A sequence of parameter objects
     """
-    dtype = [('random', '<f8'), ('name', '|S30'),
+    dtype = [('random', '<f8'), ('name', '|U30'),
              ('step', '<f8'), ('optguess', '<f8'),
              ('minbound', '<f8'), ('maxbound', '<f8')]
 
@@ -388,7 +388,7 @@ def get_namedtuple_from_paramnames(owner, parnames):
     # Get name of owner class
     typename = type(owner).__name__
     return namedtuple('Par_' + typename,  # Type name created from the setup name
-                      [n.decode() for n in parnames])  # get parameter names
+                      list(parnames))  # get parameter names
 
 def get_parameters_from_class(cls):
     """
@@ -407,9 +407,10 @@ def get_parameters_from_class(cls):
     """
 
     # Get all class variables
-    class_variables = vars(cls)
+    class_variables = vars(cls).items()
+
     parameters = []
-    for attrname, attrobj in class_variables.items():
+    for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
             # Set the attribute name
@@ -418,9 +419,27 @@ def get_parameters_from_class(cls):
             # Add parameter to dict
             parameters.append(attrobj)
 
+    # starting with Python 3.6 the order of the class defined parameters are presevered with vars,
+    # prior the sorting changes.
+    # For a MPI parallized run with spotpy, this is terrible, since the spotpy code expects
+    # the list of parameters to be ordered
+    # For older pythons, we will sort the list of parameters by their name. For >=3.6, we keep
+    # the order.
+    if sys.version_info[:3] < (3, 6, 0):
+        # Sort the list parameters by name
+        parameters.sort(key=lambda p: p.name)
+
     return parameters
 
 
 if __name__ == '__main__':
-    t = Triangular(0, 1, right=10, doc='A Triangular parameter')
-    print(t)
+    class TestSetup:
+        a = Uniform(0, 1)
+        b = Triangular(0, 1, right=10, doc='A Triangular parameter')
+
+    params = get_parameters_from_class(TestSetup)
+    assert len(params) == 2, 'Expected 2 Parameters in the test setup, got {}'.format(len(params))
+    assert params[0] is TestSetup.a, 'Expected parameter a to be first in params'
+    assert params[1] is TestSetup.b
+    print('\n'.join(str(p) for p in params))
+

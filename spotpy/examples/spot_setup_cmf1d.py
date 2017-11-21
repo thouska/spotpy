@@ -61,38 +61,63 @@ class _CmfProject:
         try:
             for l in self.cell.layers:
                 r_curve = cmf.VanGenuchtenMualem(Ksat=10**par.pKsat, phi=par.porosity, alpha=par.alpha, n=par.n)
+                r_curve.w0 = r_curve.fit_w0()
+                l.wetness = 0.9
                 l.soil = r_curve
             self.cell.saturated_depth = 0.5
             self.gw.potential = self.cell.z - 0.5
-        except RuntimeError:
-            sys.stderr.write('Set parameters failed with:\n' + str(par))
+        except RuntimeError as e:
+            sys.stderr.write('Set parameters failed with:\n' + str(par) + '\n' + str(e))
+            raise
 
-        
+    def load_meteo(self, driver_data):
+        datastart = driver_data.index[0].to_datetime()
+
+        # Create meteo station for project
+        meteo = self.project.meteo_stations.add_station('Schwingbach', position=(0, 0, 0), tz=1, timestep=cmf.h)
+        rain = cmf.timeseries.from_array(datastart, cmf.h, driver_data.rain_mmday)
+        meteo.rHmean = cmf.timeseries.from_array(datastart, cmf.h, driver_data.relhum_perc)
+        meteo.Windspeed = cmf.timeseries.from_array(datastart, cmf.h, driver_data.windspeed_ms)
+        meteo.Rs = cmf.timeseries.from_array(datastart, cmf.h, driver_data.solarrad_Wm2 * 86400e-6)
+        meteo.T = cmf.timeseries.from_array(datastart, cmf.h, driver_data.airtemp_degC)
+        meteo.Tmax = meteo.T.floating_max(cmf.day)
+        meteo.Tmin = meteo.T.floating_min(cmf.day)
+
+        self.project.rainfall_stations.add('Schwingbach', rain, (0, 0, 0))
+        self.project.use_nearest_rainfall()
+        # Use the meteorological station for each cell of the project
+        self.project.use_nearest_meteo()
+
+
 class Cmf1d_Model(object):
     """
     A 1d Richards based soilmoisture model for Schwingbach site #24
     """
 
     alpha = spotpy.parameter.Uniform(0.0001, 0.2, optguess=0.1156, doc='α in 1/cm for van Genuchten Mualem model')
-    pKsat = spotpy.parameter.Uniform(-2, 2, optguess=1.4541, doc='saturated conductivity of the soil in m/day')
-    n = spotpy.parameter.Uniform(1.01, 1.8, optguess=1.1787, doc='van Genuchten-Mualem n')
+    pKsat = spotpy.parameter.Uniform(-2, 2, optguess=0, doc='log10 of saturated conductivity of the soil in m/day')
+    n = spotpy.parameter.Uniform(1.08, 1.8, optguess=1.1787, doc='van Genuchten-Mualem n')
     porosity = spotpy.parameter.Uniform(0.3, 0.65, optguess=0.43359, doc='Porosity in m³/m³')
 
-    def __init__(self):
+    def __init__(self, days=None):
 
-        self.driver_data = pd.read_csv('data/driver_data_site24.csv', 
+        self.driver_data = pd.read_csv('data/driver_data_site24.csv',
                                         parse_dates=[0], index_col=[0])
         self.evaluation_data = pd.read_csv('data/soilmoisture_site24.csv',
                                         parse_dates=[0], index_col=[0])
         self.datastart = self.driver_data.index[0].to_datetime()
-        # self.dataend = self.datastart + timedelta(days=365)
-        self.dataend = self.driver_data.index[-1].to_datetime()
+        if days is None:
+            self.dataend = self.driver_data.index[-1].to_datetime()
+        else:
+            self.dataend = self.datastart + timedelta(days=days)
+
 
         self.eval_depth = [0.1,0.25,0.4]
 
 
         # Make the model
         self.model = _CmfProject(self.optguess())
+        self.model.load_meteo(driver_data=self.driver_data)
 
     def __str__(self):
         mname = type(self).__name__
@@ -100,26 +125,6 @@ class Cmf1d_Model(object):
         params = '\n'.join(' - {p}'.format(p=p) for p in spotpy.parameter.get_parameters_from_class(type(self)))
         return '{mname}\n{doc}\n\nParameters:\n{params}'.format(mname=mname,doc=doc,params=params)
 
-    def load_meteo(self,project):
-        """
-        
-        :param project: 
-        :return: 
-        """
-
-        #Create meteo station for project
-        meteo = project.meteo_stations.add_station('Schwingbach', position = (0,0,0), tz=1, timestep=cmf.h)
-        rain = cmf.timeseries.from_array(self.datastart, cmf.h, self.driver_data.rain_mmday)
-        meteo.rHmean = cmf.timeseries.from_array(self.datastart, cmf.h, self.driver_data.relhum_perc)
-        meteo.Windspeed = cmf.timeseries.from_array(self.datastart, cmf.h, self.driver_data.windspeed_ms)
-        meteo.Rs = cmf.timeseries.from_array(self.datastart, cmf.h, self.driver_data.solarrad_Wm2 * 86400e-6)
-        meteo.T = cmf.timeseries.from_array(self.datastart, cmf.h, self.driver_data.airtemp_degC)
-        meteo.Tmax = meteo.T.floating_max(cmf.day)
-        meteo.Tmin = meteo.T.floating_min(cmf.day)
-        project.rainfall_stations.add('Schwingbach',rain, (0,0,0))
-        project.use_nearest_rainfall()
-        # Use the meteorological station for each cell of the project
-        project.use_nearest_meteo()
 
     def optguess(self):
         """
@@ -129,6 +134,14 @@ class Cmf1d_Model(object):
         partype = spotpy.parameter.get_namedtuple_from_paramnames(type(self).__name__,
                                                                   [p.name.encode() for p in params])
         return partype(*spotpy.parameter.generate(params)['optguess'])
+
+    def get_param_value(self, **kwargs):
+        params = spotpy.parameter.get_parameters_from_class(type(self))
+        partype = spotpy.parameter.get_namedtuple_from_paramnames(type(self).__name__,
+                                                                  [p.name.encode() for p in params])
+        pardict = self.optguess()._asdict()
+        pardict.update(kwargs)
+        return partype(**pardict)
 
     def evaluation(self):
         """
@@ -148,7 +161,7 @@ class Cmf1d_Model(object):
         # Find all data positions where simulation and evaluation data is present
         take = np.isfinite(simulation) & np.isfinite(evaluation)
         rmse = -spotpy.objectivefunctions.rmse(evaluation=evaluation[take], simulation=simulation[take])
-        return rmse, sum(take)
+        return rmse
 
     def simulation(self, par, verbose=False):
         '''
@@ -161,8 +174,13 @@ class Cmf1d_Model(object):
 
         # Set the parameters
         self.model.set_parameters(par)
+        if verbose:
+            print('Parameters:')
+            for k, v in par._asdict().items():
+                print('    {} = {:0.4g}'.format(k,v))
+
         c = self.model.cell
-        self.load_meteo(self.model.project)
+
         # Get evaluation layers
         if self.eval_depth:
             edi = 0 # current index of the evaluation depth
@@ -225,7 +243,7 @@ if __name__ == '__main__':
         # model.eval_depth = None
         par = model.optguess()
         result = model.simulation(par, verbose=True)
-        rmse, count = model.objectivefunction(result, model.evaluation())
-        print('Model ready, RMSE={:0.4f}% soil moisture, n={}'.format(rmse, count))
+        rmse = model.objectivefunction(result, model.evaluation())
+        print('Model ready, RMSE={:0.4f}% soil moisture'.format(rmse))
         np.save('result.npy', result)
         np.save('eval.npy', model.evaluation())
