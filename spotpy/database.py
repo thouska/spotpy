@@ -141,12 +141,22 @@ class ram(database):
                         [chains])
 
     def finalize(self):
-        dt = np.dtype({'names': self.header,
-                       'formats': [np.float] * len(self.header)})
+        #print(self.ram[0:])
+        dt = {'names': self.header,
+                       'formats': [np.float] * len(self.header)}
+
+        #dt = np.dtype({'names': self.header, 'formats': [np.float] * len(self.header)})
 
         # ignore the first initialization run to reduce the risk of different
         # objectivefunction mixing
-        self.data = np.array(self.ram[1:]).astype(dt)
+        i = 0
+        Y = np.zeros(len(self.ram), dtype=dt)
+        for name in dt["names"]:
+            Y[name] =  np.transpose(self.ram)[i]
+            i+=1
+
+
+        self.data = Y
 
     def getdata(self):
         # Expects a finalized database
@@ -201,6 +211,7 @@ class csv(database):
         return data
 
 class sql(database):
+
     """
     This class saves the process in the working storage. It can be used if
     safety matters.
@@ -248,6 +259,7 @@ class sql(database):
         self.db.close()
 
     def getdata(self):
+        import sqlite3
         self.db = sqlite3.connect(self.dbname + '.db')
         self.db_cursor = self.db.cursor()
         back = [row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)]

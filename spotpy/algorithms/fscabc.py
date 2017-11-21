@@ -112,21 +112,19 @@ class fscabc(_algorithm):
         while r == 0.25 or r == 0.5 or r == 0.75:
             r = random.random()
             
-        
         icall = 0
         gnrng = 1e100
         # and criter_change>pcento:
 
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
-            datafrombreak=self.readbreakdata(self.dbname)
-            r=datafrombreak[1]
-            work=datafrombreak[0]
-            icall = datafrombreak[2]
-            gnrng = datafrombreak[3]
+            data_frombreak = self.read_breakdata(self.dbname)
+            icall = data_frombreak[0]
+            work = data_frombreak[1]
+            gnrng = data_frombreak[2]
+            r = data_frombreak[3]
             acttime = time.time()
-            #Here database needs to be reinvoked
-        
-        elif self.breakpoint == None or self.breakpoint == 'write':
+            # Here database needs to be reinvoked
+        elif self.breakpoint is None or self.breakpoint == 'write':
             # Initialization
             work = []
             # Calculate the objective function
@@ -271,9 +269,11 @@ class fscabc(_algorithm):
             #text = '%i of %i (best like=%g)' % (
             #    icall, repetitions, self.status.objectivefunction)
             #print(text)
-            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite' and icall >= lastbackup+self.backup_every_rep:
-                self.writebreakdata(self.dbname, work,r,icall,gnrng)
-                lastbackup=icall
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
+                    and icall >= lastbackup+self.backup_every_rep:
+                work = (icall, work, gnrng, r)
+                self.write_breakdata(self.dbname, work)
+                lastbackup = icall
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
                 print('ON THE MAXIMUM NUMBER OF TRIALS ')

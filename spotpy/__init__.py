@@ -37,5 +37,6 @@ from . import objectivefunctions # Quantifies goodness of fit between simulation
 from . import signatures         # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 from . import likelihoods        # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
 from . import examples           # Contains tutorials how to use SPOTPY
+from . import hymod
 
 __version__ = '1.3.15p'
