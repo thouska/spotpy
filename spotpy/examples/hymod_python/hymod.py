@@ -1,7 +1,5 @@
-import numpy as np
-import os
 
-def hymod(cmax,bexp,alpha,Rs,Rq):
+def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     """
     See https://www.proc-iahs.net/368/180/2015/piahs-368-180-2015.pdf for a scientific paper.
 
@@ -14,19 +12,6 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
     :rtype: list
     """
 
-    # Define the rainfall
-    PET,Precip = [],[]
-    # For more details to that headless file see: bound_units.xlsx
-
-    for line in open(os.path.dirname(__file__)+'/bound.txt', 'r'):
-        fn, sn, av, na, nb, nc, nd, ne, nr = line.strip().split('  ')
-
-        PET.append(float(nb))
-        Precip.append(float(nc)+float(nd)+float(ne)+float(nr))
-
-
-    # Only use two years of data
-    MaxT = 795
     # HYMOD PROGRAM IS SIMPLE RAINFALL RUNOFF MODEL
     x_loss = 0.0
     # Initialize slow tank state
@@ -36,10 +21,10 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
     x_quick = [0,0,0]
     t = 0
     outflow = []
-    output = np.array([])
+    output = []
     # START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
 
-    while t <= MaxT:
+    while t <= len(Precip)-1:
         Pval = Precip[t]
         PETval = PET[t]
         # Compute excess precipitation and evaporation
@@ -60,14 +45,16 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
             inflow = outflow
 
         # Compute total flow for timestep
-        output = np.append(output,(QS + outflow))
+        output.append(QS + outflow)
         t = t+1
 
 
-    return output[64:MaxT]
+    return output
 
 def power(X,Y):
+    X=abs(X) # Needed to capture invalid overflow with netgative values
     return X**Y
+
 
 def linres(x_slow,inflow,Rs):
     # Linear reservoir
@@ -94,5 +81,3 @@ def excess(x_loss,cmax,bexp,Pval,PETval):
     xn = max(xn - evap, 0)  # update state
 
     return ER1,ER2,xn
-
-

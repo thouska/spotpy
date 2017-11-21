@@ -10,7 +10,7 @@ This class holds example code how to use the dream algorithm
 
 import numpy as np
 import spotpy
-from spotpy.examples.spot_setup_hymod import spot_setup
+from spotpy.examples.spot_setup_hymod_exe import spot_setup
 import pylab as plt
 
 
@@ -24,7 +24,7 @@ sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv'
                                 alt_objfun=None)
 
 #Select number of maximum repetitions
-rep=10000
+rep=100
 
 # Select five chains and set the Gelman-Rubin convergence limit
 nChains                = 4
