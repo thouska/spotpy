@@ -77,6 +77,7 @@ class TestSignatures(unittest.TestCase):
             self.usepandas = False
 
     def test_getSlopeFDC(self):
+        print(self.simulation)
         sig_val = sig.getSlopeFDC(self.simulation,self.observation, mode="get_signature")
         sig_raw = sig.getSlopeFDC(self.simulation, self.observation, mode="get_raw_data")
         sig_dev = sig.getSlopeFDC(self.simulation, self.observation, mode="calc_Dev")
