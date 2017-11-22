@@ -83,3 +83,6 @@ class TestSignatures(unittest.TestCase):
         self.assertEqual(type(float(sig_val)), type(1.0))
         self.assertEqual(type(float(sig_raw)), type(1.0))
         self.assertEqual(type(float(sig_dev)), type(1.0))
+
+if __name__ == '__main__':
+    unittest.main()
