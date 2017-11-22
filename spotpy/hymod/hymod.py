@@ -18,12 +18,14 @@ def hymod(cmax,bexp,alpha,Rs,Rq):
     PET,Precip = [],[]
     # For more details to that headless file see: bound_units.xlsx
 
-    for line in open(os.path.dirname(__file__)+'/bound.txt', 'r'):
+    fo = open(os.path.dirname(__file__)+'/bound.txt', 'r')
+
+    for line in fo:
         fn, sn, av, na, nb, nc, nd, ne, nr = line.strip().split('  ')
 
         PET.append(float(nb))
         Precip.append(float(nc)+float(nd)+float(ne)+float(nr))
-
+    fo.close()
 
     # Only use two years of data
     MaxT = 795

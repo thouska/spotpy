@@ -1,5 +1,4 @@
 import unittest
-import unittest.mock as mock
 import spotpy.database as db
 import numpy as np
 
