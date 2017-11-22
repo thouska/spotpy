@@ -27,12 +27,13 @@ class spot_setup(object):
         self.owd = os.path.dirname(os.path.realpath(__file__)) + os.sep +'..'
 
         self.evals = list(np.genfromtxt(self.owd + os.sep + 'hymod' + os.sep + 'bound.txt', skip_header=65)[:, 3])[:730]
-        print("path")
-        print(self.owd + os.sep + 'hymod' + os.sep + 'bound.txt')
-        print("+##++##++##")
+        #print("path")
+        #print(self.owd + os.sep + 'hymod' + os.sep + 'bound.txt')
+        #print("+##++##++##")
 
-        print("orig data")
-        print(self.evals)
+        #print("orig data")
+
+        print(len(self.evals))
         self.Factor = 1944 * (1000 * 1000) / (1000 * 60 * 60 * 24)
         #print("That is eval",len(self.evals))
 
@@ -45,6 +46,7 @@ class spot_setup(object):
         # TODO: Discard the first 64 (but it is already done in the script, so what is to do?
         simulations = simulations[66:]
         #print("That is sim", len(simulations))
+        print(len(simulations))
         return simulations
 
     def evaluation(self):
