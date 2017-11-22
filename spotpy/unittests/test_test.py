@@ -27,6 +27,12 @@ class spot_setup(object):
         self.owd = os.path.dirname(os.path.realpath(__file__)) + os.sep +'..'
 
         self.evals = list(np.genfromtxt(self.owd + os.sep + 'hymod' + os.sep + 'bound.txt', skip_header=65)[:, 3])[:730]
+        print("path")
+        print(self.owd + os.sep + 'hymod' + os.sep + 'bound.txt')
+        print("+##++##++##")
+
+        print("orig data")
+        print(self.evals)
         self.Factor = 1944 * (1000 * 1000) / (1000 * 60 * 60 * 24)
         #print("That is eval",len(self.evals))
 
@@ -77,7 +83,6 @@ class TestSignatures(unittest.TestCase):
             self.usepandas = False
 
     def test_getSlopeFDC(self):
-        print(self.simulation)
         sig_val = sig.getSlopeFDC(self.simulation,self.observation, mode="get_signature")
         sig_raw = sig.getSlopeFDC(self.simulation, self.observation, mode="get_raw_data")
         sig_dev = sig.getSlopeFDC(self.simulation, self.observation, mode="calc_Dev")
