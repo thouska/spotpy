@@ -37,7 +37,8 @@ class spot_setup(object):
         hyMod_sims = spotpy.hymod.hymod.hymod(x[0], x[1], x[2], x[3], x[4])
         simulations = np.array(hyMod_sims) * self.Factor
         # TODO: Discard the first 64 (but it is already done in the script, so what is to do?
-        simulations = simulations[66:]
+        #simulations = simulations[66:]
+        simulations = simulations[1:]
         #print("That is sim", len(simulations))
         return simulations
 
