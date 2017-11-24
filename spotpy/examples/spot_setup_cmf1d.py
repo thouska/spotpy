@@ -8,9 +8,8 @@ A one dimensional cmf model analysing data from the Schwingbach hydrological obs
 You need to have cmf and pandas installed on your system: svn checkout svn://fb09-pasig.umwelt.uni-giessen.de/cmf/trunk cmf
 '''
 
-import pandas as pd
 import cmf
-from datetime import timedelta
+from datetime import datetime, timedelta
 import numpy as np
 import spotpy
 import os, sys
@@ -31,16 +30,12 @@ class _CmfProject:
 
         # Make the layer boundaries and create soil layers
         lthickness = [.01] * 5 + [0.025] * 6 + [0.05] * 6 + [0.1] * 5
-        # lthickness = [0.01] * 100
         ldepth = np.cumsum(lthickness)
 
         # Create soil layers and pick the new soil layers if they are inside of the evaluation depth's
 
         for d in ldepth:
             c.add_layer(d, r_curve)
-
-
-
 
         # Use a Richards model
         c.install_connection(cmf.Richards)
@@ -54,15 +49,20 @@ class _CmfProject:
         cmf.Richards(c.layers[-1], self.gw)
         self.gw.potential = c.z - 0.5 #IMPORTANT
         self.gw.is_source = True
+        self.gwhead = cmf.timeseries.from_scalar(c.z - 0.5)
 
         self.solver = cmf.CVodeIntegrator(self.project, 1e-9)
 
     def set_parameters(self, par):
+        """
+        Sets the parameters of the model
+        :param par: The parameter value object (named tuple)
+        :return:
+        """
         try:
             for l in self.cell.layers:
                 r_curve = cmf.VanGenuchtenMualem(Ksat=10**par.pKsat, phi=par.porosity, alpha=par.alpha, n=par.n)
                 r_curve.w0 = r_curve.fit_w0()
-                l.wetness = 0.9
                 l.soil = r_curve
             self.cell.saturated_depth = 0.5
             self.gw.potential = self.cell.z - 0.5
@@ -71,22 +71,68 @@ class _CmfProject:
             raise
 
     def load_meteo(self, driver_data):
-        datastart = driver_data.index[0].to_datetime()
+
+        datastart = driver_data.date[0]
 
         # Create meteo station for project
         meteo = self.project.meteo_stations.add_station('Schwingbach', position=(0, 0, 0), tz=1, timestep=cmf.h)
         rain = cmf.timeseries.from_array(datastart, cmf.h, driver_data.rain_mmday)
         meteo.rHmean = cmf.timeseries.from_array(datastart, cmf.h, driver_data.relhum_perc)
         meteo.Windspeed = cmf.timeseries.from_array(datastart, cmf.h, driver_data.windspeed_ms)
-        meteo.Rs = cmf.timeseries.from_array(datastart, cmf.h, driver_data.solarrad_Wm2 * 86400e-6)
-        meteo.T = cmf.timeseries.from_array(datastart, cmf.h, driver_data.airtemp_degC)
+        meteo.Rs = cmf.timeseries.from_array(datastart, cmf.h, driver_data.solarrad_wm2 * 86400e-6)
+        meteo.T = cmf.timeseries.from_array(datastart, cmf.h, driver_data.airtemp_degc)
         meteo.Tmax = meteo.T.floating_max(cmf.day)
         meteo.Tmin = meteo.T.floating_min(cmf.day)
 
         self.project.rainfall_stations.add('Schwingbach', rain, (0, 0, 0))
         self.project.use_nearest_rainfall()
+
+
         # Use the meteorological station for each cell of the project
         self.project.use_nearest_meteo()
+        self.meteo = meteo
+        self.gwhead = cmf.timeseries.from_array(datastart, cmf.h, driver_data.gwhead_m)
+
+    def set_boundary(self, t):
+        """
+        Sets the boundary conditions for time t
+        :param t: a cmf.Time
+        :return: None
+        """
+        gw_level = self.gwhead[t]
+        if np.isfinite(gw_level):
+            self.gw.potential = gw_level
+
+
+def _load_data(filename):
+    """
+    Loads data from a csv, where the first column has the measurement date and all the other columns additional data
+    :return: Rec-Array with date as a first column holding datetimes
+    """
+    str2date = lambda s: np.datetime64(s, 's').astype(datetime)
+    return np.recfromcsv(filename, converters={0: str2date})
+
+
+class ProgressReporter:
+    """
+    Simple helper class to report progress and check for too long runtime
+    """
+    def __init__(self, start, end, frequency=cmf.week, max_runtime=15 * 60, verbose=False):
+        self.verbose = verbose
+        self.frequency = frequency
+        self.max_runtime = max_runtime
+        self.stopwatch = cmf.StopWatch(cmf.AsCMFtime(start), cmf.AsCMFtime(end))
+
+    def __call__(self, t):
+        elapsed, total, remaining = self.stopwatch(t)
+        if self.verbose and not t % cmf.week:
+            print('{modeltime:%Y-%m-%d}: {elapsed}/{total}'
+                  .format(modeltime=t.AsPython(),
+                          elapsed=elapsed * cmf.sec,
+                          total=total * cmf.sec))
+        if elapsed > self.max_runtime:
+            raise RuntimeError('{:%Y-%m-%d %H:%S} model took {:0.0f}min until now, stopping'
+                               .format(t.AsPython(), elapsed / 60))
 
 
 class Cmf1d_Model(object):
@@ -97,33 +143,34 @@ class Cmf1d_Model(object):
     alpha = spotpy.parameter.Uniform(0.0001, 0.2, optguess=0.1156, doc='α in 1/cm for van Genuchten Mualem model')
     pKsat = spotpy.parameter.Uniform(-2, 2, optguess=0, doc='log10 of saturated conductivity of the soil in m/day')
     n = spotpy.parameter.Uniform(1.08, 1.8, optguess=1.1787, doc='van Genuchten-Mualem n')
-    porosity = spotpy.parameter.Uniform(0.3, 0.65, optguess=0.43359, doc='Porosity in m³/m³')
+    porosity = spotpy.parameter.Uniform(0.3, 0.65, optguess=0.43359, doc='φ in m³/m³')
 
     def __init__(self, days=None):
 
-        self.driver_data = pd.read_csv('data/driver_data_site24.csv',
-                                        parse_dates=[0], index_col=[0])
-        self.evaluation_data = pd.read_csv('data/soilmoisture_site24.csv',
-                                        parse_dates=[0], index_col=[0])
-        self.datastart = self.driver_data.index[0].to_datetime()
+        self.driver_data = _load_data('data/driver_data_site24.csv')
+        self.evaluation_data = _load_data('data/soilmoisture_site24.csv')
+
+        self.datastart = self.driver_data.date[0]
         if days is None:
-            self.dataend = self.driver_data.index[-1].to_datetime()
+            self.dataend = self.driver_data.date[-1]
         else:
             self.dataend = self.datastart + timedelta(days=days)
 
-
-        self.eval_depth = [0.1,0.25,0.4]
+        # The depth below ground in m where the evaluation data belongs to
+        self.eval_depth = [0.1, 0.25, 0.4]
 
 
         # Make the model
         self.model = _CmfProject(self.optguess())
+
+        # Load meteo data
         self.model.load_meteo(driver_data=self.driver_data)
 
     def __str__(self):
         mname = type(self).__name__
         doc = self.__doc__
         params = '\n'.join(' - {p}'.format(p=p) for p in spotpy.parameter.get_parameters_from_class(type(self)))
-        return '{mname}\n{doc}\n\nParameters:\n{params}'.format(mname=mname,doc=doc,params=params)
+        return '{mname}\n{doc}\n\nParameters:\n{params}'.format(mname=mname, doc=doc, params=params)
 
 
     def optguess(self):
@@ -132,10 +179,15 @@ class Cmf1d_Model(object):
         """
         params = spotpy.parameter.get_parameters_from_class(type(self))
         partype = spotpy.parameter.get_namedtuple_from_paramnames(type(self).__name__,
-                                                                  [p.name.encode() for p in params])
+                                                                  [p.name for p in params])
         return partype(*spotpy.parameter.generate(params)['optguess'])
 
     def get_param_value(self, **kwargs):
+        """
+        Returns a named tuple holding parameter values
+        :param kwargs: KEywords for the parameters, missing values are patched with optguess
+        :return: namedtuple of parameter values
+        """
         params = spotpy.parameter.get_parameters_from_class(type(self))
         partype = spotpy.parameter.get_namedtuple_from_paramnames(type(self).__name__,
                                                                   [p.name.encode() for p in params])
@@ -148,7 +200,8 @@ class Cmf1d_Model(object):
         
         :return: The evaluation soilmoisture as a 2d array 
         """
-        return np.array(self.evaluation_data, dtype=float)
+        names = list(self.evaluation_data.dtype.names[1:])
+        return self.evaluation_data[names].view(np.float).reshape(self.evaluation_data.shape + (-1,))
 
     def objectivefunction(self, simulation, evaluation):
         """
@@ -162,6 +215,25 @@ class Cmf1d_Model(object):
         take = np.isfinite(simulation) & np.isfinite(evaluation)
         rmse = -spotpy.objectivefunctions.rmse(evaluation=evaluation[take], simulation=simulation[take])
         return rmse
+
+    def get_eval_layers(self, eval_depth=None):
+        """
+        Returns the list of layers, that should be evaluated
+
+        :param eval_depth: List of depth below ground where evaluation should be done. If None, all layers are evaluated
+        :return:
+        """
+        c = self.model.cell
+        if eval_depth:
+            edi = 0 # current index of the evaluation depth
+            eval_layers = [] # the layers to do the evaluation are stored here
+            for l in c.layers:
+                if edi < len(self.eval_depth) and l.upper_boundary <= self.eval_depth[edi] < l.lower_boundary:
+                    eval_layers.append(l)
+                    edi += 1
+        else:
+            eval_layers = list(c.layers)
+        return eval_layers
 
     def simulation(self, par, verbose=False):
         '''
@@ -179,47 +251,27 @@ class Cmf1d_Model(object):
             for k, v in par._asdict().items():
                 print('    {} = {:0.4g}'.format(k,v))
 
-        c = self.model.cell
 
-        # Get evaluation layers
-        if self.eval_depth:
-            edi = 0 # current index of the evaluation depth
-            eval_layers = [] # the layers to do the evaluation are stored here
-            for l in c.layers:
-                if edi < len(self.eval_depth) and l.upper_boundary <= self.eval_depth[edi] < l.lower_boundary:
-                    eval_layers.append(l)
-                    edi += 1
-        else:
-            eval_layers = list(c.layers)
-
-        result = np.ones(shape=(len(self.evaluation_data), len(eval_layers))) * np.nan
-        # Save first
+        eval_layers = self.get_eval_layers(self.eval_depth)
+        # Prepare result array with nan's
+        result = np.nan * np.ones(shape=(len(self.evaluation_data), len(eval_layers)))
+        # Save the starting conditions
         result[0] = [l.theta for l in eval_layers]
-        stopwatch = cmf.StopWatch(cmf.AsCMFtime(self.datastart), cmf.AsCMFtime(self.dataend))
+        reporter = ProgressReporter(self.datastart, self.dataend, max_runtime=15 * 60, verbose=verbose)
+
         try:
             for i, t in enumerate(self.model.solver.run(self.datastart, self.dataend, timedelta(hours=1))):
-                pt = t.AsPython()
-                gw_level = self.driver_data.gwhead_m.loc[pt]
-                # Set boundary condition
-                if np.isfinite(gw_level):
-                    self.model.gw.potential = gw_level
+                self.model.set_boundary(t)
                 # Get result
                 result[i+1] = [l.theta for l in eval_layers]
-
-                elapsed, total, remaining = stopwatch(t)
-                if verbose and not t % cmf.week:
-                    print('{pt:%Y-%m-%d}: {elapsed}/{total}, theta={theta:0.4f}'
-                          .format(pt=pt, elapsed=elapsed*cmf.sec, total=total*cmf.sec, theta=c.layers.theta.mean()))
-                if elapsed > 60 * 15:
-                    raise RuntimeError('{:%Y-%m-%d %H:%S} model took more than {:0.0f}min until now, stopping'
-                                       .format(pt, elapsed / 60))
-        except KeyboardInterrupt:
-            pass
+                # Raises if the runtime is too long
+                reporter(t)
         except RuntimeError as e:
             sys.stderr.write(str(par))
             sys.stderr.write(str(e))
 
         return result
+
 
 if __name__ == '__main__':
     print(spotpy.__file__, spotpy.__version__)
@@ -244,6 +296,6 @@ if __name__ == '__main__':
         par = model.optguess()
         result = model.simulation(par, verbose=True)
         rmse = model.objectivefunction(result, model.evaluation())
-        print('Model ready, RMSE={:0.4f}% soil moisture'.format(rmse))
+        print('Model ready, RMSE={:0.4f}% soil moisture'.format(-rmse*100))
         np.save('result.npy', result)
         np.save('eval.npy', model.evaluation())

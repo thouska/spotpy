@@ -81,6 +81,8 @@ class Base(object):
         If is args[0] is a string, return args[0] as the name else return '' or kwargs['name'] if present.
         The other parameters of the distribution, (given as the params string) are deduced from args and kwargs.
         The returned args and kwargs are without the distribution parameters
+
+        For the usage of this function look at the parameter realisations in this file, eg. Uniform
         
         :param params: A space seperated string of the expected parameter names of the distribution
         :param args: An argument tuple given to a parameter constructor
@@ -91,14 +93,21 @@ class Base(object):
         # Check if args[0] is string like
         if unicode(args[0]) == args[0]:
             name = args.pop(0)
+        # else get the name from the keywords
         elif 'name' in kwargs:
             name = kwargs.pop('name')
+        # or just do not use a name
         else:
             name = ''
 
+        # A list of distribution parameters and a list of distribution parameter names that are missing
         plist = []
         missing = []
 
+        # Loop through the parameter names to get their values from
+        # a) the args
+        # b) if the args are fully processed, the kwargs
+        # c) if the args are processed and the name is not present in the kwargs, add to missing
         for i, pname in enumerate(params.split()):
             if args:
                 plist.append(args.pop(0))
@@ -108,6 +117,7 @@ class Base(object):
                 missing.append(pname)
                 plist.append(None)
 
+        # If the algo did not find values for distribution parameters in args are kwargs, fail
         if missing:
             raise ValueError(
                 '{T} expected values for the parameters {m}'.format(
@@ -115,7 +125,7 @@ class Base(object):
                     m=', '.join(missing)
                 )
             )
-
+        # Return the name, the distribution parameter values, and a tuple of unprocessed args and kwargs
         return (name,) + tuple(plist) + (tuple(args), kwargs)
 
 
@@ -404,6 +414,7 @@ def get_parameters_from_class(cls):
     >>>     # Add parameters p1 & p2 to the setup. 
     >>>     p1 = parameter.Uniform(20, 100)
     >>>     p2 = parameter.Gamma(2.3)
+
     """
 
     # Get all class variables
