@@ -175,7 +175,7 @@ class csv(database):
         # store init item only if dbinit
         if kwargs.get('dbinit', True):
             # Create a open file, which needs to be closed after the sampling
-            self.db = io.open(self.dbname + '.csv', 'w')
+            self.db = io.open(self.dbname + '.csv', 'w', buffering=1)
             # write header line
             self.db.write(','.join(self.header) + '\n')
             self.save(self.like, self.randompar, self.simulations, self.chains)
@@ -183,7 +183,6 @@ class csv(database):
             # Continues writing file
             self.db = io.open(self.dbname + '.csv', 'a')
             self.save(self.like, self.randompar, self.simulations, self.chains)
-        
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +

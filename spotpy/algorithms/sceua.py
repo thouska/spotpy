@@ -300,6 +300,11 @@ class sceua(_algorithm):
                     #self.save(-likes[i], pars[i],
                     #                     simulations=sims[i], chains=igs)
                     #self.status(icall, -likes[i], pars[i])
+                if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
+                  and icall >= self.backup_every_rep:
+                    work = (icall, (x, xf), gnrng)
+                    self.write_breakdata(self.dbname, work)
+
                     
             # Progress bar
 #            acttime = time.time()
@@ -363,10 +368,6 @@ class sceua(_algorithm):
             kstop, criter_change)
         print(text)
 
-        if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
-                and icall >= self.backup_every_rep:
-                work = (icall, (x, xf), gnrng)
-                self.write_breakdata(self.dbname, work)
         # reshape BESTX
         BESTX = BESTX.reshape(BESTX.size // self.nopt, self.nopt)
         self.final_call()
