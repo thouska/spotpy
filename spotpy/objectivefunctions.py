@@ -497,4 +497,31 @@ def _standarddeviation(evaluation):
     
     return np.sqrt(_variance(evaluation))
 
+def volume_error(evaluation,simulation):
+    """
+    Returns the Volumer Error (Ve).
+    It is an indicator of the agreement between the averages of the simulated
+    and observed runoff (i.e. long-term water balance).
+    
+        .. math::
+        
+         Sum(simulation-evaluation)/sum(simulation)
+    :evaluation: Observed data to compared with simulation data.
+    :type: list
+    
+    :simulation: simulation data to compared with evaluation data
+    :type: list
+    
+    :return: Volume Error
+    :rtype: float
+    """    
+    if len(evaluation)==len(simulation):   
+        
+        ve = np.sum(simulation-evaluation)/np.sum(evaluation)       
+             
+        return float(ve)
+    
+    else:
+        print("Error: evaluation and simulation lists does not have the same length.")
+        return np.nan
 
