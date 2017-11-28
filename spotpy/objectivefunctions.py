@@ -502,6 +502,11 @@ def volume_error(evaluation,simulation):
     Returns the Volumer Error (Ve).
     It is an indicator of the agreement between the averages of the simulated
     and observed runoff (i.e. long-term water balance).
+    used in this paper:
+    Reynolds, J.E., S. Halldin, C.Y. Xu, J. Seibert, and A. Kauffeldt. 2017.
+    “Sub-Daily Runoff Predictions Using Parameters Calibrated on the Basis of Data with a 
+    Daily Temporal Resolution.” Journal of Hydrology 550 (July):399–411. 
+    https://doi.org/10.1016/j.jhydrol.2017.05.012.
     
         .. math::
         
