@@ -183,6 +183,7 @@ class csv(database):
             # Continues writing file
             self.db = io.open(self.dbname + '.csv', 'a')
             self.save(self.like, self.randompar, self.simulations, self.chains)
+        self.db.close()
         
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
@@ -190,6 +191,8 @@ class csv(database):
                 self.dim_dict['par'](parameterlist) +
                 self.dim_dict['simulation'](simulations) +
                 [chains])
+    
+        self.db = io.open(self.dbname + '.csv', 'a')
         try:
             # maybe apply a rounding for the floats?!
             coll = map(np.float16, coll)
@@ -201,6 +204,7 @@ class csv(database):
             coll = map(np.float16, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
+        self.db.close()
 
     def finalize(self):
         self.db.close()
