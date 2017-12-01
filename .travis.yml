@@ -16,3 +16,5 @@ install:
   #- travis_wait pip install scipy
 # command to run tests
 script: python spotpy/examples/tutorial_rosenbrock.py
+#script: python spotpy/unittests/test_database.py
+#script: python spotpy/unittests/test_signatures.py

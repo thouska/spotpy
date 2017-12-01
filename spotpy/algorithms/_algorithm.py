@@ -17,7 +17,7 @@ from spotpy import database, objectivefunctions
 from spotpy import parameter
 import numpy as np
 import time
-
+import os
 
 
 class _RunStatistic(object):
@@ -142,15 +142,14 @@ class _algorithm(object):
         self.save_sim = save_sim
         self.dbname = dbname
         self.dbformat = dbformat
-        
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
-            
+        
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
             self.dbinit = False
-            self.breakdata = self.readbreakdata(self.dbname)
+            self.breakdata = self.read_breakdata(self.dbname)
 
         # Now a repeater (ForEach-object) is loaded
         # A repeater is a convinent wrapper to repeat tasks
@@ -241,19 +240,22 @@ class _algorithm(object):
         else:
             self.datawriter.save(like, randompar, simulations, chains=chains)
 
-
-    def readbreakdata(self, dbname):
+    def read_breakdata(self, dbname):
+        ''' Read data from a pickle file if a breakpoint is set.
+            Reason: In case of incomplete optimizations, old data can be restored. 
+        '''
         import pickle
         with open(dbname+'.break', 'rb') as breakfile:
             work, r, icall, gnrg = pickle.load(breakfile)
         return work, r, icall, gnrg
 
-    def writebreakdata(self, dbname, work, r, icall, gnrg):
+    def write_breakdata(self, dbname, work):
+        ''' Write data to a pickle file if a breakpoint has been set.
+        '''
         import pickle
         with open(str(dbname)+'.break', 'wb') as csvfile:
-            work=work,r,icall,gnrg
-            pickle.dump(work,csvfile)
-            
+            pickle.dump(work, csvfile)
+
     def getdata(self):
         if self.dbformat == 'ram':
             return self.datawriter.data

@@ -114,6 +114,10 @@ try:
     print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,datetime_series=ddd,threshold_value=5,mode="get_raw_data"))
     print(sig.getAverageBaseflowFrequencyPerSection(simulation, observation,datetime_series=dd_daily,threshold_value=3,mode="calc_Dev"))
 
+    print(sig.getAverageBaseflowDuration(simulation, observation, datetime_series=dd_daily, threshold_value=3,mode="get_signature"))
+    print(sig.getAverageBaseflowDuration(simulation, observation, datetime_series=ddd, threshold_value=5,mode="get_raw_data"))
+    print(sig.getAverageBaseflowDuration(simulation, observation, datetime_series=dd_daily, threshold_value=3,mode="calc_Dev"))
+
 
 
     print(sig.getFloodFrequency(simulation, observation,datetime_series=pd.date_range("2015-05-01", periods=timespanlen),threshold_value=3,mode="get_signature"))

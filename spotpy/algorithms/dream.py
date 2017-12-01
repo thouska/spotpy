@@ -222,7 +222,7 @@ class dream(_algorithm):
 #            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
             return R_stat#[R_stat, MR_stat]
 
-    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100):
+    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
         print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
         if nChains <3:
@@ -307,7 +307,7 @@ class dream(_algorithm):
 
                 # set a option which type of comparision should be choose:
 
-                metro_opt=6
+                metro_opt=acceptance_test_option
 
                 if metro_opt == 1:
                     logMetropHastRatio = like/self.bestlike[cChain]
@@ -369,8 +369,8 @@ class dream(_algorithm):
                 text = "Convergence rates =" +str(np.around((r_hat),decimals=4)).strip('array([])')
                 print(text)
                 intervaltime = time.time()
-            
-            if (r_hat < convergence_limit).all() and not convergence and self.nChainruns[-1] >=5:
+
+            if (np.array(r_hat) < convergence_limit).all() and not convergence and self.nChainruns[-1] >=5:
                 #Stop sampling
                 print('#############')
                 print('Convergence has been achieved after '+str(self.iter)+' of '+str(self.repetitions)+' runs! Finally, '+str(runs_after_convergence)+' runs will be additionally sampled to form the posterior distribution')

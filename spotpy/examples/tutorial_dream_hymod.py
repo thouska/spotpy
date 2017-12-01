@@ -10,7 +10,8 @@ This class holds example code how to use the dream algorithm
 
 import numpy as np
 import spotpy
-from spotpy.examples.spot_setup_hymod import spot_setup
+from spotpy.examples.spot_setup_hymod_exe import spot_setup
+#from spotpy.examples.spot_setup_hymod_python import spot_setup
 import pylab as plt
 
 
@@ -32,7 +33,7 @@ convergence_limit      = 1.2
 runs_after_convergence = 100
 
 r_hat = sampler.sample(rep,nChains=nChains,convergence_limit=convergence_limit, 
-                       runs_after_convergence=runs_after_convergence)
+                       runs_after_convergence=runs_after_convergence, acceptance_test_option = 6)
 
 
 
