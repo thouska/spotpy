@@ -15,6 +15,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import numpy as np
 import io
+import time
 from itertools import product
 
 
@@ -40,6 +41,8 @@ class database(object):
         self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [(
             'like', like), ('par', randompar), ('simulation', simulations)]]
         self._make_header(simulations,parnames)
+        
+        self.last_flush = time.time()
 
     def _check_dims(self, name, obj):
         '''checks dimensionality of obj and stores function in dict'''
@@ -200,6 +203,12 @@ class csv(database):
             coll = map(np.float16, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
+            
+        acttime = time.time()
+        # Force writing to disc at least every two seconds
+        if acttime - self.last_flush >= 2:
+            self.db.flush()
+            self.last_flush = time.time()
 
     def finalize(self):
         self.db.close()
