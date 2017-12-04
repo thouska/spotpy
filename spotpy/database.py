@@ -190,7 +190,6 @@ class csv(database):
                 self.dim_dict['par'](parameterlist) +
                 self.dim_dict['simulation'](simulations) +
                 [chains])
-
         try:
             # maybe apply a rounding for the floats?!
             coll = map(np.float16, coll)
