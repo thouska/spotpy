@@ -177,7 +177,11 @@ class csv(database):
             # Create a open file, which needs to be closed after the sampling
             self.db = io.open(self.dbname + '.csv', 'w')
             # write header line
-            self.db.write(','.join(self.header) + '\n')
+            try:
+                # python 2.7 support
+                self.db.write(unicode(','.join(self.header) + '\n'))
+            except NameError:
+                self.db.write(','.join(self.header) + '\n')
             self.save(self.like, self.randompar, self.simulations, self.chains)
         else:
             # Continues writing file
