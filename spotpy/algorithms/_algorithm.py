@@ -115,7 +115,7 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100, save_threshold=None):
+                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100, save_threshold=-np.inf):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
