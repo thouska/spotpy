@@ -12,7 +12,7 @@ import sys
 if sys.version_info.major == 3:
     unicode = str
 from collections import namedtuple
-
+from itertools import cycle
 
 class Base(object):
     """
@@ -39,11 +39,17 @@ class Base(object):
         self.name = name
         self.rndfunc = rndfunc
         self.rndargs = rndargs
-        self.step = step or np.percentile(self(size=1000), 50)
-        self.optguess = optguess or (np.percentile(self(size=1000), 50) -
-                                     np.percentile(self(size=1000), 40))
-        self.minbound = minbound or np.min(self(size=1000))
-        self.maxbound = maxbound or np.max(self(size=1000))
+        if self.rndfunc:
+            self.step = step or np.percentile(self(size=1000), 50)
+            self.optguess = optguess or (np.percentile(self(size=1000), 50) -
+                                         np.percentile(self(size=1000), 40))
+            self.minbound = minbound or np.min(self(size=1000))
+            self.maxbound = maxbound or np.max(self(size=1000))
+        else:
+            self.step = 0.0
+            self.optguess = 0.0
+            self.minbound = 0.0
+            self.maxbound = 0.0
         self.description = kwargs.get('doc')
 
 
@@ -154,27 +160,72 @@ class Uniform(Base):
                                       **kwargs)
 
 
-class List(object):
+class List(Base):
     """
-    A specialization to sample from a list of parameter sets 
+    A specialization to sample from a list (or other iterable) of parameter sets.
+
+    Usage:
+    >>>list_param = List([1,2,3,4], repeat=True)
+    >>>list_param()
+    1
     """
 
-    def __init__(self, name, list_of_parametersettings):
-        self.icall = 0
+    def __init__(self, *args, **kwargs):
+        name, list_of_parametersettings, args, kwargs = self._get_name_from_args('list_of_parametersettings', *args, **kwargs)
+        super().__init__(name, None, None, None, None, None, *args, **kwargs)
         self.name = name
-        self.list_of_parametersettings = list_of_parametersettings
+        self.repeat = kwargs.get('repeat', False)
 
-    def __call__(self):
-        self.icall += 1
-        try:
-            return self.list_of_parametersettings[self.icall - 3]
-        except IndexError:
-            text = 'Error: Number of repetitions is higher than the number of available parameter sets'
-            print(text)
-            raise
+        if self.repeat:
+            # If the parameter list should repeated, create an inifinite loop of the data iterator
+            self.iterator = cycle(list_of_parametersettings)
+        else:
+            # If the list should end when the list is exhausted, just get a normal iterator
+            self.iterator = iter(list_of_parametersettings)
+
+    def __call__(self, size=None):
+        """
+        Returns the next value from the data list
+        :param size: Number of sample to draw from data
+        :return:
+        """
+        if size:
+            return np.fromiter(self.iterator, dtype=float, count=size)
+        else:
+            try:
+                return next(self.iterator)
+            except StopIteration:
+                text = 'Error: Number of repetitions is higher than the number of available parameter sets'
+                print(text)
+                raise
 
     def astuple(self):
         return self(), self.name, 0, 0, 0, 0
+
+
+class Constant(Base):
+    """
+    A specialization that produces always the same constant value
+    """
+
+    def __init__(self, *args, **kwargs):
+        name, scalar, args, kwargs = self._get_name_from_args('list_of_parametersettings', *args, **kwargs)
+        super().__init__(name, None, None, None, None, None, *args, **kwargs)
+        self.scalar = scalar
+
+    def __call__(self, size=None):
+        """
+        Returns the next value from the data list
+        :param size: Number of items to draw from parameter
+        :return:
+        """
+        if size:
+            return np.ones(size, dtype=float) * self.scalar
+        else:
+            return self.scalar
+
+    def astuple(self):
+        return self(), self.name, self.scalar, self.scalar, 0, 0
 
 
 class Normal(Base):

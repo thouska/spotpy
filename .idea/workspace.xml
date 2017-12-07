@@ -1,44 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a4713624-a98c-426e-9a53-21eead46efa7" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/eval.npy" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/result.npy" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/examples/python_hymod.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/examples/python_hymod_convergence.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/examples/python_parameters.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dictionaries/gh1961.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/spotpy.iml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_python/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/examples/spot_setup_hymod_python.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/unittests/test_database.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spotpy/unittests/test_signatures.py" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/spotpy/examples/hymod/bound.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/spotpy/examples/spot_setup_hymod.py" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/spotpy/examples/hymod/HYMODsilent.exe" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_exe/HYMODsilent.exe" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/spotpy/examples/hymod/license.txt" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_exe/license.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/spotpy/hymod/__init__.py" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_exe/__init__.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/spotpy/hymod/bound.txt" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_exe/bound.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/spotpy/hymod/bound_units.xlsx" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_exe/bound_units.xlsx" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/spotpy/hymod/hymod.py" afterPath="$PROJECT_DIR$/spotpy/examples/hymod_python/hymod.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.travis.yml" afterPath="$PROJECT_DIR$/.travis.yml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/setup.py" afterPath="$PROJECT_DIR$/setup.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/__init__.py" afterPath="$PROJECT_DIR$/spotpy/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/algorithms/_algorithm.py" afterPath="$PROJECT_DIR$/spotpy/algorithms/_algorithm.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/algorithms/dream.py" afterPath="$PROJECT_DIR$/spotpy/algorithms/dream.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/algorithms/fscabc.py" afterPath="$PROJECT_DIR$/spotpy/algorithms/fscabc.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/algorithms/sceua.py" afterPath="$PROJECT_DIR$/spotpy/algorithms/sceua.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/database.py" afterPath="$PROJECT_DIR$/spotpy/database.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/examples/spot_setup_hymod_exe.py" afterPath="$PROJECT_DIR$/spotpy/examples/spot_setup_hymod_exe.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/examples/tutorial_dream_hymod.py" afterPath="$PROJECT_DIR$/spotpy/examples/tutorial_dream_hymod.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/examples/tutorial_signatures.py" afterPath="$PROJECT_DIR$/spotpy/examples/tutorial_signatures.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spotpy/signatures.py" afterPath="$PROJECT_DIR$/spotpy/signatures.py" />
+    <list default="true" id="a4713624-a98c-426e-9a53-21eead46efa7" name="Default" comment="Made">
+      <change beforePath="$PROJECT_DIR$/.idea/spotpy.iml" afterPath="$PROJECT_DIR$/.idea/spotpy.iml" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/spotpy/parameter.py" afterPath="$PROJECT_DIR$/spotpy/parameter.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -48,15 +14,15 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/spotpy$spot_setup_cmf1d.coverage" NAME="spot_setup_cmf1d Coverage Results" MODIFIED="1511272774957" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/spotpy$parameter.coverage" NAME="parameter Coverage Results" MODIFIED="1510935508183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spotpy" />
+    <SUITE FILE_PATH="coverage/spotpy$spot_setup_cmf1d.coverage" NAME="spot_setup_cmf1d Coverage Results" MODIFIED="1511272774957" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="spot_setup_cmf1d.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/spotpy/examples/spot_setup_cmf1d.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
+            <state relative-caret-position="2147">
               <caret line="113" column="0" lean-forward="false" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
               <folding>
                 <element signature="e#349#359#0" expanded="true" />
@@ -78,9 +44,11 @@
       <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/spotpy/algorithms/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
+            <state relative-caret-position="589">
+              <caret line="31" column="73" lean-forward="false" selection-start-line="31" selection-start-column="73" selection-end-line="31" selection-end-column="73" />
+              <folding>
+                <element signature="e#485#523#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -88,17 +56,10 @@
       <file leaf-file-name="_algorithm.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/spotpy/algorithms/_algorithm.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3990">
-              <caret line="210" column="52" lean-forward="false" selection-start-line="210" selection-start-column="52" selection-end-line="210" selection-end-column="52" />
+            <state relative-caret-position="4066">
+              <caret line="214" column="41" lean-forward="false" selection-start-line="214" selection-start-column="41" selection-end-line="214" selection-end-column="41" />
               <folding>
                 <element signature="e#215#253#0" expanded="true" />
-                <marker date="1512046850350" expanded="true" signature="11211:13492" ph="..." />
-                <marker date="1512046850350" expanded="true" signature="11234:11589" ph="..." />
-                <marker date="1512046850350" expanded="true" signature="11688:12431" ph="..." />
-                <marker date="1512046850350" expanded="true" signature="11769:11966" ph="..." />
-                <marker date="1512046850350" expanded="true" signature="11991:12325" ph="..." />
-                <marker date="1512046850350" expanded="true" signature="12027:12175" ph="..." />
-                <marker date="1512046850350" expanded="true" signature="12193:12325" ph="..." />
               </folding>
             </state>
           </provider>
@@ -114,52 +75,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="parameter.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="parameter.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/spotpy/parameter.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="287">
-              <caret line="264" column="36" lean-forward="false" selection-start-line="264" selection-start-column="36" selection-end-line="264" selection-end-column="36" />
+            <state relative-caret-position="600">
+              <caret line="174" column="21" lean-forward="false" selection-start-line="174" selection-start-column="21" selection-end-line="174" selection-end-column="21" />
               <folding>
                 <element signature="e#229#293#0" expanded="true" />
+                <element signature="e#3148#5461#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mc.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/spotpy/algorithms/mc.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="139">
-              <caret line="31" column="28" lean-forward="true" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="mpi.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/spotpy/parallel/mpi.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1153">
-              <caret line="15" column="8" lean-forward="false" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
-              <folding>
-                <element signature="e#666#704#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="mproc.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/spotpy/parallel/mproc.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sequential.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/spotpy/parallel/sequential.py">
+      <file leaf-file-name="itertools.py" pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.PyCharm2017.3/system/python_stubs/333769685/itertools.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
               <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -207,8 +137,8 @@
         <option value="$PROJECT_DIR$/spotpy/examples/tutorial_dream_hymod.py" />
         <option value="$PROJECT_DIR$/spotpy/likelihoods.py" />
         <option value="$PROJECT_DIR$/spotpy/examples/tutorial_likelihood.py" />
-        <option value="$PROJECT_DIR$/spotpy/parameter.py" />
         <option value="$PROJECT_DIR$/spotpy/examples/spot_setup_cmf1d.py" />
+        <option value="$PROJECT_DIR$/spotpy/parameter.py" />
       </list>
     </option>
   </component>
@@ -218,11 +148,11 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
-    <option name="x" value="54" />
-    <option name="y" value="-8" />
-    <option name="width" value="1320" />
-    <option name="height" value="784" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="55" />
+    <option name="y" value="2" />
+    <option name="width" value="1316" />
+    <option name="height" value="773" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -239,7 +169,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -267,7 +197,7 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -289,13 +219,62 @@
     </option>
   </component>
   <component name="RunManager" selected="Python.spot_setup_cmf1d">
-    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
-      <node-interpreter>project</node-interpreter>
-      <node-options />
-      <gulpfile />
-      <tasks />
-      <arguments />
-      <envs />
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="spotpy" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="parameter" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/spotpy" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="spotpy" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spotpy/parameter.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="spot_setup_cmf1d" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="spotpy" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spotpy/examples/spot_setup_cmf1d.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
     </configuration>
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -361,25 +340,6 @@
       <option name="ADDITIONAL_ARGS" value="" />
       <method />
     </configuration>
-    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="spotpy" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <method />
-    </configuration>
     <configuration default="true" type="Tox" factoryName="Tox">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -437,41 +397,13 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
-    <configuration name="parameter" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/spotpy" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="spotpy" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spotpy/parameter.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-    </configuration>
-    <configuration name="spot_setup_cmf1d" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="spotpy" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spotpy/examples/spot_setup_cmf1d.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <arguments />
+      <envs />
     </configuration>
     <list size="2">
       <item index="0" class="java.lang.String" itemvalue="Python.parameter" />
@@ -526,25 +458,34 @@
       <option name="project" value="LOCAL" />
       <updated>1511518665642</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Merge remote-tracking branch 'remotes/thouska/master'&#10;&#10;# Conflicts:&#10;#&#9;setup.py&#10;#&#9;spotpy/__init__.py&#10;#&#9;spotpy/algorithms/_algorithm.py">
+      <created>1512662062184</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1512662062184</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="54" y="-8" width="1320" height="784" extended-state="7" />
+    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32380953" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963988" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963988" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32857144" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="0" y="0" width="280" height="584" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899627" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962963" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3287037" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963988" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13947079" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="SciView" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.66449815" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -552,10 +493,37 @@
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962963" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
@@ -565,14 +533,15 @@
     <MESSAGE value="Moved the parameter value type creation from _algorithm to parameter.py&#10;and did a bit of clean up in _algorithm. The parameter objects in&#10;parameter.py can now be created with or without name and with kwargs&#10;as the user likes" />
     <MESSAGE value="Documented and cleaned mpi.py and fixed a python3 bug and fixed a typo&#10;in mc.py" />
     <MESSAGE value="Changed the datatype of the parameter array to U30 instead of S30, which&#10;is a byte-string in Python 3. Hence we can skip alot of decoding from &#10;parameter names esp. in tutorial_dream_hymod.py and database.py. &#10;And in likelihoods.py we do not need the clumsy __byteArrayToString &#10;function&#10;&#10;The parameters accept all positional and keyword arguments using the &#10;somewhat complex trick function in `Parameter._get_name_from_args`.&#10;&#10;Fixed a sorting issue in Python &lt;= 3.5 with the class defined parameters&#10;in the `get_parameters_from_class`" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed the datatype of the parameter array to U30 instead of S30, which&#10;is a byte-string in Python 3. Hence we can skip alot of decoding from &#10;parameter names esp. in tutorial_dream_hymod.py and database.py. &#10;And in likelihoods.py we do not need the clumsy __byteArrayToString &#10;function&#10;&#10;The parameters accept all positional and keyword arguments using the &#10;somewhat complex trick function in `Parameter._get_name_from_args`.&#10;&#10;Fixed a sorting issue in Python &lt;= 3.5 with the class defined parameters&#10;in the `get_parameters_from_class`" />
+    <MESSAGE value="Merge remote-tracking branch 'remotes/thouska/master'&#10;&#10;# Conflicts:&#10;#&#9;setup.py&#10;#&#9;spotpy/__init__.py&#10;#&#9;spotpy/algorithms/_algorithm.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'remotes/thouska/master'&#10;&#10;# Conflicts:&#10;#&#9;setup.py&#10;#&#9;spotpy/__init__.py&#10;#&#9;spotpy/algorithms/_algorithm.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/spotpy/algorithms/_algorithm.py</url>
-          <line>193</line>
+          <line>214</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
@@ -588,29 +557,12 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/spotpy/parameter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7334">
-          <caret line="388" column="25" lean-forward="false" selection-start-line="388" selection-start-column="25" selection-end-line="388" selection-end-column="25" />
-          <folding>
-            <element signature="e#229#293#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/spotpy/algorithms/_algorithm.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1444">
           <caret line="84" column="0" lean-forward="false" selection-start-line="84" selection-start-column="0" selection-end-line="84" selection-end-column="0" />
           <folding>
             <element signature="e#215#253#0" expanded="true" />
-            <marker date="1512046850350" expanded="true" signature="11211:13492" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11234:11589" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11688:12431" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11769:11966" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11991:12325" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12027:12175" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12193:12325" ph="..." />
           </folding>
         </state>
       </provider>
@@ -631,13 +583,6 @@
           <caret line="125" column="0" lean-forward="false" selection-start-line="125" selection-start-column="0" selection-end-line="125" selection-end-column="0" />
           <folding>
             <element signature="e#215#253#0" expanded="true" />
-            <marker date="1512046850350" expanded="true" signature="11211:13492" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11234:11589" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11688:12431" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11769:11966" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11991:12325" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12027:12175" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12193:12325" ph="..." />
           </folding>
         </state>
       </provider>
@@ -669,6 +614,7 @@
           <caret line="422" column="62" lean-forward="true" selection-start-line="422" selection-start-column="62" selection-end-line="422" selection-end-column="62" />
           <folding>
             <element signature="e#229#293#0" expanded="true" />
+            <element signature="e#3148#5461#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -696,6 +642,7 @@
           <caret line="406" column="0" lean-forward="false" selection-start-line="406" selection-start-column="0" selection-end-line="406" selection-end-column="0" />
           <folding>
             <element signature="e#229#293#0" expanded="true" />
+            <element signature="e#3148#5461#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -706,13 +653,6 @@
           <caret line="134" column="49" lean-forward="false" selection-start-line="134" selection-start-column="49" selection-end-line="134" selection-end-column="49" />
           <folding>
             <element signature="e#215#253#0" expanded="true" />
-            <marker date="1512046850350" expanded="true" signature="11211:13492" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11234:11589" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11688:12431" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11769:11966" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11991:12325" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12027:12175" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12193:12325" ph="..." />
           </folding>
         </state>
       </provider>
@@ -740,6 +680,7 @@
           <caret line="21" column="18" lean-forward="false" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="18" />
           <folding>
             <element signature="e#229#293#0" expanded="true" />
+            <element signature="e#3148#5461#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -830,13 +771,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/examples/spot_setup_hymod.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="342">
-          <caret line="27" column="24" lean-forward="true" selection-start-line="27" selection-start-column="24" selection-end-line="27" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/spotpy/examples/spot_setup_hymod.py" />
     <entry file="file://$PROJECT_DIR$/spotpy/examples/tutorial_rosenbrock.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="266">
@@ -862,18 +797,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1919">
           <caret line="105" column="56" lean-forward="false" selection-start-line="105" selection-start-column="56" selection-end-line="105" selection-end-column="56" />
-          <folding>
-            <marker date="1512046850148" expanded="true" signature="1599:1717" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="2099:2215" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="2312:2415" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="2817:2934" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="2965:3191" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="3390:3457" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="3916:3983" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="4441:4508" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="4966:5033" ph="..." />
-            <marker date="1512046850148" expanded="true" signature="5491:5558" ph="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -907,13 +830,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/hymod/hymod.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-105">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/spotpy/hymod/hymod.py" />
     <entry file="file://$PROJECT_DIR$/data/soilmoisture_site24.csv">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-342">
@@ -936,47 +853,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/algorithms/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/spotpy/algorithms/_algorithm.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3990">
-          <caret line="210" column="52" lean-forward="false" selection-start-line="210" selection-start-column="52" selection-end-line="210" selection-end-column="52" />
+        <state relative-caret-position="4066">
+          <caret line="214" column="41" lean-forward="false" selection-start-line="214" selection-start-column="41" selection-end-line="214" selection-end-column="41" />
           <folding>
             <element signature="e#215#253#0" expanded="true" />
-            <marker date="1512046850350" expanded="true" signature="11211:13492" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11234:11589" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11688:12431" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11769:11966" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="11991:12325" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12027:12175" ph="..." />
-            <marker date="1512046850350" expanded="true" signature="12193:12325" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/spotpy/examples/spot_setup_cmf1d.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
+        <state relative-caret-position="2147">
           <caret line="113" column="0" lean-forward="false" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
           <folding>
             <element signature="e#349#359#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/parameter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="287">
-          <caret line="264" column="36" lean-forward="false" selection-start-line="264" selection-start-column="36" selection-end-line="264" selection-end-column="36" />
-          <folding>
-            <element signature="e#229#293#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -985,7 +877,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-6150">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -993,15 +884,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-849">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/algorithms/mc.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="139">
-          <caret line="31" column="28" lean-forward="true" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1013,12 +895,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/parallel/mpi.py">
+    <entry file="file://$PROJECT_DIR$/spotpy/parallel/sequential.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1153">
-          <caret line="15" column="8" lean-forward="false" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spotpy/algorithms/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="589">
+          <caret line="31" column="73" lean-forward="false" selection-start-line="31" selection-start-column="73" selection-end-line="31" selection-end-column="73" />
           <folding>
-            <element signature="e#666#704#0" expanded="true" />
+            <element signature="e#485#523#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1031,11 +921,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spotpy/parallel/sequential.py">
+    <entry file="file://$PROJECT_DIR$/spotpy/parallel/mpi.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="19">
+          <caret line="15" column="8" lean-forward="false" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
+          <folding>
+            <element signature="e#666#704#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spotpy/algorithms/mc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="139">
+          <caret line="31" column="28" lean-forward="false" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/python_stubs/333769685/itertools.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spotpy/parameter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="174" column="21" lean-forward="false" selection-start-line="174" selection-start-column="21" selection-end-line="174" selection-end-column="21" />
+          <folding>
+            <element signature="e#229#293#0" expanded="true" />
+            <element signature="e#3148#5461#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
