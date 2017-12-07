@@ -38,8 +38,4 @@ from . import signatures         # Quantifies goodness of fit between simulation
 from . import likelihoods        # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
 from . import examples           # Contains tutorials how to use SPOTPY
 
-<<<<<<< HEAD
-__version__ = '1.3.15p'
-=======
-__version__ = '1.3.14'
->>>>>>> refs/remotes/thouska/master
+__version__ = '1.3.16'

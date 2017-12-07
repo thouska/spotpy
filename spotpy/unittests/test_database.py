@@ -1,5 +1,4 @@
 import unittest
-import unittest.mock as mock
 import spotpy.database as db
 import numpy as np
 
@@ -33,7 +32,7 @@ class TestDatabase(unittest.TestCase):
 
         csv.finalize()
         csvdata = csv.getdata()
-        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(csvdata)), str(type(np.array([]))))
         self.assertEqual(len(csvdata[0]), 32)
         self.assertEqual(len(csvdata), 2)
         self.assertEqual(len(csv.header), 32)
@@ -48,7 +47,7 @@ class TestDatabase(unittest.TestCase):
 
         csv.finalize()
         csvdata = csv.getdata()
-        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(csvdata)), str(type(np.array([]))))
         self.assertEqual(len(csvdata[0]), 7)
         self.assertEqual(len(csvdata), 2)
         self.assertEqual(len(csv.header), 7)
@@ -61,7 +60,7 @@ class TestDatabase(unittest.TestCase):
 
         csv.finalize()
         csvdata = csv.getdata()
-        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(csvdata)), str(type(np.array([]))))
         self.assertEqual(len(csvdata[0]), 12)
         self.assertEqual(len(csvdata), 2)
         self.assertEqual(len(csv.header), 12)
@@ -74,7 +73,7 @@ class TestDatabase(unittest.TestCase):
 
         csv.finalize()
         csvdata = csv.getdata()
-        self.assertEqual(str(type(csvdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(csvdata)), str(type(np.array([]))))
         self.assertEqual(len(csvdata[0]), 7)
         self.assertEqual(len(csvdata), 2)
         self.assertEqual(len(csv.header), 7)
@@ -86,7 +85,7 @@ class TestDatabase(unittest.TestCase):
         sql.save(self.like, self.randompar, self.simulations_multi)
         sql.finalize()
         sqldata = sql.getdata()
-        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(str(type(sqldata)), str(type([])))
         self.assertEqual(len(sqldata[0]), 32)
         self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 32)
@@ -98,7 +97,7 @@ class TestDatabase(unittest.TestCase):
         sql.save(self.like, self.randompar, self.simulations_multi)
         sql.finalize()
         sqldata = sql.getdata()
-        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(str(type(sqldata)), str(type([])))
         self.assertEqual(len(sqldata[0]), 7)
         self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 7)
@@ -109,7 +108,7 @@ class TestDatabase(unittest.TestCase):
         sql.save(self.like, self.randompar, self.simulations)
         sql.finalize()
         sqldata = sql.getdata()
-        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(str(type(sqldata)), str(type([])))
         self.assertEqual(len(sqldata[0]), 12)
         self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 12)
@@ -121,7 +120,7 @@ class TestDatabase(unittest.TestCase):
         sql.finalize()
 
         sqldata = sql.getdata()
-        self.assertEqual(str(type(sqldata)), "<class 'list'>")
+        self.assertEqual(str(type(sqldata)), str(type([])))
         self.assertEqual(len(sqldata[0]), 7)
         self.assertEqual(len(sqldata), 2)
         self.assertEqual(len(sql.header), 7)
@@ -133,7 +132,7 @@ class TestDatabase(unittest.TestCase):
         ram.finalize()
 
         ramdata = ram.getdata()
-        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(ramdata)), str(type(np.array([]))))
         self.assertEqual(len(ram.header), 32)
         self.assertEqual(len(ramdata[0]), 32)
         self.assertEqual(len(ramdata), 2)
@@ -146,7 +145,7 @@ class TestDatabase(unittest.TestCase):
 
         ram.finalize()
         ramdata = ram.getdata()
-        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(ramdata)), str(type(np.array([]))))
         self.assertEqual(len(ramdata[0]), 7)
         self.assertEqual(len(ramdata), 2)
         self.assertEqual(len(ramdata.dtype), len(ram.header))
@@ -159,7 +158,7 @@ class TestDatabase(unittest.TestCase):
 
         ram.finalize()
         ramdata = ram.getdata()
-        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(ramdata)), str(type(np.array([]))))
         self.assertEqual(len(ramdata[0]), 12)
         self.assertEqual(len(ramdata), 2)
         self.assertEqual(len(ramdata.dtype), len(ram.header))
@@ -172,7 +171,7 @@ class TestDatabase(unittest.TestCase):
 
         ram.finalize()
         ramdata = ram.getdata()
-        self.assertEqual(str(type(ramdata)), "<class 'numpy.ndarray'>")
+        self.assertEqual(str(type(ramdata)), str(type(np.array([]))))
         self.assertEqual(len(ramdata[0]), 7)
         self.assertEqual(len(ramdata), 2)
         self.assertEqual(len(ramdata.dtype), len(ram.header))

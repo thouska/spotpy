@@ -115,8 +115,7 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100):
-
+                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100, save_threshold=-np.inf):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -146,6 +145,8 @@ class _algorithm(object):
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
         
+        self.save_threshold = save_threshold
+
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
             self.dbinit = False
@@ -181,7 +182,7 @@ class _algorithm(object):
 
     def get_parameters(self):
         """
-        Returns the parameter array from the setup      
+        Returns the parameter array from the setup
         """
 
         # Put the parameter arrays as needed here, they will be merged at the end of this
@@ -238,7 +239,14 @@ class _algorithm(object):
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
                 dbinit=self.dbinit)
         else:
-            self.datawriter.save(like, randompar, simulations, chains=chains)
+            #try if like is a list of values compare it with save threshold setting
+            try:
+                if all(i > j for i, j in zip(like, self.save_threshold)):
+                    self.datawriter.save(like, randompar, simulations, chains=chains)
+            #If like value is not a iterable, it is assumed to be a float
+            except TypeError: # This is also used if not threshold was set
+                if like>self.save_threshold:
+                    self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.

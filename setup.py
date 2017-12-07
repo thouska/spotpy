@@ -5,11 +5,7 @@ import os
 
 setup(
   name = 'spotpy',
-<<<<<<< HEAD
-  version = '1.3.15p',
-=======
-  version = '1.3.14',
->>>>>>> refs/remotes/thouska/master
+  version = '1.3.16',
   description = 'A Statistical Parameter Optimization Tool',
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),

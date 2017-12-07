@@ -68,7 +68,7 @@ def __isSorted(df):
 
     """
     try:
-        if sum(df == df.sort_values()) == df.__len__():
+        if sum(df == np.sort(df)) == df.__len__():
             return True
         else:
             return False
