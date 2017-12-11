@@ -64,12 +64,8 @@ class rope(_algorithm):
         *False: Simulationt results will not be saved
      '''
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None,
-                 parallel='seq', save_sim=True):
-
-        _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel,
-                            save_sim=save_sim)
+    def __init__(self, *args, **kwargs):
+        super(rope, self).__init__(*args, **kwargs)
 
     def create_par(self, min_bound, max_bound):
         return np.random.uniform(low=min_bound, high=max_bound)
