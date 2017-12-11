@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 
 from spotpy import database, objectivefunctions
 from spotpy import parameter
+from inspect import cleandoc
 import numpy as np
 import time
 import os
@@ -115,7 +116,8 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100, save_threshold=-np.inf):
+                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
+                 backup_every_rep=100, save_threshold=-np.inf):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -179,6 +181,36 @@ class _algorithm(object):
         # simulate function, new calculation phases and the termination
         self.repeat.start()
         self.status = _RunStatistic()
+
+    def __str__(self):
+        """
+        Returns a string representation of the sampler.
+        By design, it is rather verbose and returns a
+        large multiline description
+        :return:
+        """
+        s = 'Sampling: ' + type(self).__name__
+        s += '\n' + 30 * '-' + '\n\n'
+        s += cleandoc(type(self).__doc__) + '\n'
+        s += '\n    db format: ' + self.dbformat
+        s += '\n    db name: ' + self.dbname
+        s += '\n    save simulation: ' + str(self.save_sim)
+        s += '\n    parallel: ' + type(self.repeat).__module__.split('.')[-1]
+
+        s += '\n\nModel: ' + type(self.setup).__name__
+        s += '\n' + 30 * '-' + '\n\n'
+        mdoc = cleandoc(self.setup.__doc__ or '')
+        params = parameter.get_parameters_from_class(type(self.setup))
+        if hasattr(self.setup, 'parameter') and not callable(self.setup.parameters):
+            try:
+                params += self.setup.parameters
+            except TypeError:
+                raise ValueError('setup.parameter must be either callable or list of paramaters')
+        params = '\n'.join('    - {p}'.format(p=p) for p in params)
+        s += mdoc
+        s += '\n'
+        s += 'Parameters:\n{params}'.format(params=params)
+        return s
 
     def get_parameters(self):
         """
