@@ -65,7 +65,7 @@ class rope(_algorithm):
      '''
 
     def __init__(self, *args, **kwargs):
-        super(rope, self).__init__(*args, **kwargs)
+        super(spot_setup, self).__init__(*args, **kwargs)
 
     def create_par(self, min_bound, max_bound):
         return np.random.uniform(low=min_bound, high=max_bound)
