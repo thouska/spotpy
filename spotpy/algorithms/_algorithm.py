@@ -277,8 +277,16 @@ class _algorithm(object):
                     self.datawriter.save(like, randompar, simulations, chains=chains)
             #If like value is not a iterable, it is assumed to be a float
             except TypeError: # This is also used if not threshold was set
-                if like>self.save_threshold:
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
+                try:
+                    if like>self.save_threshold:
+                        self.datawriter.save(like, randompar, simulations, chains=chains)
+                except TypeError: # No threshold is set but several objective functions are used
+                    # Duplicate the default treshold so it can be compared
+                    # to a list
+                    save_threshold_list = [self.save_threshold] * len(like)
+                    if all(i > j for i, j in zip(like, save_threshold_list)):
+                        self.datawriter.save(like, randompar, simulations,
+                                             chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.

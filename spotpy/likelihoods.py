@@ -149,8 +149,10 @@ class Stats:
 def logLikelihood(data, comparedata, measerror=None):
     """
     This formula is based on the gaussian likelihood: homo/heteroscedastic data error formula which can be used in both
-    cases if the data has a homo- or heteroscedastic data error. To archive numerical stability a log-transformation was
-    done, which derives following formula:
+    cases if the data has a homo- or heteroscedastic data error. To archive numerical stability a log-transformation was done, 
+    which derives following formula, as shown in formular 8 in: Vrugt 2016 Markov chain Monte Carlo 
+    simulation using the DREAM software package: Theory, concepts, and Matlab implementation, EMS:
+
 
     .. math::
 
@@ -182,7 +184,7 @@ def logLikelihood(data, comparedata, measerror=None):
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
     # TODO: Maximize is done but in positive way (from negative to zero is hard)
-    return -data.__len__()/2*np.log(2*np.pi) + np.nansum(np.log(measerror)) + 0.5*np.sum(((data-comparedata)/measerror)**2)
+    return -data.__len__()/2*np.log(2*np.pi) - np.nansum(np.log(measerror)) - 0.5*np.sum(((data-comparedata)/measerror)**2)
 
 
 def gaussianLikelihoodMeasErrorOut(data, comparedata):
