@@ -53,7 +53,8 @@ class sa(_algorithm):
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
 
         _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
+                           save_threshold=save_threshold)
 
     def check_par_validity(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
