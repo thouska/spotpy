@@ -68,7 +68,8 @@ class fast(_algorithm):
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
 
         _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
+                           save_threshold=save_threshold)
 
     def scale_samples(self, params, bounds):
         '''
