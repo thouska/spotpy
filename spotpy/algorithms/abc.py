@@ -61,7 +61,8 @@ class abc(_algorithm):
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
 
         _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
+                           save_threshold=save_threshold)
 
     def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, ownlimit=False, limit=24):
         """
