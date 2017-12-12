@@ -9,10 +9,13 @@ from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
 import sys
+
 if sys.version_info.major == 3:
     unicode = str
+
 from collections import namedtuple
 from itertools import cycle
+from inspect import cleandoc
 
 class Base(object):
     """
@@ -426,6 +429,7 @@ class Triangular(Base):
                                          *args,
                                          **kwargs)
 
+
 def generate(parameters):
     """
     This function generates a parameter set from a list of parameter objects. The parameter set
@@ -437,6 +441,103 @@ def generate(parameters):
              ('minbound', '<f8'), ('maxbound', '<f8')]
 
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
+
+
+def get_parameters_from_setup(setup):
+    """
+    Returns the parameter array from the setup
+    """
+
+    # Put the parameter arrays as needed here, they will be merged at the end of this
+    # function
+    param_arrays = []
+    # Get parameters defined with the setup class
+    param_arrays.append(
+        # generate creates the array as defined in the setup API
+        generate(get_parameters_from_class(type(setup)))
+    )
+
+    if hasattr(setup, 'parameters'):
+        # object parameters, the old school way to create parameters
+        if callable(setup.parameters):
+            # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
+            param_arrays.append(setup.parameters())
+        else:
+            # parameters is not callable, assume a list of parameter objects.
+            # Generate the parameters array from it and append it to our list
+            param_arrays.append(generate(setup.parameters))
+
+    # Return the class and the object parameters together
+    return np.concatenate(param_arrays)
+
+def describe_setup(setup):
+    """
+    Describes a spotpy setup using its class name, docstring and parameters
+    :param setup: A spotpy compatible model setup
+    :return: A describing string
+    """
+
+    # Get class name
+    s = unicode(type(setup).__name__)
+    # Add hbar
+    s += '\n' + 30 * '-' + '\n\n'
+
+    # Add doc string
+    if sys.version_info.major >= 3:
+        mdoc = cleandoc(setup.__doc__ or '')
+    else:
+        mdoc = setup.__doc__ or ''
+
+    s += mdoc + '\n'
+
+    # Get parameters from class
+    params = get_parameters_from_class(type(setup))
+
+    # Get parameters from setup.parameters if it is not a function
+    if hasattr(setup, 'parameter') and not callable(setup.parameters):
+        try:
+            params += list(setup.parameters)
+        except TypeError:
+            raise ValueError('setup.parameter must be either callable or list of parameters')
+
+    params = '\n'.join(' - {p}'.format(p=p) for p in params)
+
+    # Add parameters to string
+    s += '\n'
+    s += 'Parameters:\n{params}'.format(params=params)
+
+    return s
+
+def create_set(setup, random=False, **kwargs):
+    """
+    Returns a named tuple holding parameter values, to be used with the simulation method of a setup
+
+    This function is typically used to test models, before they are used in a sampling
+
+    Usage:
+    >>> import spotpy
+    >>> from spotpy.examples.spot_setup_rosenbrock import spot_setup
+    >>> model = spot_setup()
+    >>> param_set = spotpy.parameter.create_set(model, x=2)
+    >>> result = model.simulation(param_set)
+
+    :param setup: A spotpy compatible Model object
+    :param random: If True, undefined parameters are filled with a random realisation of the
+                    parameter distribution, when False undefined parameters are filled with optguess
+    :param kwargs: Any keywords can be used to set certain parameters to fixed values
+    :return: namedtuple of parameter values
+    """
+    params = get_parameters_from_setup(setup)
+    partype = get_namedtuple_from_paramnames(type(setup).__name__, params['name'])
+    if random:
+        pardict = dict(zip(params['name'], params['random']))
+    else:
+        pardict = dict(zip(params['name'], params['optguess']))
+
+    pardict.update(kwargs)
+
+    return partype(**pardict)
+
 
 def get_namedtuple_from_paramnames(owner, parnames):
     """

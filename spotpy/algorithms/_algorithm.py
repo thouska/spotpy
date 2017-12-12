@@ -18,7 +18,7 @@ from spotpy import parameter
 from inspect import cleandoc
 import numpy as np
 import time
-import os
+
 
 
 class _RunStatistic(object):
@@ -189,7 +189,7 @@ class _algorithm(object):
         large multiline description
         :return:
         """
-        s = 'Sampling: ' + type(self).__name__
+        s = u'Sampling: ' + type(self).__name__
         s += '\n' + 30 * '-' + '\n\n'
         s += cleandoc(type(self).__doc__) + '\n'
         s += '\n    db format: ' + self.dbformat
@@ -197,52 +197,15 @@ class _algorithm(object):
         s += '\n    save simulation: ' + str(self.save_sim)
         s += '\n    parallel: ' + type(self.repeat).__module__.split('.')[-1]
 
-        s += '\n\nModel: ' + type(self.setup).__name__
-        s += '\n' + 30 * '-' + '\n\n'
-        mdoc = cleandoc(self.setup.__doc__ or '')
-        params = parameter.get_parameters_from_class(type(self.setup))
-        if hasattr(self.setup, 'parameter') and not callable(self.setup.parameters):
-            try:
-                params += self.setup.parameters
-            except TypeError:
-                raise ValueError('setup.parameter must be either callable or list of paramaters')
-        params = '\n'.join('    - {p}'.format(p=p) for p in params)
-        s += mdoc
-        s += '\n'
-        s += 'Parameters:\n{params}'.format(params=params)
+        s += '\n\nModel: ' + parameter.describe_setup(self.setup)
+
         return s
 
     def get_parameters(self):
         """
         Returns the parameter array from the setup
         """
-
-        # Put the parameter arrays as needed here, they will be merged at the end of this
-        # function
-        param_arrays = []
-        # Get parameters defined with the setup class
-        param_arrays.append(
-            parameter.generate( # generate creates the array as defined in the setup API
-                # gets parameters defined in the setup class, see function docstring
-                parameter.get_parameters_from_class(
-                    type(self.setup)
-                )
-            )
-        )
-
-        # object parameters, the old school way to create parameters
-        if hasattr(self.setup, 'parameters'):
-            if callable(self.setup.parameters):
-                # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
-                param_arrays.append(self.setup.parameters())
-            else:
-                # parameters is not callable, assume a list of parameter objects.
-                # Generate the parameters array from it and append it to our list
-                param_arrays.append(parameter.generate(self.setup.parameters))
-
-
-        # Return the class and the object parameters together
-        return np.concatenate(param_arrays)
+        return parameter.get_parameters_from_setup(self.setup)
 
     def set_repetiton(self, repetitions):
         self.status.repetitions = repetitions
