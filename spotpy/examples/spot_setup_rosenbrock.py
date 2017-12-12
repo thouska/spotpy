@@ -23,9 +23,9 @@ class spot_setup(object):
     y = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
     z = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
 
-    def simulation(self,vector):      
+    def simulation(self, vector):
         x=np.array(vector)
-        simulations= [sum(100.0 * (x[1:] - x[:-1] **2.0) **2.0 + (1 - x[:-1]) **2.0)]
+        simulations= [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
         return simulations
         
     def evaluation(self):

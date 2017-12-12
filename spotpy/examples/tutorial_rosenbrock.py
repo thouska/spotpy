@@ -74,8 +74,8 @@ sampler.sample(rep)
 print(sampler)
 results.append(sampler.getdata())
 
-print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
-evaluation = spot_setup.evaluation()
+#print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
+#evaluation = spot_setup.evaluation()
 
 #Example how to plot the data
 #algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc','dream']
