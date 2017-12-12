@@ -73,105 +73,85 @@ class mcmc(_algorithm):
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
-    def sample(self, repetitions):
-        # Prepare storing MCMC chain as array of arrays.
-        # define stepsize of MCMC.
-        stepsizes = self.parameter()['step']  # array of stepsizes
-        accepted = 0.0
-        starttime = time.time()
-        intervaltime = starttime
-        # Metropolis-Hastings iterations.
-        burnIn = int(repetitions / 10)
-        likes = []
-        pars = []
-        sims = []
-        print('burnIn...')
-        for i in range(burnIn):
-            par = self.parameter()['random']
-            pars.append(par)
-            sim = self.model(par)
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=sim)
-            likes.append(like)
-            sims.append(sim)
-            self.datawriter.save(like, par, simulations=sim)
-            self.status(i, like, par)
-            # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    i, repetitions, self.status.objectivefunction)
-                print(text)
-                intervaltime = time.time()
+    def check_par_validity_reflect(self, par):
+        if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
+            for i in range(len(par)):
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i] + (self.min_bound[i]- par[i])
+                elif par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i] - (par[i] - self.max_bound[i])
 
-        old_like = max(likes)
-        index = likes.index(old_like)
-        old_par = pars[index]
-        old_simulations = sims[index]
+            # Postprocessing if reflecting jumped out of bounds
+            for i in range(len(par)):
+                if par[i] < self.min_bound[i]:
+                    par[i] = self.min_bound[i]
+                if par[i] > self.max_bound[i]:
+                    par[i] = self.max_bound[i]
+        else:
+            print('ERROR: Bounds have not the same lenghts as Parameterarray')
+        return par
+        
+    def get_new_proposal_vector(self,old_par):
+        new_par = np.random.normal(loc=old_par, scale=self.stepsizes)
+        #new_par = self.check_par_validity(new_par)
+        new_par = self.check_par_validity_reflect(new_par)
+        return new_par
+
+    def update_mcmc_status(self,par,like,sim,cur_chain):  
+        self.bestpar[cur_chain]=par
+        self.bestlike[cur_chain]=like
+        self.bestsim[cur_chain]=sim
+
+            
+    def sample(self, repetitions,nChains=1):
+        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
+        # Prepare storing MCMC chain as array of arrays.
+        self.nChains = int(nChains)
+        #Ensure initialisation of chains and database
+        self.burnIn = self.nChains
+        # define stepsize of MCMC.        
+        self.stepsizes = self.parameter()['step']  # array of stepsizes
+
+        # Metropolis-Hastings iterations.
+        self.bestpar=np.array([[np.nan]*len(self.stepsizes)]*self.nChains)
+        self.bestlike=[[-np.inf]]*self.nChains
+        self.bestsim=[[np.nan]]*self.nChains
+        self.accepted=np.zeros(self.nChains)
+        self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
+        print('Inititalize ',self.nChains, ' chain(s)...')
+        self.iter=0
+        param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
+        for curChain,randompar,simulations in self.repeat(param_generator):
+            # A function that calculates the fitness of the run and the manages the database 
+            like = self.postprocessing(self.iter, randompar, simulations, chains=curChain)
+            self.update_mcmc_status(randompar, like, simulations, curChain)
+            self.iter+=1
 
-        nevertheless = 0
+        intervaltime = time.time()
         print('Beginn of Random Walk')
-        for rep in range(repetitions - burnIn):
-            # Suggest new candidate from Gaussian proposal distribution.
-            # np.zeros([len(old_par)])
-            # Create new paramer combination and check if all parameter are into
-            # the given parameter bounds
-            new_par = np.random.normal(loc=old_par, scale=stepsizes)
-
-            new_par = self.check_par_validity(new_par)
-            new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=new_simulations)
-            self.status(rep, new_like, new_par)
-            # Accept new candidate in Monte-Carlo fashing.
-            if (new_like > old_like):
-                self.datawriter.save(
-                    new_like, new_par, simulations=new_simulations)
-                self.status(rep + burnIn, new_like, new_par)
-                accepted = accepted + 1.0  # monitor acceptance
-                old_par = new_par
-                old_simulations = new_simulations
-                old_like = new_like
-            else:
-                logMetropHastRatio = new_like - old_like
-                u = np.log(np.random.uniform(low=0, high=1))
-                if u < logMetropHastRatio:  # Standard Metropolis decision
-                    # if u < 0.85: #Accept nevertheless with 85% probability
-                    # (Igancio)
-                    nevertheless += 1
-                    self.datawriter.save(
-                        new_like, new_par, simulations=new_simulations)
-                    self.status(rep + burnIn, new_like, new_par)
-                    accepted = accepted + 1.0  # monitor acceptance
-                    old_par = new_par
-                    old_simulations = new_simulations
-                    old_like = new_like
-                else:
-                    self.datawriter.save(
-                        old_like, old_par, simulations=old_simulations)
-            # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
+        # Walk through chains
+        while self.iter <= repetitions - self.burnIn:
+            param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in range(int(self.nChains)))                
+            for cChain,randompar,simulations in self.repeat(param_generator):
+                # A function that calculates the fitness of the run and the manages the database                 
+                like = self.postprocessing(self.iter, randompar, simulations, chains=cChain)
+                logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
+                u = np.random.uniform(low=0.3, high=1)
+                if logMetropHastRatio>1.0 or logMetropHastRatio>u:
+                    self.update_mcmc_status(randompar,like,simulations,cChain)   
+                    self.accepted[cChain] += 1  # monitor acceptance
+                self.iter+=1                             
+                # Progress bar
+                acttime = time.time()
+            #Refresh MCMC progressbar every two second
+            if acttime - intervaltime >= 2 and self.iter >=2:
                 text = '%i of %i (best like=%g)' % (
-                    rep + burnIn, repetitions, self.status.objectivefunction)
+                    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 intervaltime = time.time()
+        self.final_call()       
 
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        text = "Acceptance rate = " + str(accepted / repetitions)
-        print(text)
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)

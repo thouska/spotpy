@@ -29,8 +29,8 @@ X, Y = meshgrid(X, Y)
 from spotpy.examples.spot_setup_ackley import spot_setup
 
 Z = np.zeros(X.shape)
-for i in xrange(X.shape[0]):
-    for j in xrange(X.shape[1]):
+for i in range(X.shape[0]):
+    for j in range(X.shape[1]):
         sim=spot_setup().simulation([X[i,j],Y[i,j]])
         like=spotpy.objectivefunctions.rmse(sim,[0])
         Z[i,j] = like

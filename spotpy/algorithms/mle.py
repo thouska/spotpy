@@ -46,7 +46,9 @@ class mle(_algorithm):
      '''
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
-
+        if parallel != 'seq':
+            raise Exception('ERROR: Please set parallel=seq as MLE is only useable in sequetial mode')
+        
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel, save_sim=save_sim)
 
@@ -62,11 +64,11 @@ class mle(_algorithm):
         return par
 
     def sample(self, repetitions):
-        # Define stepsize of MCMC.
+        print('Starting the MLE algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
+        # Define stepsize of MLE
         stepsizes = self.parameter()['step']  # array of stepsizes
         accepted = 0.0
-        starttime = time.time()
-        intervaltime = starttime
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
         # Metropolis-Hastings iterations.
@@ -76,27 +78,17 @@ class mle(_algorithm):
         sims = []
         print('burnIn...')
         for i in range(burnIn):
-            par = self.parameter()['random']
-            pars.append(par)
-            sim = self.model(par)
-            sims.append(sim)
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=sim)
+            randompar = self.parameter()['random']
+            pars.append(randompar)
+            simulations = self.model(randompar)
+            sims.append(simulations)
+            like = self.postprocessing(i, randompar, simulations)
             likes.append(like)
-            self.datawriter.save(like, par, simulations=sim)
-            self.status(i, like, par)
-            # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    i, repetitions, self.status.objectivefunction)
-                print(text)
-                intervaltime = time.time()
+
 
         old_like = max(likes)
         old_par = pars[likes.index(old_like)]
-        old_simulations = sims[likes.index(old_like)]
+        #old_simulations = sims[likes.index(old_like)]
         print('Beginn Random Walk')
         for rep in range(repetitions - burnIn):
             # Suggest new candidate from Gaussian proposal distribution.
@@ -104,41 +96,13 @@ class mle(_algorithm):
             new_par = np.random.normal(loc=old_par, scale=stepsizes)
             new_par = self.check_par_validity(new_par)
             new_simulations = self.model(new_par)
-            new_like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=new_simulations)
+            new_like = self.postprocessing(rep+burnIn, new_par, new_simulations)
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
-                self.datawriter.save(
-                    new_like, new_par, simulations=new_simulations)
                 accepted = accepted + 1.0  # monitor acceptance
                 old_par = new_par
-                old_simulations = new_simulations
+                #old_simulations = new_simulations
                 old_like = new_like
                 self.status(rep, new_like, new_par)
-            else:
-                self.datawriter.save(
-                    old_like, old_par, simulations=old_simulations)
 
-            # Progress bar
-            acttime = time.time()
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g)' % (
-                    rep + burnIn, repetitions, self.status.objectivefunction)
-                print(text)
-                intervaltime = time.time()
-
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        text = "Acceptance rate = " + str(accepted / repetitions)
-        print(text)
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set:')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
+        self.final_call() 

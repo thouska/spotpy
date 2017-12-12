@@ -5,12 +5,18 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
+  - "3.5"
+  - "3.6"
 
-# command to install dependencies
+  # command to install dependencies
 install:
+  #- pip install pandas
   - python setup.py install
   #- pip install matplotlib
-  #- pip install pandas
   #- travis_wait pip install scipy
 # command to run tests
-script: python spotpy/examples/tutorial_rosenbrock.py
+
+script:
+  - python spotpy/examples/tutorial_rosenbrock.py
+  - python spotpy/unittests/test_database.py
+  - python spotpy/unittests/test_signatures.py

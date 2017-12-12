@@ -11,7 +11,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
-import time
 
 
 class mc(_algorithm):
@@ -49,7 +48,7 @@ class mc(_algorithm):
      '''
 
     def __init__(self, *args, **kwargs):
-        kwargs['dbinit'] = False
+
         super(mc, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions):
@@ -61,53 +60,13 @@ class mc(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
-        # Initialize the Progress bar
-        starttime = time.time()
-        intervaltime = starttime
-        # Select the assumed best parameter set from the user
-        #randompar    = list(self.parameter()['optguess'])
-        # Run the model with the parameter set
-        #simulations  = self.model(randompar)
-        # Calculate the objective function
-        #like         = self.objectivefunction(simulations,self.evaluation)
-        # Save everything in the database
-        # self.datawriter.save(like,randompar,simulations=simulations)
-        # A generator that produces the parameters
+        print('Starting the MC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.set_repetiton(repetitions)
+        # A generator that produces parametersets if called
         param_generator = ((rep, self.parameter()['random'])
                            for rep in range(int(repetitions) - 1))
         for rep, randompar, simulations in self.repeat(param_generator):
-            # Calculate the objective function
-            like = self.objectivefunction(
-                evaluation=self.evaluation, simulation=simulations)
-            self.status(rep, like, randompar)
-            # Save everything in the database
-            self.datawriter.save(like, randompar, simulations=simulations)
+            # A function that calculates the fitness of the run and the manages the database 
+            self.postprocessing(rep, randompar, simulations)
+        self.final_call()
 
-            # Progress bar
-            acttime = time.time()
-
-            # get str showing approximate timeleft to end of simulation in H,
-            # M, S
-
-            timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
-                                                                   (rep + 1)) * (repetitions - (rep + 1)))))
-            # Refresh progressbar every second
-            if acttime - intervaltime >= 2:
-                text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
-                                                                            self.status.objectivefunction, timestr)
-                print(text)
-                intervaltime = time.time()
-        self.repeat.terminate()
-
-        try:
-            self.datawriter.finalize()
-        except AttributeError:  # Happens if no database was assigned
-            pass
-        print('End of sampling')
-        text = '%i of %i (best like=%g)' % (
-            self.status.rep, repetitions, self.status.objectivefunction)
-        print(text)
-        print('Best parameter set')
-        print(self.status.params)
-        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-        print(text)
