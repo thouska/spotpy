@@ -72,7 +72,7 @@ class _CmfProject:
 
     def load_meteo(self, driver_data):
 
-        datastart = driver_data.date[0]
+        datastart = driver_data.time[0]
 
         # Create meteo station for project
         meteo = self.project.meteo_stations.add_station('Schwingbach', position=(0, 0, 0), tz=1, timestep=cmf.h)
@@ -106,14 +106,17 @@ class _CmfProject:
 
 def _load_data(filename):
     """
-    Loads data from a csv, where the first column has the measurement date and all the other columns additional data
+    Loads data from csv, where the first column has the measurement date and all the other columns additional data
     :return: Rec-Array with date as a first column holding datetimes
     """
-    str2date = lambda s: np.datetime64(s, 's').astype(datetime)
-    return np.recfromcsv(filename, converters={0: str2date})
+    def str2date(s):
+        """Converts a string to a datetime"""
+        return np.datetime64(s, 's').astype(datetime)
+    # Load the data
+    return np.recfromcsv(filename, converters={0: str2date}, comments='#')
 
 
-class ProgressReporter:
+class _ProgressReporter:
     """
     Simple helper class to report progress and check for too long runtime
     """
@@ -147,12 +150,15 @@ class Cmf1d_Model(object):
 
     def __init__(self, days=None):
 
-        self.driver_data = _load_data('data/driver_data_site24.csv')
-        self.evaluation_data = _load_data('data/soilmoisture_site24.csv')
+        self.driver_data = _load_data('cmf1d_data/driver_data_site24.csv')
+        self.evaluation_data = _load_data('cmf1d_data/soilmoisture_site24.csv')
 
-        self.datastart = self.driver_data.date[0]
+        self.datastart = self.driver_data.time[0]
+
+        # Set the end point for the model runtime, either by parameter days or
+        # run to the end of available driver data
         if days is None:
-            self.dataend = self.driver_data.date[-1]
+            self.dataend = self.driver_data.time[-1]
         else:
             self.dataend = self.datastart + timedelta(days=days)
 
@@ -161,7 +167,7 @@ class Cmf1d_Model(object):
 
 
         # Make the model
-        self.model = _CmfProject(self.optguess())
+        self.model = _CmfProject(self.make_parameters())
 
         # Load meteo data
         self.model.load_meteo(driver_data=self.driver_data)
@@ -173,31 +179,12 @@ class Cmf1d_Model(object):
         return '{mname}\n{doc}\n\nParameters:\n{params}'.format(mname=mname, doc=doc, params=params)
 
 
-    def optguess(self):
-        """
-        :return: a parameter value object for the default values (optguess) of the parameters 
-        """
-        params = spotpy.parameter.get_parameters_from_class(type(self))
-        partype = spotpy.parameter.get_namedtuple_from_paramnames(type(self).__name__,
-                                                                  [p.name for p in params])
-        return partype(*spotpy.parameter.generate(params)['optguess'])
+    def make_parameters(self, random=False, **kwargs):
+        return spotpy.parameter.create_set(self)
 
-    def get_param_value(self, **kwargs):
-        """
-        Returns a named tuple holding parameter values
-        :param kwargs: KEywords for the parameters, missing values are patched with optguess
-        :return: namedtuple of parameter values
-        """
-        params = spotpy.parameter.get_parameters_from_class(type(self))
-        partype = spotpy.parameter.get_namedtuple_from_paramnames(type(self).__name__,
-                                                                  [p.name.encode() for p in params])
-        pardict = self.optguess()._asdict()
-        pardict.update(kwargs)
-        return partype(**pardict)
 
     def evaluation(self):
         """
-        
         :return: The evaluation soilmoisture as a 2d array 
         """
         names = list(self.evaluation_data.dtype.names[1:])
@@ -235,7 +222,7 @@ class Cmf1d_Model(object):
             eval_layers = list(c.layers)
         return eval_layers
 
-    def simulation(self, par, verbose=False):
+    def simulation(self, par=None, verbose=False):
         '''
         Runs the model instance
         
@@ -245,6 +232,7 @@ class Cmf1d_Model(object):
         '''
 
         # Set the parameters
+        par = par or self.make_parameters()
         self.model.set_parameters(par)
         if verbose:
             print('Parameters:')
@@ -257,7 +245,7 @@ class Cmf1d_Model(object):
         result = np.nan * np.ones(shape=(len(self.evaluation_data), len(eval_layers)))
         # Save the starting conditions
         result[0] = [l.theta for l in eval_layers]
-        reporter = ProgressReporter(self.datastart, self.dataend, max_runtime=15 * 60, verbose=verbose)
+        reporter = _ProgressReporter(self.datastart, self.dataend, max_runtime=15 * 60, verbose=verbose)
 
         try:
             for i, t in enumerate(self.model.solver.run(self.datastart, self.dataend, timedelta(hours=1))):
@@ -293,9 +281,7 @@ if __name__ == '__main__':
         sampler.sample(runs)
     else:
         # model.eval_depth = None
-        par = model.optguess()
-        result = model.simulation(par, verbose=True)
+
+        result = model.simulation(verbose=True)
         rmse = model.objectivefunction(result, model.evaluation())
         print('Model ready, RMSE={:0.4f}% soil moisture'.format(-rmse*100))
-        np.save('result.npy', result)
-        np.save('eval.npy', model.evaluation())
