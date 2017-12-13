@@ -15,7 +15,6 @@ if sys.version_info.major == 3:
 
 from collections import namedtuple
 from itertools import cycle
-from inspect import cleandoc
 
 class Base(object):
     """
@@ -443,7 +442,7 @@ def generate(parameters):
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
 
-def get_parameters_from_setup(setup):
+def get_parameters_array(setup):
     """
     Returns the parameter array from the setup
     """
@@ -470,43 +469,6 @@ def get_parameters_from_setup(setup):
     # Return the class and the object parameters together
     return np.concatenate(param_arrays)
 
-def describe_setup(setup):
-    """
-    Describes a spotpy setup using its class name, docstring and parameters
-    :param setup: A spotpy compatible model setup
-    :return: A describing string
-    """
-
-    # Get class name
-    s = unicode(type(setup).__name__)
-    # Add hbar
-    s += '\n' + 30 * '-' + '\n\n'
-
-    # Add doc string
-    if sys.version_info.major >= 3:
-        mdoc = cleandoc(setup.__doc__ or '')
-    else:
-        mdoc = setup.__doc__ or ''
-
-    s += mdoc + '\n'
-
-    # Get parameters from class
-    params = get_parameters_from_class(type(setup))
-
-    # Get parameters from setup.parameters if it is not a function
-    if hasattr(setup, 'parameter') and not callable(setup.parameters):
-        try:
-            params += list(setup.parameters)
-        except TypeError:
-            raise ValueError('setup.parameter must be either callable or list of parameters')
-
-    params = '\n'.join(' - {p}'.format(p=p) for p in params)
-
-    # Add parameters to string
-    s += '\n'
-    s += 'Parameters:\n{params}'.format(params=params)
-
-    return s
 
 def create_set(setup, random=False, **kwargs):
     """
@@ -527,7 +489,7 @@ def create_set(setup, random=False, **kwargs):
     :param kwargs: Any keywords can be used to set certain parameters to fixed values
     :return: namedtuple of parameter values
     """
-    params = get_parameters_from_setup(setup)
+    params = get_parameters_array(setup)
     partype = get_namedtuple_from_paramnames(type(setup).__name__, params['name'])
     if random:
         pardict = dict(zip(params['name'], params['random']))

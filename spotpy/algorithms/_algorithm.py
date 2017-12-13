@@ -13,9 +13,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sys
 from spotpy import database, objectivefunctions
 from spotpy import parameter
-from inspect import cleandoc
+
 import numpy as np
 import time
 
@@ -183,29 +184,16 @@ class _algorithm(object):
         self.status = _RunStatistic()
 
     def __str__(self):
-        """
-        Returns a string representation of the sampler.
-        By design, it is rather verbose and returns a
-        large multiline description
-        :return:
-        """
-        s = u'Sampling: ' + type(self).__name__
-        s += '\n' + 30 * '-' + '\n\n'
-        s += cleandoc(type(self).__doc__) + '\n'
-        s += '\n    db format: ' + self.dbformat
-        s += '\n    db name: ' + self.dbname
-        s += '\n    save simulation: ' + str(self.save_sim)
-        s += '\n    parallel: ' + type(self.repeat).__module__.split('.')[-1]
-
-        s += '\n\nModel: ' + parameter.describe_setup(self.setup)
-
-        return s
+        return '{type}({mtype}(), dbname={dbname}'.format(
+            type=type(self).__name__,
+            mtype=type(self.setup).__name__,
+            dbname=self.dbname)
 
     def get_parameters(self):
         """
         Returns the parameter array from the setup
         """
-        return parameter.get_parameters_from_setup(self.setup)
+        return parameter.get_parameters_array(self.setup)
 
     def set_repetiton(self, repetitions):
         self.status.repetitions = repetitions
