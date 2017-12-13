@@ -10,7 +10,7 @@ import numpy.random as rnd
 import numpy as np
 import sys
 
-if sys.version_info.major == 3:
+if sys.version_info[0] >= 3:
     unicode = str
 
 from collections import namedtuple

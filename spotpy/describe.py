@@ -18,7 +18,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 import sys
 
 from .parameter import get_parameters_from_setup
-if sys.version_info.major>=3:
+if sys.version_info[0] >= 3:
     from inspect import getdoc as _getdoc
     unicode = str
 else:

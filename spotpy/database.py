@@ -19,7 +19,7 @@ import time
 from itertools import product
 
 import sys
-if sys.version_info.major == 3:
+if sys.version_info[0] >= 3:
     unicode = str
 
 
