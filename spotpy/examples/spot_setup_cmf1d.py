@@ -275,7 +275,7 @@ if __name__ == '__main__':
                                         save_sim=False)
         sampler.sample(runs)
     else:
-
-        result = model.simulation(verbose=True)
+        parameterset = spotpy.parameters.create_set(model)
+        result = model.simulation(parameterset, verbose=True)
         rmse = model.objectivefunction(result, model.evaluation())
         print('Model ready, RMSE={:0.4f}% soil moisture'.format(-rmse*100))

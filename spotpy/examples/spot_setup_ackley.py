@@ -22,8 +22,7 @@ class spot_setup(object):
         
     def parameters(self):
         return spotpy.parameter.generate(self.params)
-                
-  
+
     def simulation(self, vector):
         firstSum = 0.0
         secondSum = 0.0
@@ -31,14 +30,12 @@ class spot_setup(object):
             firstSum += c**2.0
             secondSum += np.cos(2.0*np.pi*vector[c])
             n = float(len(vector))
-        return [-20.0*np.exp(-0.2*np.sqrt(firstSum/n)) - np.exp(secondSum/n) + 20 + np.e   ]
-     
-     
-     
+        return [-20.0*np.exp(-0.2*np.sqrt(firstSum/n)) - np.exp(secondSum/n) + 20 + np.e]
+
     def evaluation(self):
         observations=[0]
         return observations
-    
+
     def objectivefunction(self, simulation,evaluation):
         objectivefunction= -spotpy.objectivefunctions.rmse(evaluation = evaluation, simulation = simulation)
         return objectivefunction
