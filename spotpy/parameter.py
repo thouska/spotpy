@@ -446,28 +446,22 @@ def get_parameters_array(setup):
     """
     Returns the parameter array from the setup
     """
-
     # Put the parameter arrays as needed here, they will be merged at the end of this
     # function
     param_arrays = []
     # Get parameters defined with the setup class
     param_arrays.append(
         # generate creates the array as defined in the setup API
-        generate(get_parameters_from_class(type(setup)))
+        generate(get_parameters_from_setup(setup))
     )
 
-    if hasattr(setup, 'parameters'):
-        # object parameters, the old school way to create parameters
-        if callable(setup.parameters):
-            # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
-            param_arrays.append(setup.parameters())
-        else:
-            # parameters is not callable, assume a list of parameter objects.
-            # Generate the parameters array from it and append it to our list
-            param_arrays.append(generate(setup.parameters))
+    if hasattr(setup, 'parameters') and callable(setup.parameters):
+        # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
+        param_arrays.append(setup.parameters())
 
     # Return the class and the object parameters together
-    return np.concatenate(param_arrays)
+    res = np.concatenate(param_arrays)
+    return res
 
 
 def create_set(setup, random=False, **kwargs):
@@ -489,15 +483,25 @@ def create_set(setup, random=False, **kwargs):
     :param kwargs: Any keywords can be used to set certain parameters to fixed values
     :return: namedtuple of parameter values
     """
+
+    # Get the array of parameter realizations
     params = get_parameters_array(setup)
+
+    # Create the namedtuple from the parameter names
     partype = get_namedtuple_from_paramnames(type(setup).__name__, params['name'])
+
+    # Get the values
     if random:
+        # Use the generated values from the distribution
         pardict = dict(zip(params['name'], params['random']))
     else:
+        # Use opt guess instead of a random value
         pardict = dict(zip(params['name'], params['optguess']))
 
+    # Overwrite parameters with keyword arguments
     pardict.update(kwargs)
 
+    # Return the namedtuple with fitting names
     return partype(**pardict)
 
 
@@ -514,7 +518,8 @@ def get_namedtuple_from_paramnames(owner, parnames):
     return namedtuple('Par_' + typename,  # Type name created from the setup name
                       list(parnames))  # get parameter names
 
-def get_parameters_from_class(cls):
+
+def get_parameters_from_setup(setup):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
@@ -532,6 +537,7 @@ def get_parameters_from_class(cls):
     """
 
     # Get all class variables
+    cls = type(setup)
     class_variables = vars(cls).items()
 
     parameters = []
@@ -554,6 +560,12 @@ def get_parameters_from_class(cls):
         # Sort the list parameters by name
         parameters.sort(key=lambda p: p.name)
 
+    # Get the parameters list of setup if the parameter attribute is not a method:
+    if hasattr(setup, 'parameters') and not callable(setup.parameters):
+        # parameters is not callable, assume a list of parameter objects.
+        # Generate the parameters array from it and append it to our list
+        parameters.extend(setup.parameters)
+
     return parameters
 
 
@@ -562,8 +574,11 @@ if __name__ == '__main__':
         a = Uniform(0, 1)
         b = Triangular(0, 1, right=10, doc='A Triangular parameter')
 
-    params = get_parameters_from_class(TestSetup)
-    assert len(params) == 2, 'Expected 2 Parameters in the test setup, got {}'.format(len(params))
+        def __init__(self):
+            self.parameters = [Uniform('c', 0, 1), Uniform('d', 0, 2)]
+
+    params = get_parameters_from_setup(TestSetup)
+    assert len(params) == 4, 'Expected 2 Parameters in the test setup, got {}'.format(len(params))
     assert params[0] is TestSetup.a, 'Expected parameter a to be first in params'
     assert params[1] is TestSetup.b
     print('\n'.join(str(p) for p in params))
