@@ -18,63 +18,60 @@ results=[]
 spot_setup=spot_setup()
 rep=5000
 
-sampler=spotpy.algorithms.rope(spot_setup,  dbname='RosenROPE',  dbformat='csv')
-sampler.sample(rep)
-print(sampler)
-print(describe(sampler))
-results.append(sampler.getdata())
-
-
 sampler=spotpy.algorithms.mc(spot_setup,    dbname='RosenMC',    dbformat='csv')
-sampler.sample(rep)
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.lhs(spot_setup,   dbname='RosenLHS',    dbformat='csv')
-sampler.sample(rep)
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.mle(spot_setup,   dbname='RosenMLE',   dbformat='csv')
-sampler.sample(rep)
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.mcmc(spot_setup,  dbname='RosenMCMC',  dbformat='csv')
-sampler.sample(rep)
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.sceua(spot_setup, dbname='RosenSCEUA', dbformat='csv')
-sampler.sample(rep,ngs=4)
 print(describe(sampler))
+sampler.sample(rep, ngs=4)
 results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.sa(spot_setup,    dbname='RosenSA',    dbformat='csv')
-sampler.sample(rep)
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.demcz(spot_setup, dbname='RosenDEMCz',  dbformat='csv')
-sampler.sample(rep,nChains=4)
 print(describe(sampler))
+sampler.sample(rep,nChains=4)
 results.append(sampler.getdata())
-
 
 sampler=spotpy.algorithms.abc(spot_setup,    dbname='RosenMC',     dbformat='csv')
-sampler.sample(rep)
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.fscabc(spot_setup,    dbname='RosenMC',  dbformat='csv')
-sampler.sample(rep)
+sampler=spotpy.algorithms.rope(spot_setup,  dbname='RosenROPE',  dbformat='csv')
 print(describe(sampler))
+sampler.sample(rep)
 results.append(sampler.getdata())
 
-# sampler=spotpy.algorithms.dream(spot_setup,    dbname='RosenMC',  dbformat='csv')
-# sampler.sample(rep)
-# print(sampler)
-# results.append(sampler.getdata())
+sampler=spotpy.algorithms.fscabc(spot_setup,    dbname='RosenFSCABC',  dbformat='csv')
+print(describe(sampler))
+sampler.sample(rep)
+results.append(sampler.getdata())
+
+sampler=spotpy.algorithms.dream(spot_setup,    dbname='RosenDREAM',  dbformat='csv')
+sampler.sample(rep)
+print(sampler)
+results.append(sampler.getdata())
 
 print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
 evaluation = spot_setup.evaluation()

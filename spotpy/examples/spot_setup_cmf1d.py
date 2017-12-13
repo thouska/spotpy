@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
@@ -13,6 +14,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import spotpy
 import os, sys
+
 
 class _CmfProject:
     """
@@ -143,10 +145,10 @@ class Cmf1d_Model(object):
     A 1d Richards based soilmoisture model for Schwingbach site #24
     """
 
-    alpha = spotpy.parameter.Uniform(0.0001, 0.2, optguess=0.1156, doc='α in 1/cm for van Genuchten Mualem model')
-    pKsat = spotpy.parameter.Uniform(-2, 2, optguess=0, doc='log10 of saturated conductivity of the soil in m/day')
-    n = spotpy.parameter.Uniform(1.08, 1.8, optguess=1.1787, doc='van Genuchten-Mualem n')
-    porosity = spotpy.parameter.Uniform(0.3, 0.65, optguess=0.43359, doc='φ in m³/m³')
+    alpha = spotpy.parameter.Uniform(0.0001, 0.2, optguess=0.1156, doc=u'α in 1/cm for van Genuchten Mualem model')
+    pKsat = spotpy.parameter.Uniform(-2, 2, optguess=0, doc=u'log10 of saturated conductivity of the soil in m/day')
+    n = spotpy.parameter.Uniform(1.08, 1.8, optguess=1.1787, doc=u'van Genuchten-Mualem n')
+    porosity = spotpy.parameter.Uniform(0.3, 0.65, optguess=0.43359, doc=u'φ in m³/m³')
 
     def __init__(self, days=None):
 
@@ -168,15 +170,9 @@ class Cmf1d_Model(object):
 
         # Make the model
         self.model = _CmfProject(self.make_parameters())
-
         # Load meteo data
         self.model.load_meteo(driver_data=self.driver_data)
-
-    def __str__(self):
-        mname = type(self).__name__
-        doc = self.__doc__
-        params = '\n'.join(' - {p}'.format(p=p) for p in spotpy.parameter.get_parameters_from_class(type(self)))
-        return '{mname}\n{doc}\n\nParameters:\n{params}'.format(mname=mname, doc=doc, params=params)
+        self.__doc__ += '\n\n' + cmf.describe(self.model.project)
 
 
     def make_parameters(self, random=False, **kwargs):
@@ -269,9 +265,8 @@ if __name__ == '__main__':
         runs = 1
 
     model = Cmf1d_Model()
-    print(model)
+    print(spotpy.describe.setup(model))
     if runs > 1:
-        # Finde heraus, ob das ganze parallel laufen soll (für Supercomputer)
         parallel = 'mpi' if 'OMPI_COMM_WORLD_SIZE' in os.environ else 'seq'
         sampler = spotpy.algorithms.mc(model,
                                         dbformat='csv',
@@ -280,7 +275,6 @@ if __name__ == '__main__':
                                         save_sim=False)
         sampler.sample(runs)
     else:
-        # model.eval_depth = None
 
         result = model.simulation(verbose=True)
         rmse = model.objectivefunction(result, model.evaluation())
