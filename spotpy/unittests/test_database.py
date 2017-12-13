@@ -7,7 +7,7 @@ import numpy as np
 class TestDatabase(unittest.TestCase):
 
     def setUp(self):
-        self.parnames = [b'x1',b'x2',b'x3',b'x4',b'x5']
+        self.parnames = ['x1','x2','x3','x4','x5']
         self.like = 0.213
         self.randompar = [175.21733934706367, 0.41669126598819262, 0.25265012080652388, 0.049706767415682945, 0.69674090782836173]
 

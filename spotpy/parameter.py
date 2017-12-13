@@ -533,7 +533,9 @@ def get_parameters_from_setup(setup):
     >>>     # Add parameters p1 & p2 to the setup. 
     >>>     p1 = parameter.Uniform(20, 100)
     >>>     p2 = parameter.Gamma(2.3)
-
+    >>>
+    >>> setup = SpotpySetup()
+    >>> parameters = spotpy.parameter.get_parameters_from_setup(setup)
     """
 
     # Get all class variables
