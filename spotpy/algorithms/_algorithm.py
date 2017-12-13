@@ -223,19 +223,16 @@ class _algorithm(object):
                 dbinit=self.dbinit)
         else:
             #try if like is a list of values compare it with save threshold setting
-            try:
-                if all(i > j for i, j in zip(like, self.save_threshold)):
+            try: 
+                if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list                   
                     self.datawriter.save(like, randompar, simulations, chains=chains)
             #If like value is not a iterable, it is assumed to be a float
             except TypeError: # This is also used if not threshold was set
                 try:
-                    if like>self.save_threshold:
+                    if like>self.save_threshold: #Compares float/float
                         self.datawriter.save(like, randompar, simulations, chains=chains)
-                except TypeError: # No threshold is set but several objective functions are used
-                    # Duplicate the default treshold so it can be compared
-                    # to a list
-                    save_threshold_list = [self.save_threshold] * len(like)
-                    if all(i > j for i, j in zip(like, save_threshold_list)):
+                except TypeError:# float/list would result in an error, because it does not make sense
+                    if like[0]>self.save_threshold: #Compares list/float
                         self.datawriter.save(like, randompar, simulations,
                                              chains=chains)
 
