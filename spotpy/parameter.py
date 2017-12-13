@@ -175,7 +175,7 @@ class List(Base):
 
     def __init__(self, *args, **kwargs):
         name, list_of_parametersettings, args, kwargs = self._get_name_from_args('list_of_parametersettings', *args, **kwargs)
-        super().__init__(name, None, None, None, None, None, *args, **kwargs)
+        super(List, self).__init__(name, None, None, None, None, None, *args, **kwargs)
         self.name = name
         self.repeat = kwargs.get('repeat', False)
 
@@ -213,7 +213,7 @@ class Constant(Base):
 
     def __init__(self, *args, **kwargs):
         name, scalar, args, kwargs = self._get_name_from_args('list_of_parametersettings', *args, **kwargs)
-        super().__init__(name, None, None, None, None, None, *args, **kwargs)
+        super(Constant, self).__init__(name, None, None, None, None, None, *args, **kwargs)
         self.scalar = scalar
 
     def __call__(self, size=None):
