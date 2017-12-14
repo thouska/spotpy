@@ -13,6 +13,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
+import time
 import math
 
 
@@ -210,7 +211,7 @@ class fast(_algorithm):
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
         Matrix = self.matrix(bounds, N, M=4)
-        lastbackup=0
+        
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             rep = data_frombreak[0]
@@ -221,12 +222,12 @@ class fast(_algorithm):
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             self.postprocessing(rep, randompar, simulations)
-
-            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite':
-                if rep >= lastbackup+self.backup_every_rep:
-                    work = (rep, Matrix[rep:])
-                    self.write_breakdata(self.dbname, work)
-                    lastbackup = rep
+            
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
+                    and rep >= lastbackup+self.backup_every_rep:
+                work = (rep, Matrix[rep:])
+                self.write_breakdata(self.dbname, work)
+                lastbackup = rep
         self.final_call()
         
         try:            
