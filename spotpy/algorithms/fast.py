@@ -6,19 +6,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska and the SALib team
 
-This class holds the Fourier Amplitude Sensitivity Test (FAST) based on Cukier et al. (1973) and Saltelli et al. (1999):
-
-Cukier, R. I., Fortuin, C. M., Shuler, K. E., Petschek, A. G. and Schaibly, J. H.: Study of the sensitivity of coupled reaction systems to uncertainties in rate coefficients. I Theory, J. Chem. Phys., 59(8), 3873–3878, 1973.
-
-Saltelli, A., Tarantola, S. and Chan, K. P.-S.: A Quantitative Model-Independent Method for Global Sensitivity Analysis of Model Output, Technometrics, 41(1), 39–56, doi:10.1080/00401706.1999.10485594, 1999.
-
-The presented code is based on SALib
-Copyright (C) 2013-2015 Jon Herman and others. Licensed under the GNU Lesser General Public License.
-The Sensitivity Analysis Library is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-The Sensitivity Analysis Library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License along with the Sensitivity Analysis Library. If not, see http://www.gnu.org/licenses/.
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -26,50 +13,62 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
-import time
 import math
 
 
 class fast(_algorithm):
     '''
-    Implements the Fourier Amplitude Sensitivity Test algorithm.
+    Fourier Amplitude Sensitivity Test (FAST)
+    
+    This class holds the Fourier Amplitude Sensitivity Test (FAST) based on Cukier et al. (1973) and Saltelli et al. (1999):
 
-    Input
-    ----------
-    spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
-            and return an list of simulation results (as long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination. Which can 
-            be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
-            observation.
-        evaluation: function
-            Should return the true values as return by the model.
+    Cukier, R. I., Fortuin, C. M., Shuler, K. E., Petschek, A. G. and Schaibly, J. H.: Study of the sensitivity of coupled reaction systems to uncertainties in rate coefficients. I Theory, J. Chem. Phys., 59(8), 3873–3878, 1973.
+    
+    Saltelli, A., Tarantola, S. and Chan, K. P.-S.: A Quantitative Model-Independent Method for Global Sensitivity Analysis of Model Output, Technometrics, 41(1), 39–56, doi:10.1080/00401706.1999.10485594, 1999.
 
-    dbname: str
-        * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-
-    dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.        
-
-    parallel: str
-        * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
-        * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
-
-    save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
+    The presented code is based on SALib
+    Copyright (C) 2013-2015 Jon Herman and others. Licensed under the GNU Lesser General Public License.
+    The Sensitivity Analysis Library is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+    The Sensitivity Analysis Library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    You should have received a copy of the GNU Lesser General Public License along with the Sensitivity Analysis Library. If not, see http://www.gnu.org/licenses/.
      '''
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf):
-
-        _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
-                           save_threshold=save_threshold)
+    def __init__(self,  *args, **kwargs):
+        '''
+        Input
+        ----------
+        spot_setup: class
+            model: function 
+                Should be callable with a parameter combination of the parameter-function 
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can 
+                be e.g. uniform or Gaussian
+            objectivefunction: function 
+                Should return the objectivefunction for a given list of a model simulation and 
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
+    
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+    
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.        
+    
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+    
+        save_sim: boolean
+            *True:  Simulation results will be saved
+            *False: Simulationt results will not be saved
+        '''
+        super(fast, self).__init__(*args, **kwargs)
+#        _algorithm.__init__(self, spot_setup, dbname=dbname,
+#                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
+#                           save_threshold=save_threshold)
 
     def scale_samples(self, params, bounds):
         '''
@@ -211,37 +210,23 @@ class fast(_algorithm):
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
         Matrix = self.matrix(bounds, N, M=4)
-        #print('Start sampling')
-        #starttime = time.time()
-        #intervaltime = starttime
-        # A generator that produces the parameters
-        #param_generator = iter(Matrix)
-        #firstcall = True
+        lastbackup=0
+        if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
+            data_frombreak = self.read_breakdata(self.dbname)
+            rep = data_frombreak[0]
+            Matrix = data_frombreak[1]
+
         param_generator = (
             (rep, Matrix[rep]) for rep in range(len(Matrix)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             self.postprocessing(rep, randompar, simulations)
-            #like = self.objectivefunction(
-            #    evaluation=self.evaluation, simulation=simulations)
-            # Save everything in the database
-            #self.save(like, randompar, simulations=simulations)
-            #self.status(rep, like, randompar)
-            # Progress bar
-#            acttime = time.time()
-#            # Refresh progressbar every second
-#            if acttime - intervaltime >= 2:
-#                text = '%i of %i (best like=%g)' % (
-#                    rep, len(Matrix), self.status.objectivefunction)
-#                print(text)
-#                intervaltime = time.time()
-#        self.repeat.terminate()
-#
-#        text = '%i of %i (best like=%g)' % (
-#            self.status.rep, repetitions, self.status.objectivefunction)
-#        print(text)
-#        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-#        print(text)
+
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite':
+                if rep >= lastbackup+self.backup_every_rep:
+                    work = (rep, Matrix[rep:])
+                    self.write_breakdata(self.dbname, work)
+                    lastbackup = rep
         self.final_call()
         
         try:            

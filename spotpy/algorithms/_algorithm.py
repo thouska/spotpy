@@ -238,19 +238,16 @@ class _algorithm(object):
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
-            Reason: In case of incomplete optimizations, old data can be restored. 
-        '''
+            Reason: In case of incomplete optimizations, old data can be restored. '''
         import pickle
         with open(dbname+'.break', 'rb') as breakfile:
-            work, r, icall, gnrg = pickle.load(breakfile)
-        return work, r, icall, gnrg
+            return pickle.load(breakfile)
 
     def write_breakdata(self, dbname, work):
-        ''' Write data to a pickle file if a breakpoint has been set.
-        '''
+        ''' Write data to a pickle file if a breakpoint has been set.'''
         import pickle
-        with open(str(dbname)+'.break', 'wb') as csvfile:
-            pickle.dump(work, csvfile)
+        with open(str(dbname)+'.break', 'wb') as breakfile:
+            pickle.dump(work, breakfile)
 
     def getdata(self):
         if self.dbformat == 'ram':
