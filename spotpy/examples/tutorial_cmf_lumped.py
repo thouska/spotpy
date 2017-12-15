@@ -33,7 +33,7 @@ class DataProvider:
             """Helper function to convert date byte string to datetime object"""
             return datetime.datetime.strptime(bs.decode(), '%d.%m.%Y')
 
-        # Get be, step and end from the date column
+        # Get begin, step and end from the date column
         self.begin = bstr2date(data.date[0])
         self.step = bstr2date(data.date[1]) - self.begin
         self.end = bstr2date(data.date[-1])
@@ -110,7 +110,7 @@ class SingleStorage:
         # Parameter werden wie folgt definiert:
         # param(<Name>,<Minimum>,<Maximum>)
 
-        self.dbname = 'philipp-singlestorage'
+        self.dbname = 'cmf-singlestorage'
 
         # Loads driver data
         self.data = DataProvider()
