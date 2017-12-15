@@ -78,7 +78,8 @@ class DataProvider:
 # noinspection PyMethodMayBeStatic
 class SingleStorage:
     """
-    Enthält das gesamte Modell
+    A simple hydrological single storage model.
+    No snow, interception  or routing.
     """
     # Catchment area
     area = 2976.41e6  # sq m
@@ -96,19 +97,12 @@ class SingleStorage:
 
     def __init__(self, begin=None, end=None):
         """
-        Initialisiert das Modell und baut das Grundsetup zusammen
+        Initializes the model
 
-        MP111 - Änderungsbedarf: Sehr groß, hier wird es Euer Modell definiert
-        Verständlichkeit: mittel
+        :param begin: Start year for calibration
+        :param end: stop year
 
         """
-
-        # TODO: Parameterliste erweitern und anpassen.
-        # Wichtig: Die Namen müssen genau die gleichen sein,
-        # wie die Argumente in der Funktion setparameters.
-        #
-        # Parameter werden wie folgt definiert:
-        # param(<Name>,<Minimum>,<Maximum>)
 
         self.dbname = 'cmf-singlestorage'
 
@@ -137,32 +131,15 @@ class SingleStorage:
         # Add a storage
         layer = c.add_layer(1.0)
         # TODO: add more layers
-
-        # Verdunstung
+        # ET
         cmf.HargreaveET(layer, c.transpiration)
-
         # Outlet
         outlet = p.NewOutlet('outlet', 10, 0, 0)
-
         return p, outlet
-
-    def simulation(self, vector=None, verbose=False):
-        """
-        SpotPy erwartet eine Methode simulation. Diese methode ruft einfach
-        setparameters und runmodel auf, so dass spotpy zufrieden ist
-        """
-        self.setparameters(vector)
-        result_q = self.runmodel(verbose)
-
-        return np.array(result_q)
 
     def setparameters(self, par=None):
         """
-        Setzt die Parameter, dabei werden parametrisierte Verbindungen neu erstellt
-
-        MP111 - Änderungsbedarf: Sehr groß, hier werden alle Parameter des Modells gesetzt
-        Verständlichkeit: mittel
-
+        Sets the parameters of the model by creating the connections
         """
         par = par or spotpy.parameter.create_set(self)
 
@@ -180,55 +157,46 @@ class SingleStorage:
                                Q0=par.V0 / par.tr, beta=par.beta,
                                residual=par.Vr * par.V0, V0=par.V0)
 
-        # TODO: Alle weiteren Connections / Parameter von Eurem Modell aufbauen
 
     def runmodel(self, verbose=False):
         """
-        Startet das Modell
-
-        verbose = Wenn verbose = True, dann wird zu jedem Tag etwas ausgegeben
-
-        MP111 - Änderungsbedarf: Gering, kann so bleiben, kann aber auch
-                        um andere Ergebniszeitreihen ergänzt werden. Achtung,
-                        falls ihr mehrere Outlets benutzt
-        Verständlichkeit: gut
-
-        Reference: http://fb09-pasig.umwelt.uni-giessen.de/cmf/wiki/CmfTutFluxes
+        Runs the model and saves the results
         """
-        # Erzeugt ein neues Lösungsverfahren
         solver = cmf.ImplicitEuler(self.project, 1e-9)
-        # Verkürzte schreibweise für die Zelle - spart tippen
         c = self.project[0]
 
-        # Neue Zeitreihe für Modell-Ergebnisse (res - result)
+        # result timeseries
         res_q = cmf.timeseries(self.begin, cmf.day)
-        # Starte den solver und rechne in Tagesschritten
+
+        # start solver and calculate in daily steps
         for t in solver.run(self.data.begin, self.end, cmf.day):
-            # Fülle die Ergebnisse
-            if t >= self.begin:
-                res_q.add(self.outlet.waterbalance(t))
-            # Gebe eine Statusmeldung auf den Bildschirm aus,
-            # dann weiß man wo der solver gerade ist
+            # append results
+            res_q.add(self.outlet.waterbalance(t))
+            # Give the status the screen to let us know what is going on
             if verbose:
                 print(t, 'P={:5.3f}'.format(c.get_rainfall(t)))
-        # Gebe die gefüllten Ergebnis-Zeitreihen zurück
+
         return res_q
+
+    def simulation(self, vector=None, verbose=False):
+        """
+        Sets the parameters of the model and starts a run
+        :return: np.array with runoff in mm/day
+        """
+        self.setparameters(vector)
+        result_q = self.runmodel(verbose)
+
+        return np.array(result_q[self.begin:self.end])
 
     def objectivefunction(self, simulation, evaluation):
         """
-        Gehört auch zum spotpy-Interface. 
-
-        MP111 - Änderungsbedarf: Keiner
-        Verständlichkeit: Mittel
+        Calculates the goodness of the simulation
         """
         return spotpy.objectivefunctions.nashsutcliffe(evaluation, simulation)
 
     def evaluation(self):
         """
-        Gehört auch zum spotpy-Interface. 
-
-        MP111 - Änderungsbedarf: Keiner
-        Verständlichkeit: Schlecht
+        Returns the evaluation data
         """
         runoff_mm = self.data.runoff_mm(self.area)
         return np.array(runoff_mm[self.begin:self.end + datetime.timedelta(days=1)])
@@ -237,36 +205,41 @@ class SingleStorage:
 # http://stackoverflow.com/questions/419163/what-does-if-name-main-do
 if __name__ == '__main__':
 
-    # Importiere Algorithmus
+    # Get the Monte-Carlo sampler
     from spotpy.algorithms import mc as Sampler
 
-    # Finde heraus, ob das ganze parallel laufen soll (für Supercomputer)
+    # Check if we are running on a supercomputer or local
     parallel = 'mpi' if 'OMPI_COMM_WORLD_SIZE' in os.environ else 'seq'
 
-    # Create the spotted model
+    # Create the model
     model = SingleStorage(datetime.datetime(1980, 1, 1),
                           datetime.datetime(1985, 12, 31))
 
-    if 'MP111RUNS' in os.environ:
-        runs = int(os.environ['MP111RUNS'])
-
+    # Get number of runs
+    if 'SPOTPYRUNS' in os.environ:
+        # from environment
+        runs = int(os.environ['SPOTPYRUNS'])
     elif len(sys.argv) > 1:
+        # from command line
         runs = int(sys.argv[1])
     else:
+        # run once
         runs = 1
 
+    # Create the sampler
     sampler = Sampler(model, parallel=parallel, dbname=model.dbname, dbformat='csv', save_sim=True)
 
+    # Print our configuration
     print(spotpy.describe.describe(sampler))
+    # Print the cmf setup
+    print(cmf.describe(model.project))
 
+    # Do the sampling
     if runs > 1:
         # Now we can sample with the implemented Monte Carlo algortihm:
         sampler.sample(runs)
-
     else:
-
         result = model.simulation(verbose=True)
-
         for name, value in spotpy.objectivefunctions.calculate_all_functions(model.evaluation(), result):
             try:
                 print('{:>30.30s} = {:0.6g}'.format(name, value))
