@@ -7,10 +7,6 @@ __pycache__/
 *.so
 
 #other files
-#*.rst
-*.gitignore
-*.yml
-*.csv
 *.out
 *.in
 docs/*
