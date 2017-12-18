@@ -30,7 +30,7 @@ class database(object):
     """
 
     def __init__(self, dbname, parnames, like, randompar, simulations=None,
-                 chains=1, save_sim=True, **kwargs):
+                 chains=1, save_sim=True, db_precision=np.float16, **kwargs):
         # Just needed for the first line in the database
         self.chains = chains
         self.dbname = dbname
@@ -38,6 +38,7 @@ class database(object):
         self.randompar = randompar
         self.simulations = simulations
         self.save_sim = save_sim
+        self.db_precision = db_precision
         if not save_sim:
             simulations = None
         self.dim_dict = {}
@@ -196,14 +197,15 @@ class csv(database):
                 self.dim_dict['simulation'](simulations) +
                 [chains])
         try:
-            # maybe apply a rounding for the floats?!
-            coll = map(np.float16, coll)
+            # Apply rounding of floats
+            coll = map(self.db_precision, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
         except IOError:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
-            coll = map(np.float16, coll)
+            # Apply rounding of floats
+            coll = map(self.db_precision, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
             
@@ -250,12 +252,12 @@ class sql(database):
             self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
-
-        #maybe apply a rounding for the floats?!
         coll = (self.dim_dict['like'](objectivefunction) +
                 self.dim_dict['par'](parameterlist) +
                 self.dim_dict['simulation'](simulations) +
                 [chains])
+        # Apply rounding of floats
+        coll = map(self.db_precision, coll)
         try:
             self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
 

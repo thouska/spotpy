@@ -106,7 +106,12 @@ class _algorithm(object):
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
-
+    sav_thresholde: float or list
+        Compares the given value/list of values with return value/list of values from spot_setup.objectivefunction.
+        If the objectivefunction value is higher, the results are saved in the database. If not they are ignored (saves storage).
+    db_precision:np.float type
+        set np.float16, np.float32 or np.float64 for rounding of floats in the output database
+        Default is np.float16
     alt_objfun: str or None, default: 'rmse'
         alternative objectivefunction to be used for algorithm
         * None: the objfun defined in spot_setup.objectivefunction is used
@@ -118,7 +123,7 @@ class _algorithm(object):
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf):
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -144,6 +149,7 @@ class _algorithm(object):
         self.save_sim = save_sim
         self.dbname = dbname
         self.dbformat = dbformat
+        self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
@@ -220,7 +226,7 @@ class _algorithm(object):
             
             self.datawriter = writerclass(
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
-                dbinit=self.dbinit)
+                dbinit=self.dbinit, db_precision=self.db_precision)
         else:
             #try if like is a list of values compare it with save threshold setting
             try: 
