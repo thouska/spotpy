@@ -199,7 +199,7 @@ class SingleStorage:
         Returns the evaluation data
         """
         runoff_mm = self.data.runoff_mm(self.area)
-        return np.array(runoff_mm[self.begin:self.end + datetime.timedelta(days=1)])
+        return np.array(runoff_mm[self.begin:self.end])
 
 
 # http://stackoverflow.com/questions/419163/what-does-if-name-main-do
