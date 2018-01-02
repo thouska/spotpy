@@ -142,10 +142,10 @@ class ram(database):
 
     def save(self, objectivefunction, parameterlist, simulations=None,
              chains=1):
-        self.ram.append(self.dim_dict['like'](objectivefunction) +
+        self.ram.append(tuple(self.dim_dict['like'](objectivefunction) +
                         self.dim_dict['par'](parameterlist) +
                         self.dim_dict['simulation'](simulations) +
-                        [chains])
+                        [chains]))
 
     def finalize(self):
         """

@@ -106,7 +106,7 @@ class _algorithm(object):
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
-    sav_thresholde: float or list
+    save_thresholde: float or list
         Compares the given value/list of values with return value/list of values from spot_setup.objectivefunction.
         If the objectivefunction value is higher, the results are saved in the database. If not they are ignored (saves storage).
     db_precision:np.float type
@@ -218,29 +218,37 @@ class _algorithm(object):
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
         print(text)
     
-    def save(self, like, randompar, simulations, chains=1):
-        # Initialize the database if no run was performed so far
-        if self.dbformat and self.status.rep == 0:
+    def _init_database(self, like, randompar, simulations, chains=1):
+        if self.dbinit==True:        
             print('Initialize database...')
             writerclass = getattr(database, self.dbformat)
             
             self.datawriter = writerclass(
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
                 dbinit=self.dbinit, db_precision=self.db_precision)
-        else:
-            #try if like is a list of values compare it with save threshold setting
-            try: 
-                if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list                   
+            self.dbinit=False
+            
+    def save(self, like, randompar, simulations, chains=1):
+
+        #try if like is a list of values compare it with save threshold setting
+        try: 
+            if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
+                # Initialize the database if no run was performed so far
+                self._init_database(like, randompar, simulations, chains=1)
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        #If like value is not a iterable, it is assumed to be a float
+        except TypeError: # This is also used if not threshold was set
+            try:
+                if like>self.save_threshold: #Compares float/float
+                    # Initialize the database if no run was performed so far
+                    self._init_database(like, randompar, simulations, chains=1)        
                     self.datawriter.save(like, randompar, simulations, chains=chains)
-            #If like value is not a iterable, it is assumed to be a float
-            except TypeError: # This is also used if not threshold was set
-                try:
-                    if like>self.save_threshold: #Compares float/float
-                        self.datawriter.save(like, randompar, simulations, chains=chains)
-                except TypeError:# float/list would result in an error, because it does not make sense
-                    if like[0]>self.save_threshold: #Compares list/float
-                        self.datawriter.save(like, randompar, simulations,
-                                             chains=chains)
+            except TypeError:# float/list would result in an error, because it does not make sense
+                if like[0]>self.save_threshold: #Compares list/float
+                    # Initialize the database if no run was performed so far
+                    self._init_database(like, randompar, simulations, chains=1)        
+                    self.datawriter.save(like, randompar, simulations,
+                                         chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
@@ -259,7 +267,7 @@ class _algorithm(object):
         if self.dbformat == 'ram':
             return self.datawriter.data
         if self.dbformat == 'csv':
-            return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)[1:]
+            return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)#[1:]
         if self.dbformat == 'sql':
             return self.datawriter.getdata
         if self.dbformat == 'noData':
