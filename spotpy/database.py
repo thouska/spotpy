@@ -148,25 +148,25 @@ class ram(database):
                         [chains])
 
     def finalize(self):
-        #print(self.ram[0:])
+        """
+        Is called in a last step of every algorithm. 
+        Forms the List of values into a strutured numpy array in order to have
+        the same structure as a csv database.
+        """
         dt = {'names': self.header,
                        'formats': [np.float] * len(self.header)}
-
-        #dt = np.dtype({'names': self.header, 'formats': [np.float] * len(self.header)})
-
-        # ignore the first initialization run to reduce the risk of different
-        # objectivefunction mixing
         i = 0
         Y = np.zeros(len(self.ram), dtype=dt)
-        for name in dt["names"]:
-            Y[name] =  np.transpose(self.ram)[i]
+        
+        for line in self.ram:
+            Y[i] = line
             i+=1
-
-
+        
         self.data = Y
 
     def getdata(self):
-        # Expects a finalized database
+        """
+        Returns a finalized database"""
         return self.data
 
 
