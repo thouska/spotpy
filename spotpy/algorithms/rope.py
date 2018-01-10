@@ -197,7 +197,7 @@ class rope(_algorithm):
                                                percentage_following_runs)
             valid = False
             trials = 0
-            while valid is False and trials < 10:
+            while valid is False and trials < 10 and repetitions_following_runs>1: 
                 new_pars = self.programm_depth(best_pars, repetitions_following_runs)
                 if len(new_pars) == repetitions_following_runs:
                     valid = True
@@ -206,8 +206,10 @@ class rope(_algorithm):
             pars = []
             likes = []
             print(len(new_pars))
+            if(int(repetitions_following_runs) > len(new_pars)):
+                repetitions_following_runs = len(new_pars)
             param_generator = (
-                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))
+                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))   
             for rep, ropepar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
                 like = self.postprocessing(first_run + rep + repetitions_following_runs * subset, ropepar, simulations)
@@ -267,7 +269,7 @@ class rope(_algorithm):
             LNDEP = self.fHDEPTHAB(N, NP, X, TL, EPS, LLEN)
             for L in range(LLEN):
                 ITRY = ITRY + 1
-                if LNDEP[L] > 1:
+                if LNDEP[L] >= 1:
                     #test.append(TL[L, :])
                     CL = np.vstack((CL, TL[L, :]))
                     IPOS = IPOS + 1
