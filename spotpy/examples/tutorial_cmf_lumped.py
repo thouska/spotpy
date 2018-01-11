@@ -62,14 +62,16 @@ class DataProvider:
         """
         rainstation = project.rainfall_stations.add('Grebenau avg', self.P, (0, 0, 0))
 
+        # Tell the project to use the meteo station just created
         project.use_nearest_rainfall()
 
-        # Temperaturdaten
+        # Temperature data
         meteo = project.meteo_stations.add_station('Grebenau avg', (0, 0, 0))
         meteo.T = self.T
         meteo.Tmin = self.Tmin
         meteo.Tmax = self.Tmax
-
+        
+        # Tell the project to use the meteo station just created
         project.use_nearest_meteo()
 
         return rainstation, meteo
