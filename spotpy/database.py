@@ -16,7 +16,7 @@ from __future__ import unicode_literals
 import numpy as np
 import io
 from itertools import product
-
+import sqlite3
 
 
 class database(object):
@@ -214,6 +214,29 @@ class csv(database):
             self.dbname + '.csv', delimiter=',', names=True)[0:]
         return data
 
+
+
+class PickalableSWIG:
+    def __setstate__(self, state):
+        self.__init__(*state['args'])
+    def __getstate__(self):
+        return {'args': self.args}
+
+
+class PickalableSQL3Connect(sqlite3.Connection, PickalableSWIG):
+    def __init__(self, *args,**kwargs):
+        self.args = args
+        sqlite3.Connection.__init__(self,*args,**kwargs)
+
+
+class PickalableSQL3Cursor(sqlite3.Cursor, PickalableSWIG):
+    def __init__(self, *args,**kwargs):
+        self.args = args
+        sqlite3.Cursor.__init__(self,*args,**kwargs)
+
+
+
+
 class sql(database):
 
     """
@@ -222,7 +245,6 @@ class sql(database):
     """
 
     def __init__(self, *args, **kwargs):
-        import sqlite3
         import os
         # init base class
         super(sql, self).__init__(*args, **kwargs)
@@ -231,8 +253,9 @@ class sql(database):
             os.remove(self.dbname + '.db')
         except:
             pass
-        self.db = sqlite3.connect(self.dbname + '.db')
-        self.db_cursor = self.db.cursor()
+
+        self.db = PickalableSQL3Connect(self.dbname + '.db')
+        self.db_cursor = PickalableSQL3Cursor(self.db)
         # Create Table
 #        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
 #                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
@@ -263,10 +286,9 @@ class sql(database):
         self.db.close()
 
     def getdata(self):
-        import sqlite3
-        self.db = sqlite3.connect(self.dbname + '.db')
-        self.db_cursor = self.db.cursor()
-        back = [row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)]
+        self.db = PickalableSQL3Connect(self.dbname + '.db')
+        self.db_cursor = PickalableSQL3Cursor(self.db)
+        back = np.array([row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)])
         self.db.close()
         return back
         

@@ -33,16 +33,18 @@ class ForEach(object):
 
     def start(self):
         pass
-
     def setphase(self,phasename):
         self.phase=phasename
 
 
     def f(self, job):
         data = self.process(job)
+        #print(data)
         return data
 
     def __call__(self,jobs):
-        results = self.pool.imap(self.f, jobs)
+        results = self.pool.uimap(self.f, jobs)
         for i in results:
             yield i
+
+
