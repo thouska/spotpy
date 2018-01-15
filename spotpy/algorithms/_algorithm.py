@@ -16,7 +16,13 @@ from spotpy import database, objectivefunctions
 import numpy as np
 import time
 import threading
-import queue
+
+try:
+    is_multiprc_queue = False
+    from queue import Queue
+except ImportError:
+    is_multiprc_queue = True
+    from multiprocessing import Queue
 
 
 class _RunStatistic(object):
@@ -270,14 +276,21 @@ class _algorithm(object):
         the run id and the parameters. This is needed, because some parallel things
         can mix up the ordering of runs
         """
-
-
         id, params = id_params_tuple
 
-        que = queue.Queue()
-        sim_thread = threading.Thread(target=lambda q, arg: q.put(self.model(arg)), args=(que, params))
+        def model_layer(q,arg):
+            q.put(self.model(arg))
+
+
+
+
+        que = Queue()
+        sim_thread = threading.Thread(target=model_layer, args=(que, params))
         sim_thread.daemon = True
         sim_thread.start()
+
+        if is_multiprc_queue :
+            time.sleep(1.0/1000.0)
 
         # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds
         sim_thread.join(self.sim_timeout)
@@ -285,5 +298,4 @@ class _algorithm(object):
         model_result = [np.NAN]
         if not que.empty():
             model_result = que.get()
-
         return id, params, model_result
