@@ -18,59 +18,60 @@ from spotpy.examples.spot_setup_rosenbrock import spot_setup
 results=[]
 spot_setup=spot_setup()
 rep=1000
+timeout=10
 
 parallel = "seq"
 dbformat = "csv"
 
 
-sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel,   dbname='RosenMC',    dbformat=dbformat)
+sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel,   dbname='RosenMC',    dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel,   dbname='RosenLHS',    dbformat=dbformat)
+sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel,   dbname='RosenLHS',    dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.mle(spot_setup, parallel="seq",  dbname='RosenMLE',   dbformat=dbformat)
+sampler=spotpy.algorithms.mle(spot_setup, parallel="seq",  dbname='RosenMLE',   dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.mcmc(spot_setup, parallel=parallel, dbname='RosenMCMC',  dbformat=dbformat)
+sampler=spotpy.algorithms.mcmc(spot_setup, parallel=parallel, dbname='RosenMCMC',  dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.sceua(spot_setup, parallel=parallel,dbname='RosenSCEUA', dbformat=dbformat)
+sampler=spotpy.algorithms.sceua(spot_setup, parallel=parallel,dbname='RosenSCEUA', dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep,ngs=4)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.sa(spot_setup, parallel=parallel,   dbname='RosenSA',    dbformat=dbformat)
+sampler=spotpy.algorithms.sa(spot_setup, parallel=parallel,   dbname='RosenSA',    dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.demcz(spot_setup,parallel=parallel,  dbname='RosenDEMCz',  dbformat=dbformat)
+sampler=spotpy.algorithms.demcz(spot_setup,parallel=parallel,  dbname='RosenDEMCz',  dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep,nChains=4)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.rope(spot_setup, parallel=parallel, dbname='RosenROPE',  dbformat=dbformat,)
+sampler=spotpy.algorithms.rope(spot_setup, parallel=parallel, dbname='RosenROPE',  dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.abc(spot_setup, parallel=parallel,   dbname='RosenMC',     dbformat=dbformat)
+sampler=spotpy.algorithms.abc(spot_setup, parallel=parallel,   dbname='RosenMC',     dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.fscabc(spot_setup, parallel=parallel,   dbname='RosenMC',  dbformat=dbformat)
+sampler=spotpy.algorithms.fscabc(spot_setup, parallel=parallel,   dbname='RosenMC',  dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.dream(spot_setup, parallel=parallel,   dbname='RosenMC',  dbformat=dbformat)
+sampler=spotpy.algorithms.dream(spot_setup, parallel=parallel,   dbname='RosenMC',  dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 

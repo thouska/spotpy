@@ -15,6 +15,8 @@ from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
 import numpy as np
 import time
+import threading
+import queue
 
 
 class _RunStatistic(object):
@@ -115,7 +117,7 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100):
+                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100, sim_timeout = None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -133,6 +135,8 @@ class _algorithm(object):
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
+        # If value is not None a timeout will set so that the simulation wikk break after sim_timeout seconds without return a value
+        self.sim_timeout = sim_timeout
             
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
@@ -266,5 +270,20 @@ class _algorithm(object):
         the run id and the parameters. This is needed, because some parallel things
         can mix up the ordering of runs
         """
+
+
         id, params = id_params_tuple
-        return id, params, self.model(params)
+
+        que = queue.Queue()
+        sim_thread = threading.Thread(target=lambda q, arg: q.put(self.model(arg)), args=(que, params))
+        sim_thread.daemon = True
+        sim_thread.start()
+
+        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds
+        sim_thread.join(self.sim_timeout)
+
+        model_result = [np.NAN]
+        if not que.empty():
+            model_result = que.get()
+
+        return id, params, model_result
