@@ -12,13 +12,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
-
 from spotpy import database, objectivefunctions
 from spotpy import parameter
-
 import numpy as np
 import time
+import threading
+
+try:
+    is_multiprc_queue = False
+    from queue import Queue
+except ImportError:
+    is_multiprc_queue = True
+    from multiprocessing import Queue
 
 
 
@@ -123,7 +128,7 @@ class _algorithm(object):
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16):
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,sim_timeout = None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -153,7 +158,9 @@ class _algorithm(object):
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
-        
+
+        # If value is not None a timeout will set so that the simulation wikk break after sim_timeout seconds without return a value
+        self.sim_timeout = sim_timeout
         self.save_threshold = save_threshold
 
         if breakpoint == 'read' or breakpoint == 'readandwrite':
@@ -171,6 +178,11 @@ class _algorithm(object):
         elif parallel == 'mpc':
             print('Multiprocessing is in still testing phase and may result in errors')
             from spotpy.parallel.mproc import ForEach
+            #raise NotImplementedError(
+            #    'Sorry, mpc is not available by now. Please use seq or mpi')
+        elif parallel == 'umpc':
+            print('Multiprocessing is in still testing phase and may result in errors')
+            from spotpy.parallel.umproc import ForEach
         else:
             raise ValueError(
                 "'%s' is not a valid keyword for parallel processing" % parallel)
@@ -269,9 +281,9 @@ class _algorithm(object):
         if self.dbformat == 'csv':
             return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)#[1:]
         if self.dbformat == 'sql':
-            return self.datawriter.getdata
+            return self.datawriter.getdata()
         if self.dbformat == 'noData':
-            return self.datawriter.getdata
+            return self.datawriter.getdata()
 
     def postprocessing(self, rep, randompar, simulation, chains=1, save=True, negativlike=False):
         like = self.getfitness(simulation=simulation, params=randompar)
@@ -309,5 +321,23 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
-        # Call self.model with a namedtuple instead of another sequence
-        return id, params, self.model(self.partype(*params))
+
+        def model_layer(q,params):
+            # Call self.model with a namedtuple instead of another sequence
+            q.put(self.model(self.partype(*params)))
+
+        que = Queue()
+        sim_thread = threading.Thread(target=model_layer, args=(que, params))
+        sim_thread.daemon = True
+        sim_thread.start()
+
+        if is_multiprc_queue :
+            time.sleep(1.0/1000.0)
+
+        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds
+        sim_thread.join(self.sim_timeout)
+
+        model_result = [np.NAN]
+        if not que.empty():
+            model_result = que.get()
+        return id, params, model_result
