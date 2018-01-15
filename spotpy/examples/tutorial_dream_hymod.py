@@ -10,7 +10,8 @@ This class holds example code how to use the dream algorithm
 
 import numpy as np
 import spotpy
-from spotpy.examples.spot_setup_hymod import spot_setup
+from spotpy.examples.spot_setup_hymod_exe import spot_setup
+#from spotpy.examples.spot_setup_hymod_python import spot_setup
 import pylab as plt
 
 
@@ -32,7 +33,7 @@ convergence_limit      = 1.2
 runs_after_convergence = 100
 
 r_hat = sampler.sample(rep,nChains=nChains,convergence_limit=convergence_limit, 
-                       runs_after_convergence=runs_after_convergence)
+                       runs_after_convergence=runs_after_convergence, acceptance_test_option = 6)
 
 
 
@@ -102,7 +103,7 @@ min_vs,max_vs = find_min_max(spot_setup)
 
 fig= plt.figure(figsize=(16,16))
 plt.subplot(5,2,1)
-x = results['par'+str(spot_setup.parameters()['name'][0].decode())]
+x = results['par'+str(spot_setup.parameters()['name'][0])]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -111,7 +112,7 @@ plt.ylim(min_vs[0],max_vs[0])
 
 
 plt.subplot(5,2,2)
-x = results['par'+spot_setup.parameters()['name'][0].decode()][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][0]][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -123,7 +124,7 @@ plt.xlim(min_vs[0],max_vs[0])
 
 
 plt.subplot(5,2,3)
-x = results['par'+spot_setup.parameters()['name'][1].decode()]
+x = results['par'+spot_setup.parameters()['name'][1]]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -131,7 +132,7 @@ plt.ylabel('x2')
 plt.ylim(min_vs[1],max_vs[1])
 
 plt.subplot(5,2,4)
-x = results['par'+spot_setup.parameters()['name'][1].decode()][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][1]][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -143,7 +144,7 @@ plt.xlim(min_vs[1],max_vs[1])
 
 
 plt.subplot(5,2,5)
-x = results['par'+spot_setup.parameters()['name'][2].decode()]
+x = results['par'+spot_setup.parameters()['name'][2]]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -152,7 +153,7 @@ plt.ylim(min_vs[2],max_vs[2])
 
 
 plt.subplot(5,2,6)
-x = results['par'+spot_setup.parameters()['name'][2].decode()][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][2]][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -163,7 +164,7 @@ plt.xlim(min_vs[2],max_vs[2])
 
 
 plt.subplot(5,2,7)
-x = results['par'+spot_setup.parameters()['name'][3].decode()]
+x = results['par'+spot_setup.parameters()['name'][3]]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -172,7 +173,7 @@ plt.ylim(min_vs[3],max_vs[3])
 
 
 plt.subplot(5,2,8)
-x = results['par'+spot_setup.parameters()['name'][3].decode()][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][3]][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)
@@ -183,7 +184,7 @@ plt.xlim(min_vs[3],max_vs[3])
 
 
 plt.subplot(5,2,9)
-x = results['par'+spot_setup.parameters()['name'][4].decode()]
+x = results['par'+spot_setup.parameters()['name'][4]]
 for i in range(int(max(results['chain']))):
     index=np.where(results['chain']==i)
     plt.plot(x[index],'.')
@@ -192,7 +193,7 @@ plt.ylim(min_vs[4],max_vs[4])
 plt.xlabel('Iterations')
 
 plt.subplot(5,2,10)
-x = results['par'+spot_setup.parameters()['name'][4].decode()][int(len(results)*0.5):]
+x = results['par'+spot_setup.parameters()['name'][4]][int(len(results)*0.5):]
 normed_value = 1
 hist, bins = np.histogram(x, bins=20, density=True)
 widths = np.diff(bins)

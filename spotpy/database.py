@@ -15,8 +15,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import numpy as np
 import io
+import time
 from itertools import product
 import sqlite3
+import sys
+if sys.version_info[0] >= 3:
+    unicode = str
 
 
 class database(object):
@@ -26,7 +30,7 @@ class database(object):
     """
 
     def __init__(self, dbname, parnames, like, randompar, simulations=None,
-                 chains=1, save_sim=True, **kwargs):
+                 chains=1, save_sim=True, db_precision=np.float16, **kwargs):
         # Just needed for the first line in the database
         self.chains = chains
         self.dbname = dbname
@@ -34,12 +38,15 @@ class database(object):
         self.randompar = randompar
         self.simulations = simulations
         self.save_sim = save_sim
+        self.db_precision = db_precision
         if not save_sim:
             simulations = None
         self.dim_dict = {}
         self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [(
             'like', like), ('par', randompar), ('simulation', simulations)]]
         self._make_header(simulations,parnames)
+        
+        self.last_flush = time.time()
 
     def _check_dims(self, name, obj):
         '''checks dimensionality of obj and stores function in dict'''
@@ -100,7 +107,7 @@ class database(object):
         self.header = []
         self.header.extend(['like' + '_'.join(map(str, x))
                             for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
-        self.header.extend(['par{0}'.format(x.decode()) for x in parnames])
+        self.header.extend(['par{0}'.format(x) for x in parnames])
         #print(self.singular_data_lens[2])
         #print(type(self.singular_data_lens[2]))        
         if self.save_sim:
@@ -135,31 +142,31 @@ class ram(database):
 
     def save(self, objectivefunction, parameterlist, simulations=None,
              chains=1):
-        self.ram.append(self.dim_dict['like'](objectivefunction) +
+        self.ram.append(tuple(self.dim_dict['like'](objectivefunction) +
                         self.dim_dict['par'](parameterlist) +
                         self.dim_dict['simulation'](simulations) +
-                        [chains])
+                        [chains]))
 
     def finalize(self):
-        #print(self.ram[0:])
+        """
+        Is called in a last step of every algorithm. 
+        Forms the List of values into a strutured numpy array in order to have
+        the same structure as a csv database.
+        """
         dt = {'names': self.header,
                        'formats': [np.float] * len(self.header)}
-
-        #dt = np.dtype({'names': self.header, 'formats': [np.float] * len(self.header)})
-
-        # ignore the first initialization run to reduce the risk of different
-        # objectivefunction mixing
         i = 0
         Y = np.zeros(len(self.ram), dtype=dt)
-        for name in dt["names"]:
-            Y[name] =  np.transpose(self.ram)[i]
+        
+        for line in self.ram:
+            Y[i] = line
             i+=1
-
-
+        
         self.data = Y
 
     def getdata(self):
-        # Expects a finalized database
+        """
+        Returns a finalized database"""
         return self.data
 
 
@@ -177,17 +184,12 @@ class csv(database):
             # Create a open file, which needs to be closed after the sampling
             self.db = io.open(self.dbname + '.csv', 'w')
             # write header line
-            try:
-                # python 2.7 support
-                self.db.write(unicode(','.join(self.header) + '\n'))
-            except NameError:
-                self.db.write(','.join(self.header) + '\n')
+            self.db.write(unicode(','.join(self.header) + '\n'))
             self.save(self.like, self.randompar, self.simulations, self.chains)
         else:
             # Continues writing file
             self.db = io.open(self.dbname + '.csv', 'a')
             self.save(self.like, self.randompar, self.simulations, self.chains)
-        
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +
@@ -195,16 +197,23 @@ class csv(database):
                 self.dim_dict['simulation'](simulations) +
                 [chains])
         try:
-            # maybe apply a rounding for the floats?!
-            coll = map(np.float16, coll)
+            # Apply rounding of floats
+            coll = map(self.db_precision, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
         except IOError:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
-            coll = map(np.float16, coll)
+            # Apply rounding of floats
+            coll = map(self.db_precision, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
+            
+        acttime = time.time()
+        # Force writing to disc at least every two seconds
+        if acttime - self.last_flush >= 2:
+            self.db.flush()
+            self.last_flush = time.time()
 
     def finalize(self):
         self.db.close()
@@ -266,12 +275,12 @@ class sql(database):
             self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
-
-        #maybe apply a rounding for the floats?!
         coll = (self.dim_dict['like'](objectivefunction) +
                 self.dim_dict['par'](parameterlist) +
                 self.dim_dict['simulation'](simulations) +
                 [chains])
+        # Apply rounding of floats
+        coll = map(self.db_precision, coll)
         try:
             self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
 

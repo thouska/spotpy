@@ -13,6 +13,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
+from spotpy import parameter
 import numpy as np
 import time
 import threading
@@ -23,6 +24,7 @@ try:
 except ImportError:
     is_multiprc_queue = True
     from multiprocessing import Queue
+
 
 
 class _RunStatistic(object):
@@ -46,7 +48,6 @@ class _RunStatistic(object):
         
         self.repetitions = None
 
-
     def __call__(self, rep, objectivefunction, params):
         self.curparmeterset = params
         self.rep+=1
@@ -63,8 +64,6 @@ class _RunStatistic(object):
                 self.objectivefunction = objectivefunction
                 self.bestrep = self.rep
         self.print_status()
-            #return True
-        #return False
 
     def print_status(self):
         # get str showing approximate timeleft to end of simulation in H, M, S
@@ -112,7 +111,12 @@ class _algorithm(object):
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
-
+    save_thresholde: float or list
+        Compares the given value/list of values with return value/list of values from spot_setup.objectivefunction.
+        If the objectivefunction value is higher, the results are saved in the database. If not they are ignored (saves storage).
+    db_precision:np.float type
+        set np.float16, np.float32 or np.float64 for rounding of floats in the output database
+        Default is np.float16
     alt_objfun: str or None, default: 'rmse'
         alternative objectivefunction to be used for algorithm
         * None: the objfun defined in spot_setup.objectivefunction is used
@@ -123,12 +127,25 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None, backup_every_rep=100, sim_timeout = None):
+                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,sim_timeout = None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
-        self.parameter = self.setup.parameters
+        # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
+        # as well as the parameters function. The new method get_parameters
+        # can deal with a missing parameters function
+        #
+        # For me (Philipp) it is totally unclear why all the samplers should call this function
+        # again and again instead of
+        # TODO: just storing a definite list of parameter objects here
+        self.parameter = self.get_parameters
         self.parnames = self.parameter()['name']
+
+        # Create a type to hold the parameter values using a namedtuple
+        self.partype = parameter.get_namedtuple_from_paramnames(
+            self.setup, self.parnames)
+
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
         self.objectivefunction = getattr(
@@ -137,18 +154,19 @@ class _algorithm(object):
         self.save_sim = save_sim
         self.dbname = dbname
         self.dbformat = dbformat
-        
+        self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
+
         # If value is not None a timeout will set so that the simulation wikk break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
-            
+        self.save_threshold = save_threshold
+
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
             self.dbinit = False
-            self.breakdata = self.readbreakdata(self.dbname)
-        #self.initialize_database()
+            self.breakdata = self.read_breakdata(self.dbname)
 
         # Now a repeater (ForEach-object) is loaded
         # A repeater is a convinent wrapper to repeat tasks
@@ -183,6 +201,18 @@ class _algorithm(object):
         self.repeat.start()
         self.status = _RunStatistic()
 
+    def __str__(self):
+        return '{type}({mtype}(), dbname={dbname}'.format(
+            type=type(self).__name__,
+            mtype=type(self.setup).__name__,
+            dbname=self.dbname)
+
+    def get_parameters(self):
+        """
+        Returns the parameter array from the setup
+        """
+        return parameter.get_parameters_array(self.setup)
+
     def set_repetiton(self, repetitions):
         self.status.repetitions = repetitions
         
@@ -200,42 +230,56 @@ class _algorithm(object):
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
         print(text)
     
-    def save(self, like, randompar, simulations, chains=1):
-        # Initialize the database if no run was performed so far
-        if self.dbformat and self.status.rep == 0:
+    def _init_database(self, like, randompar, simulations, chains=1):
+        if self.dbinit==True:        
             print('Initialize database...')
             writerclass = getattr(database, self.dbformat)
             
             self.datawriter = writerclass(
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
-                dbinit=self.dbinit)
-        else:
-            self.datawriter.save(like, randompar, simulations, chains=chains)
-
-
-    def readbreakdata(self, dbname):
-        import pickle
-        #import pprint
-        with open(dbname+'.break', 'rb') as csvfile:
-            work,r,icall,gnrg =pickle.load(csvfile)
-#            pprint.pprint(work)
-#            pprint.pprint(r)
-#            pprint.pprint(icall)
-#            pprint.pprint(gnrg)
-            #icall = 1000 #TODO:Just for testing purpose
-        return work, r, icall, gnrg
-
-    def writebreakdata(self, dbname, work, r, icall, gnrg):
-        import pickle
-        with open(str(dbname)+'.break', 'wb') as csvfile:
-            work=work,r,icall,gnrg
-            pickle.dump(work,csvfile)
+                dbinit=self.dbinit, db_precision=self.db_precision)
+            self.dbinit=False
             
+    def save(self, like, randompar, simulations, chains=1):
+
+        #try if like is a list of values compare it with save threshold setting
+        try: 
+            if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
+                # Initialize the database if no run was performed so far
+                self._init_database(like, randompar, simulations, chains=1)
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        #If like value is not a iterable, it is assumed to be a float
+        except TypeError: # This is also used if not threshold was set
+            try:
+                if like>self.save_threshold: #Compares float/float
+                    # Initialize the database if no run was performed so far
+                    self._init_database(like, randompar, simulations, chains=1)        
+                    self.datawriter.save(like, randompar, simulations, chains=chains)
+            except TypeError:# float/list would result in an error, because it does not make sense
+                if like[0]>self.save_threshold: #Compares list/float
+                    # Initialize the database if no run was performed so far
+                    self._init_database(like, randompar, simulations, chains=1)        
+                    self.datawriter.save(like, randompar, simulations,
+                                         chains=chains)
+
+    def read_breakdata(self, dbname):
+        ''' Read data from a pickle file if a breakpoint is set.
+            Reason: In case of incomplete optimizations, old data can be restored. '''
+        import pickle
+        with open(dbname+'.break', 'rb') as breakfile:
+            return pickle.load(breakfile)
+
+    def write_breakdata(self, dbname, work):
+        ''' Write data to a pickle file if a breakpoint has been set.'''
+        import pickle
+        with open(str(dbname)+'.break', 'wb') as breakfile:
+            pickle.dump(work, breakfile)
+
     def getdata(self):
         if self.dbformat == 'ram':
             return self.datawriter.data
         if self.dbformat == 'csv':
-            return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)[1:]
+            return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)#[1:]
         if self.dbformat == 'sql':
             return self.datawriter.getdata()
         if self.dbformat == 'noData':
@@ -278,11 +322,9 @@ class _algorithm(object):
         """
         id, params = id_params_tuple
 
-        def model_layer(q,arg):
-            q.put(self.model(arg))
-
-
-
+        def model_layer(q,params):
+            # Call self.model with a namedtuple instead of another sequence
+            q.put(self.model(self.partype(*params)))
 
         que = Queue()
         sim_thread = threading.Thread(target=model_layer, args=(que, params))

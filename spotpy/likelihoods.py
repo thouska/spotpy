@@ -49,19 +49,6 @@ def __standartChecksBeforeStart(data, comparedata):
     if data.__len__() == 0:
         raise LikelihoodError("Data with no content can not be used as a foundation of calculation a likelihood")
 
-def __byteArrayToString(a):
-    """
-    Convert a whole list of bytestrings to a list of strings
-    :param a:
-    :return:
-    """
-    b = []
-    for i in a:
-        try:
-            b.append(i.decode("utf-8"))
-        except:
-            b.append(i)
-    return b
 
 
 class TimeSeries:
@@ -162,8 +149,10 @@ class Stats:
 def logLikelihood(data, comparedata, measerror=None):
     """
     This formula is based on the gaussian likelihood: homo/heteroscedastic data error formula which can be used in both
-    cases if the data has a homo- or heteroscedastic data error. To archive numerical stability a log-transformation was
-    done, which derives following formula:
+    cases if the data has a homo- or heteroscedastic data error. To archive numerical stability a log-transformation was done, 
+    which derives following formula, as shown in formular 8 in: Vrugt 2016 Markov chain Monte Carlo 
+    simulation using the DREAM software package: Theory, concepts, and Matlab implementation, EMS:
+
 
     .. math::
 
@@ -195,7 +184,7 @@ def logLikelihood(data, comparedata, measerror=None):
         measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
 
     # TODO: Maximize is done but in positive way (from negative to zero is hard)
-    return -data.__len__()/2*np.log(2*np.pi) + np.nansum(np.log(measerror)) + 0.5*np.sum(((data-comparedata)/measerror)**2)
+    return -data.__len__()/2*np.log(2*np.pi) - np.nansum(np.log(measerror)) - 0.5*np.sum(((data-comparedata)/measerror)**2)
 
 
 def gaussianLikelihoodMeasErrorOut(data, comparedata):
@@ -324,7 +313,6 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = __byteArrayToString(parameternames)
         randomparset = np.array(randomparset)
         for nm in paramDependencies:
             if nm not in parameternames:
@@ -406,7 +394,6 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = __byteArrayToString(parameternames)
         for nm in paramDependencies:
             if nm not in parameternames:
                 missingparams.append(nm)
@@ -519,7 +506,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     else:
         missingparams=[]
         randomparset, parameternames = params
-        parameternames = np.array(__byteArrayToString(parameternames))
+        parameternames = np.array(parameternames)
         randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
@@ -777,7 +764,6 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = np.array(__byteArrayToString(parameternames))
 
 
         randomparset = np.array(randomparset)
@@ -885,7 +871,6 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
     else:
         missingparams = []
         randomparset, parameternames = params
-        parameternames = np.array(__byteArrayToString(parameternames))
         randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
