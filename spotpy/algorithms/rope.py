@@ -27,10 +27,7 @@ class rope(_algorithm):
     (Bárdossy and Singh, 2008)
 
    '''
-
-    def __init__(self, spot_setup, dbname=None, dbformat=None,
-                 parallel='seq', save_sim=True):
-        """
+    """
         Input
         ----------
         :param spot_setup: class
@@ -70,11 +67,11 @@ class rope(_algorithm):
 
         """
     def __init__(self, spot_setup, dbname=None, dbformat=None,
-                 parallel='seq', save_sim=True, save_threshold=-np.inf):
+                 parallel='seq', save_sim=True, save_threshold=-np.inf,sim_timeout = None):
 
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel,
-                            save_sim=save_sim, save_threshold=save_threshold)
+                            save_sim=save_sim, save_threshold=save_threshold,sim_timeout = sim_timeout)
 
     def create_par(self, min_bound, max_bound):
         return np.random.uniform(low=min_bound, high=max_bound)

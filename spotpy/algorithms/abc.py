@@ -58,11 +58,17 @@ class abc(_algorithm):
         *False: Simulationt results will not be saved
      '''
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf):
+
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True,sim_timeout = None):
+
+        _algorithm.__init__(self, spot_setup, dbname=dbname,
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,)
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf,sim_timeout = None):
 
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel, save_sim=save_sim,
-                           save_threshold=save_threshold)
+                           save_threshold=save_threshold,sim_timeout=sim_timeout)
+
 
     def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, ownlimit=False, limit=24):
         """
