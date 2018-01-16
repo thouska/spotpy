@@ -282,12 +282,12 @@ class sql(database):
         # Apply rounding of floats
         coll = map(self.db_precision, coll)
         try:
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
         except Exception:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
         self.db.commit()
 
