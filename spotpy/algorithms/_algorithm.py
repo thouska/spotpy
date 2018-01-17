@@ -123,6 +123,11 @@ class _algorithm(object):
         * any str: if str is found in spotpy.objectivefunctions, 
             this objectivefunction is used, else falls back to None 
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
+    sim_timeout: float, int or None, default: None
+        the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
+        sim_timeout is not None.
+        If the model run has been broken simlply '[nan]' will be returned.
+
 
     """
 
@@ -175,13 +180,17 @@ class _algorithm(object):
             from spotpy.parallel.sequential import ForEach
         elif parallel == 'mpi':
             from spotpy.parallel.mpi import ForEach
+
+        # MPC is based on pathos mutiprocessing and uses ordered map, so results are given back in the order
+        # as the parameters are
         elif parallel == 'mpc':
-            print('Multiprocessing is in still testing phase and may result in errors')
             from spotpy.parallel.mproc import ForEach
-            #raise NotImplementedError(
-            #    'Sorry, mpc is not available by now. Please use seq or mpi')
+
+        # UMPC is based on pathos mutiprocessing and uses unordered map, so results are given back in the order
+        # as the subprocesses are finished which may speed up the whole simulation process but is not recommended if
+        # objective functions do their calculation based on the order of the data because the order of the result is chaotic
+        # and randomized
         elif parallel == 'umpc':
-            print('Multiprocessing is in still testing phase and may result in errors')
             from spotpy.parallel.umproc import ForEach
         else:
             raise ValueError(
@@ -322,21 +331,32 @@ class _algorithm(object):
         """
         id, params = id_params_tuple
 
+        # we need a layer to fetch returned data from a threaded process into a queue.
         def model_layer(q,params):
             # Call self.model with a namedtuple instead of another sequence
             q.put(self.model(self.partype(*params)))
 
+        # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
+        # incompability which the main thread. Therefor only for older pythion version a workaorund follows
         que = Queue()
         sim_thread = threading.Thread(target=model_layer, args=(que, params))
         sim_thread.daemon = True
         sim_thread.start()
 
+        # If the running python version is 2.* we have only Queue available as a multiprocessing class
+        # we need to stop the whole main process which this sleep for one microsecond otherwise the subprocess is not
+        # finished and the main process can not access it and put it as garbage away (Garbage collectors cause)
+        # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
+        # workaround
         if is_multiprc_queue :
             time.sleep(1.0/1000.0)
 
-        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds
+        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwhise is runs as
+        # long it needs to run
         sim_thread.join(self.sim_timeout)
 
+        # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
+        # '[nan]' otherwise get the result from the thread
         model_result = [np.NAN]
         if not que.empty():
             model_result = que.get()

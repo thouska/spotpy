@@ -20,6 +20,11 @@ class PhaseChange(object):
         self.phase=phase
         
 class ForEach(object):
+    """
+    ForEach is a classes for multiprocessed work based on a generater object which is given if __call__ is called
+    We using the pathos multiprocessing module and the orderd map function where results are saved until results in
+    the given order are caluculated. We yielding back the result so a generator object is created.
+    """
     def __init__(self,process):
         self.size = mp.cpu_count()
         self.process = process
