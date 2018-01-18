@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
+Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Tobias Houska
-This class holds the MonteCarlo (MC) algorithm.
 '''
 
 from __future__ import absolute_import
@@ -17,10 +16,8 @@ class mc(_algorithm):
     '''
     MonteCarlo
 
-    The monte carlo algorithm is so primitive, that giving a reference would
-    be ridiculous. The parameters are just generated from their respective
-    distribution functions without any direction. The approach is also called
-    "brute force".
+    The Monte Carlo algorithm generates random parameters from their respective
+    distribution functions.
     '''
 
     def __init__(self, *args, **kwargs):

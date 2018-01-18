@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
+Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska
-
-This class holds the MarkovChainMonteCarlo (MCMC) algorithm based on Metropolis et al. (1953).
-
-Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H. and Teller, E.: Equation of state calculations by fast computing machines, J. Chem. Phys., 21(6), 1087–1092, 1953.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -22,7 +17,8 @@ import time
 
 class dream(_algorithm):
     '''
-    Implements the MarkovChainMonteCarlo algorithm.
+    Implements the DiffeRential Evolution Adaptive Metropolis (DREAM) algorithhm based on Vrugt (2016):
+    Vrugt, J. A.: Markov chain Monte Carlo simulation using the DREAM software package: Theory, concepts, and MATLAB implementation, Environ. Model. Softw., 75, 273–316, doi:10.1016/j.envsoft.2015.08.013, 2016.
 
     Input
     ----------

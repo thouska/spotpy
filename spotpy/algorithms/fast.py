@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
+Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska and the SALib team
-
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

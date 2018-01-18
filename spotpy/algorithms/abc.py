@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 '''
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Patrick Lauer
-
-This class holds the Artificial Bee Colony(ABC) algorithm, based on Karaboga (2007):
-
-D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.
-
-D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x
 
 '''
 from __future__ import absolute_import
@@ -24,7 +19,9 @@ import itertools
 
 class abc(_algorithm):
     '''
-    Implements the ABC algorithm from Karaboga (2007).
+    This class holds the Artificial Bee Colony(ABC) algorithm, based on Karaboga (2007):
+    D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.
+    D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x
 
     Input
     ----------

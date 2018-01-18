@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Patrick Lauer
-
-This class holds the Fitness Scaled Chaotic Artificial Bee Colony(FSCABC) algorithm, based on Zhang (2011):
-
-Yudong Zhang, Lenan Wu, and Shuihua Wang. “Magnetic Resonance Brain Image Classification by an Improved Artificial Bee Colony Algorithm.” Progress In Electromagnetics Research 116. EMW Publishing: 65–79. 2011
-
-Yudong Zhang, Lenan Wu, and Shuihua Wang. “UCAV Path Planning by Fitness-Scaling Adaptive Chaotic Particle Swarm Optimization.” Mathematical Problems in Engineering 2013. Hindawi Publishing Corporation. 2013
-
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -23,7 +18,9 @@ import random
 
 class fscabc(_algorithm):
     '''
-    Implements the FSCABC algorithm from Zhang (2011).
+    This class holds the Fitness Scaled Chaotic Artificial Bee Colony(FSCABC) algorithm, based on Zhang (2011):
+    Yudong Zhang, Lenan Wu, and Shuihua Wang. “Magnetic Resonance Brain Image Classification by an Improved Artificial Bee Colony Algorithm.” Progress In Electromagnetics Research 116. EMW Publishing: 65–79. 2011
+    Yudong Zhang, Lenan Wu, and Shuihua Wang. “UCAV Path Planning by Fitness-Scaling Adaptive Chaotic Particle Swarm Optimization.” Mathematical Problems in Engineering 2013. Hindawi Publishing Corporation. 2013
 
     Input
     ----------

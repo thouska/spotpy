@@ -1,18 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
+Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska and Stijn Van Hoey
-
-This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, based on Duan (1994):
-
-Duan, Q., Sorooshian, S. and Gupta, V. K.: Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol., 158(3), 265–284, 1994.
-
-Based on Optimization_SCE
-Copyright (c) 2011 Stijn Van Hoey.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -25,8 +17,12 @@ import time
 
 class sceua(_algorithm):
     '''
-    Implements the SCE-UA algorithm from Duan (1994), 
-    converted to python by Van Hoey (2011), restructured and parallelized by Houska et al (2015).
+    This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, based on Duan (1994):
+    Duan, Q., Sorooshian, S. and Gupta, V. K.: Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol., 158(3), 265–284, 1994.
+    Based on Optimization_SCE
+    Copyright (c) 2011 Stijn Van Hoey.
+    Restructured and parallelized by Houska et al (2015):
+    Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE, 10(12), e0145180, 2015
 
     Input
     ----------

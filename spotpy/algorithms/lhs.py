@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
+Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
 :author: Tobias Houska
-
-This class holds the LatinHyperCube algorithm based on McKay et al. (1979):
-
-McKay, M. D., Beckman, R. J. and Conover, W. J.: Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output from a Computer Code, Technometrics, 21(2), 239–245, doi:10.1080/00401706.1979.10489755, 1979.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -21,7 +16,8 @@ import random
 
 class lhs(_algorithm):
     '''
-    Implements the LatinHyperCube algorithm.
+    This class holds the LatinHyperCube algorithm based on McKay et al. (1979):
+    McKay, M. D., Beckman, R. J. and Conover, W. J.: Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output from a Computer Code, Technometrics, 21(2), 239–245, doi:10.1080/00401706.1979.10489755, 1979.
 
     Input
     ----------
