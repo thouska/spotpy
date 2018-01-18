@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright 2015 by Tobias Houska
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
-This class holds the example code from the Rosenbrock tutorial web-documention.
+
+This file holds the example code from the Rosenbrock tutorial web-documention.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -19,45 +21,45 @@ from spotpy.describe import describe
 results=[]
 spot_setup=spot_setup()
 rep=1000
-timeout=10
+timeout=10 #Given in Seconds
 
 parallel = "seq"
 dbformat = "csv"
 
-sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel,   dbname='RosenMC',    dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel, dbname='RosenMC', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel,   dbname='RosenLHS',    dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel, dbname='RosenLHS', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.mle(spot_setup, parallel="seq",  dbname='RosenMLE',   dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.mle(spot_setup, parallel="seq", dbname='RosenMLE', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.mcmc(spot_setup, parallel=parallel, dbname='RosenMCMC',  dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.mcmc(spot_setup, parallel=parallel, dbname='RosenMCMC', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.sceua(spot_setup, parallel=parallel,dbname='RosenSCEUA', dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.sceua(spot_setup, parallel=parallel, dbname='RosenSCEUA', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep,ngs=4)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.sa(spot_setup, parallel=parallel,   dbname='RosenSA',    dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.sa(spot_setup, parallel=parallel, dbname='RosenSA', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.demcz(spot_setup,parallel=parallel,  dbname='RosenDEMCz',  dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.demcz(spot_setup,parallel=parallel, dbname='RosenDEMCz', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep,nChains=4)
 results.append(sampler.getdata())
@@ -75,13 +77,13 @@ sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.fscabc(spot_setup, parallel=parallel,   dbname='RosenMC',  dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.fscabc(spot_setup, parallel=parallel, dbname='RosenMC', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.dream(spot_setup, parallel=parallel,   dbname='RosenMC',  dbformat=dbformat,sim_timeout=timeout)
+sampler=spotpy.algorithms.dream(spot_setup, parallel=parallel, dbname='RosenMC', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())

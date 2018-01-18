@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 
-This class holds the standards for every algorithm.
+This file holds the standards for every algorithm.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -164,7 +163,7 @@ class _algorithm(object):
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
 
-        # If value is not None a timeout will set so that the simulation wikk break after sim_timeout seconds without return a value
+        # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
         self.save_threshold = save_threshold
 
@@ -337,7 +336,7 @@ class _algorithm(object):
             q.put(self.model(self.partype(*params)))
 
         # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
-        # incompability which the main thread. Therefor only for older pythion version a workaorund follows
+        # incompability which the main thread. Therefore only for older Python version a workaround follows
         que = Queue()
         sim_thread = threading.Thread(target=model_layer, args=(que, params))
         sim_thread.daemon = True
@@ -348,10 +347,10 @@ class _algorithm(object):
         # finished and the main process can not access it and put it as garbage away (Garbage collectors cause)
         # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
         # workaround
-        if is_multiprc_queue :
+        if is_multiprc_queue:
             time.sleep(1.0/1000.0)
 
-        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwhise is runs as
+        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
         # long it needs to run
         sim_thread.join(self.sim_timeout)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 Copyright (c) 2018 by Tobias Houska
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 '''
 
@@ -14,14 +14,12 @@ from . import _algorithm
 
 class mc(_algorithm):
     '''
-    MonteCarlo
-
     The Monte Carlo algorithm generates random parameters from their respective
     distribution functions.
     '''
 
     def __init__(self, *args, **kwargs):
-        """
+        '''
         Input
         ----------
         spot_setup: class
@@ -50,7 +48,7 @@ class mc(_algorithm):
         save_sim: boolean
             *True:  Simulation results will be saved
             *False: Simulationt results will not be saved
-        """
+        '''
 
         super(mc, self).__init__(*args, **kwargs)
 

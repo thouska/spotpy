@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 '''
 Copyright (c) 2018 by Tobias Houska
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 '''
-
-
 
 from __future__ import absolute_import
 from __future__ import division
