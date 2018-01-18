@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
@@ -18,7 +19,7 @@ class DEMCZError(Exception):
 
 
 class demcz(_algorithm):
-    '''
+    """
     Implements the DE-MC_Z algorithm from ter Braak and Vrugt (2008).
 
     Implements a variant of DE-MC_Z. The sampler is a multi-chain sampler that
@@ -62,47 +63,49 @@ class demcz(_algorithm):
     THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
     IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-    
-    Input
-    ----------
-    spot_setup: class
-        model: function
-            Should be callable with a parameter combination of the parameter-function
-            and return an list of simulation results (as long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination. Which can
-            be e.g. uniform or Gaussian
-        objectivefunction: function
-            Should return the objectivefunction for a given list of a model simulation and
-            observation.
-        evaluation: function
-            Should return the true values as return by the model.
+    """
 
-    dbname: str
-        * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-
-    dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.
-
-    parallel: str
-        * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
-        * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
-        * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
-
-    save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
-
-    alt_objfun: str or None, default: 'log_p'
-        alternative objectivefunction to be used for algorithm
-        * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions,
-            this objectivefunction is used, else falls back to None
-            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
-     '''
 
     def __init__(self, *args, **kwargs):
+        """
+        Input
+        ----------
+        spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the parameter-function
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can
+                be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model simulation and
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
+    
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+    
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
+    
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+    
+        save_sim: boolean
+            *True:  Simulation results will be saved
+            *False: Simulationt results will not be saved
+    
+        alt_objfun: str or None, default: 'log_p'
+            alternative objectivefunction to be used for algorithm
+            * None: the objfun defined in spot_setup.objectivefunction is used
+            * any str: if str is found in spotpy.objectivefunctions,
+                this objectivefunction is used, else falls back to None
+                e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
+         """
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'log_p'
         super(demcz, self).__init__(*args, **kwargs)

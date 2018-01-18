@@ -1,8 +1,9 @@
-'''
+# -*- coding: utf-8 -*-
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
-'''
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -12,13 +13,13 @@ from . import _algorithm
 
 
 class mc(_algorithm):
-    '''
+    """
     The Monte Carlo algorithm generates random parameters from their respective
     distribution functions.
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
-        '''
+        """
         Input
         ----------
         spot_setup: class
@@ -40,14 +41,15 @@ class mc(_algorithm):
         dbformat: str
             * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
             * csv: A csv file will be created, which you can import afterwards.
+
         parallel: str
             * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
             * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
 
         save_sim: boolean
-            *True:  Simulation results will be saved
-            *False: Simulationt results will not be saved
-        '''
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
+        """
 
         super(mc, self).__init__(*args, **kwargs)
 

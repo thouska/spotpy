@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 """
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python (SPOTPY).
+:author: Philipp Kraft
+
 A collection of helper functions to describe spotpy setups
 
 Usage:
 
 >>> spotpy.describe.sampler(sampler)
 >>> spotpy.describe.setup(model)
-
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
-:author: Philipp Kraft
-
-
 """
+
 import sys
 
 from .parameter import get_parameters_from_setup
@@ -25,8 +22,6 @@ else:
     def _getdoc(obj):
         u = obj.__doc__.decode(encoding='utf-8', errors='ignore')
         return '\n'.join(l.strip() for l in u.split('\n') if l.strip())
-
-
 
 def describe(obj):
     """

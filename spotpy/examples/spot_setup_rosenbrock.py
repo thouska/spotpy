@@ -1,8 +1,9 @@
 '''
 Copyright 2015 by Tobias Houska
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+This file is part of Statistical Parameter Optimization Tool for Python (SPOTPY).
 :author: Tobias Houska
-This example implements the Rosenbrock function into SPOT.  
+
+This example implements the Rosenbrock function into a SPOTPY class.
 '''
 from __future__ import absolute_import
 from __future__ import division

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
@@ -18,48 +19,49 @@ class rope(_algorithm):
     Bárdossy, A. and Singh, S. K.:
     Robust estimation of hydrological model parameters,
     Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
-
-    Input
-    ----------
-    :param spot_setup: class
-        model: function
-            Should be callable with a parameter combination of the
-            parameter-function and return an list of simulation results (as
-            long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination.
-            Which can be e.g. uniform or Gaussian
-        objectivefunction: function
-            Should return the objectivefunction for a given list of a model
-            simulation and observation.
-        evaluation: function
-            Should return the true values as return by the model.
-
-    :param dbname: str
-        * Name of the database where parameter, objectivefunction value and
-        simulation results will be saved.
-
-    :param dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and
-        results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.
-
-    :param parallel: str
-        * seq: Sequentiel sampling (default): Normal iterations on one core
-        of your cpu.
-        * mpc: Multi processing: Iterations on all available cores on your cpu
-        (recommended for windows os).
-        * mpi: Message Passing Interface: Parallel computing on cluster pcs
-        (recommended for unix os).
-
-    :param save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
-'''
+    '''
 
     def __init__(self, spot_setup, dbname=None, dbformat=None,
                  parallel='seq', save_sim=True, save_threshold=-np.inf,sim_timeout = None):
-
+            
+        '''
+        Input
+        ----------
+        :param spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the
+                parameter-function and return an list of simulation results (as
+                long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination.
+                Which can be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model
+                simulation and observation.
+            evaluation: function
+                Should return the true values as return by the model.
+    
+        :param dbname: str
+            * Name of the database where parameter, objectivefunction value and
+            simulation results will be saved.
+    
+        :param dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and
+            results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
+    
+        :param parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core
+            of your cpu.
+            * mpc: Multi processing: Iterations on all available cores on your cpu
+            (recommended for windows os).
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs
+            (recommended for unix os).
+    
+        :param save_sim: boolean
+            *True:  Simulation results will be saved
+            *False: Simulationt results will not be saved
+        '''
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel,
                             save_sim=save_sim, save_threshold=save_threshold,sim_timeout = sim_timeout)
