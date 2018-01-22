@@ -463,9 +463,9 @@ def rsr(evaluation, simulation):
         rsr: RMSE-observations standard deviation ratio 
     """
     if len(evaluation) == len(simulation):
-        rsme_temp = rsme(evaluation, simulation)
+        rmse_temp = rmse(evaluation, simulation)
         std = _standarddeviation(evaluation)
-        rsr = rsme_temp / std
+        rsr = rmse_temp / std
         return rsr
     else:
         logging.warning("evaluation and simulation lists does not have the same length.")
