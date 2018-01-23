@@ -258,8 +258,6 @@ if __name__ == '__main__':
 
     # Print our configuration
     print(spotpy.describe.describe(sampler))
-    # Print the cmf setup
-    print(cmf.describe(model.project))
 
     # Do the sampling
     if runs > 1:
