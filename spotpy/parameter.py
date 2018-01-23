@@ -487,7 +487,7 @@ def create_set(setup, random=False, **kwargs):
     params = get_parameters_array(setup)
 
     # Create the namedtuple from the parameter names
-    partype = get_namedtuple_from_paramnames(type(setup).__name__, params['name'])
+    partype = get_namedtuple_from_paramnames(setup, params['name'])
 
     # Get the values
     if random:
