@@ -39,4 +39,4 @@ from . import likelihoods        # Quantifies goodness of fit between simulation
 from . import examples           # Contains tutorials how to use SPOTPY
 from . import describe           # Contains some helper functions to describe smaplers and setups
 
-__version__ = '1.3.19'
+__version__ = '1.3.20'

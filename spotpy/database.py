@@ -17,7 +17,7 @@ import numpy as np
 import io
 import time
 from itertools import product
-
+import sqlite3
 import sys
 if sys.version_info[0] >= 3:
     unicode = str
@@ -142,31 +142,31 @@ class ram(database):
 
     def save(self, objectivefunction, parameterlist, simulations=None,
              chains=1):
-        self.ram.append(self.dim_dict['like'](objectivefunction) +
+        self.ram.append(tuple(self.dim_dict['like'](objectivefunction) +
                         self.dim_dict['par'](parameterlist) +
                         self.dim_dict['simulation'](simulations) +
-                        [chains])
+                        [chains]))
 
     def finalize(self):
-        #print(self.ram[0:])
+        """
+        Is called in a last step of every algorithm. 
+        Forms the List of values into a strutured numpy array in order to have
+        the same structure as a csv database.
+        """
         dt = {'names': self.header,
                        'formats': [np.float] * len(self.header)}
-
-        #dt = np.dtype({'names': self.header, 'formats': [np.float] * len(self.header)})
-
-        # ignore the first initialization run to reduce the risk of different
-        # objectivefunction mixing
         i = 0
         Y = np.zeros(len(self.ram), dtype=dt)
-        for name in dt["names"]:
-            Y[name] =  np.transpose(self.ram)[i]
+        
+        for line in self.ram:
+            Y[i] = line
             i+=1
-
-
+        
         self.data = Y
 
     def getdata(self):
-        # Expects a finalized database
+        """
+        Returns a finalized database"""
         return self.data
 
 
@@ -223,6 +223,29 @@ class csv(database):
             self.dbname + '.csv', delimiter=',', names=True)[0:]
         return data
 
+
+
+class PickalableSWIG:
+    def __setstate__(self, state):
+        self.__init__(*state['args'])
+    def __getstate__(self):
+        return {'args': self.args}
+
+
+class PickalableSQL3Connect(sqlite3.Connection, PickalableSWIG):
+    def __init__(self, *args,**kwargs):
+        self.args = args
+        sqlite3.Connection.__init__(self,*args,**kwargs)
+
+
+class PickalableSQL3Cursor(sqlite3.Cursor, PickalableSWIG):
+    def __init__(self, *args,**kwargs):
+        self.args = args
+        sqlite3.Cursor.__init__(self,*args,**kwargs)
+
+
+
+
 class sql(database):
 
     """
@@ -231,7 +254,6 @@ class sql(database):
     """
 
     def __init__(self, *args, **kwargs):
-        import sqlite3
         import os
         # init base class
         super(sql, self).__init__(*args, **kwargs)
@@ -240,8 +262,9 @@ class sql(database):
             os.remove(self.dbname + '.db')
         except:
             pass
-        self.db = sqlite3.connect(self.dbname + '.db')
-        self.db_cursor = self.db.cursor()
+
+        self.db = PickalableSQL3Connect(self.dbname + '.db')
+        self.db_cursor = PickalableSQL3Cursor(self.db)
         # Create Table
 #        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
 #                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
@@ -259,12 +282,12 @@ class sql(database):
         # Apply rounding of floats
         coll = map(self.db_precision, coll)
         try:
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
         except Exception:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
         self.db.commit()
 
@@ -272,10 +295,9 @@ class sql(database):
         self.db.close()
 
     def getdata(self):
-        import sqlite3
-        self.db = sqlite3.connect(self.dbname + '.db')
-        self.db_cursor = self.db.cursor()
-        back = [row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)]
+        self.db = PickalableSQL3Connect(self.dbname + '.db')
+        self.db_cursor = PickalableSQL3Cursor(self.db)
+        back = np.array([row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)])
         self.db.close()
         return back
         

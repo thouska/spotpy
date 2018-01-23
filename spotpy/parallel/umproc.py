@@ -1,9 +1,9 @@
 '''
-Copyright (c) 2015 by Tobias Houska
+Copyright (c) 2018 by Tobias Houska
 
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
-:author: Philipp Kraft
+:author: Benjamin Manns
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -22,8 +22,8 @@ class PhaseChange(object):
 class ForEach(object):
     """
     ForEach is a classes for multiprocessed work based on a generater object which is given if __call__ is called
-    We using the pathos multiprocessing module and the orderd map function where results are saved until results in
-    the given order are caluculated. We yielding back the result so a generator object is created.
+    We using the pathos multiprocessing module and the unordered map function where results are yield back while some
+    processes are still running.
     """
     def __init__(self,process):
         self.size = mp.cpu_count()
@@ -38,7 +38,6 @@ class ForEach(object):
 
     def start(self):
         pass
-
     def setphase(self,phasename):
         self.phase=phasename
 
@@ -48,6 +47,8 @@ class ForEach(object):
         return data
 
     def __call__(self,jobs):
-        results = self.pool.imap(self.f, jobs)
+        results = self.pool.uimap(self.f, jobs)
         for i in results:
             yield i
+
+
