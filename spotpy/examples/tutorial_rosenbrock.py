@@ -38,7 +38,7 @@ sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.mle(spot_setup, parallel="seq", dbname='RosenMLE', dbformat=dbformat, sim_timeout=timeout)
+sampler=spotpy.algorithms.mle(spot_setup, parallel=parallel, dbname='RosenMLE', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
