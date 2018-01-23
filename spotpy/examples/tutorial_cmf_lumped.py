@@ -16,10 +16,35 @@ import os
 
 # noinspection PyPackageRequirements
 import numpy as np
+# Make sure we do not get pestered with divede by zero errors
 np.seterr(all='ignore')
 
+def parallel():
+    """
+    Returns 'mpi', if this code runs with MPI, else returns 'seq'
+    :return:
+    """
+    return 'mpi' if 'OMPI_COMM_WORLD_SIZE' in os.environ else 'seq'
 
-class DataProvider:
+def get_runs(default=1):
+    """
+    Returns the number of runs, given by commandline or variable
+    :param default: Return this if no other source for number of runs has been found
+    :return: int
+    """
+    # Get number of runs
+    if 'SPOTPYRUNS' in os.environ:
+        # from environment
+        return int(os.environ['SPOTPYRUNS'])
+    elif len(sys.argv) > 1:
+        # from command line
+        return int(sys.argv[1])
+    else:
+        # run once
+        return default
+
+
+class DataProvider(object):
     """
     Holds the forcing and calibration data
     """
@@ -50,6 +75,7 @@ class DataProvider:
 
 
     def runoff_mm(self, area):
+        """Calculates the runoff in mm from the data"""
         sec_per_day = 86400
         mm_per_m = 1000
         return self.Q * sec_per_day / area * mm_per_m
@@ -78,7 +104,7 @@ class DataProvider:
 
 
 # noinspection PyMethodMayBeStatic
-class SingleStorage:
+class SingleStorage(object):
     """
     A simple hydrological single storage model.
     No snow, interception  or routing.
@@ -96,6 +122,8 @@ class SingleStorage:
     tr = Uniform(0.1, 1000, doc='Residence time of water in storage when V=V0')
     Vr = Uniform(0, 1, 0.0, doc='Residual water in storage in terms of V0')
     beta = Uniform(0.3, 5, 1, doc='Exponent in kinematic wave function')
+
+    max_run_minutes = 5
 
     def __init__(self, begin=None, end=None):
         """
@@ -164,12 +192,13 @@ class SingleStorage:
         """
         Runs the model and saves the results
         """
-        solver = cmf.ImplicitEuler(self.project, 1e-9)
+        solver = cmf.CVodeIntegrator(self.project, 1e-9)
         c = self.project[0]
 
         # result timeseries
         res_q = cmf.timeseries(self.begin, cmf.day)
 
+        tstart = datetime.datetime.now()
         # start solver and calculate in daily steps
         for t in solver.run(self.data.begin, self.end, cmf.day):
             # append results
@@ -177,6 +206,11 @@ class SingleStorage:
             # Give the status the screen to let us know what is going on
             if verbose:
                 print(t, 'P={:5.3f}'.format(c.get_rainfall(t)))
+            if datetime.datetime.now() - tstart > datetime.timedelta(minutes=self.max_run_minutes):
+                print('Cancelled, since it took more than {} minutes'.format(self.max_run_minutes))
+                for t in cmf.timerange(solver.t, self.end, cmf.day):
+                    res_q.add(np.nan)
+
 
         return res_q
 
@@ -201,7 +235,7 @@ class SingleStorage:
         Returns the evaluation data
         """
         runoff_mm = self.data.runoff_mm(self.area)
-        return np.array(runoff_mm[self.begin:self.end + datetime.timedelta(days=1)])
+        return np.array(runoff_mm[self.begin:self.end])
 
 
 # http://stackoverflow.com/questions/419163/what-does-if-name-main-do
@@ -210,37 +244,28 @@ if __name__ == '__main__':
     # Get the Monte-Carlo sampler
     from spotpy.algorithms import mc as Sampler
 
-    # Check if we are running on a supercomputer or local
-    parallel = 'mpi' if 'OMPI_COMM_WORLD_SIZE' in os.environ else 'seq'
 
     # Create the model
     model = SingleStorage(datetime.datetime(1980, 1, 1),
                           datetime.datetime(1985, 12, 31))
 
-    # Get number of runs
-    if 'SPOTPYRUNS' in os.environ:
-        # from environment
-        runs = int(os.environ['SPOTPYRUNS'])
-    elif len(sys.argv) > 1:
-        # from command line
-        runs = int(sys.argv[1])
-    else:
-        # run once
-        runs = 1
-
+    runs = get_runs(default=1)
     # Create the sampler
-    sampler = Sampler(model, parallel=parallel, dbname=model.dbname, dbformat='csv', save_sim=True)
+    sampler = Sampler(model,
+                      parallel=parallel(),
+                      dbname=model.dbname, dbformat='csv',
+                      save_sim=True)
 
     # Print our configuration
     print(spotpy.describe.describe(sampler))
-    # Print the cmf setup
-    print(cmf.describe(model.project))
 
     # Do the sampling
     if runs > 1:
-        # Now we can sample with the implemented Monte Carlo algortihm:
+        # Now we can sample with the implemented Monte Carlo algorithm:
         sampler.sample(runs)
+
     else:
+
         result = model.simulation(verbose=True)
         for name, value in spotpy.objectivefunctions.calculate_all_functions(model.evaluation(), result):
             try:

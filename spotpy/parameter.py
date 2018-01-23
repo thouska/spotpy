@@ -197,9 +197,8 @@ class List(Base):
             try:
                 return next(self.iterator)
             except StopIteration:
-                text = 'Error: Number of repetitions is higher than the number of available parameter sets'
-                print(text)
-                raise
+                text = 'Number of repetitions is higher than the number of available parameter sets'
+                raise IndexError(text)
 
     def astuple(self):
         return self(), self.name, 0, 0, 0, 0
