@@ -4,7 +4,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
-This example implements the Rosenbrock function into SPOT.  
+This example implements the Standard Normal function into SPOT.  
 '''
 from __future__ import absolute_import
 from __future__ import division
