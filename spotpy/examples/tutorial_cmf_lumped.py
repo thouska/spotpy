@@ -44,7 +44,7 @@ def get_runs(default=1):
         return default
 
 
-class DataProvider:
+class DataProvider(object):
     """
     Holds the forcing and calibration data
     """
@@ -104,7 +104,7 @@ class DataProvider:
 
 
 # noinspection PyMethodMayBeStatic
-class SingleStorage:
+class SingleStorage(object):
     """
     A simple hydrological single storage model.
     No snow, interception  or routing.
