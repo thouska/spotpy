@@ -19,8 +19,7 @@ class dream(_algorithm):
     """
     Implements the DiffeRential Evolution Adaptive Metropolis (DREAM) algorithhm 
     based on:
-    Vrugt, J. A. (2016) Markov chain Monte Carlo simulation using the DREAM software package,
-    Environ. Model. Softw., 75, 273–316, doi:10.1016/j.envsoft.2015.08.013, 2016.
+    Vrugt, J. A. (2016) Markov chain Monte Carlo simulation using the DREAM software package.
     """
 
     def __init__(self, *args, **kwargs):
