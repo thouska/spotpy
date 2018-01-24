@@ -16,9 +16,8 @@ install:
 
 script:
   - coverage run --source=spotpy spotpy/examples/tutorial_rosenbrock.py
-  - python spotpy/examples/tutorial_rosenbrock.py
-  - python spotpy/unittests/test_database.py
-  - python spotpy/unittests/test_signatures.py
+  - coverage run --source=spotpy spotpy/unittests/test_database.py
+  - coverage run --source=spotpy spotpy/unittests/test_signatures.py
   
   
 after_success:
