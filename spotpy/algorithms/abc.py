@@ -189,8 +189,13 @@ class abc(_algorithm):
                         break
                 j = random.randint(0, (self.nopt - 1))
             # Generate new input parameters
-                work[i][3][j] = work[z][1][j] + \
-                    random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
+                try:
+                    work[i][3][j] = work[z][1][j] + \
+                        random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
+                except UnboundLocalError:
+                    z=0
+                    work[i][3][j] = work[z][1][j] + \
+                        random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
                 if work[i][3][j] < lb[j]:
                     work[i][3][j] = lb[j]
                 if work[i][3][j] > ub[j]:
