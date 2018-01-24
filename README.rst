@@ -4,6 +4,9 @@
   :target: https://travis-ci.org/thouska/spotpy
 .. image:: https://img.shields.io/badge/license-MIT-blue.png
   :target: http://opensource.org/licenses/MIT
+.. image:: https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master
+:target: https://coveralls.io/github/thouska/spotpy?branch=master
+
 
 
 Purpose
