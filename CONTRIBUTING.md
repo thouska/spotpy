@@ -76,14 +76,7 @@ We recommended that your contribution complies with the following guidelines bef
 
 *  Please prefix the title of incomplete contributions with `[WIP]` (to indicate a work in progress). WIPs may be useful to (1) indicate you are working on something to avoid duplicated work, (2) request broad review of functionality or API, or (3) seek collaborators.
 
-*  All other tests pass when everything is rebuilt from scratch.  See
-[Developing in Docker](#Developing-in-Docker) for information on running the test suite locally.
-
 *  When adding additional functionality, you may want to provide at least one example script in the ``spotpy/examples/`` folder. Have a look at other examples for reference. Examples should demonstrate why the new functionality is useful in practice and, if possible, compare it to other methods available in SPOTPY.
-
-* Documentation and high-coverage tests are necessary for enhancements to be accepted.
-
-* Run any of the pre-existing examples in ``docs/source/notebooks`` that contain analyses that would be affected by your changes to ensure that nothing breaks. This is a useful opportunity to not only check your work for bugs that might not be revealed by unit test, but also to show how your contribution improves SPOTPY for end users.
 
 You can also check for common programming errors with the following
 tools:
