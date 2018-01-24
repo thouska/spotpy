@@ -2,7 +2,7 @@
 '''
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
-:author: Tobias Houska
+:author: Tobias Houska and Motjaba Sadegh
 '''
 
 from __future__ import absolute_import
@@ -19,8 +19,8 @@ class dream(_algorithm):
     """
     Implements the DiffeRential Evolution Adaptive Metropolis (DREAM) algorithhm 
     based on:
-    Vrugt, J. A. (2016) Markov chain Monte Carlo simulation using the DREAM software package
-    
+    Vrugt, J. A. (2016) Markov chain Monte Carlo simulation using the DREAM software package,
+    Environ. Model. Softw., 75, 273–316, doi:10.1016/j.envsoft.2015.08.013, 2016.
     """
 
     def __init__(self, *args, **kwargs):
