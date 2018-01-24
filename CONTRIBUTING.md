@@ -11,7 +11,7 @@ There are 4 main ways of contributing to the SPOTPY project (in descending order
 
 # Opening issues
 
-We appreciate being notified of problems with the existing SPOTPY code. We prefer that issues be filed the on [Gitub Issue Tracker](https://github.com/thouska/spotpy/issues), rather than on social media or by direct email to the developers.
+We appreciate being notified of problems with the existing SPOTPY code. We prefer that issues be filed the on [GitHub Issue Tracker](https://github.com/thouska/spotpy/issues), rather than on social media or by direct email to the developers.
 
 Please verify that your issue is not being currently addressed by other issues or pull requests by using the GitHub search tool to look for key words in the project issue tracker.
 
