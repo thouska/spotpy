@@ -15,10 +15,11 @@ install:
 # command to run tests
 
 script:
-  - coverage run --source=spotpy spotpy/examples/tutorial_rosenbrock.py
-  - coverage run --source=spotpy spotpy/unittests/test_database.py
-  - coverage run --source=spotpy spotpy/unittests/test_signatures.py
+  - coverage run spotpy/examples/tutorial_rosenbrock.py
+  - python spotpy spotpy/unittests/test_database.py
+  - python spotpy/unittests/test_signatures.py
   
   
 after_success:
 - coveralls
+- coverage report -m
