@@ -7,6 +7,7 @@ A Statistical Parameter Optimization Tool for Python
 [![Python Versions][pypi-pyv-image]][pypi-pyv-link]
 [![Build Status][travis-image]][travis-link]
 [![License][license-image]][license-link]
+[![Coverage Status][coverage-image][coverage-link]
 
 [pypi-v-image]: https://img.shields.io/pypi/v/spotpy.png
 [pypi-v-link]: https://pypi.python.org/pypi/spotpy
@@ -16,6 +17,8 @@ A Statistical Parameter Optimization Tool for Python
 [travis-link]: https://travis-ci.org/thouska/spotpy
 [license-image]: https://img.shields.io/badge/license-MIT-blue.png
 [license-link]: http://opensource.org/licenses/MIT
+[coverage-image]: https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master
+[coverage-link]: https://coveralls.io/github/thouska/spotpy?branch=master
 
 
 
