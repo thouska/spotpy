@@ -10,6 +10,7 @@ install:
   #- pip install pandas
   - python setup.py install
   - pip install coveralls
+  - pip install numpy
   #- pip install matplotlib
   #- travis_wait pip install scipy
 # command to run tests
