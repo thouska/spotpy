@@ -21,7 +21,7 @@ While issue reporting is valuable, we strongly encourage users who are inclined 
 
 Contributors are also encouraged to contribute new code to enhance SPOTPY's functionality, also via pull requests. Please consult the [SPOTPY documentation](http://fb09-pasig.umwelt.uni-giessen.de/spotpy/) to ensure that any new contribution does not strongly overlap with existing functionality.
 
-The preferred workflow for contributing to SPOTPY is to fork the [GitHUb repository](https://github.com/thouska/spotpy/), clone it to your local machine, and develop on a feature branch.
+The preferred workflow for contributing to SPOTPY is to fork the [GitHub repository](https://github.com/thouska/spotpy/), clone it to your local machine, and develop on a feature branch.
 
 ## Steps:
 
