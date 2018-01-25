@@ -124,7 +124,7 @@ class TestLikelihood(unittest.TestCase):
 
     def test_InverseErrorVarianceShapingFactor(self):
         l = spotpy.likelihoods.InverseErrorVarianceShapingFactor(self.data, self.comparedata)
-        self.assertGreaterEqual(-30000, l)
+        self.assertGreaterEqual(-20000, l)
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l))
