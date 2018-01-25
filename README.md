@@ -16,7 +16,7 @@ A Statistical Parameter Optimization Tool for Python
 [travis-link]: https://travis-ci.org/thouska/spotpy
 [license-image]: https://img.shields.io/badge/license-MIT-blue.png
 [license-link]: http://opensource.org/licenses/MIT
-
+[![Coverage Status](https://coveralls.io/repos/github/bees4ever/spotpy/badge.svg?branch=master)](https://coveralls.io/github/bees4ever/spotpy?branch=master)
 
 
 Purpose
