@@ -72,6 +72,29 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.correlationcoefficient(self.evaluation, -0.5*self.evaluation)
         self.assertAlmostEqual(res, -1, self.tolerance)
 
+    def test_rsquared_random(self):
+        res = of.rsquared(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, 0.012212676098496588, self.tolerance)
+
+    def test_rsquared_perfect_corr(self):
+        res = of.rsquared(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.rsquared(self.evaluation, 2*self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.rsquared(self.evaluation, 0.5*self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.rsquared(self.evaluation, -self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.rsquared(self.evaluation, -2*self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.rsquared(self.evaluation, -0.5*self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
     def test_length_mismatch_return_nan(self):
         all_funcs = of._all_functions
 
