@@ -26,5 +26,5 @@ script:
 
 
 after_success:
-- coveralls
 - coverage report -m --omit=*.csv,*examples*
+- coveralls

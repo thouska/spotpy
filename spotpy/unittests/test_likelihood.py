@@ -19,7 +19,7 @@ import unittest
 class TestLikelihood(unittest.TestCase):
     def setUp(self):
         self.data, self.comparedata = np.random.normal(1500, 2530, 20), np.random.normal(15, 25, 20)
-        self.do_print = False
+        self.do_print = True
 
     def test_logLikelihood(self):
         l = spotpy.likelihoods.logLikelihood(self.data, self.comparedata)

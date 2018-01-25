@@ -1,7 +1,6 @@
 [run]
 source =
     spotpy
-    spotpy/unittest/test_likelihood.py
 omit =
     */python?.?/*
     */lib-python/?.?/*.py
