@@ -26,6 +26,15 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.nashsutcliffe(self.evaluation, self.simulation)
         self.assertAlmostEqual(res, -4.1162070769985508, self.tolerance)
 
+    def test_lognashsutcliffe(self):
+        # Since log is invalid for negative numbers:
+        res = of.lognashsutcliffe(self.evaluation + 3, self.simulation + 3)
+        self.assertAlmostEqual(res, -2.3300973555530344, self.tolerance)
+
+    def test_lognashsutcliffe_invalid_obs(self):
+        res = of.lognashsutcliffe(self.evaluation, self.simulation)
+        self.assertTrue(np.isnan(res))
+
     def test_length_mismatch_return_nan(self):
         all_funcs = of._all_functions
 
