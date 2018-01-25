@@ -167,6 +167,22 @@ class TestObjectiveFunctions(unittest.TestCase):
         for exp, actual in zip(expected, res):
             self.assertAlmostEqual(actual, exp, self.tolerance)
 
+    def test_rsr(self):
+        res = of.rsr(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, 2.2619034190253462, self.tolerance)
+
+    def test_rsr_with_self_is_zero(self):
+        res = of.rsr(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 0, self.tolerance)
+
+    def test_volume_error(self):
+        res = of.volume_error(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -1.5666937901878677, self.tolerance)
+
+    def test_volume_error_with_self_is_zero(self):
+        res = of.volume_error(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 0, self.tolerance)
+
     def test_length_mismatch_return_nan(self):
         all_funcs = of._all_functions
 
