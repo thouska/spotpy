@@ -19,7 +19,7 @@ script:
   - coverage run spotpy/examples/tutorial_rosenbrock.py
 #  - python spotpy spotpy/unittests/test_database.py
   - python spotpy/unittests/test_signatures.py
-  - coverage run spotpy/examples/tutorial_likelihood.py
+  - python spotpy/unittests/test_likelihood.py
 
 
 after_success:
