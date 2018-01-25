@@ -7,7 +7,7 @@ import numpy as np
 class TestObjectiveFunctions(unittest.TestCase):
 
     # How many digits to match in case of floating point answers
-    tolerance = 10
+    tolerance = 7
 
     def setUp(self):
         np.random.seed(42)
@@ -34,6 +34,43 @@ class TestObjectiveFunctions(unittest.TestCase):
     def test_lognashsutcliffe_invalid_obs(self):
         res = of.lognashsutcliffe(self.evaluation, self.simulation)
         self.assertTrue(np.isnan(res))
+
+    def test_log_p_with_default_scale(self):
+        """If the mean of the evaluation function is <0.01, it gets reset to 0.01
+        """
+        res = of.log_p(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -13135.8578574, self.tolerance)
+
+    def test_log_p(self):
+        # np.mean(evaluation) = -0.79065823458241402
+        # np.mean(evaluation + 3) = 2.209341765417586
+        # scale should be ~0.22 in this scenario
+        res = of.log_p(self.evaluation + 3, self.simulation + 3)
+        self.assertAlmostEqual(res, -27.8282293618210, self.tolerance)
+
+    def test_correlationcoefficient_random(self):
+        res = of.correlationcoefficient(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -0.110510977276, self.tolerance)
+
+    def test_correlationcoefficient_perfect_positive(self):
+        res = of.correlationcoefficient(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.correlationcoefficient(self.evaluation, 2*self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+        res = of.correlationcoefficient(self.evaluation, 0.5*self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+    def test_correlationcoefficient_perfect_negative(self):
+        res = of.correlationcoefficient(self.evaluation, -self.evaluation)
+        self.assertAlmostEqual(res, -1, self.tolerance)
+
+        res = of.correlationcoefficient(self.evaluation, -2*self.evaluation)
+        self.assertAlmostEqual(res, -1, self.tolerance)
+
+        res = of.correlationcoefficient(self.evaluation, -0.5*self.evaluation)
+        self.assertAlmostEqual(res, -1, self.tolerance)
 
     def test_length_mismatch_return_nan(self):
         all_funcs = of._all_functions
