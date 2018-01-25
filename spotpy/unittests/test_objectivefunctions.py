@@ -31,7 +31,7 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.lognashsutcliffe(self.evaluation + 3, self.simulation + 3)
         self.assertAlmostEqual(res, -2.3300973555530344, self.tolerance)
 
-    def test_lognashsutcliffe_invalid_obs(self):
+    def test_lognashsutcliffe_for_invalid_obs_is_nan(self):
         res = of.lognashsutcliffe(self.evaluation, self.simulation)
         self.assertTrue(np.isnan(res))
 
@@ -52,7 +52,7 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.correlationcoefficient(self.evaluation, self.simulation)
         self.assertAlmostEqual(res, -0.110510977276, self.tolerance)
 
-    def test_correlationcoefficient_perfect_positive(self):
+    def test_correlationcoefficient_for_perfect_positive_is_one(self):
         res = of.correlationcoefficient(self.evaluation, self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
@@ -62,7 +62,7 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.correlationcoefficient(self.evaluation, 0.5*self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-    def test_correlationcoefficient_perfect_negative(self):
+    def test_correlationcoefficient_for_perfect_negative_is_minus_one(self):
         res = of.correlationcoefficient(self.evaluation, -self.evaluation)
         self.assertAlmostEqual(res, -1, self.tolerance)
 
@@ -76,7 +76,8 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.rsquared(self.evaluation, self.simulation)
         self.assertAlmostEqual(res, 0.012212676098496588, self.tolerance)
 
-    def test_rsquared_perfect_corr(self):
+    def test_rsquared_perfect_corr_is_1(self):
+        """rsquared for perfect correlation should be 1"""
         res = of.rsquared(self.evaluation, self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
@@ -94,6 +95,45 @@ class TestObjectiveFunctions(unittest.TestCase):
 
         res = of.rsquared(self.evaluation, -0.5*self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
+
+    def test_mse(self):
+        res = of.mse(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, 2.6269877837804119, self.tolerance)
+
+    def test_mse_with_self_is_zero(self):
+        res = of.mse(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 0.0, self.tolerance)
+
+    def test_rmse(self):
+        res = of.rmse(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, 1.6207985019059006, self.tolerance)
+
+    def test_rmse_with_self_is_zero(self):
+        res = of.rmse(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 0.0, self.tolerance)
+
+    def test_mae(self):
+        res = of.mae(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, 1.2387193462811703, self.tolerance)
+
+    def test_mae_with_self_is_zero(self):
+        res = of.mae(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 0.0, self.tolerance)
+
+    def test_rrmse(self):
+        res = of.rrmse(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -2.0499356498347545, self.tolerance)
+
+    def test_rrmse_with_self_is_zero(self):
+        res = of.rrmse(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 0.0, self.tolerance)
+
+    def test_rrmse_with_obs_mean_zero_is_nan(self):
+        """FIXME: Currently failing because rrmse returns np.inf"""
+        evaluation = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
+        res = of.rrmse(evaluation, self.simulation)
+        print(res)
+        self.assertTrue(np.isnan(res))
 
     def test_length_mismatch_return_nan(self):
         all_funcs = of._all_functions
