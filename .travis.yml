@@ -9,11 +9,18 @@ python:
 install:
   #- pip install pandas
   - python setup.py install
+  - pip install coveralls
+  - pip install numpy
   #- pip install matplotlib
   #- travis_wait pip install scipy
 # command to run tests
 
 script:
-  - python spotpy/examples/tutorial_rosenbrock.py
-  - python spotpy/unittests/test_database.py
+  - coverage run spotpy/examples/tutorial_rosenbrock.py
+#  - python spotpy spotpy/unittests/test_database.py
   - python spotpy/unittests/test_signatures.py
+
+
+after_success:
+- coveralls
+- coverage report -m
