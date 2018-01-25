@@ -129,11 +129,43 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.assertAlmostEqual(res, 0.0, self.tolerance)
 
     def test_rrmse_with_obs_mean_zero_is_nan(self):
-        """FIXME: Currently failing because rrmse returns np.inf"""
+        #FIXME: Currently failing because rrmse returns np.inf
         evaluation = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
         res = of.rrmse(evaluation, self.simulation)
         print(res)
         self.assertTrue(np.isnan(res))
+
+    def test_agreementindex(self):
+        res = of.agreementindex(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, 0.37658318531841217, self.tolerance)
+
+    def test_agreementindex_with_self_is_one(self):
+        res = of.agreementindex(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+    def test_covariance(self):
+        res = of.covariance(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -0.054315645705219948, self.tolerance)
+
+    def test_covariance_with_self_is_variance(self):
+        res = of.covariance(self.evaluation, self.evaluation)
+        self.assertAlmostEqual(res, np.var(self.evaluation), self.tolerance)
+
+    def test_decomposed_mse(self):
+        #FIXME: Currently failing because decomposed_mse returns a string
+        res = of.decomposed_mse(self.evaluation, self.simulation)
+        print(res)
+        self.assertAlmostEqual(res, 0, self.tolerance)
+
+    def test_kge(self):
+        res = of.kge(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -0.92083174734809159, self.tolerance)
+
+    def test_kge_return_all(self):
+        expected = (-0.92083174734809159, -0.1105109772757096, 0.95721520413458061, -0.56669379018786747)
+        res = of.kge(self.evaluation, self.simulation, return_all=True)
+        for exp, actual in zip(expected, res):
+            self.assertAlmostEqual(actual, exp, self.tolerance)
 
     def test_length_mismatch_return_nan(self):
         all_funcs = of._all_functions
