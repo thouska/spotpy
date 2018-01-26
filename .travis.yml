@@ -19,8 +19,8 @@ script:
   - coverage run spotpy/examples/tutorial_rosenbrock.py
 #  - python spotpy spotpy/unittests/test_database.py
   - python spotpy/unittests/test_signatures.py
-  
-  
+  - python spotpy/unittests/test_objectivefunctions.py
+
 after_success:
 - coveralls
 - coverage report -m
