@@ -9,7 +9,6 @@ __pycache__/
 #other files
 *.out
 *.in
-*.csv
 docs/*
 
 # Distribution / packaging
