@@ -16,7 +16,7 @@ class TestObjectiveFunctions(unittest.TestCase):
 
     def test_bias(self):
         res = of.bias(self.evaluation, self.simulation)
-        self.assertAlmostEqual(res, 1.2387193462811703, self.tolerance)
+        self.assertAlmostEqual(res, -1.2387193462811703, self.tolerance)
 
     def test_pbias(self):
         res = of.pbias(self.evaluation, self.simulation)
@@ -152,10 +152,8 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.assertAlmostEqual(res, np.var(self.evaluation), self.tolerance)
 
     def test_decomposed_mse(self):
-        #FIXME: Currently failing because decomposed_mse returns a string
         res = of.decomposed_mse(self.evaluation, self.simulation)
-        print(res)
-        self.assertAlmostEqual(res, 0, self.tolerance)
+        self.assertAlmostEqual(res, 2.6269877837804119, self.tolerance)
 
     def test_kge(self):
         res = of.kge(self.evaluation, self.simulation)

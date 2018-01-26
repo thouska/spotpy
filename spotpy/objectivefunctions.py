@@ -33,11 +33,8 @@ def bias(evaluation, simulation):
     :rtype: float
     """
     if len(evaluation) == len(simulation):
-        bias_values = []
-        for i in range(len(evaluation)):
-            bias_values.append(float(evaluation[i]) - float(simulation[i]))
-        bias_sum = np.sum(bias_values[0:len(bias_values)])
-        bias = bias_sum / len(bias_values)
+        obs, sim = np.array(evaluation), np.array(simulation)
+        bias = np.sum(obs - sim) / len(obs)
         return float(bias)
 
     else:
@@ -406,12 +403,16 @@ def decomposed_mse(evaluation, simulation):
     """
 
     if len(evaluation) == len(simulation):
+        e_std = np.std(evaluation)
+        s_std = np.std(simulation)
 
-        Decomposed_MSE = str(round((bias(evaluation, simulation))**2, 2)) + '(bias**2) + ' + str(round((_standarddeviation(evaluation) - _standarddeviation(simulation))**2, 2)) + \
-            '(SDSD) + ' + str(round(2 * _standarddeviation(evaluation) * _standarddeviation(
-                simulation) * (1 - correlationcoefficient(evaluation, simulation)), 2)) + '(LCS)'
+        bias_squared = bias(evaluation, simulation)**2
+        sdsd = (e_std - s_std)**2
+        lcs = 2 * e_std * s_std * (1 - correlationcoefficient(evaluation, simulation))
 
-        return Decomposed_MSE
+        decomposed_mse = bias_squared + sdsd + lcs
+
+        return decomposed_mse
     else:
         logging.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
