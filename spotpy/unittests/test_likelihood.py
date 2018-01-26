@@ -109,7 +109,8 @@ class TestLikelihood(unittest.TestCase):
 
     def test_ABCBoxcarLikelihood(self):
         l = spotpy.likelihoods.ABCBoxcarLikelihood(self.data, self.comparedata)
-        self.assertGreaterEqual(-50, l)
+        self.assertNotEqual(None, l)
+        self.assertNotEqual(np.nan, l)
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("ABCBoxcarLikelihood: " + str(l))
