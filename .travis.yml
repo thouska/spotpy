@@ -17,15 +17,10 @@ install:
 
 script:
   - coverage run spotpy/examples/tutorial_rosenbrock.py
-  - coverage run spotpy/unittests/test_likelihood.py
-  - coverage run spotpy/unittests/test_signatures.py
-  - coverage run spotpy/unittests/test_database.py
 #  - python spotpy spotpy/unittests/test_database.py
   - python spotpy/unittests/test_signatures.py
-  - python spotpy/unittests/test_likelihood.py
-
-
+  
+  
 after_success:
 - coveralls
-#- coverage report -m --omit=*.csv,*examples*
 - coverage report -m

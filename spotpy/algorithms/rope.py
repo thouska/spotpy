@@ -153,9 +153,9 @@ class rope(_algorithm):
         segment = 1 / float(first_run)
         # Get the minimum and maximum value for each parameter from the
 
-        # Create an matrx to store the parameter sets
+        # Create a matrix to store the parameter sets
         matrix = np.empty((first_run, len(parmin)))
-        # Create the LatinHypercube matrx as in McKay et al. (1979):
+        # Create the LatinHypercube matrix as in McKay et al. (1979):
         for i in range(int(first_run)):
             segmentMin = i * segment
             pointInSegment = segmentMin + (random.random() * segment)

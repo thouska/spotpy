@@ -11,9 +11,8 @@ Usage:
 >>> spotpy.describe.sampler(sampler)
 >>> spotpy.describe.setup(model)
 """
-
+from __future__ import division, absolute_import, unicode_literals
 import sys
-
 from .parameter import get_parameters_from_setup
 if sys.version_info[0] >= 3:
     from inspect import getdoc as _getdoc

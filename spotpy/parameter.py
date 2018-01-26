@@ -197,9 +197,8 @@ class List(Base):
             try:
                 return next(self.iterator)
             except StopIteration:
-                text = 'Error: Number of repetitions is higher than the number of available parameter sets'
-                print(text)
-                raise
+                text = 'Number of repetitions is higher than the number of available parameter sets'
+                raise IndexError(text)
 
     def astuple(self):
         return self(), self.name, 0, 0, 0, 0
@@ -488,7 +487,7 @@ def create_set(setup, random=False, **kwargs):
     params = get_parameters_array(setup)
 
     # Create the namedtuple from the parameter names
-    partype = get_namedtuple_from_paramnames(type(setup).__name__, params['name'])
+    partype = get_namedtuple_from_paramnames(setup, params['name'])
 
     # Get the values
     if random:
