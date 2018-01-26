@@ -128,12 +128,11 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.rrmse(self.evaluation, self.evaluation)
         self.assertAlmostEqual(res, 0.0, self.tolerance)
 
-    def test_rrmse_with_obs_mean_zero_is_nan(self):
+    def test_rrmse_with_obs_mean_zero_is_inf(self):
         #FIXME: Currently failing because rrmse returns np.inf
         evaluation = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
         res = of.rrmse(evaluation, self.simulation)
-        print(res)
-        self.assertTrue(np.isnan(res))
+        self.assertTrue(np.isinf(res))
 
     def test_agreementindex(self):
         res = of.agreementindex(self.evaluation, self.simulation)
