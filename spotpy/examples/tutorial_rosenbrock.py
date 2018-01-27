@@ -83,7 +83,7 @@ sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.demcz(spot_setup, parallel=parallel, dbname='RosenDREAM', dbformat=dbformat, sim_timeout=timeout)
+sampler=spotpy.algorithms.demcz(spot_setup, parallel=parallel, dbname='RosenDEMCZ', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
@@ -99,5 +99,5 @@ print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
 evaluation = spot_setup.evaluation()
 
 # Example how to plot the data
-#algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc','dream']
-#spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y'])
+algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc', 'demcz', 'dream']
+spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y'])
