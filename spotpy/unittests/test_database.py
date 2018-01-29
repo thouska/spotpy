@@ -1,4 +1,13 @@
 import unittest
+
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append("../../")
+    sys.path.append("../../spotpy")
+    sys.path.append(".")
+    import spotpy
 import spotpy.database as db
 import numpy as np
 

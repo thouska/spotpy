@@ -10,17 +10,31 @@ install:
   #- pip install pandas
   - python setup.py install
   - pip install coveralls
+  - pip install pathos
   - pip install numpy
+  - pip install pytest pytest-pep8 pytest-cov
   #- pip install matplotlib
   #- travis_wait pip install scipy
 # command to run tests
+before_script:
+  - py.test  spotpy/unittests/test_*   --cov=spotpy
 
 script:
-  - coverage run spotpy/examples/tutorial_rosenbrock.py
-#  - python spotpy spotpy/unittests/test_database.py
+  #- coverage run spotpy/examples/tutorial_rosenbrock.py
+  #- coverage run -a spotpy/unittests/test_likelihood.py
+  #- coverage run -a spotpy/unittests/test_signatures.py
+  #- coverage run -a spotpy/unittests/test_database.py
+  #- coverage run -a spotpy/examples/tutorial_rosenbrock.py
+  - python spotpy/examples/tutorial_rosenbrock.py
+  - python spotpy/unittests/test_database.py
   - python spotpy/unittests/test_signatures.py
-  
-  
+  - python spotpy/unittests/test_likelihood.py
+  # without spotpy package otherwise there will be errors
+  #- cd ..
+  #- easy_install -m spotpy
+  #- cd spotpy
+  - pip uninstall spotpy -y
+  - py.test  spotpy/unittests/test_* spotpy/examples/tutorial_rosenbrock.py  --cov spotpy --cov-report term-missing -v
+
 after_success:
-- coveralls
-- coverage report -m
+  - coveralls

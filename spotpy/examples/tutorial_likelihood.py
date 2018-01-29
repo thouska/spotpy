@@ -48,7 +48,7 @@ l = spotpy.likelihoods.SkewedStudentLikelihoodHeteroscedastic(data, comparedata)
 print("SkewedStudentLikelihoodHeteroscedastic: " + str(l))
 
 l = spotpy.likelihoods.SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, params=(
-    [np.random.uniform(2.01, 100, 1), np.random.uniform(0.01, 100, 1), np.random.uniform(-.99, .99, 1)],
+    [np.random.uniform(2.01, 100, 1)[0], np.random.uniform(0.01, 100, 1)[0], np.random.uniform(-.99, .99, 1)[0]],
     ["likelihood_nu", "likelihood_kappa", "likelihood_phi"]))
 
 print("SkewedStudentLikelihoodHeteroscedasticAdvancedARModel: " + str(l))
