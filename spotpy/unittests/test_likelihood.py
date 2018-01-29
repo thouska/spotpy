@@ -8,7 +8,15 @@ This code shows how to use the likelihood framework and present all existing fun
 '''
 
 import numpy as np
-import spotpy
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append("../../")
+    sys.path.append("../../spotpy")
+    sys.path.append(".")
+    import spotpy
+
 import unittest
 
 # We use all available likelihood functions. The pydoc of every function tells, if we can add a
