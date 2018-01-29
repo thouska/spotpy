@@ -9,7 +9,8 @@ python:
 install:
   #- pip install pandas
   - python setup.py install
-  - pip install coveralls
+  - pip install coverall
+  - pip install pathos
   - pip install numpy
   - pip install pytest pytest-pep8 pytest-cov
   #- pip install matplotlib
