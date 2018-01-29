@@ -16,7 +16,8 @@ logging.basicConfig(format='%(levelname)s: %(module)s.%(funcName)s(): %(message)
 
 def bias(evaluation, simulation):
     """
-    Bias
+    Bias as shown in Gupta in Sorooshian (1998), Toward improved calibration of hydrologic models: 
+    Multiple  and noncommensurable measures of information, Water Resources Research
 
         .. math::
 
@@ -34,15 +35,7 @@ def bias(evaluation, simulation):
     if len(evaluation) == len(simulation):
         bias_values = []
         for i in range(len(evaluation)):
-            if evaluation[i] == -99999:
-                '''
-                Cleans out No Data values
-                '''
-                logging.warning('Wrong Results! Clean out No Data Values')
-                pass
-
-            else:
-                bias_values.append(float(simulation[i]) - float(evaluation[i]))
+            bias_values.append(float(evaluation[i]) - float(simulation[i]))
         bias_sum = np.sum(bias_values[0:len(bias_values)])
         bias = bias_sum / len(bias_values)
         return float(bias)
