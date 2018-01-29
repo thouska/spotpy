@@ -23,9 +23,9 @@ class spot_setup(object):
         
     def parameters(self):
         return spotpy.parameter.generate(self.params)
-        
-    def simulation(self,x):      
-        simulations= (1.0/(std*np.sqrt(2*np.pi)))**((-1.0/2.0)*(((x-self.mean)/self.std)**2))
+
+    def simulation(self,x):
+        simulations= (1.0/(self.std*np.sqrt(2*np.pi)))**((-1.0/2.0)*(((x-self.mean)/self.std)**2))
         return simulations
         
     def evaluation(self):
