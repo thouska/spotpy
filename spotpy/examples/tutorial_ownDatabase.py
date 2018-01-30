@@ -20,7 +20,7 @@ class spot_setup(object):
         self.params = [spotpy.parameter.List('x',[1,2,3,4,6,7,8,9,0]), #Give possible x values as a List
                        spotpy.parameter.List('y',[0,1,2,5,7,8,9,0,1])]  #Give possible y values as a List
                        
-        self.database = file('MyOwnDatabase.txt','w')
+        self.database = open('MyOwnDatabase.txt','w')
         
     def parameters(self):
         return spotpy.parameter.generate(self.params)
