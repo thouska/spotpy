@@ -1,6 +1,15 @@
 import unittest
+
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append(".")
+    import spotpy
+
+
+
 import spotpy.signatures as sig
-import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 import numpy as np
 import os

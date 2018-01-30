@@ -634,9 +634,10 @@ def LaplacianLikelihood(data, comparedata, measerror=None):
     size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn("[LaplacianLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
+        measerror[measerror == 0.0] = np.random.uniform(0.01,0.01,size)
 
-    return -1 * np.sum(np.log(2 * measerror)) - np.sum(np.abs(errArr) / measerror)
+    # Log from negative value makes no sense at all
+    return -1 * np.sum(np.log(2 * np.abs(measerror))) - np.sum(np.abs(errArr) / measerror)
 
 
 def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
@@ -872,6 +873,7 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         missingparams = []
         randomparset, parameternames = params
         randomparset = np.array(randomparset)
+        parameternames = np.array(parameternames)
 
         for nm in paramDependencies:
             if nm not in parameternames:
@@ -882,9 +884,10 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
                 "Unfortunately contains your param list not all parameters which are needed for this class."
                 "Following parameter are needed, too: " + str(missingparams))
 
-        nu = randomparset[parameternames == 'likelihood_nu']
-        k = randomparset[parameternames == 'likelihood_kappa']
-        phi = randomparset[parameternames == 'likelihood_phi']
+        nu = randomparset[parameternames == 'likelihood_nu'][0]
+        k = randomparset[parameternames == 'likelihood_kappa'][0]
+        phi = randomparset[parameternames == 'likelihood_phi'][0]
+
 
         if abs(phi) > 1:
             warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
