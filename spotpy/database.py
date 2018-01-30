@@ -297,7 +297,17 @@ class sql(database):
     def getdata(self):
         self.db = PickalableSQL3Connect(self.dbname + '.db')
         self.db_cursor = PickalableSQL3Cursor(self.db)
-        back = np.array([row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)])
+
+        if sys.version_info[0] >= 3:
+            headers = [(row[1],"<f8") for row in
+                       self.db_cursor.execute("PRAGMA table_info(" + self.dbname+");")]
+        else:
+            # Workaround for python2
+            headers = [(unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")) for row in
+                       self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");")]
+        
+        back = np.array([row for row in self.db_cursor.execute('SELECT * FROM ' + self.dbname)],dtype=headers)
+
         self.db.close()
         return back
         
