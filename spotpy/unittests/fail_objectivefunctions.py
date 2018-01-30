@@ -158,7 +158,7 @@ class TestObjectiveFunctions(unittest.TestCase):
 
     def test_decomposed_mse(self):
         res = of.decomposed_mse(self.evaluation, self.simulation)
-        self.assertAlmostEqual(res, 2.6269877837804119, self.tolerance)
+        self.assertAlmostEqual(float(res), 2.6269877837804119, self.tolerance)
 
     def test_kge(self):
         res = of.kge(self.evaluation, self.simulation)
