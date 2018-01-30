@@ -17,11 +17,14 @@ import time
 import threading
 
 try:
-    is_multiprc_queue = False
     from queue import Queue
 except ImportError:
-    is_multiprc_queue = True
-    from multiprocessing import Queue
+    # If the running python version is 2.* we have only Queue available as a multiprocessing class
+    # we need to stop the whole main process which this sleep for one microsecond otherwise the subprocess is not
+    # finished and the main process can not access it and put it as garbage away (Garbage collectors cause)
+    # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
+    # workaround
+    from Queue import Queue
 
 
 
@@ -341,13 +344,6 @@ class _algorithm(object):
         sim_thread.daemon = True
         sim_thread.start()
 
-        # If the running python version is 2.* we have only Queue available as a multiprocessing class
-        # we need to stop the whole main process which this sleep for one microsecond otherwise the subprocess is not
-        # finished and the main process can not access it and put it as garbage away (Garbage collectors cause)
-        # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
-        # workaround
-        if is_multiprc_queue:
-            time.sleep(1.0/1000.0)
 
         # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
         # long it needs to run
