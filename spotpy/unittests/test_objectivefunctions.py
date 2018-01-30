@@ -1,4 +1,10 @@
 import unittest
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append(".")
+    import spotpy
 from spotpy import objectivefunctions as of
 import numpy as np
 
