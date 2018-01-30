@@ -298,7 +298,7 @@ class sql(database):
         self.db = PickalableSQL3Connect(self.dbname + '.db')
         self.db_cursor = PickalableSQL3Cursor(self.db)
 
-        headers = [(row[1],"<f8") for row in self.db_cursor.execute("PRAGMA table_info(" + self.dbname+");")]
+        headers = [(unicode(row[1]).encode("ascii"),u"<f8".encode("ascii")) for row in self.db_cursor.execute("PRAGMA table_info(" + self.dbname+");")]
         back = np.array([row for row in self.db_cursor.execute('SELECT * FROM ' + self.dbname)],dtype=headers)
 
         self.db.close()
