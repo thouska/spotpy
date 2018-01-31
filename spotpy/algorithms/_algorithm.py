@@ -239,13 +239,13 @@ class _algorithm(object):
         print(self.status.params)
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
         print(text)
-    
+
     def _init_database(self, like, randompar, simulations, chains=1):
         if self.dbinit:
             print('Initialize database...')
-            writerclass = database.get_datawriter(self.dbformat,
+            self.datawriter = database.get_datawriter(self.dbformat,
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim,
-                dbinit=self.dbinit, db_precision=self.db_precision)
+                dbinit=self.dbinit, db_precision=self.db_precision, setup=self.setup)
             self.dbinit=False
 
     def save(self, like, randompar, simulations, chains=1):
