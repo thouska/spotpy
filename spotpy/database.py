@@ -328,3 +328,34 @@ class noData(database):
 
     def getdata(self):
         pass
+
+class custom(database):
+    """
+    This class is a simple wrapper over the database API, and can be used
+    when the user provides a custom save function.
+    """
+
+    def __init__(self, *args, **kwargs):
+        if 'setup' not in kwargs:
+            raise ValueError("""
+                You must use either of ram, csv, sql or noData for your dbformat,
+                OR implement a `save` function in your spot_setup class.
+            """)
+        self.setup = kwargs['setup']
+
+    def save(self, objectivefunction, parameterlist, simulations, *args, **kwargs):
+        self.setup.save(objectivefunction, parameterlist, simulations, *args, **kwargs)
+
+    def finalize(self):
+        pass
+
+    def getdata(self):
+        pass
+
+
+def get_datawriter(dbformat, *args, **kwargs):
+    """Given a dbformat (ram, csv, sql, noData, etc), return the constructor
+        of the appropriate class from this file.
+    """
+    datawriter = globals()[dbformat](*args, **kwargs)
+    return datawriter

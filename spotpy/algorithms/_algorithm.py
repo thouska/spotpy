@@ -158,8 +158,8 @@ class _algorithm(object):
             objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
-        self.dbname = dbname
-        self.dbformat = dbformat
+        self.dbname = dbname or 'customDb'
+        self.dbformat = dbformat or 'custom'
         self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
@@ -241,19 +241,17 @@ class _algorithm(object):
         print(text)
     
     def _init_database(self, like, randompar, simulations, chains=1):
-        if self.dbinit==True:        
+        if self.dbinit:
             print('Initialize database...')
-            writerclass = getattr(database, self.dbformat)
-            
-            self.datawriter = writerclass(
-                self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
+            writerclass = database.get_datawriter(self.dbformat,
+                self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim,
                 dbinit=self.dbinit, db_precision=self.db_precision)
             self.dbinit=False
-            
-    def save(self, like, randompar, simulations, chains=1):
 
+    def save(self, like, randompar, simulations, chains=1):
         #try if like is a list of values compare it with save threshold setting
-        try: 
+
+        try:
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
                 # Initialize the database if no run was performed so far
                 self._init_database(like, randompar, simulations, chains=1)
