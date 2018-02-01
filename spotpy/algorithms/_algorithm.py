@@ -240,35 +240,32 @@ class _algorithm(object):
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
         print(text)
 
-    def _init_database(self, like, randompar, simulations, chains=1):
+    def _init_database(self, like, randompar, simulations):
         if self.dbinit:
             print('Initialize database...')
+
             self.datawriter = database.get_datawriter(self.dbformat,
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim,
                 dbinit=self.dbinit, db_precision=self.db_precision, setup=self.setup)
-            self.dbinit=False
+
+            self.dbinit = False
 
     def save(self, like, randompar, simulations, chains=1):
-        #try if like is a list of values compare it with save threshold setting
+        # Initialize the database if no run was performed so far
+        self._init_database(like, randompar, simulations)
 
+        #try if like is a list of values compare it with save threshold setting
         try:
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
-                # Initialize the database if no run was performed so far
-                self._init_database(like, randompar, simulations, chains=1)
                 self.datawriter.save(like, randompar, simulations, chains=chains)
         #If like value is not a iterable, it is assumed to be a float
         except TypeError: # This is also used if not threshold was set
             try:
                 if like>self.save_threshold: #Compares float/float
-                    # Initialize the database if no run was performed so far
-                    self._init_database(like, randompar, simulations, chains=1)        
                     self.datawriter.save(like, randompar, simulations, chains=chains)
             except TypeError:# float/list would result in an error, because it does not make sense
                 if like[0]>self.save_threshold: #Compares list/float
-                    # Initialize the database if no run was performed so far
-                    self._init_database(like, randompar, simulations, chains=1)        
-                    self.datawriter.save(like, randompar, simulations,
-                                         chains=chains)
+                    self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
