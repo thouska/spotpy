@@ -213,7 +213,7 @@ class csv(database):
     def finalize(self):
         self.db.close()
 
-    def getdata(self, dbname=None):
+    def getdata(self):
         data = np.genfromtxt(
             self.dbname + '.csv', delimiter=',', names=True)[0:]
         return data
