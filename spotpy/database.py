@@ -136,9 +136,6 @@ class ram(database):
         super(ram, self).__init__(*args, **kwargs)
         # init the status vars
         self.ram = []
-        # store init item only if dbinit
-        if kwargs.get('dbinit', True):
-            self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None,
              chains=1):
@@ -185,11 +182,9 @@ class csv(database):
             self.db = io.open(self.dbname + '.csv', 'w')
             # write header line
             self.db.write(unicode(','.join(self.header) + '\n'))
-            self.save(self.like, self.randompar, self.simulations, self.chains)
         else:
             # Continues writing file
             self.db = io.open(self.dbname + '.csv', 'a')
-            self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +
@@ -270,9 +265,6 @@ class sql(database):
 #                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
         self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
                      ('''+' real ,'.join(self.header)+''')''')
-        # store init item only if dbinit
-        if kwargs.get('dbinit', True):
-            self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +
@@ -342,6 +334,7 @@ class custom(database):
                 OR implement a `save` function in your spot_setup class.
             """)
         self.setup = kwargs['setup']
+        super(custom, self).__init__(*args, **kwargs)
 
     def save(self, objectivefunction, parameterlist, simulations, *args, **kwargs):
         self.setup.save(objectivefunction, parameterlist, simulations, *args, **kwargs)
