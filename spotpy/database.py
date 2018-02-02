@@ -214,10 +214,8 @@ class csv(database):
         self.db.close()
 
     def getdata(self):
-        data = np.genfromtxt(
-            self.dbname + '.csv', delimiter=',', names=True)[0:]
+        data = np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)
         return data
-
 
 
 class PickalableSWIG:
