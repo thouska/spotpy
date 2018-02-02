@@ -281,14 +281,7 @@ class _algorithm(object):
             pickle.dump(work, breakfile)
 
     def getdata(self):
-        if self.dbformat == 'ram':
-            return self.datawriter.data
-        if self.dbformat == 'csv':
-            return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)#[1:]
-        if self.dbformat == 'sql':
-            return self.datawriter.getdata()
-        if self.dbformat == 'noData':
-            return self.datawriter.getdata()
+        return self.datawriter.getdata()
 
     def postprocessing(self, rep, randompar, simulation, chains=1, save=True, negativlike=False):
         like = self.getfitness(simulation=simulation, params=randompar)
