@@ -25,14 +25,32 @@ class TestListParameterDistribution(unittest.TestCase):
         self.assertNotEqual(self.values[0], v)
 
     def test_list_gives_1_value_when_size_is_not_specified(self):
-        throwaway = self.list_param()
+        _ = self.list_param()
         v = self.list_param()
         self.assertEqual(self.values[0], v)
 
     def test_list_gives_n_values_when_size_is_n(self):
-        throwaway = self.list_param()
+        _ = self.list_param()
         v = self.list_param(len(self.values))
         self.assertEqual(self.values, list(v))
+
+
+    def test_list_gives_cycled_values_with_repeat(self):
+        _ = self.list_param_repeat()
+        v1 = self.list_param_repeat()
+        for k in range(len(self.values) - 1):
+            self.list_param_repeat()
+
+        v2 = self.list_param_repeat()
+
+        self.assertEqual(v1, v2)
+
+    def test_list_gives_cycled_values_with_repeat_and_size(self):
+        _ = self.list_param_repeat()
+        v1 = self.list_param_repeat(len(self.values))
+        v2 = self.list_param_repeat(len(self.values))
+
+        self.assertEqual(list(v1), list(v2))
 
 
 if __name__ == '__main__':
