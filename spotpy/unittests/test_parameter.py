@@ -34,7 +34,6 @@ class TestListParameterDistribution(unittest.TestCase):
         v = self.list_param(len(self.values))
         self.assertEqual(self.values, list(v))
 
-
     def test_list_gives_cycled_values_with_repeat(self):
         _ = self.list_param_repeat()
         v1 = self.list_param_repeat()
@@ -51,6 +50,21 @@ class TestListParameterDistribution(unittest.TestCase):
         v2 = self.list_param_repeat(len(self.values))
 
         self.assertEqual(list(v1), list(v2))
+
+    def test_list_without_repeat_raises_index_error_on_invalid_extra_call(self):
+        _ = self.list_param()
+        for _ in range(len(self.values)):
+            self.list_param()
+
+        self.assertRaises(IndexError, self.list_param)
+
+    def test_astuple(self):
+        _ = self.list_param()
+        v, name, step, optguess, minbound, maxbound = self.list_param.astuple()
+        self.assertEqual(self.values[0], v)
+        self.assertEqual("test", name)
+
+        # the values of step, optguess, minbound and maxbound don't matter
 
 
 if __name__ == '__main__':
