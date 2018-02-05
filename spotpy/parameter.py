@@ -178,6 +178,9 @@ class List(Base):
         self.name = name
         self.repeat = kwargs.get('repeat', False)
 
+        # Hack to avoid skipping the first value. See __call__ function below.
+        self.throwaway_first = True
+
         if self.repeat:
             # If the parameter list should repeated, create an inifinite loop of the data iterator
             self.iterator = cycle(list_of_parametersettings)
@@ -191,6 +194,15 @@ class List(Base):
         :param size: Number of sample to draw from data
         :return:
         """
+        # Hack to avoid skipping the first value of the parameter list.
+        # This function is called once when the _algorithm __init__
+        # has to initialize the parameter names. Because of this, we end up
+        # losing the first value in the list, which is undesirable
+        # This check makes sure that the first call results in a dummy value
+        if self.throwaway_first:
+            self.throwaway_first = False
+            return None
+
         if size:
             return np.fromiter(self.iterator, dtype=float, count=size)
         else:
