@@ -8,6 +8,8 @@ except ImportError:
 from spotpy import parameter
 import numpy as np
 
+from testutils import repeat
+
 #https://docs.python.org/3/library/unittest.html
 
 class TestListParameterDistribution(unittest.TestCase):
@@ -86,6 +88,14 @@ class TestUniformParameterDistribution(unittest.TestCase):
 
     def test_uniform_processes_non_keyword_args(self):
         unif = parameter.Uniform("test", 0, 1)
+
+    @repeat(10)
+    def test_uniform_has_correct_statistics(self):
+        unif = parameter.Uniform("test", 0, 1)
+        # Generate 10k random numbers
+        nums = [unif() for _ in range(10000)]
+        self.assertAlmostEqual(np.mean(nums), (1 - 0)/2, self.tolerance, "Mean of Unif(0, 1) should be 1/2")
+        self.assertAlmostEqual(np.var(nums), 1/12, self.tolerance, "Variance of Unif(0, 1) should be 1/12")
 
 
 if __name__ == '__main__':
