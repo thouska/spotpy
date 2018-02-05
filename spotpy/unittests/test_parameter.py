@@ -66,6 +66,27 @@ class TestListParameterDistribution(unittest.TestCase):
 
         # the values of step, optguess, minbound and maxbound don't matter
 
+class TestUniformParameterDistribution(unittest.TestCase):
+
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 1
+
+    def setUp(self):
+        pass
+
+
+    def test_uniform_is_callable(self):
+        unif = parameter.Uniform("test", low=0, high=1)
+        self.assertTrue(callable(unif), "Uniform param instance should be callable")
+
+    def test_uniform_has_correct_bounds(self):
+        unif = parameter.Uniform("test", low=0, high=1)
+        self.assertGreaterEqual(unif.minbound, 0)
+        self.assertLessEqual(unif.maxbound, 1)
+
+    def test_uniform_processes_non_keyword_args(self):
+        unif = parameter.Uniform("test", 0, 1)
+
 
 if __name__ == '__main__':
     unittest.main()
