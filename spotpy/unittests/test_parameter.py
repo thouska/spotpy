@@ -98,5 +98,19 @@ class TestUniformParameterDistribution(unittest.TestCase):
         self.assertAlmostEqual(np.var(nums), 1/12, self.tolerance, "Variance of Unif(0, 1) should be 1/12")
 
 
+class TestConstantParameterDistribution(unittest.TestCase):
+
+    def setUp(self):
+        self.const = parameter.Constant("test", 10)
+
+    def test_constant_is_callable(self):
+        self.assertTrue(callable(self.const), "Constant param instance should be callable")
+
+    def test_constant_gives_only_constants(self):
+        nums = set([self.const() for _ in range(1000)])
+        self.assertEqual(len(nums), 1)
+        self.assertEqual(nums.pop(), 10)
+
+
 if __name__ == '__main__':
     unittest.main()

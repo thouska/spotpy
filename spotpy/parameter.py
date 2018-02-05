@@ -222,8 +222,8 @@ class Constant(Base):
     """
 
     def __init__(self, *args, **kwargs):
-        name, scalar, args, kwargs = self._get_name_from_args('list_of_parametersettings', *args, **kwargs)
-        super(Constant, self).__init__(name, None, None, None, None, None, *args, **kwargs)
+        name, scalar, args, kwargs = self._get_name_from_args('scalar', *args, **kwargs)
+        super(Constant, self).__init__(name, None, None, None, None, minbound=scalar, maxbound=scalar, *args, **kwargs)
         self.scalar = scalar
 
     def __call__(self, size=None):
