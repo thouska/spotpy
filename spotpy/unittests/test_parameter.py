@@ -111,6 +111,25 @@ class TestConstantParameterDistribution(unittest.TestCase):
         self.assertEqual(len(nums), 1)
         self.assertEqual(nums.pop(), 10)
 
+class TestNormalParameterDistribution(unittest.TestCase):
+
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.norm = parameter.Normal("test", mean=5, stddev=10)
+
+    def test_normal_is_callable(self):
+        self.assertTrue(callable(self.norm), "Normal param instance should be callable")
+
+    def test_normal_processes_non_keyword_args(self):
+        _ = parameter.Normal("test", 0, 1)
+
+    @repeat(5)
+    def test_normal_has_correct_statistics(self):
+        nums = [self.norm() for _ in range(10000)]
+        self.assertAlmostEqual(np.mean(nums), 5, self.tolerance, "Mean of Norm(5, 10) should be 5")
+        self.assertAlmostEqual(np.std(nums), 10, self.tolerance, "SD of Norm(5, 10) should be 10")
 
 if __name__ == '__main__':
     unittest.main()
