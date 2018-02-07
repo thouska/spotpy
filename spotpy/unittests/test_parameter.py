@@ -94,8 +94,8 @@ class TestUniformParameterDistribution(unittest.TestCase):
         unif = parameter.Uniform("test", 0, 1)
         # Generate 10k random numbers
         nums = [unif() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), (1 - 0)/2, self.tolerance, "Mean of Unif(0, 1) should be 1/2")
-        self.assertAlmostEqual(np.var(nums), 1/12, self.tolerance, "Variance of Unif(0, 1) should be 1/12")
+        self.assertAlmostEqual(np.mean(nums), (1 - 0)/2.0, self.tolerance, "Mean of Unif(0, 1) should be 1/2")
+        self.assertAlmostEqual(np.var(nums), 1.0/12, self.tolerance, "Variance of Unif(0, 1) should be 1/12")
 
 
 class TestConstantParameterDistribution(unittest.TestCase):
