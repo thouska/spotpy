@@ -217,5 +217,28 @@ class TestGammaParameterDistribution(unittest.TestCase):
         self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, "Mean of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_mean))
         self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_sd))
 
+
+class TestWaldParameterDistribution(unittest.TestCase):
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.mean = 5
+        self.scale = 1.2
+        self.wald = parameter.Wald("test", mean=self.mean, scale=self.scale)
+
+    def test_wald_is_callable(self):
+        self.assertTrue(callable(self.wald), "Wald param instance should be callable")
+
+    def test_wald_processes_non_keyword_args(self):
+        _ = parameter.Wald("test", self.mean, self.scale)
+
+    def test_wald_has_correct_statistics(self):
+        nums = [self.wald() for _ in range(10000)]
+        expected_sd = np.sqrt(self.mean**3 / self.scale)
+        self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance, "Mean of Wald({}, {}) should be {}".format(self.mean, self.scale, self.mean))
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Wald({}, {}) should be {}".format(self.mean, self.scale, expected_sd))
+
+
 if __name__ == '__main__':
     unittest.main()
