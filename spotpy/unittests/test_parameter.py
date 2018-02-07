@@ -210,6 +210,7 @@ class TestGammaParameterDistribution(unittest.TestCase):
     def test_gamma_processes_non_keyword_args(self):
         _ = parameter.Gamma("test", self.shape, self.scale)
 
+    @repeat(5)
     def test_gamma_has_correct_statistics(self):
         nums = [self.gamma() for _ in range(10000)]
         expected_mean = self.shape*self.scale
@@ -234,10 +235,30 @@ class TestWaldParameterDistribution(unittest.TestCase):
         _ = parameter.Wald("test", self.mean, self.scale)
 
     def test_wald_has_correct_statistics(self):
-        nums = [self.wald() for _ in range(10000)]
+        nums = [self.wald() for _ in range(40000)]
         expected_sd = np.sqrt(self.mean**3 / self.scale)
         self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance, "Mean of Wald({}, {}) should be {}".format(self.mean, self.scale, self.mean))
         self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Wald({}, {}) should be {}".format(self.mean, self.scale, expected_sd))
+
+
+class TestWeibullParameterDistribution(unittest.TestCase):
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.a = 5
+        self.weibull = parameter.Weibull("test", a=self.a)
+
+    def test_weibull_is_callable(self):
+        self.assertTrue(callable(self.weibull), "Weibull param instance should be callable")
+
+    def test_weibull_processes_non_keyword_args(self):
+        _ = parameter.Weibull("test", self.a)
+
+    def test_weibull_has_correct_statistics(self):
+        nums = [self.weibull() for _ in range(10000)]
+        self.assertAlmostEqual(np.mean(nums), 0.918169, self.tolerance, "Mean of Weibull({}) should be {}".format(self.a, 0.918169))
+        self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance, "SD of Weibull({}) should be {}".format(self.a, 0.0442300))
 
 
 if __name__ == '__main__':
