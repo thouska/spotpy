@@ -194,5 +194,28 @@ class TestExponentialParameterDistribution(unittest.TestCase):
         self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance, "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta))
         self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance, "SD of Exponential({beta}) should be {beta}".format(beta=self.beta))
 
+
+class TestGammaParameterDistribution(unittest.TestCase):
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.shape = 5
+        self.scale = 1.2
+        self.gamma = parameter.Gamma("test", shape=self.shape, scale=self.scale)
+
+    def test_gamma_is_callable(self):
+        self.assertTrue(callable(self.gamma), "Gamma param instance should be callable")
+
+    def test_gamma_processes_non_keyword_args(self):
+        _ = parameter.Gamma("test", self.shape, self.scale)
+
+    def test_gamma_has_correct_statistics(self):
+        nums = [self.gamma() for _ in range(10000)]
+        expected_mean = self.shape*self.scale
+        expected_sd = np.sqrt(self.shape*self.scale*self.scale)
+        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, "Mean of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_mean))
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_sd))
+
 if __name__ == '__main__':
     unittest.main()
