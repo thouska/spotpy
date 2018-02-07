@@ -140,7 +140,7 @@ class TestLogNormalParameterDistribution(unittest.TestCase):
         self.log_norm = parameter.logNormal("test", mean=5, sigma=10)
 
     def test_normal_is_callable(self):
-        self.assertTrue(callable(self.log_norm), "Normal param instance should be callable")
+        self.assertTrue(callable(self.log_norm), "Log Normal param instance should be callable")
 
     def test_normal_processes_non_keyword_args(self):
         _ = parameter.logNormal("test", 0, 1)
@@ -149,9 +149,28 @@ class TestLogNormalParameterDistribution(unittest.TestCase):
     def test_normal_has_correct_statistics(self):
         nums = [self.log_norm() for _ in range(10000)]
         log_nums = np.log(nums)
-        self.assertAlmostEqual(np.mean(log_nums), 5, self.tolerance, "Mean of Norm(5, 10) should be 5")
-        self.assertAlmostEqual(np.std(log_nums), 10, self.tolerance, "SD of Norm(5, 10) should be 10")
+        self.assertAlmostEqual(np.mean(log_nums), 5, self.tolerance, "Mean of Log(LogNorm(5, 10)) should be 5")
+        self.assertAlmostEqual(np.std(log_nums), 10, self.tolerance, "SD of Log(LogNorm(5, 10)) should be 10")
 
+
+class TestChiSquareParameterDistribution(unittest.TestCase):
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.chisq = parameter.Chisquare("test", dt=5)
+
+    def test_chisq_is_callable(self):
+        self.assertTrue(callable(self.chisq), "Chisquare param instance should be callable")
+
+    def test_chisq_processes_non_keyword_args(self):
+        _ = parameter.Chisquare("test", 5)
+
+    @repeat(5)
+    def test_chisq_has_correct_statistics(self):
+        nums = [self.chisq() for _ in range(10000)]
+        self.assertAlmostEqual(np.mean(nums), 5, self.tolerance, "Mean of Chisquare(5) should be 5")
+        self.assertAlmostEqual(np.std(nums), np.sqrt(2*5), self.tolerance, "SD of Chisquare(5) should be sqrt(2*5)")
 
 if __name__ == '__main__':
     unittest.main()
