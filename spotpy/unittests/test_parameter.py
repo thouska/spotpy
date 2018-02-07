@@ -158,7 +158,8 @@ class TestChiSquareParameterDistribution(unittest.TestCase):
     tolerance = 0
 
     def setUp(self):
-        self.chisq = parameter.Chisquare("test", dt=5)
+        self.df = 5
+        self.chisq = parameter.Chisquare("test", dt=self.df)
 
     def test_chisq_is_callable(self):
         self.assertTrue(callable(self.chisq), "Chisquare param instance should be callable")
@@ -169,8 +170,29 @@ class TestChiSquareParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_chisq_has_correct_statistics(self):
         nums = [self.chisq() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), 5, self.tolerance, "Mean of Chisquare(5) should be 5")
-        self.assertAlmostEqual(np.std(nums), np.sqrt(2*5), self.tolerance, "SD of Chisquare(5) should be sqrt(2*5)")
+        self.assertAlmostEqual(np.mean(nums), self.df, self.tolerance, "Mean of Chisquare({df}) should be {df}".format(df=self.df))
+        self.assertAlmostEqual(np.std(nums), np.sqrt(2*self.df), self.tolerance, "SD of Chisquare({df}) should be sqrt(2*{df})".format(df=self.df))
+
+
+class TestExponentialParameterDistribution(unittest.TestCase):
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.beta = 5
+        self.exp = parameter.Exponential("test", scale=self.beta)
+
+    def test_exp_is_callable(self):
+        self.assertTrue(callable(self.exp), "Exponential param instance should be callable")
+
+    def test_exp_processes_non_keyword_args(self):
+        _ = parameter.Exponential("test", self.beta)
+
+    @repeat(5)
+    def test_exp_has_correct_statistics(self):
+        nums = [self.exp() for _ in range(10000)]
+        self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance, "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta))
+        self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance, "SD of Exponential({beta}) should be {beta}".format(beta=self.beta))
 
 if __name__ == '__main__':
     unittest.main()

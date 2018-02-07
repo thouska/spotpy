@@ -332,7 +332,7 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, mean, scale, args, kwargs = self._get_name_from_args('mean scale', *args, **kwargs)
+        name, scale, args, kwargs = self._get_name_from_args('scale', *args, **kwargs)
         super(Exponential, self).__init__(name,
                                           rnd.exponential,
                                           (scale,),
