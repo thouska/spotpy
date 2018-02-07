@@ -261,5 +261,24 @@ class TestWeibullParameterDistribution(unittest.TestCase):
         self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance, "SD of Weibull({}) should be {}".format(self.a, 0.0442300))
 
 
+class TestTriangularParameterDistribution(unittest.TestCase):
+    # Relatively low tolerance because it's a probabilistic distribution
+    tolerance = 0
+
+    def setUp(self):
+        self.a, self.c, self.b = 0, 2, 5
+        self.triangular = parameter.Triangular("test", left=self.a, mode=self.c, right=self.b)
+
+    def test_triangular_is_callable(self):
+        self.assertTrue(callable(self.triangular), "Triangular param instance should be callable")
+
+    def test_triangular_has_correct_statistics(self):
+        nums = [self.triangular() for _ in range(10000)]
+        expected_mean = (self.a + self.b + self.c) / 3
+        expected_sd = np.sqrt((self.a**2 + self.b**2 + self.c**2 - self.a*self.c - self.a*self.b - self.b*self.c)/18)
+        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, "Mean of Triangular({}, {}, {}) should be {}".format(self.a, self.c, self.b, expected_mean))
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Triangular({}, {}, {}) should be {}".format(self.a, self.c, self.b, expected_sd))
+
+
 if __name__ == '__main__':
     unittest.main()
