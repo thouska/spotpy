@@ -145,6 +145,12 @@ class TestLogNormalParameterDistribution(unittest.TestCase):
     def test_normal_processes_non_keyword_args(self):
         _ = parameter.logNormal("test", 0, 1)
 
+    @repeat(5)
+    def test_normal_has_correct_statistics(self):
+        nums = [self.log_norm() for _ in range(10000)]
+        log_nums = np.log(nums)
+        self.assertAlmostEqual(np.mean(log_nums), 5, self.tolerance, "Mean of Norm(5, 10) should be 5")
+        self.assertAlmostEqual(np.std(log_nums), 10, self.tolerance, "SD of Norm(5, 10) should be 10")
 
 
 if __name__ == '__main__':
