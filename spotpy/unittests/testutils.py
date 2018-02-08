@@ -10,7 +10,7 @@ def repeat(times):
 
     The above test will execute 5 times
 
-    Reference:
+    Reference: https://stackoverflow.com/a/13606054/4014685
     """
     def repeatHelper(f):
         def func_repeat_executor(*args, **kwargs):
