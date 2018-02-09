@@ -35,8 +35,8 @@ class Base(object):
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
         self.name = name
         self.rndfunc = rndfunc
@@ -83,8 +83,9 @@ class Base(object):
         else:
             return repr(self)
 
-    def _get_name_from_args(self, params, *args, **kwargs):
+    def _get_name_from_args(self, params, args_list, kwargs_dict):
         """
+        A helper method for __init__.
         Gets the name from the otherwise float arguments
         If is args[0] is a string, return args[0] as the name else return '' or kwargs['name'] if present.
         The other parameters of the distribution, (given as the params string) are deduced from args and kwargs.
@@ -93,13 +94,12 @@ class Base(object):
         For the usage of this function look at the parameter realisations in this file, eg. Uniform
         
         :param params: A space seperated string of the expected parameter names of the distribution
-        :param args: An argument tuple given to a parameter constructor
-        :param kwargs: The keyword arguments
+        :param args_list: An argument list (mutable!) given to a parameter constructor
+        :param kwargs: The keyword arguments dictionary
         :return: name, distributionparam1, distributionparam2, remaining_args, remaining_kwargs
         """
-        args = list(args) # Make args mutable
-        # Check if args[0] is string like
-        if unicode(args[0]) == args[0]:
+        # Check if args_list[0] is string like
+        if unicode(args_list[0]) == args[0]:
             name = args.pop(0)
         # else get the name from the keywords
         elif 'name' in kwargs:
@@ -107,6 +107,15 @@ class Base(object):
         # or just do not use a name
         else:
             name = ''
+
+    def _check_arguments(self, params, *args, **kwargs):
+        """
+
+        :param params:
+        :param args:
+        :param kwargs:
+        :return:
+        """
 
         # A list of distribution parameters and a list of distribution parameter names that are missing
         plist = []
