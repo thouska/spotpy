@@ -42,9 +42,9 @@ class Base(object):
         self.rndfunc = rndfunc
         self.rndargs = rndargs
         if self.rndfunc:
-            self.step = step or np.percentile(self(size=1000), 50)
-            self.optguess = optguess or (np.percentile(self(size=1000), 50) -
-                                         np.percentile(self(size=1000), 40))
+            self.step = step or (np.percentile(self(size=1000), 50) -
+                                 np.percentile(self(size=1000), 40))
+            self.optguess = optguess or np.percentile(self(size=1000), 50)
             self.minbound = minbound or np.min(self(size=1000))
             self.maxbound = maxbound or np.max(self(size=1000))
         else:
