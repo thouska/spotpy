@@ -112,16 +112,16 @@ class SingleStorage(object):
     # Catchment area
     area = 2976.41e6  # sq m
     # General storage parameter
-    V0 = Uniform(10, 10000, 1000)
+    V0 = Uniform(10, 10000, optguess=1000)
 
     # ET parameters
-    fETV1 = Uniform(0.01, 1, 0.2, doc='if V<fETV1*V0, water uptake stress for plants starts')
-    fETV0 = Uniform(0, 0.9, 0.2, doc='if V<fETV0*fETV1*V0, plants die of drought')
+    fETV1 = Uniform(0.01, 1, optguess=0.2, doc='if V<fETV1*V0, water uptake stress for plants starts')
+    fETV0 = Uniform(0, 0.9, optguess=0.2, doc='if V<fETV0*fETV1*V0, plants die of drought')
 
     # Outflow parameters
     tr = Uniform(0.1, 1000, doc='Residence time of water in storage when V=V0')
     Vr = Uniform(0, 1, 0.0, doc='Residual water in storage in terms of V0')
-    beta = Uniform(0.3, 5, 1, doc='Exponent in kinematic wave function')
+    beta = Uniform(0.3, 5, optguess=1, doc='Exponent in kinematic wave function')
 
     max_run_minutes = 5
 
@@ -201,8 +201,9 @@ class SingleStorage(object):
         tstart = datetime.datetime.now()
         # start solver and calculate in daily steps
         for t in solver.run(self.data.begin, self.end, cmf.day):
-            # append results
-            res_q.add(self.outlet.waterbalance(t))
+            if t > self.begin:
+                # append results, when spin up time is over
+                res_q.add(self.outlet.waterbalance(t))
             # Give the status the screen to let us know what is going on
             if verbose:
                 print(t, 'P={:5.3f}'.format(c.get_rainfall(t)))
