@@ -127,7 +127,7 @@ def lognashsutcliffe(evaluation, simulation):
         return np.nan
 
 
-def log_p(evaluation=None, simulation=None, scale=0.1):
+def log_p(evaluation, simulation):
     """
     Logarithmic probability distribution
 
@@ -140,8 +140,6 @@ def log_p(evaluation=None, simulation=None, scale=0.1):
     :return: Logarithmic probability distribution
     :rtype: float
     """
-    #from scipy import stats
-    #logLik = np.mean( stats.norm.logpdf(evaluation, loc=simulation, scale=.1) )
     scale = np.mean(evaluation) / 10
     if scale < .01:
         scale = .01
