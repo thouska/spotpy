@@ -96,10 +96,11 @@ class TestParameterArguments(unittest.TestCase):
     def test_too_many_args(self):
         for cl, args in zip(self.classes, self.rndargs):
             # Double definition of step
+            step_args = args + (1, )
             with self.assertRaises(TypeError):
-                p_no_name = cl(*args, 1, step=1)
+                p_no_name = cl(*step_args, step=1)
             with self.assertRaises(TypeError):
-                p_with_name = cl(cl.__name__, *args, 1, step=1)
+                p_with_name = cl(cl.__name__, *step_args, step=1)
 
     def test_too_few_args(self):
         for cl, args in zip(self.classes, self.rndargs):
