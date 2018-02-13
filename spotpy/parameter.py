@@ -25,18 +25,17 @@ class Base(object):
     def __init__(self, name, rndfunc, rndargs, step=None, optguess=None, minbound=None, maxbound=None, *args, **kwargs):
         """
         :name:     Name of the parameter
-        :rndfunc:  Function to draw a random number, 
-                eg. the random functions from numpy.random
+        :rndfunc:  Function to draw a random number,
+             eg. the random functions from numpy.random
         :rndargs:  Argument-tuple for the random function
-                eg. lower and higher bound 
-                (number and meaning of arguments depends on the function)
-                tuple is unpacked as args to rndfunc call
-        :step:     (optional) number for step size required for some algorithms 
-                eg. mcmc need a parameter of the variance for the next step
-                default is median of rndfunc(*rndargs, size=1000)
+             eg. lower and higher bound
+             (number and meaning of arguments depends on the function)
+             tuple is unpacked as args to rndfunc call
+        :step:     (optional) number for step size required for some algorithms
+             eg. mcmc need a parameter of the variance for the next step
+             default is quantile(0.5) - quantile(0.4) of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+             default is median of rndfunc(*rndargs, size=1000)
         """
         self.name = name
         self.rndfunc = rndfunc
@@ -91,7 +90,7 @@ class Base(object):
         The returned args and kwargs are without the distribution parameters
 
         For the usage of this function look at the parameter realisations in this file, eg. Uniform
-        
+
         :param params: A space seperated string of the expected parameter names of the distribution
         :param args: An argument tuple given to a parameter constructor
         :param kwargs: The keyword arguments
@@ -222,8 +221,8 @@ class Constant(Base):
     """
 
     def __init__(self, *args, **kwargs):
-        name, scalar, args, kwargs = self._get_name_from_args('list_of_parametersettings', *args, **kwargs)
-        super(Constant, self).__init__(name, None, None, None, None, None, *args, **kwargs)
+        name, scalar, args, kwargs = self._get_name_from_args('scalar', *args, **kwargs)
+        super(Constant, self).__init__(name, None, None, None, None, minbound=scalar, maxbound=scalar, *args, **kwargs)
         self.scalar = scalar
 
     def __call__(self, size=None):
@@ -332,7 +331,7 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        name, mean, scale, args, kwargs = self._get_name_from_args('mean scale', *args, **kwargs)
+        name, scale, args, kwargs = self._get_name_from_args('scale', *args, **kwargs)
         super(Exponential, self).__init__(name,
                                           rnd.exponential,
                                           (scale,),
@@ -349,18 +348,19 @@ class Gamma(Base):
         """
         :name: Name of the parameter
         :shape: The shape of the gamma distribution.
-        :step:     (optional) number for step size required for some algorithms, 
+        :scale: The scale of the gamme distribution
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
-        name, shape, args, kwargs = self._get_name_from_args('shape', *args, **kwargs)
+        name, shape, scale, args, kwargs = self._get_name_from_args('shape scale', *args, **kwargs)
 
         super(Gamma, self).__init__(name,
                                     rnd.gamma,
-                                    (shape,),
+                                    (shape, scale),
                                     *args,
                                     **kwargs)
 
