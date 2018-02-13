@@ -390,6 +390,7 @@ class Exponential(Base):
     A specialization of the Base parameter for exponential distributions
     """
     __rndargs__ = 'scale',
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -408,7 +409,8 @@ class Gamma(Base):
     """
     A specialization of the Base parameter for gamma distributions
     """
-    __rndargs__ = 'shape',
+    __rndargs__ = 'shape', 'scale'
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -429,6 +431,7 @@ class Wald(Base):
     """
     A specialization of the Base parameter for Wald distributions
     """
+
     __rndargs__ = 'mean', 'scale'
     def __init__(self, *args, **kwargs):
         """
