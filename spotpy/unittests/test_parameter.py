@@ -65,7 +65,13 @@ class TestListParameterDistribution(unittest.TestCase):
 
         # the values of step, optguess, minbound and maxbound don't matter
 
+
 class TestParameterArguments(unittest.TestCase):
+    """
+    Test by philippkraft
+    checks behaviour of Uniform and Triangular for a number of
+    different arguments.
+    """
 
     def setUp(self):
         """
@@ -88,30 +94,26 @@ class TestParameterArguments(unittest.TestCase):
         for cl, args in zip(self.classes, self.rndargs):
             p_no_name = cl(*args, step=1, default=12)
             p_with_name = cl(cl.__name__, *args, step=1, default=12)
-            self.assertTrue(p_no_name.optguess == 12, 'Optguess not found from default (name={})'.format(repr(p_no_name.name)))
-            self.assertTrue(p_with_name.optguess == 12, 'Optguess not found from default (name={})'.format(repr(p_with_name.name)))
-            self.assertTrue(p_no_name.step == 1, 'Step overridden by class (name={})'.format(repr(p_no_name.name)))
-            self.assertTrue(p_with_name.step == 1, 'Step overridden by class (name={})'.format(repr(p_with_name.name)))
+            self.assertTrue(p_no_name.optguess == 12,
+                            'Optguess not found from default (name={})'.format(repr(p_no_name.name)))
+            self.assertTrue(p_with_name.optguess == 12,
+                            'Optguess not found from default (name={})'.format(repr(p_with_name.name)))
+            self.assertTrue(p_no_name.step == 1,
+                            'Step overridden by class (name={})'.format(repr(p_no_name.name)))
+            self.assertTrue(p_with_name.step == 1,
+                            'Step overridden by class (name={})'.format(repr(p_with_name.name)))
 
-    def test_too_many_args(self):
-        for cl, args in zip(self.classes, self.rndargs):
-            # Double definition of step
-            step_args = args + (1, )
-            with self.assertRaises(TypeError):
-                p_no_name = cl(*step_args, step=1)
-            with self.assertRaises(TypeError):
-                p_with_name = cl(cl.__name__, *step_args, step=1)
+def make_args(pcls):
+    """
+    Returns an args tuple for the parameter class pcls.
+    """
+    return tuple(range(1, len(pcls.__rndargs__) + 1))
 
-    def test_too_few_args(self):
-        for cl, args in zip(self.classes, self.rndargs):
-            # Double definition of step
-            with self.assertRaises(TypeError):
-                p_no_name = cl(*args[:-1], step=1)
-
-            with self.assertRaises(TypeError):
-                p_with_name = cl(cl.__name__, *args[:-1], step=1)
 
 class TestParameterClasses(unittest.TestCase):
+    """
+    Test by philippkraft to test all available Parameter classes, except List
+    """
 
     def setUp(self):
         """
@@ -131,7 +133,8 @@ class TestParameterClasses(unittest.TestCase):
         :return:
         """
         for cname, cls in self.classes:
-            args = tuple(range(1, len(cls.__rndargs__) + 1)) + (0.01,)
+            # Add step parameter to args
+            args = make_args(cls) + (0.01,)
             p = cls(cname, *args)
             self.assertFalse(p.name)
             self.assertTrue(callable(p))
@@ -151,6 +154,31 @@ class TestParameterClasses(unittest.TestCase):
             p = cls(cname, **kwargs)
             self.assertFalse(p.name)
             self.assertTrue(callable(p))
+
+    def test_too_many_args(self):
+        """
+        Check if class raises when too many arguments are given
+        """
+        for cname, cls in self.classes:
+            # Implicit definition of step in args
+            step_args = make_args(cls) + (1, )
+            with self.assertRaises(TypeError):
+                p_no_name = cls(*step_args, step=1)
+            with self.assertRaises(TypeError):
+                p_with_name = cls(cls.__name__, *step_args, step=1)
+
+    def test_too_few_args(self):
+        """
+        Check if class raises when too few arguments are given
+        """
+        for cname, cls in self.classes:
+            args = make_args(cls)
+            # Double definition of step
+            with self.assertRaises(TypeError):
+                p_no_name = cls(*args[:-1], step=1)
+            with self.assertRaises(TypeError):
+                p_with_name = cls(cls.__name__, *args[:-1], step=1)
+
 
 if __name__ == '__main__':
     unittest.main()
