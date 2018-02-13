@@ -6,7 +6,7 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 from spotpy import parameter
-
+import numpy as np
 from testutils import repeat
 
 #https://docs.python.org/3/library/unittest.html
