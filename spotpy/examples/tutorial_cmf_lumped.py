@@ -119,8 +119,8 @@ class SingleStorage(object):
     fETV0 = Uniform(0, 0.9, optguess=0.2, doc='if V<fETV0*fETV1*V0, plants die of drought')
 
     # Outflow parameters
-    tr = Uniform(0.1, 1000, doc='Residence time of water in storage when V=V0')
-    Vr = Uniform(0, 1, 0.0, doc='Residual water in storage in terms of V0')
+    tr = Uniform(0.1, 1000, optguess=10, doc='Residence time of water in storage when V=V0')
+    Vr = Uniform(0, 1, optguess=0.0, doc='Residual water in storage in terms of V0')
     beta = Uniform(0.3, 5, optguess=1, doc='Exponent in kinematic wave function')
 
     max_run_minutes = 5
@@ -171,7 +171,7 @@ class SingleStorage(object):
         """
         Sets the parameters of the model by creating the connections
         """
-        par = par or spotpy.parameter.create_set(self)
+        par = par or spotpy.parameter.create_set(self, random=False)
 
         # Some shortcuts to gain visibility
         c = self.project[0]
