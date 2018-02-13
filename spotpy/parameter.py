@@ -413,12 +413,13 @@ class Gamma(Base):
         """
         :name: Name of the parameter
         :shape: The shape of the gamma distribution.
-        :step:     (optional) number for step size required for some algorithms, 
+        :scale: The scale of the gamme distribution
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
 
         super(Gamma, self).__init__(rnd.gamma,  *args, **kwargs)
