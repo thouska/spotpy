@@ -22,6 +22,7 @@ script:
   - python spotpy/unittests/test_signatures.py
   - python spotpy/unittests/test_likelihood.py
   - python spotpy/unittests/test_parameter.py
+  - python spotpy/unittests/test_setup_parameters.py
   - pip uninstall spotpy -y
   # this is for coveralls.io
   - py.test  spotpy/unittests/test_* spotpy/examples/tutorial_rosenbrock.py  --cov spotpy --cov-report term-missing -v
