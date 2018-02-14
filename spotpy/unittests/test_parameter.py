@@ -12,7 +12,8 @@ import numpy as np
 import inspect
 from testutils import repeat
 
-#https://docs.python.org/3/library/unittest.html
+# https://docs.python.org/3/library/unittest.html
+
 
 class TestListParameterDistribution(unittest.TestCase):
 
@@ -70,6 +71,7 @@ class TestListParameterDistribution(unittest.TestCase):
 
         # the values of step, optguess, minbound and maxbound don't matter
 
+
 class TestUniformParameterDistribution(unittest.TestCase):
 
     # Relatively low tolerance because it's a probabilistic distribution
@@ -77,7 +79,6 @@ class TestUniformParameterDistribution(unittest.TestCase):
 
     def setUp(self):
         pass
-
 
     def test_uniform_is_callable(self):
         unif = parameter.Uniform("test", low=0, high=1)
@@ -89,7 +90,7 @@ class TestUniformParameterDistribution(unittest.TestCase):
         self.assertLessEqual(unif.maxbound, 1)
 
     def test_uniform_processes_non_keyword_args(self):
-        unif = parameter.Uniform("test", 0, 1)
+        _ = parameter.Uniform("test", 0, 1)
 
     @repeat(10)
     def test_uniform_has_correct_statistics(self):
@@ -113,6 +114,7 @@ class TestConstantParameterDistribution(unittest.TestCase):
         self.assertEqual(len(nums), 1)
         self.assertEqual(nums.pop(), 10)
 
+
 class TestNormalParameterDistribution(unittest.TestCase):
 
     # Relatively low tolerance because it's a probabilistic distribution
@@ -132,6 +134,7 @@ class TestNormalParameterDistribution(unittest.TestCase):
         nums = [self.norm() for _ in range(10000)]
         self.assertAlmostEqual(np.mean(nums), 5, self.tolerance, "Mean of Norm(5, 10) should be 5")
         self.assertAlmostEqual(np.std(nums), 10, self.tolerance, "SD of Norm(5, 10) should be 10")
+
 
 class TestLogNormalParameterDistribution(unittest.TestCase):
 
@@ -172,8 +175,10 @@ class TestChiSquareParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_chisq_has_correct_statistics(self):
         nums = [self.chisq() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), self.df, self.tolerance, "Mean of Chisquare({df}) should be {df}".format(df=self.df))
-        self.assertAlmostEqual(np.std(nums), np.sqrt(2*self.df), self.tolerance, "SD of Chisquare({df}) should be sqrt(2*{df})".format(df=self.df))
+        self.assertAlmostEqual(np.mean(nums), self.df, self.tolerance, 
+                               "Mean of Chisquare({df}) should be {df}".format(df=self.df))
+        self.assertAlmostEqual(np.std(nums), np.sqrt(2*self.df), self.tolerance, 
+                               "SD of Chisquare({df}) should be sqrt(2*{df})".format(df=self.df))
 
 
 class TestExponentialParameterDistribution(unittest.TestCase):
@@ -193,8 +198,10 @@ class TestExponentialParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_exp_has_correct_statistics(self):
         nums = [self.exp() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance, "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta))
-        self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance, "SD of Exponential({beta}) should be {beta}".format(beta=self.beta))
+        self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance, 
+                               "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta))
+        self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance, 
+                               "SD of Exponential({beta}) should be {beta}".format(beta=self.beta))
 
 
 class TestGammaParameterDistribution(unittest.TestCase):
@@ -217,8 +224,10 @@ class TestGammaParameterDistribution(unittest.TestCase):
         nums = [self.gamma() for _ in range(10000)]
         expected_mean = self.shape*self.scale
         expected_sd = np.sqrt(self.shape*self.scale*self.scale)
-        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, "Mean of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_sd))
+        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, 
+                               "Mean of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_mean))
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
+                               "SD of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_sd))
 
 
 class TestWaldParameterDistribution(unittest.TestCase):
@@ -239,8 +248,10 @@ class TestWaldParameterDistribution(unittest.TestCase):
     def test_wald_has_correct_statistics(self):
         nums = [self.wald() for _ in range(40000)]
         expected_sd = np.sqrt(self.mean**3 / self.scale)
-        self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance, "Mean of Wald({}, {}) should be {}".format(self.mean, self.scale, self.mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Wald({}, {}) should be {}".format(self.mean, self.scale, expected_sd))
+        self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance, 
+                               "Mean of Wald({}, {}) should be {}".format(self.mean, self.scale, self.mean))
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
+                               "SD of Wald({}, {}) should be {}".format(self.mean, self.scale, expected_sd))
 
 
 class TestWeibullParameterDistribution(unittest.TestCase):
@@ -259,8 +270,10 @@ class TestWeibullParameterDistribution(unittest.TestCase):
 
     def test_weibull_has_correct_statistics(self):
         nums = [self.weibull() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), 0.918169, self.tolerance, "Mean of Weibull({}) should be {}".format(self.a, 0.918169))
-        self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance, "SD of Weibull({}) should be {}".format(self.a, 0.0442300))
+        self.assertAlmostEqual(np.mean(nums), 0.918169, self.tolerance, 
+                               "Mean of Weibull({}) should be {}".format(self.a, 0.918169))
+        self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance, 
+                               "SD of Weibull({}) should be {}".format(self.a, 0.0442300))
 
 
 class TestTriangularParameterDistribution(unittest.TestCase):
@@ -278,8 +291,12 @@ class TestTriangularParameterDistribution(unittest.TestCase):
         nums = [self.triangular() for _ in range(10000)]
         expected_mean = (self.a + self.b + self.c) / 3
         expected_sd = np.sqrt((self.a**2 + self.b**2 + self.c**2 - self.a*self.c - self.a*self.b - self.b*self.c)/18)
-        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, "Mean of Triangular({}, {}, {}) should be {}".format(self.a, self.c, self.b, expected_mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, "SD of Triangular({}, {}, {}) should be {}".format(self.a, self.c, self.b, expected_sd))
+        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, 
+                               "Mean of Triangular({}, {}, {}) should be {}"
+                               .format(self.a, self.c, self.b, expected_mean))
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
+                               "SD of Triangular({}, {}, {}) should be {}"
+                               .format(self.a, self.c, self.b, expected_sd))
 
 
 class TestParameterArguments(unittest.TestCase):
@@ -304,7 +321,7 @@ class TestParameterArguments(unittest.TestCase):
             self.assertTrue(10 <= p_no_name.optguess < 20, 'Optguess out of boundaries')
             self.assertTrue(10 <= p_with_name.optguess < 20, 'Optguess out of boundaries')
             self.assertTrue(p_no_name.step < 10, 'Step to large')
-            self.assertTrue(p_with_name.step < 10 , 'Step to large')
+            self.assertTrue(p_with_name.step < 10, 'Step to large')
 
     def test_correct_with_extra_args(self):
         for cl, args in zip(self.classes, self.rndargs):
@@ -319,6 +336,7 @@ class TestParameterArguments(unittest.TestCase):
             self.assertTrue(p_with_name.step == 1,
                             'Step overridden by class (name={})'.format(repr(p_with_name.name)))
 
+
 def make_args(pcls):
     """
     Returns an args tuple for the parameter class pcls.
@@ -326,28 +344,28 @@ def make_args(pcls):
     return tuple(range(1, len(pcls.__rndargs__) + 1))
 
 
+def get_classes():
+    """
+    Get all classes from spotpy.parameter module, except special cases
+    """    
+    def predicate(cls):
+        return (inspect.isclass(cls)
+                and cls not in [parameter.Base, parameter.List]
+                and issubclass(cls, parameter.Base))
+    
+    return [[cname, cls]
+            for cname, cls in
+            inspect.getmembers(parameter, predicate)
+            ]
+
+
 class TestParameterClasses(unittest.TestCase):
     """
     Test by philippkraft to test all available Parameter classes, except List
     """
 
-    def classes(self):
-        """
-        Get all classes from spotpy.parameter module, except special cases
-        """
-        classes = []
-        def predicate(cls):
-            return (inspect.isclass(cls)
-                    and cls not in [parameter.Base, parameter.List]
-                    and issubclass(cls, parameter.Base))
-        classes = [[cname, cls]
-                   for cname, cls in
-                   inspect.getmembers(parameter, predicate)
-                   ]
-        return classes
-
     def test_classes_available(self):
-        classes = self.classes()
+        classes = get_classes()
         self.assertGreaterEqual(len(classes), 1, 'No parameter classes found in spotpy.parameter')
         self.assertIn('Uniform', [n for n, c in classes], 'Parameter class spotpy.parameter.Uniform not found')
 
@@ -356,7 +374,7 @@ class TestParameterClasses(unittest.TestCase):
         Checks if the right number of arguments is present
         :return:
         """
-        for cname, cls in self.classes():
+        for cname, cls in get_classes():
             # Add step parameter to args
             args = make_args(cls) + (0.01,)
             # Test with name
@@ -365,7 +383,7 @@ class TestParameterClasses(unittest.TestCase):
             p_no_name = cls(*args)
             # Check the names
             self.assertEqual(p_name.name, cname)
-            # TODO: Change default name ot something unique
+            # Check name is empty, when no name is given
             self.assertEqual(p_no_name.name, '')
             # Test Parameter character for both
             for p in [p_name, p_no_name]:
@@ -375,13 +393,12 @@ class TestParameterClasses(unittest.TestCase):
                                 '{} did not receive step as the correct value, check number of arguments'
                                 .format(cls.__name__))
 
-
     def test_create_kwargs(self):
         """
         Check keyword arguments for distribution function
         :return:
         """
-        for cname, cls in self.classes():
+        for cname, cls in get_classes():
             kwargs = dict(zip(cls.__rndargs__, make_args(cls)))
             # Test with name
             p_name = cls(cname, step=0.01, **kwargs)
@@ -395,32 +412,32 @@ class TestParameterClasses(unittest.TestCase):
                 self.assertTrue(callable(p))
                 self.assertGreater(p(), -np.inf)
                 self.assertEqual(p.step, 0.01,
-                                '{} did not receive step as the correct value, check number of arguments'
-                                .format(cls.__name__))
+                                 '{} did not receive step as the correct value, check number of arguments'
+                                 .format(cls.__name__))
 
     def test_too_many_args(self):
         """
         Check if class raises when too many arguments are given
         """
-        for cname, cls in self.classes():
+        for cname, cls in get_classes():
             # Implicit definition of step in args
             step_args = make_args(cls) + (1, )
             with self.assertRaises(TypeError):
-                p_no_name = cls(*step_args, step=1)
+                _ = cls(*step_args, step=1)
             with self.assertRaises(TypeError):
-                p_with_name = cls(cls.__name__, *step_args, step=1)
+                _ = cls(cls.__name__, *step_args, step=1)
 
     def test_too_few_args(self):
         """
         Check if class raises when too few arguments are given
         """
-        for cname, cls in self.classes():
+        for cname, cls in get_classes():
             args = make_args(cls)
             # Double definition of step
             with self.assertRaises(TypeError):
-                p_no_name = cls(*args[:-1], step=1)
+                _ = cls(*args[:-1], step=1)
             with self.assertRaises(TypeError):
-                p_with_name = cls(cls.__name__, *args[:-1], step=1)
+                _ = cls(cls.__name__, *args[:-1], step=1)
 
 
 if __name__ == '__main__':

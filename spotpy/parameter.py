@@ -126,7 +126,6 @@ class _ArgumentHelper(object):
         """
         return self.kwargs.pop(argname, None)
 
-
     def check_complete(self):
         """
         Checks if all args and kwargs have been processed.
