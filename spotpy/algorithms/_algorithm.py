@@ -212,10 +212,13 @@ class _algorithm(object):
         self.status = _RunStatistic()
 
     def __str__(self):
-        return '{type}({mtype}(), dbname={dbname}'.format(
+        return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
             mtype=type(self.setup).__name__,
             dbname=self.dbname)
+
+    def __repr__(self):
+        return '{type}()'.format(type=type(self).__name__)
 
     def get_parameters(self):
         """
