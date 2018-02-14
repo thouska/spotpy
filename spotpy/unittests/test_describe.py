@@ -56,7 +56,7 @@ class TestDescribe(unittest.TestCase):
         self.sampler_test(sampler)
 
     def test_rope_sampler(self):
-        sampler = spotpy.algorithms.mc(spot_setup=SpotSetup(), dbformat='ram', dbname='äöü')
+        sampler = spotpy.algorithms.rope(spot_setup=SpotSetup(), dbformat='ram', dbname='äöü')
         self.sampler_test(sampler)
 
 
