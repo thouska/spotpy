@@ -50,8 +50,8 @@ class _ArgumentHelper(object):
 
         :return: name
         """
-        # Check if args_list[0] is string like
-        if unicode(self.args[0]) == self.args[0]:
+        # Check if args[0] is string like (and exists)
+        if self.args and unicode(self.args[0]) == self.args[0]:
             name = self.args.pop(0)
             self.processed_args += 1
         # else get the name from the keywords
@@ -307,8 +307,7 @@ class Constant(Base):
     __rndargs__ = 'scalar',
 
     def __init__(self, *args, **kwargs):
-        super(Constant, self).__init__(None, *args, **kwargs)
-        self.scalar,  = self.rndargs
+        super(Constant, self).__init__(self, *args, **kwargs)
 
     def __call__(self, size=None):
         """
@@ -317,12 +316,12 @@ class Constant(Base):
         :return:
         """
         if size:
-            return np.ones(size, dtype=float) * self.scalar
+            return np.ones(size, dtype=float) * self.rndargs[0]
         else:
-            return self.scalar
+            return self.rndargs[0]
 
     def astuple(self):
-        return self(), self.name, self.scalar, self.scalar, 0, 0
+        return self(), self.name, self.rndargs[0], self.rndargs[0], 0, 0
 
 
 class Normal(Base):

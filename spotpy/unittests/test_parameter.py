@@ -7,6 +7,9 @@ except ImportError:
     import spotpy
 from spotpy import parameter
 import numpy as np
+
+# Import inspect to scan spotpy.parameter for all Parameter classes
+import inspect
 from testutils import repeat
 
 #https://docs.python.org/3/library/unittest.html
@@ -328,33 +331,49 @@ class TestParameterClasses(unittest.TestCase):
     Test by philippkraft to test all available Parameter classes, except List
     """
 
-    def setUp(self):
+    def classes(self):
         """
         Get all classes from spotpy.parameter module, except special cases
         """
-        self.classes = []
-        for cname, cls in vars(parameter).items():
-            if (cls is type
+        classes = []
+        def predicate(cls):
+            return (inspect.isclass(cls)
                     and cls not in [parameter.Base, parameter.List]
-                    and issubclass(cls, parameter.Base)):
-                self.classes.append(cls)
+                    and issubclass(cls, parameter.Base))
+        classes = [[cname, cls]
+                   for cname, cls in
+                   inspect.getmembers(parameter, predicate)
+                   ]
+        return classes
 
+    def test_classes_available(self):
+        classes = self.classes()
+        self.assertGreaterEqual(len(classes), 1, 'No parameter classes found in spotpy.parameter')
+        self.assertIn('Uniform', [n for n, c in classes], 'Parameter class spotpy.parameter.Uniform not found')
 
     def test_create_posargs(self):
         """
         Checks if the right number of arguments is present
         :return:
         """
-        for cname, cls in self.classes:
+        for cname, cls in self.classes():
             # Add step parameter to args
             args = make_args(cls) + (0.01,)
-            p = cls(cname, *args)
-            self.assertFalse(p.name)
-            self.assertTrue(callable(p))
-            a = p()
-            self.assertTrue(p.step == 0.01,
-                            '{} did not receive step as the correct value, check number of arguments'
-                            .format(cls.__name__))
+            # Test with name
+            p_name = cls(cname, *args)
+            # Test without name
+            p_no_name = cls(*args)
+            # Check the names
+            self.assertEqual(p_name.name, cname)
+            # TODO: Change default name ot something unique
+            self.assertEqual(p_no_name.name, '')
+            # Test Parameter character for both
+            for p in [p_name, p_no_name]:
+                self.assertTrue(callable(p))
+                self.assertGreater(p(), -np.inf)
+                self.assertTrue(p.step == 0.01,
+                                '{} did not receive step as the correct value, check number of arguments'
+                                .format(cls.__name__))
 
 
     def test_create_kwargs(self):
@@ -362,17 +381,28 @@ class TestParameterClasses(unittest.TestCase):
         Check keyword arguments for distribution function
         :return:
         """
-        for cname, cls in self.classes:
-            kwargs = dict((kw, i+1) for i, kw in enumerate(cls.__rndargs__))
-            p = cls(cname, **kwargs)
-            self.assertFalse(p.name)
-            self.assertTrue(callable(p))
+        for cname, cls in self.classes():
+            kwargs = dict(zip(cls.__rndargs__, make_args(cls)))
+            # Test with name
+            p_name = cls(cname, step=0.01, **kwargs)
+            # Test without name
+            p_no_name = cls(step=0.01, **kwargs)
+            # Check the names
+            self.assertEqual(p_name.name, cname)
+            self.assertEqual(p_no_name.name, '')
+            # Test Parameter character for both
+            for p in [p_name, p_no_name]:
+                self.assertTrue(callable(p))
+                self.assertGreater(p(), -np.inf)
+                self.assertEqual(p.step, 0.01,
+                                '{} did not receive step as the correct value, check number of arguments'
+                                .format(cls.__name__))
 
     def test_too_many_args(self):
         """
         Check if class raises when too many arguments are given
         """
-        for cname, cls in self.classes:
+        for cname, cls in self.classes():
             # Implicit definition of step in args
             step_args = make_args(cls) + (1, )
             with self.assertRaises(TypeError):
@@ -384,7 +414,7 @@ class TestParameterClasses(unittest.TestCase):
         """
         Check if class raises when too few arguments are given
         """
-        for cname, cls in self.classes:
+        for cname, cls in self.classes():
             args = make_args(cls)
             # Double definition of step
             with self.assertRaises(TypeError):
