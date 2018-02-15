@@ -220,10 +220,23 @@ class Base(object):
         Returns the description of the parameter, if available, else repr(self)
         :return: 
         """
-        if vars(self).get('description'):
-            return '{} ({})'.format(vars(self).get('description'), repr(self))
+        doc = vars(self).get('description')
+        if doc:
+            res = '{} ({})'.format(doc, repr(self))
+            if sys.version_info.major == 2:
+                return res.encode('utf-8', errors='ignore')
+            else:
+                return res
         else:
             return repr(self)
+
+    def __unicode__(self):
+        doc = vars(self).get('description')
+        if doc:
+            return u'{}({})'.format(unicode(doc), repr(self))
+        else:
+            return repr(self)
+
 
 
 class Uniform(Base):

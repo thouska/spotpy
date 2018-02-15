@@ -19,8 +19,14 @@ if sys.version_info[0] >= 3:
     unicode = str
 else:
     def _getdoc(obj):
-        u = obj.__doc__.decode(encoding='utf-8', errors='ignore')
-        return '\n'.join(l.strip() for l in u.split('\n') if l.strip())
+        u = obj.__doc__
+        try:
+            return u'\n'.join(l.strip() for l in u.split(u'\n') if l.strip())
+        except UnicodeDecodeError:
+            raise AssertionError(
+                '{}: Docstring uses unicode but {} misses the line ``from __future__ import unicode_literals``'
+                .format(obj, type(obj).__module__)
+                )
 
 def describe(obj):
     """
@@ -28,7 +34,7 @@ def describe(obj):
     :param obj: A sampler
     :return: str
     """
-    return u'Sampler:\n--------\n{}\n\nModel:\n------\n{}'.format(sampler(obj), setup(obj.setup))
+    return 'Sampler:\n--------\n{}\n\nModel:\n------\n{}'.format(sampler(obj), setup(obj.setup))
 
 
 def sampler(obj):
@@ -38,13 +44,13 @@ def sampler(obj):
     large multiline description
     :return:
     """
-    s = unicode(type(obj).__name__)
-    s += _getdoc(obj) + '\n'
-    s += u'\n    db format: ' + obj.dbformat
-    s += u'\n    db name: ' + obj.dbname
-    s += u'\n    save simulation: ' + str(obj.save_sim)
-    s += u'\n    parallel: ' + type(obj.repeat).__module__.split('.')[-1]
-    return s
+    cname = unicode(type(obj).__name__)
+    s = [cname, '=' * len(cname), _getdoc(obj),
+         '    db format: ' + obj.dbformat,
+         '    db name: ' + obj.dbname,
+         '    save simulation: ' + str(obj.save_sim),
+         '    parallel: ' + type(obj.repeat).__module__.split('.')[-1]]
+    return '\n'.join(s)
 
 
 def setup(obj):
@@ -53,22 +59,11 @@ def setup(obj):
     :param obj: A spotpy compatible model setup
     :return: A describing string
     """
-
     # Get class name
-    s = unicode(type(obj).__name__)
-
+    cname = unicode(type(obj).__name__)
     # Add doc string
-    mdoc = _getdoc(obj)
-
-    s += mdoc + '\n'
-
+    mdoc = _getdoc(obj).strip('\n').replace('\r', '\n')
     # Get parameters from class
-
-    params = '\n'.join(' - {p}'.format(p=p) for p in
-                       get_parameters_from_setup(obj))
-
-    # Add parameters to string
-    s += '\n'
-    s += 'Parameters:\n{params}'.format(params=params)
-
-    return s
+    params = '\n'.join(' - {p}'.format(p=unicode(p)) for p in get_parameters_from_setup(obj))
+    parts = [cname, '=' * len(cname), mdoc, 'Parameters:', '-' * 11, params]
+    return '\n'.join(parts)
