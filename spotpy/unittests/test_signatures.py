@@ -10,6 +10,7 @@ except ImportError:
 
 
 import spotpy.signatures as sig
+#from spotpy.examples.spot_setup_hymod_python import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 import numpy as np
 import os
@@ -28,11 +29,13 @@ except ImportError:
 class TestSignatures(unittest.TestCase):
 
     def setUp(self):
-        self.data = np.random.gamma(0.7,2,500)
         self.spot_setup = spot_setup()
         self.parameterset = self.spot_setup.parameters()['random']
         self.simulation = self.spot_setup.simulation(self.parameterset)
         self.observation = self.spot_setup.evaluation()
+
+        self.simulation = self.simulation[1:100]
+        self.observation = self.observation[1:100]
 
         self.timespanlen = self.simulation.__len__()
         try:
@@ -67,7 +70,7 @@ class TestSignatures(unittest.TestCase):
 
 
             self.assertEqual(sig_raw.dtypes[0],"float64")
-            self.assertEqual(sig_raw["flood"].__len__(), 1461)
+            self.assertEqual(sig_raw["flood"].__len__(), 99)
             #self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
             self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
 
@@ -179,7 +182,7 @@ class TestSignatures(unittest.TestCase):
                                                        mode="calc_Dev")
 
                 self.assertEqual(sig_raw.dtypes[0], "float64")
-                self.assertEqual(sig_raw["flood"].__len__(), 1461)
+                self.assertEqual(sig_raw["flood"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -199,7 +202,7 @@ class TestSignatures(unittest.TestCase):
                                               mode="calc_Dev")
 
                 self.assertEqual(sig_raw.dtypes[0], "float64")
-                self.assertEqual(sig_raw["flood"].__len__(), 1461)
+                self.assertEqual(sig_raw["flood"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -219,7 +222,7 @@ class TestSignatures(unittest.TestCase):
                                                                 threshold_value=th, mode="calc_Dev")
 
                 self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
-                self.assertEqual(sig_raw["baseflow"].__len__(), 1461)
+                self.assertEqual(sig_raw["baseflow"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -239,7 +242,7 @@ class TestSignatures(unittest.TestCase):
                                                                 threshold_value=th, mode="calc_Dev")
 
                 self.assertTrue(sig_raw.dtypes[0] ==  "int64" or sig_raw.dtypes[0] ==  "float64")
-                self.assertEqual(sig_raw["baseflow"].__len__(), 1461)
+                self.assertEqual(sig_raw["baseflow"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -260,7 +263,7 @@ class TestSignatures(unittest.TestCase):
                                                                 threshold_value=th, mode="calc_Dev")
 
                 self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
-                self.assertEqual(sig_raw["baseflow"].__len__(), 1461)
+                self.assertEqual(sig_raw["baseflow"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -292,10 +295,10 @@ class TestSignatures(unittest.TestCase):
 
 
                 self.assertEqual(sig_raw_dd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_dd["count"].__len__(), 1461)
+                self.assertEqual(sig_raw_dd["count"].__len__(), 99)
 
                 self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_ddd["count"].__len__(), 122)
+                self.assertEqual(sig_raw_ddd["count"].__len__(), 9)
 
                 if type(sig_dev) != type(np.array([42.0])[0]) and type(sig_dev) != type(42.0):
                     self.assertRaises("type of sig_dev must be float or numpy.float")
@@ -323,10 +326,10 @@ class TestSignatures(unittest.TestCase):
                                         mode="calc_Dev")
 
                 self.assertEqual(sig_raw_dd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_dd["count"].__len__(), 1461)
+                self.assertEqual(sig_raw_dd["count"].__len__(), 99)
 
                 self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_ddd["count"].__len__(), 122)
+                self.assertEqual(sig_raw_ddd["count"].__len__(), 9)
 
 
                 #self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
