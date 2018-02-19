@@ -273,7 +273,7 @@ class TestAnalyser(unittest.TestCase):
             from spotpy.examples.spot_setup_griewank import spot_setup
             # Create samplers for every algorithm:
             spot_setup = spot_setup()
-            rep = 1000
+            rep = 100
             timeout = 10  # Given in Seconds
 
             parallel = "seq"
@@ -295,7 +295,7 @@ class TestAnalyser(unittest.TestCase):
     def test_plot_heatmap_griewank(self):
         fig_name = "test.png"
         spotpy.analyser.plot_heatmap_griewank([self.setup_griewank()["getdata"]],["test"])
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 50000), 29999)
+        self.assertLessEqual(abs(os.path.getsize(fig_name) - 40000), 29999)
         os.remove(fig_name)
 
     def test_plot_objectivefunction(self):
@@ -315,13 +315,13 @@ class TestAnalyser(unittest.TestCase):
     def test_plot_parametertrace(self):
         spotpy.analyser.plot_parametertrace(self.setup_griewank()["getdata"], ["0","1"])
         fig_name = "0_1__trace.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 331000), 39999)
+        self.assertLessEqual(abs(os.path.getsize(fig_name) - 160000), 39999)
         os.remove(fig_name)
 
     def test_plot_posterior_parametertrace(self):
         spotpy.analyser.plot_posterior_parametertrace(self.setup_griewank()["getdata"], ["0","1"])
         fig_name = "0_1__trace.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 343000), 39999)
+        self.assertLessEqual(abs(os.path.getsize(fig_name) - 160000), 39999)
         os.remove(fig_name)
 
     def test_plot_posterior(self):
@@ -441,7 +441,7 @@ class TestAnalyser(unittest.TestCase):
             sampler = spotpy.algorithms.mc(sp, parallel="seq", dbname='test_plot_autocorellation',
                                            dbformat="csv",
                                            sim_timeout=5)
-            sampler.sample(1000)
+            sampler.sample(100)
             pickfil = open(picklefilename, "wb")
             pickle.dump(sampler.getdata(), pickfil)
 
