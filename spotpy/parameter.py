@@ -584,8 +584,9 @@ def get_namedtuple_from_paramnames(owner, parnames):
 
     # Get name of owner class
     typename = type(owner).__name__
+    parnames = ["p" + x if x.isdigit() else x for x in list(parnames)]
     return namedtuple('Par_' + typename,  # Type name created from the setup name
-                      list(parnames))  # get parameter names
+                      parnames)  # get parameter names
 
 
 def get_parameters_from_setup(setup):

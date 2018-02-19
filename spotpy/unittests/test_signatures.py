@@ -36,7 +36,6 @@ class TestSignatures(unittest.TestCase):
 
         self.timespanlen = self.simulation.__len__()
         try:
-
             self.ddd = pd.date_range("2015-01-01 11:00", freq="5min", periods=self.timespanlen)
             self.dd_daily = pd.date_range("2015-05-01", periods=self.timespanlen)
             self.usepandas = True
@@ -45,7 +44,7 @@ class TestSignatures(unittest.TestCase):
             self.usepandas = False
 
     def test_getSlopeFDC(self):
-        sig_val = sig.getSlopeFDC(self.simulation,self.observation, mode="get_signature")
+        sig_val = sig.getSlopeFDC(self.simulation, self.observation, mode="get_signature")
         sig_raw = sig.getSlopeFDC(self.simulation, self.observation, mode="get_raw_data")
         sig_dev = sig.getSlopeFDC(self.simulation, self.observation, mode="calc_Dev")
         self.assertEqual(type(float(sig_val)), type(1.0))
@@ -55,22 +54,22 @@ class TestSignatures(unittest.TestCase):
 
     def test_getAverageFloodOverflowPerSection(self):
         if self.usepandas:
-            for th in range(-10,10):
+            th = np.random.randint(-10,10)
 
-                sig_val = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_signature", datetime_series=self.dd_daily,
-                                                            threshold_value=th)
-                sig_raw = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_raw_data", datetime_series=self.dd_daily,
+            sig_val = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_signature", datetime_series=self.dd_daily,
                                                         threshold_value=th)
-                sig_dev = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="calc_Dev", datetime_series=self.dd_daily,
-                                                        threshold_value=th)
-                self.assertEqual(type(float(sig_val.astype(float))),type(1.0))
+            sig_raw = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_raw_data", datetime_series=self.dd_daily,
+                                                    threshold_value=th)
+            sig_dev = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="calc_Dev", datetime_series=self.dd_daily,
+                                                    threshold_value=th)
+            self.assertEqual(type(float(sig_val.astype(float))),type(1.0))
 
 
 
-                self.assertEqual(sig_raw.dtypes[0],"float64")
-                self.assertEqual(sig_raw["flood"].__len__(), 1461)
-                #self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
-                self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
+            self.assertEqual(sig_raw.dtypes[0],"float64")
+            self.assertEqual(sig_raw["flood"].__len__(), 1461)
+            #self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
+            self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
 
 
     def test_getMeanFlow(self):
@@ -298,13 +297,12 @@ class TestSignatures(unittest.TestCase):
                 self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
                 self.assertEqual(sig_raw_ddd["count"].__len__(), 122)
 
+                if type(sig_dev) != type(np.array([42.0])[0]) and type(sig_dev) != type(42.0):
+                    self.assertRaises("type of sig_dev must be float or numpy.float")
 
-                #self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
-                #self.assertEqual(str(type(sig_raw_ddd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                if type(sig_val) != type(np.array([42.0])[0]) and type(sig_val) != type(42.0):
+                    self.assertRaises("type of sig_val must be float or numpy.float")
 
-
-                self.assertEqual(type(float(sig_dev.astype(float))), type(42.0) )
-                self.assertEqual(type(float(sig_val.astype(float))), type(1.0))
 
     def test_getBaseflowFrequency(self):
         if self.usepandas:

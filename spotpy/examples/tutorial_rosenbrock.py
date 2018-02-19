@@ -11,7 +11,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-import spotpy
+
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append(".")
+    import spotpy
+
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.describe import describe
 
@@ -30,6 +37,7 @@ sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel, dbname='RosenMC', dbf
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
+
 
 
 sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel, dbname='RosenLHS', dbformat=dbformat, sim_timeout=timeout)

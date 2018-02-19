@@ -16,6 +16,13 @@ Note: This part of SPOTPY is in alpha status and not ready for production use.
 
 import numpy as np
 import spotpy
+import os
+try:
+    test_os_environment = os.environ['DISPLAY']
+except KeyError:
+    import matplotlib as mpl
+    mpl.use('Agg')
+
 
 
 
@@ -216,7 +223,7 @@ def compare_different_objectivefunctions(like1,like2):
     :rtype: list
     """
     from scipy import stats
-    out = stats.ttest_ind(like1,like2,equal_var=False)
+    out = stats.ttest_ind(like1, like2, equal_var=False)
     print(out)
     if out[1]>0.05:
         print('like1 is NOT signifikant different to like2: p>0.05')
@@ -237,7 +244,7 @@ def get_posterior(results,percentage=10):
     :return: Posterior result array
     :rtype: array
     """
-    reduction_factor = (100.0-percentage)/100.0
+    reduction_factor = int((100.0-percentage)/100.0)    
     return np.sort(results,axis=0)[int(len(results))*reduction_factor:]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):
@@ -426,7 +433,13 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     no_index=[]
     #threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
     threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
-    print(threshold)
+    #print(threshold)
+
+    try:
+        Si.values()
+    except AttributeError:
+        exit("Our SI is wrong: " +str(Si))
+
     for j in range(len(list(Si.values())[1])):
         if list(Si.values())[1][j]>threshold:
             names.append(parnames[j])
@@ -436,13 +449,13 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
             no_names.append(parnames[j])
             no_values.append(list(Si.values())[1][j])
             no_index.append(j)
-    print(names)
+    #print(names)
 
+    #print(index,values)
+    #print(no_index,no_values)
 
-    print(index,values)
-    print(no_index,no_values)
-    ax.bar(index,values,color='blue', label ='Sensitive Parameters')
-    ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')
+    if len(no_index) > 0 and len(no_values) > 0:
+        ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')
 #
 #        if Si.values()[1][i] > threshold:
 #            if not senslabelset:
@@ -458,6 +471,9 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
 #                insenslabelset = True
 #            else:
 #                ax.bar(i,Si.values()[1][i],color='orange')
+
+    else:
+        ax.bar(index, values, color='blue', label='Sensitive Parameters')
 
     ax.set_ylim([0,1])
 
@@ -557,9 +573,10 @@ def plot_heatmap_griewank(results,algorithms):
     #norm = cm.colors.Normalize(vmax=abs(z).max(), vmin=-abs(z).max())
     cmap = plt.get_cmap('autumn')
     #levels = np.linspace(-5, 5, 20)
-    rows=2
+    rows=2.0
     for i in range(subplots):
-        ax  = plt.subplot(rows,subplots/rows,i+1)
+        amount_row = int(np.ceil(subplots/rows))
+        ax = plt.subplot(rows, amount_row, i+1)
         CS = ax.contourf(x, y, z,locator=ticker.LogLocator(),cmap=cm.rainbow)#cmap)#,levels=levels)
         #CS = ax.contourf(x, y, z,cmap=cm.rainbow)#cmap)#,levels=levels)
         ax.plot(results[i]['par0'],results[i]['par1'],'ko',alpha=0.2,markersize=1.9)
@@ -823,8 +840,13 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
         plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
         plt.plot(dates,evaluation,'ro',label='Evaluation')
     else:
-        for s in s:
-            plt.plot(dates,list(s),'c-',alpha=0.05)
+        pl_i = 1
+        for s in sim:
+            # why we plotting dates again is we in case that it is none, this will cause an error??
+            #plt.plot(dates, list(s), 'c-', alpha=0.05)
+            plt.plot(pl_i, list(s), 'c-', alpha=0.05)
+            pl_i+=1
+
         plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
         plt.plot(evaluation,'ro',label='Evaluation')
     plt.legend()
@@ -1187,7 +1209,7 @@ def _compute_total_order(outputs, N, omega):
 
 def _Geweke(samples, intervals=20):
     '''Calculates Geweke Z-Scores'''
-    length=len(samples)/intervals/2
+    length=int(len(samples)/intervals/2)
     # discard the first 10 per cent
     first = 0.1*len(samples)
 
@@ -1196,8 +1218,8 @@ def _Geweke(samples, intervals=20):
 
     for k in np.arange(0, intervals):
         # starting points of the two different subsamples
-        start1 = first + k*length
-        start2 = len(samples)/2 + k*length
+        start1 = int(first + k*length)
+        start2 = int(len(samples)/2 + k*length)
 
         # extract the sub samples
         subsamples1 = samples[start1:start1+length]
