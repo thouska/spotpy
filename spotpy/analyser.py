@@ -1080,7 +1080,7 @@ def plot_parameterInteraction(results):
     parameternames=get_parameternames(results)
     df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
 
-    pd.tools.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
+    pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     #pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     plt.savefig('ParameterInteraction',dpi=300)
 

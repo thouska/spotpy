@@ -30,16 +30,9 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 
-class PickalableObject:
-    def __setstate__(self, state):
-        self.__init__(*state['args'])
-    def __getstate__(self):
-        return {'args': self.args}
-
-
-
 class TestAnalyser(unittest.TestCase):
     def setUp(self):
+        np.random.seed(42)
         self.rep = 100
         if not os.path.isfile("setUp_pickle_file"):
             from spotpy.examples.spot_setup_rosenbrock import spot_setup
@@ -55,10 +48,6 @@ class TestAnalyser(unittest.TestCase):
             self.sampler.sample(self.rep)
             self.results.append(self.sampler.getdata())
             self.results = np.array(self.results)
-
-
-
-
 
     def test_get_parameters(self):
 
@@ -169,7 +158,11 @@ class TestAnalyser(unittest.TestCase):
         spotpy.analyser.plot_Geweke(sample1,"sample1")
         fig_name = "test_plot_Geweke.png"
         plt.savefig(fig_name)
-        self.assertLessEqual(abs(os.path.getsize(fig_name)-30000), 9999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_get_sensitivity_of_fast(self):
@@ -229,7 +222,11 @@ class TestAnalyser(unittest.TestCase):
 
         fig_name = "test_plot_parameter_uncertainty.png"
         plt.savefig(fig_name)
-        self.assertLessEqual(abs(os.path.getsize(fig_name)-40000), 29999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         # tidy up all
         os.remove(fig_name)
 
@@ -240,30 +237,28 @@ class TestAnalyser(unittest.TestCase):
         parallel = "seq"
         dbformat = "ram"
         timeout = 5
-        passed = False
-        while not passed:
-            try:
-                sampler = spotpy.algorithms.dream(spot_setup_object, parallel=parallel,
-                                                  dbname='test_get_sensitivity_of_fast', dbformat=dbformat,
-                                                  sim_timeout=timeout)
 
-                sampler.sample(300)
-                results = []
-                results.append(sampler.getdata())
-                results = np.array(results)[0]
-                print("Sampler is done with")
-                print(results)
-                spotpy.analyser.plot_fast_sensitivity(results)
+        sampler = spotpy.algorithms.dream(spot_setup_object, parallel=parallel,
+                                          dbname='test_get_sensitivity_of_fast', dbformat=dbformat,
+                                          sim_timeout=timeout)
+        sampler.sample(300)
+        results = []
+        results.append(sampler.getdata())
+        results = np.array(results)[0]
+        print("Sampler is done with")
+        print(results)
+        spotpy.analyser.plot_fast_sensitivity(results)
 
-                fig_name = "FAST_sensitivity.png"
-                self.assertLessEqual(abs(os.path.getsize(fig_name) - 80000), 49999)
-                # tidy up all
-                os.remove(fig_name)
+        fig_name = "FAST_sensitivity.png"
 
-                passed = True
-            except IndexError:
-                print("We got an index error and we try again")
-                passed = False
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
+        # tidy up all
+        os.remove(fig_name)
+
+
 
 
 
@@ -287,15 +282,17 @@ class TestAnalyser(unittest.TestCase):
             pickle.dump({"getdata": sampler.getdata(), "evaluation": sampler.evaluation}, fl)
             fl.close()
 
-
         with open("setup_griewank_pickle", "rb") as file:
             return pickle.load(file)
-
 
     def test_plot_heatmap_griewank(self):
         fig_name = "test.png"
         spotpy.analyser.plot_heatmap_griewank([self.setup_griewank()["getdata"]],["test"])
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 40000), 29999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_objectivefunction(self):
@@ -303,55 +300,86 @@ class TestAnalyser(unittest.TestCase):
         spotpy.analyser.plot_objectivefunction(self.results
                                                , self.sampler.evaluation)
         plt.savefig(fig_name)
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 47000), 49999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_parametertrace_algorithms(self):
         spotpy.analyser.plot_parametertrace_algorithms([self.setup_griewank()["getdata"]],["test_plot_parametertrace_algorithms"])
         fig_name = "test2.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 39000), 29999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_parametertrace(self):
         spotpy.analyser.plot_parametertrace(self.setup_griewank()["getdata"], ["0","1"])
         fig_name = "0_1__trace.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 160000), 39999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_posterior_parametertrace(self):
         spotpy.analyser.plot_posterior_parametertrace(self.setup_griewank()["getdata"], ["0","1"])
         fig_name = "0_1__trace.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 160000), 39999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_posterior(self):
         spotpy.analyser.plot_posterior(self.results[0]
                                        , self.sampler.evaluation)
         fig_name = "bestmodelrun.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 51000), 29999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_bestmodelrun(self):
         samp = self.setup_griewank()
         spotpy.analyser.plot_bestmodelrun(samp["getdata"], samp["evaluation"])
         fig_name="Best_model_run.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 125000), 39999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_bestmodelruns(self):
         spotpy.analyser.plot_bestmodelruns(
-            self.results
-            , self.sampler.evaluation,
+            self.results, self.sampler.evaluation,
             dates=range(1, 1+len(self.sampler.evaluation)), algorithms=["test"])
         fig_name = "bestmodelrun.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 34000), 19999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
 
     def test_plot_objectivefunctiontraces(self):
         spotpy.analyser.plot_objectivefunctiontraces(self.results
                                                      , self.sampler.evaluation
                                                      , ["test"])
         fig_name="Like_trace.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 12000), 19999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_regression(self):
@@ -367,14 +395,22 @@ class TestAnalyser(unittest.TestCase):
 
         spotpy.analyser.plot_regression(sampler.getdata(), sampler.evaluation)
         fig_name="regressionanalysis.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 44000), 39999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_parameterInteraction(self):
         self.setup_MC_results()
         spotpy.analyser.plot_parameterInteraction(pickle.load(open("test_analyser_MC_results","rb")))
         fig_name = "ParameterInteraction.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 3970394), 2999999)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_allmodelruns(self):
@@ -400,7 +436,12 @@ class TestAnalyser(unittest.TestCase):
                                                                    dates=range(1, len(sp.evaluation()) + 1))
 
         fig_name = "bestmodel.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 66000), 40000)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
+
         os.remove(fig_name)
 
     def test_plot_autocorellation(self):
@@ -413,7 +454,11 @@ class TestAnalyser(unittest.TestCase):
         spotpy.analyser.plot_autocorellation(results["parcmax"][0],"parcmax")
 
         fig_name="Autocorellationparcmax.png"
-        self.assertLessEqual(abs(os.path.getsize(fig_name) - 266000), 100000)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the pot just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         os.remove(fig_name)
 
     def test_plot_gelman_rubin(self):
@@ -433,6 +478,7 @@ class TestAnalyser(unittest.TestCase):
         os.remove(fig_name)
 
     def setup_MC_results(self):
+
         picklefilename = "test_analyser_MC_results"
         if not os.path.isfile(picklefilename):
             from spotpy.examples.spot_setup_hymod_python import spot_setup as sp
