@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2017 by Benjamin Manns
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Tobias Houska, Benjamin Manns
 
-This code shows how to use the likelihood framework and present all existing function.
-'''
+This code tests the likelihood framework and present all existing function.
+"""
 
 import numpy as np
 try:
@@ -24,6 +24,7 @@ import unittest
 
 class TestLikelihood(unittest.TestCase):
     def setUp(self):
+        np.random.seed(12)
         self.data, self.comparedata = np.random.normal(1500, 2530, 20), np.random.normal(15, 25, 20)
         self.do_print = True
 
@@ -124,7 +125,7 @@ class TestLikelihood(unittest.TestCase):
 
     def test_LimitsOfAcceptability(self):
         l = spotpy.likelihoods.LimitsOfAcceptability(self.data, self.comparedata)
-        self.assertGreaterEqual(20, l)
+        self.assertEqual(12, l)
         self.assertNotEqual(None, l)
         self.assertEqual(type(np.int(l)), type(int(1)))
         if self.do_print:
