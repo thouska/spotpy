@@ -10,6 +10,7 @@ except ImportError:
 
 
 import spotpy.signatures as sig
+#from spotpy.examples.spot_setup_hymod_python import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 import numpy as np
 import os
@@ -28,15 +29,16 @@ except ImportError:
 class TestSignatures(unittest.TestCase):
 
     def setUp(self):
-        self.data = np.random.gamma(0.7,2,500)
         self.spot_setup = spot_setup()
         self.parameterset = self.spot_setup.parameters()['random']
         self.simulation = self.spot_setup.simulation(self.parameterset)
         self.observation = self.spot_setup.evaluation()
 
+        self.simulation = self.simulation[1:100]
+        self.observation = self.observation[1:100]
+
         self.timespanlen = self.simulation.__len__()
         try:
-
             self.ddd = pd.date_range("2015-01-01 11:00", freq="5min", periods=self.timespanlen)
             self.dd_daily = pd.date_range("2015-05-01", periods=self.timespanlen)
             self.usepandas = True
@@ -45,7 +47,7 @@ class TestSignatures(unittest.TestCase):
             self.usepandas = False
 
     def test_getSlopeFDC(self):
-        sig_val = sig.getSlopeFDC(self.simulation,self.observation, mode="get_signature")
+        sig_val = sig.getSlopeFDC(self.simulation, self.observation, mode="get_signature")
         sig_raw = sig.getSlopeFDC(self.simulation, self.observation, mode="get_raw_data")
         sig_dev = sig.getSlopeFDC(self.simulation, self.observation, mode="calc_Dev")
         self.assertEqual(type(float(sig_val)), type(1.0))
@@ -55,22 +57,22 @@ class TestSignatures(unittest.TestCase):
 
     def test_getAverageFloodOverflowPerSection(self):
         if self.usepandas:
-            for th in range(-10,10):
+            th = np.random.randint(-10,10)
 
-                sig_val = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_signature", datetime_series=self.dd_daily,
-                                                            threshold_value=th)
-                sig_raw = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_raw_data", datetime_series=self.dd_daily,
+            sig_val = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_signature", datetime_series=self.dd_daily,
                                                         threshold_value=th)
-                sig_dev = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="calc_Dev", datetime_series=self.dd_daily,
-                                                        threshold_value=th)
-                self.assertEqual(type(float(sig_val.astype(float))),type(1.0))
+            sig_raw = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="get_raw_data", datetime_series=self.dd_daily,
+                                                    threshold_value=th)
+            sig_dev = sig.getAverageFloodOverflowPerSection(self.simulation, self.observation, mode="calc_Dev", datetime_series=self.dd_daily,
+                                                    threshold_value=th)
+            self.assertEqual(type(float(sig_val.astype(float))),type(1.0))
 
 
 
-                self.assertEqual(sig_raw.dtypes[0],"float64")
-                self.assertEqual(sig_raw["flood"].__len__(), 1461)
-                #self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
-                self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
+            self.assertEqual(sig_raw.dtypes[0],"float64")
+            self.assertEqual(sig_raw["flood"].__len__(), 99)
+            #self.assertEqual(str(type(sig_raw.index.tolist()[0])),"<class 'pandas.tslib.Timestamp'>")
+            self.assertEqual(type(float(sig_dev.astype(float))), type(1.0))
 
 
     def test_getMeanFlow(self):
@@ -180,7 +182,7 @@ class TestSignatures(unittest.TestCase):
                                                        mode="calc_Dev")
 
                 self.assertEqual(sig_raw.dtypes[0], "float64")
-                self.assertEqual(sig_raw["flood"].__len__(), 1461)
+                self.assertEqual(sig_raw["flood"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -200,7 +202,7 @@ class TestSignatures(unittest.TestCase):
                                               mode="calc_Dev")
 
                 self.assertEqual(sig_raw.dtypes[0], "float64")
-                self.assertEqual(sig_raw["flood"].__len__(), 1461)
+                self.assertEqual(sig_raw["flood"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -220,7 +222,7 @@ class TestSignatures(unittest.TestCase):
                                                                 threshold_value=th, mode="calc_Dev")
 
                 self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
-                self.assertEqual(sig_raw["baseflow"].__len__(), 1461)
+                self.assertEqual(sig_raw["baseflow"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -240,7 +242,7 @@ class TestSignatures(unittest.TestCase):
                                                                 threshold_value=th, mode="calc_Dev")
 
                 self.assertTrue(sig_raw.dtypes[0] ==  "int64" or sig_raw.dtypes[0] ==  "float64")
-                self.assertEqual(sig_raw["baseflow"].__len__(), 1461)
+                self.assertEqual(sig_raw["baseflow"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -261,7 +263,7 @@ class TestSignatures(unittest.TestCase):
                                                                 threshold_value=th, mode="calc_Dev")
 
                 self.assertTrue(sig_raw.dtypes[0] == "int64" or sig_raw.dtypes[0] == "float64")
-                self.assertEqual(sig_raw["baseflow"].__len__(), 1461)
+                self.assertEqual(sig_raw["baseflow"].__len__(), 99)
 
                 #self.assertEqual(str(type(sig_raw.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
 
@@ -293,18 +295,17 @@ class TestSignatures(unittest.TestCase):
 
 
                 self.assertEqual(sig_raw_dd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_dd["count"].__len__(), 1461)
+                self.assertEqual(sig_raw_dd["count"].__len__(), 99)
 
                 self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_ddd["count"].__len__(), 122)
+                self.assertEqual(sig_raw_ddd["count"].__len__(), 9)
 
+                if type(sig_dev) != type(np.array([42.0])[0]) and type(sig_dev) != type(42.0):
+                    self.assertRaises("type of sig_dev must be float or numpy.float")
 
-                #self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
-                #self.assertEqual(str(type(sig_raw_ddd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
+                if type(sig_val) != type(np.array([42.0])[0]) and type(sig_val) != type(42.0):
+                    self.assertRaises("type of sig_val must be float or numpy.float")
 
-
-                self.assertEqual(type(float(sig_dev.astype(float))), type(42.0) )
-                self.assertEqual(type(float(sig_val.astype(float))), type(1.0))
 
     def test_getBaseflowFrequency(self):
         if self.usepandas:
@@ -325,10 +326,10 @@ class TestSignatures(unittest.TestCase):
                                         mode="calc_Dev")
 
                 self.assertEqual(sig_raw_dd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_dd["count"].__len__(), 1461)
+                self.assertEqual(sig_raw_dd["count"].__len__(), 99)
 
                 self.assertEqual(sig_raw_ddd.dtypes[0], "int64")
-                self.assertEqual(sig_raw_ddd["count"].__len__(), 122)
+                self.assertEqual(sig_raw_ddd["count"].__len__(), 9)
 
 
                 #self.assertEqual(str(type(sig_raw_dd.index.tolist()[0])), "<class 'pandas.tslib.Timestamp'>")
