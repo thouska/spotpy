@@ -431,9 +431,7 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     no_values = []
     index=[]
     no_index=[]
-    #threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
-    threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
-    #print(threshold)
+    threshold = 0.2
 
     try:
         Si.values()
@@ -449,28 +447,9 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
             no_names.append(parnames[j])
             no_values.append(list(Si.values())[1][j])
             no_index.append(j)
-    #print(names)
-
-    #print(index,values)
-    #print(no_index,no_values)
 
     if len(no_index) > 0 and len(no_values) > 0:
         ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')
-#
-#        if Si.values()[1][i] > threshold:
-#            if not senslabelset:
-#                #ax.bar(i,Si.values()[1][i],color='blue', label =str(number_of_sensitiv_pars)+' most sensitive Parameters')
-#                ax.bar(i,Si.values()[1][i],color='blue', label ='Sensitive Parameters')
-#                senslabelset = True
-#            else:
-#                ax.bar(i,Si.values()[1][i],color='blue')
-#
-#        else:
-#            if not insenslabelset:
-#                ax.bar(i,Si.values()[1][i],color='orange', label = 'Insensitive parameter')
-#                insenslabelset = True
-#            else:
-#                ax.bar(i,Si.values()[1][i],color='orange')
 
     else:
         ax.bar(index, values, color='blue', label='Sensitive Parameters')
@@ -485,62 +464,7 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
     fig.savefig('FAST_sensitivity.png',dpi=300)
-#
-#    import matplotlib.pyplot as plt
-#    from matplotlib import colors
-#    cnames=list(colors.cnames)
-#
-#    parnames=get_parameternames(results)
-#    fig=plt.figure(figsize=(16,6))
-##    all_names=[]
-##    all_no_names=[]
-#    for i in range(len(likes)):
-#        ax  = plt.subplot(len(likes),1,i+1)
-#        Si=get_sensitivity_of_fast(results)
-#
-#    names=[0,0]
-#    values=[]
-#    no_names=[]
-#    for j in range(len(list(Si.values())[1])):
-#        if list(Si.values())[1][j]>=sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]:
-#            names.append(parnames[j])
-#            values.append(list(Si.values())[1][j])
-#        else:
-#            no_names.append(parnames[j])
-#    print(names)
-#    threshold = sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
-#    threshold = 0.2#sorted(np.sort(list(Si.values())[1]),reverse=True)[number_of_sensitiv_pars]
-#    print(threshold)
-#    #ax.bar(np.arange(0,len(Si.values()[1])),sorted(np.sort(Si.values()[1]),reverse=True),label=str(names))
-#    #ax.bar(np.arange(0,len(list(Si.values())[1])),list(Si.values())[1],label=names)
-#    senslabelset=False
-#    insenslabelset=False
-#    for i in range(len(parnames)):
-#        if Si.values()[1][i] > threshold:
-#            if not senslabelset:
-#                ax.bar(i,Si.values()[1][i],color='blue', label =str(number_of_sensitiv_pars)+' most sensitive Parameters')
-#                senslabelset = True
-#            else:
-#                ax.bar(i,Si.values()[1][i],color='blue')
-#
-#        else:
-#            if not insenslabelset:
-#                ax.bar(i,Si.values()[1][i],color='orange', label = 'Insensitive parameter')
-#                insenslabelset = True
-#            else:
-#                ax.bar(i,Si.values()[1][i],color='orange')
-#
-#    ax.set_ylim([0,1])
-#
-#    ax.set_xlabel('Model Paramters')
-#    ax.set_ylabel('Total Sensititivity Index')
-#    ax.legend()
-#    ax.set_xticklabels(names[1:])
-#    ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
-#    ax.set_xlim(-0.5,len(parnames)-0.5)
-#    fig.savefig('FAST_sensitivity.png',dpi=300)
-##    all_names.append(names)
-##    all_no_names.append(no_names)
+
 
 
 
@@ -897,53 +821,6 @@ def plot_bestmodelrun(results,evaluation):
     print(text)
     fig.savefig('Best_model_run.png',dpi=300)
 
-#    from matplotlib import colors
-#    cnames=list(colors.cnames)
-#    plt.rc('font', **font)
-#    if calculatelike:
-#        likes=[]
-#        sim=get_modelruns(results)
-#        par=get_parameters(results)
-#        for s in sim:
-#            likes.append(spotpy.objectivefunctions.nashsutcliff(s,evaluation))
-#        maximum=max(likes)
-#        index=likes.index(maximum)
-#        bestmodelrun=list(sim[index])
-#        bestparameterset=list(par[index])
-#
-#    else:
-#        if objectivefunctionmax==True:
-#            index,maximum=get_maxlikeindex(results)
-#        else:
-#            index,maximum=get_minlikeindex(results)
-#        bestmodelrun=list(get_modelruns(results)[index][0])#Transform values into list to ensure plotting
-#        bestparameterset=list(get_parameters(results)[index][0])
-#
-#    parameternames=list(get_parameternames(results)    )
-#    bestparameterstring=''
-#    maxNSE=spotpy.objectivefunctions.nashsutcliff(bestmodelrun,evaluation)
-#    for i in range(len(parameternames)):
-#        if i%8==0:
-#            bestparameterstring+='\n'
-#        bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
-#    fig=plt.figure(figsize=(16,8))
-#    if dates is not None:
-#        plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
-#        plt.plot(dates,evaluation,'ro',label='Evaluation')
-#    else:
-#        plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
-#        plt.plot(evaluation,'ro',label='Evaluation')
-#    plt.legend()
-#    plt.ylabel(ylabel)
-#    plt.xlabel(xlabel)
-#    plt.ylim(0,70) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
-#    plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
-##    plt.text(0, 0, bestparameterstring[0:-2],
-##        horizontalalignment='left',
-##        verticalalignment='bottom')
-#    fig.savefig('bestmodelrun.png')
-#    text='The figure as been saved as "bestmodelrun.png"'
-#    print(text)
 
 
 def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True):
@@ -1081,7 +958,6 @@ def plot_parameterInteraction(results):
     df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
 
     pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
-    #pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
     plt.savefig('ParameterInteraction',dpi=300)
 
 
