@@ -245,7 +245,7 @@ def get_posterior(results,percentage=10):
     :rtype: array
     """
     reduction_factor = int((100.0-percentage)/100.0)    
-    return np.sort(results,axis=0)[int(len(results))*reduction_factor:]
+    return np.sort(results,axis=0)[int(len(results)*reduction_factor):]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):
     import pylab as plt
