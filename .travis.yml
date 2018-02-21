@@ -1,7 +1,6 @@
 language: python
 python:
   - "2.7"
-  - "3.4"
   - "3.5"
   - "3.6"
 
@@ -21,8 +20,6 @@ install:
 
 script:
   - pip uninstall spotpy -y
-  # this is for coveralls.io and if something breaks, we will see it on travis, so one test is enough, no double test
-  # is needed
   - py.test  spotpy/unittests/test_* spotpy/examples/tutorial_rosenbrock.py  --cov spotpy --cov-report term-missing -v
 
 after_success:
