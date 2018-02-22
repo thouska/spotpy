@@ -43,7 +43,9 @@ class TestDescribe(unittest.TestCase):
         io.write(t)
         self.assertGreaterEqual(io.getvalue().count('\n'), 6)
 
-    def sampler_test(self, sampler):
+    def sampler_test(self, sampler=None):
+        if not sampler:
+            return
         t = spotpy.describe.describe(sampler)
         io = StringIO()
         io.write(t)
@@ -68,7 +70,21 @@ class TestDescribe(unittest.TestCase):
                 self.sampler_test(sampler)
 
 
+class TestDescribeRst(unittest.TestCase):
+
+    def test_setup_rst(self):
+        setup = SpotSetup()
+        rst = spotpy.describe.rst(setup)
+
+
+    def test_sampler_rst(self):
+        for sname, scls in inspect.getmembers(spotpy.algorithms, inspect.isclass):
+            if not sname.startswith('_'):
+                print(sname)
+                model = SpotSetup()
+                sampler = scls(spot_setup=model, dbformat='ram', dbname='äöü')
+                rst = spotpy.describe.rst(sampler)
+                rst.as_html()
 
 if __name__ == '__main__':
-
     unittest.main()
