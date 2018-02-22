@@ -12,6 +12,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 try:
     import spotpy
@@ -25,9 +28,6 @@ import numpy as np
 import spotpy.analyser
 import os
 import pickle
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
 
 
 class TestAnalyser(unittest.TestCase):
