@@ -148,6 +148,9 @@ class SingleStorage(object):
         self.begin = begin or self.data.begin
         self.end = end or self.data.end
 
+    def __str__(self):
+        return type(self).__name__
+
     def create_project(self):
         """
         Creates the cmf project with its basic elements
@@ -270,7 +273,6 @@ if __name__ == '__main__':
         sampler.sample(runs)
 
     else:
-        print('Start gui')
         from spotpy.gui.mpl import GUI
         gui = GUI(model)
         gui.show()

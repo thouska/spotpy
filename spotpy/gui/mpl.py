@@ -30,25 +30,45 @@ class Widget:
             if hasattr(self.object, k):
                 getattr(self.object, k)(events[k])
 
+class ValueChanger:
+    """
+    A simple class to change values by key with the sliders
+    """
+    def __init__(self, key, dict):
+        self.dict = dict
+        self.key = key
+
+    def __call__(self, val):
+        self.dict[self.key] = val
+
 
 class GUI:
     """
     The graphic user interface for a setup, for manual calibration.
-    Does not work with setups using a parameters function
+
+    Usage:
+    >>>from spotpy.gui.mpl import GUI
+    >>>gui = GUI(spotsetup)
+    >>>gui.show()
     """
 
     def __init__(self, setup):
-        self.fig = plt.figure()
-        self.ax = plt.axes([0.3, 0.1, 0.6, 0.8])
-        self.button = Widget([0.05, 0.01, 0.2, 0.04], Button, 'Simulate', on_clicked=self.run)
+        """
+        Creates the widgets
+        :param setup:
+        """
+        self.fig = plt.figure(str(setup))
+        self.ax = plt.axes([0.05, 0.1, 0.65, 0.85])
+        self.button_run = Widget([0.75, 0.01, 0.1, 0.03], Button, 'Simulate', on_clicked=self.run)
+        self.button_clear = Widget([0.87, 0.01, 0.1, 0.03], Button, 'Clear plot', on_clicked=self.clear)
         self.parameter_values = {}
         self.setup = setup
-        self.sliders=[]
+        self.sliders = []
         self.make_widgets()
+        self.clear()
         self.run()
 
     def show(self):
-        print('GUI')
         plt.show()
 
     def make_widgets(self):
@@ -57,10 +77,9 @@ class GUI:
 
         self.sliders = []
         for i, row in enumerate(self.parameter_array):
-            f = lambda val: self.change_parameter(p.name, val)
-            rect = [0.05, 0.9 - 0.05 * i, 0.2, 0.04]
+            rect = [0.75, 0.9 - 0.05 * i, 0.2, 0.04]
             s = Widget(rect, Slider, row['name'], row['minbound'], row['maxbound'],
-                       valinit=row['optguess'], on_changed=f)
+                       valinit=row['optguess'], on_changed=ValueChanger(row['name'], self.parameter_values))
             self.sliders.append(s)
         plt.draw()
 
@@ -68,14 +87,23 @@ class GUI:
     def parameter_array(self):
         return get_parameters_array(self.setup)
 
-    def change_parameter(self, key, value):
-        self.parameter_values[key] = value
+    def clear(self, event=None):
+        obs = self.setup.evaluation()
+        self.ax.clear()
+        self.ax.plot(obs, 'k:', label='Observation', zorder=2)
 
-    def run(self):
+    def run(self, event=None):
+        self.ax.set_title('Calculating...')
+        plt.draw()
+
         parset = create_set(self.setup, **self.parameter_values)
         sim = self.setup.simulation(parset)
-        obs = self.setup.evaluation()
-        self.ax.plot(sim, '-', label='Simulation')
-        self.ax.plot(obs, '--', label='Observation')
+        objf = self.setup.objectivefunction(sim, self.setup.evaluation())
+        label = ('{:0.4g}=M('.format(objf)
+                 + ', '.join('{f}={v:0.4g}'.format(f=f, v=v) for f, v in zip(parset._fields, parset))
+                 + ')')
+        self.ax.plot(sim, '-', label=label)
+        self.ax.legend()
+        self.ax.set_title(str(self.setup))
         plt.draw()
 
