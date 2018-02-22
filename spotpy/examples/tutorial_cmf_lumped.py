@@ -6,11 +6,14 @@
 """
 
 from __future__ import division, print_function
+import matplotlib
 import sys
 import datetime
 # noinspection PyPackageRequirements
 import cmf
+
 import spotpy
+print(matplotlib.get_backend())
 from spotpy.parameter import Uniform
 import os
 
@@ -258,7 +261,8 @@ if __name__ == '__main__':
                       save_sim=True)
 
     # Print our configuration
-    print(spotpy.describe.describe(sampler))
+    print(spotpy.describe.setup(model))
+    print(spotpy.__version__)
 
     # Do the sampling
     if runs > 1:
@@ -266,12 +270,9 @@ if __name__ == '__main__':
         sampler.sample(runs)
 
     else:
-
-        result = model.simulation(verbose=True)
-        for name, value in spotpy.objectivefunctions.calculate_all_functions(model.evaluation(), result):
-            try:
-                print('{:>30.30s} = {:0.6g}'.format(name, value))
-            except ValueError:
-                print('{:>30.30s} = {}'.format(name, value))
+        print('Start gui')
+        from spotpy.gui.mpl import GUI
+        gui = GUI(model)
+        gui.show()
 
 
