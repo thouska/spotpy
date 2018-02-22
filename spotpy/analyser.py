@@ -16,8 +16,6 @@ Note: This part of SPOTPY is in alpha status and not ready for production use.
 
 import numpy as np
 import spotpy
-import os
-import matplotlib as mpl
 
 
 
