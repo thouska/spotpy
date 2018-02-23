@@ -101,8 +101,7 @@ class GUI:
         self.button_clear = Widget([0.87, 0.01, 0.1, 0.03], Button, 'Clear plot', on_clicked=self.clear)
         self.parameter_values = {}
         self.setup = setup
-        self.sliders = []
-        self._make_widgets()
+        self.sliders = self._make_widgets()
         self.clear()
 
     def show(self):
@@ -119,7 +118,7 @@ class GUI:
         for s in self.sliders:
             s.ax.remove()
 
-        self.sliders = []
+        sliders = []
         step = max(0.005, min(0.05, 0.8/len(self.parameter_array)))
         for i, row in enumerate(self.parameter_array):
             rect = [0.75, 0.9 - step * i, 0.2, step - 0.005]
@@ -127,6 +126,7 @@ class GUI:
                        valinit=row['optguess'], on_changed=ValueChanger(row['name'], self.parameter_values))
             self.sliders.append(s)
         plt.draw()
+        return sliders
 
     @property
     def parameter_array(self):
