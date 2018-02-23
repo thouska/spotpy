@@ -115,8 +115,9 @@ class GUI:
         Creates the sliders
         :return:
         """
-        for s in self.sliders:
-            s.ax.remove()
+        if hasattr(self, 'sliders'):
+            for s in self.sliders:
+                s.ax.remove()
 
         sliders = []
         step = max(0.005, min(0.05, 0.8/len(self.parameter_array)))
@@ -124,7 +125,7 @@ class GUI:
             rect = [0.75, 0.9 - step * i, 0.2, step - 0.005]
             s = Widget(rect, Slider, row['name'], row['minbound'], row['maxbound'],
                        valinit=row['optguess'], on_changed=ValueChanger(row['name'], self.parameter_values))
-            self.sliders.append(s)
+            sliders.append(s)
         plt.draw()
         return sliders
 
