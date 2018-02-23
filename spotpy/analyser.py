@@ -16,12 +16,6 @@ Note: This part of SPOTPY is in alpha status and not ready for production use.
 
 import numpy as np
 import spotpy
-import os
-try:
-    test_os_environment = os.environ['DISPLAY']
-except KeyError:
-    import matplotlib as mpl
-    mpl.use('Agg')
 
 
 
