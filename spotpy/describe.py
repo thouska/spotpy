@@ -14,6 +14,7 @@ Usage:
 from __future__ import division, absolute_import, unicode_literals
 import sys
 from .parameter import get_parameters_from_setup
+from .algorithms._algorithm import _algorithm
 if sys.version_info[0] >= 3:
     from inspect import getdoc as _getdoc
     unicode = str
@@ -27,6 +28,12 @@ else:
                 '{}: Docstring uses unicode but {} misses the line ``from __future__ import unicode_literals``'
                 .format(obj, type(obj).__module__)
                 )
+
+try:
+    from docutils.core import publish_string
+except ImportError:
+    publish_string = None
+
 
 def describe(obj):
     """
@@ -67,3 +74,4 @@ def setup(obj):
     params = '\n'.join(' - {p}'.format(p=unicode(p)) for p in get_parameters_from_setup(obj))
     parts = [cname, '=' * len(cname), mdoc, 'Parameters:', '-' * 11, params]
     return '\n'.join(parts)
+

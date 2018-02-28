@@ -136,6 +136,9 @@ class _ArgumentHelper(object):
             error = '{}: {} arguments where given but only {} could be used'.format(self.classname, total_args, self.processed_args)
             raise TypeError(error)
 
+def _round_sig(x, sig=3):
+    from math import floor, log10
+    return round(x, sig-int(floor(log10(abs(x))))-1)
 
 class Base(object):
     """
@@ -184,8 +187,8 @@ class Base(object):
             sample = self(size=1000)
             self.step = param_args.get('step') or (np.percentile(sample, 50) - np.percentile(sample, 40))
             self.optguess = param_args.get('optguess') or np.median(sample)
-            self.minbound = param_args.get('minbound') or np.min(sample)
-            self.maxbound = param_args.get('maxbound') or np.max(sample)
+            self.minbound = param_args.get('minbound') or _round_sig(np.min(sample))
+            self.maxbound = param_args.get('maxbound') or _round_sig(np.max(sample))
 
         else:
 

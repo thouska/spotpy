@@ -43,7 +43,9 @@ class TestDescribe(unittest.TestCase):
         io.write(t)
         self.assertGreaterEqual(io.getvalue().count('\n'), 6)
 
-    def sampler_test(self, sampler):
+    def sampler_test(self, sampler=None):
+        if not sampler:
+            return
         t = spotpy.describe.describe(sampler)
         io = StringIO()
         io.write(t)
@@ -68,7 +70,5 @@ class TestDescribe(unittest.TestCase):
                 self.sampler_test(sampler)
 
 
-
 if __name__ == '__main__':
-
     unittest.main()
