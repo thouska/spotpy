@@ -1,6 +1,7 @@
 [run]
 omit =
     *example*
+    *gui*
 
 [report]
 exclude_lines =
