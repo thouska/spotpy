@@ -40,7 +40,8 @@ if sys.version_info >= (3, 5) and matplotlib.__version__ >= '2.1':
             setup = Setup()
             with GUI(setup) as gui:
                 gui.clear()
-                self.assertEqual(len(gui.lines), 1)
+                gui.run()
+                self.assertEqual(len(gui.lines), 2)
 
 if __name__ == '__main__':
     unittest.main()
