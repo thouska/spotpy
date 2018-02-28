@@ -102,7 +102,7 @@ def nashsutcliffe(evaluation, simulation):
         return np.nan
 
 
-def lognashsutcliffe(evaluation, simulation):
+def lognashsutcliffe(evaluation, simulation, epsilon=0):
     """
     log Nash-Sutcliffe model efficiency
 
@@ -116,12 +116,16 @@ def lognashsutcliffe(evaluation, simulation):
     :simulation: simulation data to compared with evaluation data
     :type: list
 
-    :return: log Nash-Sutcliff model efficiency
+    :epsilon: Value which is added to simulation and evaluation data to errors when simulation or evaluation data has zero values
+    :type: float or list
+    
+    :return: log Nash-Sutcliffe model efficiency
     :rtype: float
 
     """
     if len(evaluation) == len(simulation):
-        return float(1 - sum((np.log(simulation) - np.log(evaluation))**2) / sum((np.log(evaluation) - np.mean(np.log(evaluation)))**2))
+        s, e = np.array(simulation)+epsilon, np.array(evaluation)+epsilon
+        return float(1 - sum((np.log(s) - np.log(e))**2) / sum((np.log(e) - np.mean(np.log(e)))**2))
     else:
         logging.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
