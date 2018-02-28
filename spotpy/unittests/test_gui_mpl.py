@@ -5,7 +5,7 @@ matplotlib.use('Agg')
 
 import sys
 
-if sys.version_info >= (3, 5) or matplotlib.__version__ >= '2.1':
+if sys.version_info >= (3, 5) and matplotlib.__version__ >= '2.1':
 
     sys.path.append(".")
 
