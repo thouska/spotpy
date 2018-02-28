@@ -7,18 +7,43 @@ and needs Python 3.5 minimum
 """
 
 import sys
-if sys.version_info < (3, 5):
-    raise ImportError('spotpy.gui.mpl needs at least Python 3.5, you are running Python {}.{}.{}'
-                      .format(*sys.version_info[:3]))
 import matplotlib
-if matplotlib.__version__ < '2.1':
-    raise ImportError('Your matplotlib package is too old. Required >=2.1, you have ' + matplotlib.__version__)
 
 from matplotlib.widgets import Slider, Button
 from matplotlib import pylab as plt
 
 import time
 from ..parameter import get_parameters_array, create_set
+
+
+if sys.version_info < (3, 5):
+    raise ImportError('spotpy.gui.mpl needs at least Python 3.5, you are running Python {}.{}.{}'
+                      .format(*sys.version_info[:3]))
+
+
+if matplotlib.__version__ < '2.1':
+    raise ImportError('Your matplotlib package is too old. Required >=2.1, you have ' + matplotlib.__version__)
+
+
+def as_scalar(val):
+    """
+    If val is iterable, this function returns the first entry
+    else returns val. Handles strings as scalars
+    :param val: A scalar or iterable
+    :return:
+    """
+    # Check string
+    if val == str(val):
+        return val
+
+    try:  # Check iterable
+        it = iter(val)
+        # Get first iterable
+        return next(it)
+    except TypeError:
+        # Fallback, val is scalar
+        return val
+
 
 class Widget:
     """
@@ -28,7 +53,7 @@ class Widget:
 
     Usage:
     >>>from matplotlib.widgets import Button
-    >>>def when_click(event): print('Click')
+    >>>def when_click(_): print('Click')
     >>>w = Widget([0,0,0.1,0.1], Button, 'click me', on_clicked=when_click)
     """
 
@@ -52,6 +77,7 @@ class Widget:
             if hasattr(self.object, k):
                 getattr(self.object, k)(events[k])
 
+
 class ValueChanger:
     """
     A closure class to change values by key with the sliders.
@@ -63,12 +89,12 @@ class ValueChanger:
     >>>from matplotlib.widgets import Slider
     >>>w = Widget([0,0,0.1,0.1], Slider, 'slider', 0, 100, on_changed=ValueChanger('a', d))
     """
-    def __init__(self, key, dict):
-        self.dict = dict
+    def __init__(self, key, stor):
+        self.stor = stor
         self.key = key
 
     def __call__(self, val):
-        self.dict[self.key] = val
+        self.stor[self.key] = val
 
 
 class GUI:
@@ -102,9 +128,20 @@ class GUI:
         self.parameter_values = {}
         self.setup = setup
         self.sliders = self._make_widgets()
+        self.lines = []
         self.clear()
 
-    def show(self):
+    def close(self):
+        plt.close(self.fig)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    @staticmethod
+    def show():
         """
         Calls matplotlib.pylab.show to show the GUI.
         """
@@ -139,7 +176,7 @@ class GUI:
         """
         obs = self.setup.evaluation()
         self.ax.clear()
-        self.ax.plot(obs, 'k:', label='Observation', zorder=2)
+        self.lines = list(self.ax.plot(obs, 'k:', label='Observation', zorder=2))
         self.ax.legend()
 
     def run(self, _=None):
@@ -152,12 +189,11 @@ class GUI:
 
         parset = create_set(self.setup, **self.parameter_values)
         sim = self.setup.simulation(parset)
-        objf = self.setup.objectivefunction(sim, self.setup.evaluation())
+        objf = as_scalar(self.setup.objectivefunction(sim, self.setup.evaluation()))
         label = ('{:0.4g}=M('.format(objf)
                  + ', '.join('{f}={v:0.4g}'.format(f=f, v=v) for f, v in zip(parset._fields, parset))
                  + ')')
-        self.ax.plot(sim, '-', label=label)
+        self.lines.extend(self.ax.plot(sim, '-', label=label))
         self.ax.legend()
         self.ax.set_title(type(self.setup).__name__)
         plt.draw()
-
