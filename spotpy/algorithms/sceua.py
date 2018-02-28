@@ -206,6 +206,8 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
+            print ('burn-in started...')
+
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
             for rep, randompar, simulations in self.repeat(param_generator):
@@ -262,6 +264,8 @@ class sceua(_algorithm):
             print(
                 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
+        print ('burn-in completed...')
+
         # Begin evolution loops:
         nloop = 0
         criter = []
@@ -271,6 +275,8 @@ class sceua(_algorithm):
         #intervaltime = starttime
         #acttime = time.time()
         self.repeat.setphase('ComplexEvo')
+
+        print ('ComplexEvo started...')
 
         while icall < repetitions and gnrng > peps and criter_change > pcento:
             nloop += 1
@@ -348,6 +354,7 @@ class sceua(_algorithm):
                     criter[nloop - 1] - criter[nloop - kstop]) * 100
                 criter_change = criter_change / \
                     np.mean(np.abs(criter[nloop - kstop:nloop]))
+                print ('updated convergence criteria: %f' % criter_change)
                 if criter_change < pcento:
                     text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' % (
                         kstop, pcento)

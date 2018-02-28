@@ -16,12 +16,6 @@ Note: This part of SPOTPY is in alpha status and not ready for production use.
 
 import numpy as np
 import spotpy
-import os
-try:
-    test_os_environment = os.environ['DISPLAY']
-except KeyError:
-    import matplotlib as mpl
-    mpl.use('Agg')
 
 
 
@@ -244,7 +238,7 @@ def get_posterior(results,percentage=10):
     :return: Posterior result array
     :rtype: array
     """
-    reduction_factor = int((100.0-percentage)/100.0)    
+    reduction_factor = (100.0-percentage)/100.0    
     return np.sort(results,axis=0)[int(len(results)*reduction_factor):]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):

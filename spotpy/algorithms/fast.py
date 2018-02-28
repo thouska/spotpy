@@ -139,6 +139,13 @@ class fast(_algorithm):
 
         if Y.size % (D) == 0:
             N = int(Y.size / D)
+        elif Y.size > D:
+            N = int(Y.size / D)
+            rest = Y.size - N*D
+            print("""
+                We can not use """ + str(rest) + """ samples which was generated
+                of totaly """ + str(Y.size) + """ 
+                """)
         else:
             print("""
                 Error: Number of samples in model output file must be a multiple of D, 
