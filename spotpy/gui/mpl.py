@@ -128,7 +128,17 @@ class GUI:
         self.parameter_values = {}
         self.setup = setup
         self.sliders = self._make_widgets()
+        self.lines = []
         self.clear()
+
+    def close(self):
+        plt.close(self.fig)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     @staticmethod
     def show():
@@ -166,7 +176,7 @@ class GUI:
         """
         obs = self.setup.evaluation()
         self.ax.clear()
-        self.ax.plot(obs, 'k:', label='Observation', zorder=2)
+        self.lines = list(self.ax.plot(obs, 'k:', label='Observation', zorder=2))
         self.ax.legend()
 
     def run(self, _=None):
@@ -183,7 +193,7 @@ class GUI:
         label = ('{:0.4g}=M('.format(objf)
                  + ', '.join('{f}={v:0.4g}'.format(f=f, v=v) for f, v in zip(parset._fields, parset))
                  + ')')
-        self.ax.plot(sim, '-', label=label)
+        self.lines.extend(self.ax.plot(sim, '-', label=label))
         self.ax.legend()
         self.ax.set_title(type(self.setup).__name__)
         plt.draw()
