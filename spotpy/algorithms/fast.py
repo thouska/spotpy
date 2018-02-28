@@ -236,7 +236,6 @@ class fast(_algorithm):
         
         try:            
             data = self.datawriter.getdata()
-            print(data)
             # this is likely to crash if database does not assign name 'like1'
             Si = self.analyze(
                 bounds, data['like1'], len(bounds), names, print_to_console=True)
