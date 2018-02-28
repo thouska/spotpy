@@ -83,6 +83,12 @@ if sys.version_info > (3, 5):
 
 
     def _as_rst_caption(s, caption_sign):
+        """
+        Marks text as a section caption
+        :param s: String to be marked as caption
+        :param caption_sign: Sign for the caption, eg. =, -, #, ~
+        :return: The string as rst caption
+        """
         s = unicode(s)
         return s + '\n' + caption_sign * len(s) + '\n\n'
 
@@ -94,31 +100,38 @@ if sys.version_info > (3, 5):
             if isinstance(setup_or_sampler, _algorithm):
                 self.setup = setup_or_sampler.setup
                 self.sampler = setup_or_sampler
-                self.rst_text = self._sampler_text()
+                self.rst_text = [self._sampler_text()]
             else:
                 self.setup = setup_or_sampler
                 self.sampler = None
-                self.rst_text = ''
+                self.rst_text = []
 
             if self.setup:
-                self.rst_text += self._setup_text()
+                self.rst_text.append(self._setup_text())
 
-        def add_rst(self, extra):
+        def append(self, extra_rst):
             """
+            Appends additional descriptions in reStructured text to the generated text
 
-            :param extra:
+            :param extra: reStructuredText to be appended
             :return:
             """
-            self.rst_text += extra
+            self.rst_text.append(extra_rst)
+
+        def append_image(self, imgpath, linkpath=None):
+            """
+            Links an image to the output
+            :param imgpath: Path to the image (must be found from the http server)
+            :param linkpath: A link target of the image (may be None for no link)
+            """
+            rst = '.. image:: {}'.format(imgpath)
+            if linkpath:
+                rst += ' :target: ' + linkpath
+            self.append(rst)
 
         def __str__(self):
-            if sys.version_info.major < 3:
-                return self.rst_text.encode('utf-8', errors='ignore')
-            else:
-                return self.rst_text
+            return '\n'.join(self.rst_text)
 
-        def __unicode__(self):
-            return self.rst_text
 
         css = """
             body, table, div, p, dl {
@@ -176,7 +189,7 @@ if sys.version_info > (3, 5):
                 raise NotImplementedError('The docutils package needs to be installed')
             args = {'input_encoding': 'unicode',
                     'output_encoding' : 'unicode'}
-            res = publish_string(source=self.rst_text,
+            res = publish_string(source='\n'.join(self.rst_text),
                                  writer_name='html5',
                                  settings_overrides=args)
             style_idx = res.index('</style>')
@@ -187,7 +200,8 @@ if sys.version_info > (3, 5):
 
         def show_in_browser(self, filename=None, css=None):
             """
-            Writes the content as html to disk
+            Writes the content as html to disk and opens a browser showing the result
+
             :param filename: The html filename, if None use <setup class name>.html
             :param css: A style string, if None the default style is used
             """
@@ -198,6 +212,10 @@ if sys.version_info > (3, 5):
             webbrowser.open_new_tab(path.as_uri())
 
         def _sampler_text(self):
+            """
+            Generates the rst for the sampler
+            :return:
+            """
             obj = self.sampler
             cname = _as_rst_caption(type(obj).__name__, '=')
             s = [
@@ -210,6 +228,10 @@ if sys.version_info > (3, 5):
             return cname + _getdoc(obj).strip('\n') + '\n\n' + '\n'.join(s)
 
         def _setup_text(self):
+            """
+            Generates the rst for the setup
+            :return:
+            """
             # Get class name
             obj = self.setup
             cname = _as_rst_caption(type(obj).__name__, '=')
