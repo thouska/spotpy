@@ -72,7 +72,7 @@ class list(_algorithm):
         # Initialization
         print('Starting the List sampler with '+str(repetitions)+ ' repetitions...')
         param_generator = ((rep, parameters[rep])
-                           for rep in range(int(repetitions) - 1))
+                           for rep in range(int(repetitions)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database 
             self.postprocessing(rep, randompar, simulations)
