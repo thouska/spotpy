@@ -13,11 +13,6 @@ URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=996017&isnumber=214
 '''
 
 import numpy as np
-import pprint
-import copy
-
-import matplotlib.pyplot as pl
-from mpl_toolkits.mplot3d import Axes3D
 
 from spotpy.algorithms import _algorithm
 
@@ -36,13 +31,51 @@ class ParaPop:
 
 
 class NSGAII(_algorithm):
+    """
+        Implements the "Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II
+        by Kalyanmoy Deb, Associate Member, IEEE, Amrit Pratap, Sameer Agarwal, and T. Meyarivan
+
+    """
+
     def __init__(self, *args, **kwargs):
+        """
+        Input
+        ----------
+        spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the parameter-function
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can
+                be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model simulation and
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
+
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
+
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+
+        save_sim: boolean
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
+        """
+
         super(NSGAII, self).__init__(*args, **kwargs)
         # self.all_objectives = [self.setup.__getattribute__(m) for m in dir(self.setup) if "objectivefunc" in m]
 
         self.param_len = len(self.get_parameters())
         self.generation = 0
-        self.length_of_objective_func = 2 # TODO make it better, do we need this
+        self.length_of_objective_func = 0
 
         self.objfun_maxmin_list = None
         self.objfun_normalize_list= []
@@ -55,9 +88,11 @@ class NSGAII(_algorithm):
         F[1] = {}
 
         if self.objfun_maxmin_list is None:
+            self.length_of_objective_func = 0
             # In the first iteration create this list to have it prepared for later use
             self.objfun_maxmin_list = []
             for _ in self.objectivefunction(self.setup.evaluation(), self.setup.simulation(P[0])):
+                self.length_of_objective_func += 1
                 self.objfun_maxmin_list.append([])
 
         param_generator = ((p, list(P[p])) for p in P)
@@ -185,40 +220,44 @@ class NSGAII(_algorithm):
             F = self.fast_non_dominated_sort(R_0)
 
             print("GENERATION: " + str(self.generation) + " of " + str(generations))
-            layer = 0
-            fig = pl.figure()
 
-            if self.length_of_objective_func == 2:
-
-                for i in F:
-                    if layer == 0:
-                        l_color = "b"
-                    else:
-                        l_color = "#"
-                        for _ in range(6):
-                            l_color += ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"][
-                                np.random.randint(16)]
-                    for j in F[i]:
-                        pl.plot(F[i][j].m_vals[0], F[i][j].m_vals[1], color=l_color, marker='o')
-                    layer += 1
-
-                pl.show()
-
-            elif self.length_of_objective_func == 3:
-
-                ax = fig.add_subplot(111, projection='3d')
-
-                for i in F:
-                    for j in F[i]:
-                        ax.scatter(F[i][j].m_vals[0], F[i][j].m_vals[1],
-                                   F[i][j].m_vals[2])  # , lay_col[layer] + 'o')
-                    layer += 1
-
-                # ax.set_xlabel(m1_name)
-                # ax.set_ylabel(m2_name)
-                # ax.set_zlabel(m3_name)
-
-                pl.show()
+            # Debuggin Issue
+            # import matplotlib.pyplot as pl
+            # from mpl_toolkits.mplot3d import Axes3D
+            # layer = 0
+            # fig = pl.figure()
+            #
+            # if self.length_of_objective_func == 2:
+            #
+            #     for i in F:
+            #         if layer == 0:
+            #             l_color = "b"
+            #         else:
+            #             l_color = "#"
+            #             for _ in range(6):
+            #                 l_color += ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"][
+            #                     np.random.randint(16)]
+            #         for j in F[i]:
+            #             pl.plot(F[i][j].m_vals[0], F[i][j].m_vals[1], color=l_color, marker='o')
+            #         layer += 1
+            #
+            #     pl.show()
+            #
+            # elif self.length_of_objective_func == 3:
+            #
+            #     ax = fig.add_subplot(111, projection='3d')
+            #
+            #     for i in F:
+            #         for j in F[i]:
+            #             ax.scatter(F[i][j].m_vals[0], F[i][j].m_vals[1],
+            #                        F[i][j].m_vals[2])  # , lay_col[layer] + 'o')
+            #         layer += 1
+            #
+            #     # ax.set_xlabel(m1_name)
+            #     # ax.set_ylabel(m2_name)
+            #     # ax.set_zlabel(m3_name)
+            #
+            #     pl.show()
 
             # Now sort again
             complete_sort_all_p = []
