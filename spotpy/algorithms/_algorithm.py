@@ -128,7 +128,7 @@ class _algorithm(object):
         the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
         sim_timeout is not None.
         If the model run has been broken simlply '[nan]' will be returned.
-    random_state: float, int or None, default: None
+    random_state: int or None, default: None
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
