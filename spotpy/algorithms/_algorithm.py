@@ -168,7 +168,7 @@ class _algorithm(object):
         
         # Set the random state
         if random_state is None:
-            random_state = np.random.rand()
+            random_state = np.random.randint(low=0, high=2**30)
         np.random.seed(random_state)
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
