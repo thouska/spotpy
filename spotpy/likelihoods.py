@@ -49,7 +49,15 @@ def __standartChecksBeforeStart(data, comparedata):
     if data.__len__() == 0:
         raise LikelihoodError("Data with no content can not be used as a foundation of calculation a likelihood")
 
+def __jitter_measerror_if_needed(fun_name,measerror):
+    size = measerror[measerror == 0.0].size
+    if size > 0:
+        warnings.warn(
+            "["+fun_name+"] reaslized that there are distinct distributed values. "
+            "We jittered the values but the result can be far away from the truth.")
 
+        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    return measerror
 
 class TimeSeries:
     """
@@ -177,11 +185,7 @@ def logLikelihood(data, comparedata, measerror=None):
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn("[logLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-
-        measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
+    measerror = __jitter_measerror_if_needed("logLikelihood",measerror)
 
     # TODO: Maximize is done but in positive way (from negative to zero is hard)
     return -data.__len__()/2*np.log(2*np.pi) - np.nansum(np.log(measerror)) - 0.5*np.sum(((data-comparedata)/measerror)**2)
@@ -245,12 +249,7 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
-
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn("[gaussianLikelihoodHomoHeteroDataError] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("gaussianLikelihoodHomoHeteroDataError", measerror)
 
     # TODO Maximizing with negative to zero?
     # original: -np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
@@ -300,11 +299,7 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
         measerror = __generateMeaserror(data)
 
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn(
-            "[LikelihoodAR1WithC] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("LikelihoodAR1WithC", measerror)
 
     paramDependencies = ["likelihood_phi"]
 
@@ -381,11 +376,7 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
 
     # I summarize from 2 to n, but range starts in 1 (in python it is zero index), so just shift it with one
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn(
-            "[LikelihoodAR1NoC] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("LikelihoodAR1NoC", measerror)
 
     paramDependencies = ["likelihood_phi"]
 
@@ -485,12 +476,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
     comparedata = np.array(comparedata)
-
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn(
-            "[generalizedLikelihoodFunction] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("generalizedLikelihoodFunction", measerror)
 
     paramDependencies = ["likelihood_beta","likelihood_xi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
 
@@ -579,8 +565,8 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
 
         sum_at += np.abs(a_xi_t) ** (2 / (1 + beta))
 
-    # page 3 formula 5 of this paper expalin that sigma[t] = sigma0 + sigma1*E[t]
-    # where E[t] is calles y(x) in the main paper (discrepance) and sigma0 and sigma1 are input parameter which also
+    # page 3 formula 5 of this paper explain that sigma[t] = sigma0 + sigma1*E[t]
+    # where E[t] is called y(x) in the main paper (discrepancy) and sigma0 and sigma1 are input parameter which also
     # can be generate by the function itself. Then
     # E[t] = Y_{ht}*mu[t]
     # where Y_{ht} should be the simulated model data and mu_t = exp(mu_h * Y_{ht}).
@@ -630,11 +616,7 @@ def LaplacianLikelihood(data, comparedata, measerror=None):
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
-
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn("[LaplacianLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01,0.01,size)
+    measerror = __jitter_measerror_if_needed("LaplacianLikelihood", measerror)
 
     # Log from negative value makes no sense at all
     return -1 * np.sum(np.log(2 * np.abs(measerror))) - np.sum(np.abs(errArr) / measerror)
@@ -745,12 +727,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
         measerror = __generateMeaserror(data)
 
     measerror = np.array(measerror)
-
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn(
-            "[SkewedStudentLikelihoodHeteroscedastic] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("SkewedStudentLikelihoodHeteroscedastic", measerror)
 
     diff = np.array(__calcSimpleDeviation(data, comparedata))
 
@@ -852,13 +829,7 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         measerror = __generateMeaserror(data)
 
     measerror = np.array(measerror)
-
-    size = measerror[measerror == 0.0].size
-
-    if size > 0:
-        warnings.warn(
-            "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("SkewedStudentLikelihoodHeteroscedasticAdvancedARModel", measerror)
 
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
@@ -1008,10 +979,7 @@ def ABCBoxcarLikelihood(data, comparedata, measerror=None):
     comparedata = np.array(comparedata)
 
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn("[ABCBoxcarLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01,0.1,size)
+    measerror = __jitter_measerror_if_needed("ABCBoxcarLikelihood", measerror)
 
     # Usage of euclidean distance changes the formula a bit
 
@@ -1050,10 +1018,7 @@ def LimitsOfAcceptability(data, comparedata, measerror=None):
     comparedata = np.array(comparedata)
 
     measerror = np.array(measerror)
-    size = measerror[measerror == 0.0].size
-    if size > 0:
-        warnings.warn("[LimitsOfAcceptability] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
+    measerror = __jitter_measerror_if_needed("LimitsOfAcceptability", measerror)
 
     # Use simple non euclidean but weighted distance measurement.
     return np.sum(np.abs((data - comparedata) / measerror) <= measerror)

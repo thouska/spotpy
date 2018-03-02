@@ -25,7 +25,8 @@ import unittest
 class TestLikelihood(unittest.TestCase):
     def setUp(self):
         np.random.seed(12)
-        self.data, self.comparedata = np.random.normal(1500, 2530, 20), np.random.normal(15, 25, 20)
+        #self.data, self.comparedata = np.random.normal(1500, 2530, 20), np.random.normal(15, 25, 20)
+        self.data, self.comparedata = np.random.binomial(20, 0.1, 20), np.random.binomial(20, 0.1, 20)
         self.do_print = True
 
     def test_logLikelihood(self):
@@ -37,14 +38,14 @@ class TestLikelihood(unittest.TestCase):
 
     def test_gaussianLikelihoodMeasErrorOut(self):
         l = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(self.data, self.comparedata)
-        self.assertGreaterEqual(-100, l)
+        self.assertGreaterEqual(-40, l)
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("gaussianLikelihoodMeasErrorOut: " + str(l))
 
     def test_gaussianLikelihoodHomoHeteroDataError(self):
         l = spotpy.likelihoods.gaussianLikelihoodHomoHeteroDataError(self.data, self.comparedata)
-        self.assertGreaterEqual(1,np.abs(l))
+        self.assertGreaterEqual(5,np.abs(l))
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("gaussianLikelihoodHomoHeteroDataError: " + str(l))
@@ -85,7 +86,7 @@ class TestLikelihood(unittest.TestCase):
 
     def test_SkewedStudentLikelihoodHomoscedastic(self):
         l = spotpy.likelihoods.SkewedStudentLikelihoodHomoscedastic(self.data, self.comparedata)
-        self.assertGreaterEqual(0.5, np.abs(l))
+        self.assertGreaterEqual(12, np.abs(l))
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("SkewedStudentLikelihoodHomoscedastic: " + str(l))
@@ -125,7 +126,7 @@ class TestLikelihood(unittest.TestCase):
 
     def test_LimitsOfAcceptability(self):
         l = spotpy.likelihoods.LimitsOfAcceptability(self.data, self.comparedata)
-        self.assertEqual(12, l)
+        self.assertEqual(1, l)
         self.assertNotEqual(None, l)
         self.assertEqual(type(np.int(l)), type(int(1)))
         if self.do_print:
@@ -133,14 +134,14 @@ class TestLikelihood(unittest.TestCase):
 
     def test_InverseErrorVarianceShapingFactor(self):
         l = spotpy.likelihoods.InverseErrorVarianceShapingFactor(self.data, self.comparedata)
-        self.assertGreaterEqual(-20000, l)
+        self.assertGreaterEqual(-10, l)
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l))
 
     def test_ExponentialTransformErrVarShapingFactor(self):
         l = spotpy.likelihoods.ExponentialTransformErrVarShapingFactor(self.data, self.comparedata)
-        self.assertGreaterEqual(-30000, l)
+        self.assertGreaterEqual(-30, l)
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l))
@@ -154,7 +155,7 @@ class TestLikelihood(unittest.TestCase):
 
     def test_sumOfAbsoluteErrorResiduals(self):
         l = spotpy.likelihoods.sumOfAbsoluteErrorResiduals(self.data, self.comparedata)
-        self.assertGreaterEqual(2,np.abs(np.abs(l)-10))
+        self.assertGreaterEqual(7,np.abs(np.abs(l)-10))
         self.assertEqual(type(np.float(l)), type(np.float(1)))
         if self.do_print:
             print("sumOfAbsoluteErrorResiduals: " + str(l))
