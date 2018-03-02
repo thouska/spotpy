@@ -8,7 +8,6 @@ by calculating likelihood values.
 We modified the formula so, that a best fit of model can be archived by maximizing negative likelihood to zero
 '''
 
-
 #### TEST RESULTS WITH DREAM and hymod.py ####
 # Dream has now a bunch of options. We tested only likelihoods, which do not need a additional parameter
 # from this we saw that
@@ -23,6 +22,7 @@ import numpy as np
 import math
 import warnings
 
+
 class LikelihoodError(Exception):
     """
     Define an own error class to know it is an error made by a likelihood calculation to warn the use for wrong inputs
@@ -30,9 +30,8 @@ class LikelihoodError(Exception):
     pass
 
 
-
 def __generateMeaserror(data):
-    return np.array(data)*0.1
+    return np.array(data) * 0.1
 
 
 def __calcSimpleDeviation(data, comparedata):
@@ -49,15 +48,17 @@ def __standartChecksBeforeStart(data, comparedata):
     if data.__len__() == 0:
         raise LikelihoodError("Data with no content can not be used as a foundation of calculation a likelihood")
 
-def __jitter_measerror_if_needed(fun_name,measerror):
+
+def __jitter_measerror_if_needed(fun_name, measerror):
     size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn(
-            "["+fun_name+"] reaslized that there are distinct distributed values. "
-            "We jittered the values but the result can be far away from the truth.")
+            "[" + fun_name + "] reaslized that there are distinct distributed values. "
+                             "We jittered the values but the result can be far away from the truth.")
 
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)
     return measerror
+
 
 class TimeSeries:
     """
@@ -116,44 +117,6 @@ class TimeSeries:
         return TimeSeries.acf(data, 1) / TimeSeries.acf(data, 0)
 
 
-class Stats:
-    @staticmethod
-    def getKyrtosis(data):
-        """
-        Calculate the forth central moment, see https://de.wikipedia.org/wiki/W%C3%B6lbung_(Statistik)
-
-        :param data: a numerical list
-        :type data: list
-        :return: the kyrtosis of the data
-        :rtype: float
-        """
-        s = np.std(data)
-        n = data.__len__()
-        m = np.mean(data)
-        npdata = np.array(data)
-
-        return np.sum(((npdata - m) / s) ** 4) / n
-
-    @staticmethod
-    def getSkewnessParameter(data):
-        """
-        Calculate the third central moment, see https://de.wikipedia.org/wiki/Schiefe_(Statistik)
-
-        :param data: a numerical list
-        :type data: list
-        :return: the skewness of the data
-        :rtype: float
-        """
-
-        s = np.std(data)
-        n = data.__len__()
-        m = np.mean(data)
-        npdata = np.array(data)
-        result = (np.sum(((npdata - m) / s) ** 3) / n)
-        if result == 0.0:
-            result = 0.001
-        return result
-
 def logLikelihood(data, comparedata, measerror=None):
     """
     This formula is based on the gaussian likelihood: homo/heteroscedastic data error formula which can be used in both
@@ -185,10 +148,11 @@ def logLikelihood(data, comparedata, measerror=None):
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
-    measerror = __jitter_measerror_if_needed("logLikelihood",measerror)
+    measerror = __jitter_measerror_if_needed("logLikelihood", measerror)
 
     # TODO: Maximize is done but in positive way (from negative to zero is hard)
-    return -data.__len__()/2*np.log(2*np.pi) - np.nansum(np.log(measerror)) - 0.5*np.sum(((data-comparedata)/measerror)**2)
+    return -data.__len__() / 2 * np.log(2 * np.pi) - np.nansum(np.log(measerror)) - 0.5 * np.sum(
+        ((data - comparedata) / measerror) ** 2)
 
 
 def gaussianLikelihoodMeasErrorOut(data, comparedata):
@@ -253,11 +217,11 @@ def gaussianLikelihoodHomoHeteroDataError(data, comparedata, measerror=None):
 
     # TODO Maximizing with negative to zero?
     # original: -np.prod((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
-    return -np.sum((1 / (np.sqrt(2 * np.pi * measerror**2)))*np.exp(-0.5 * ((data-comparedata)/(measerror))**2))
+    return -np.sum(
+        (1 / (np.sqrt(2 * np.pi * measerror ** 2))) * np.exp(-0.5 * ((data - comparedata) / (measerror)) ** 2))
 
 
-
-def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
+def LikelihoodAR1WithC(data, comparedata, measerror=None, params=None):
     """
 
     Suppose the error residuals assume an AR(1)-process
@@ -315,9 +279,8 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
 
         if missingparams.__len__() > 0:
             raise LikelihoodError(
-                            "Unfortunately contains your param list not all parameters which are needed for this class."
-                            "Following parameter are needed, too: "+str(missingparams))
-
+                "Unfortunately contains your param list not all parameters which are needed for this class."
+                "Following parameter are needed, too: " + str(missingparams))
 
         phi = float(randomparset[parameternames == 'likelihood_phi'])
         # Break the calculation if given parameter are not valid
@@ -335,13 +298,12 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None,params=None):
 
     sum_2 = np.sum(((errorArr[1:] - c - phi * errorArr[:-1]) / (measerror[1:])) ** 2)
 
-    #TODO Its maximaized but maybe from negative to zero, is that possible?
+    # TODO Its maximaized but maybe from negative to zero, is that possible?
     return -(-(n / 2) * np.log(2 * np.pi) - 0.5 * np.log(measerror[0] ** 2 / (1 - phi ** 2)) - (
-        (errorArr[0] - (c / (1 - phi))) ** 2 / (2 * measerror[0] ** 2 / (1 - phi ** 2))) - sum_1 - 0.5 * sum_2)
+            (errorArr[0] - (c / (1 - phi))) ** 2 / (2 * measerror[0] ** 2 / (1 - phi ** 2))) - sum_1 - 0.5 * sum_2)
 
 
-
-def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
+def LikelihoodAR1NoC(data, comparedata, measerror=None, params=None):
     """
 
     Based on the formula in `LikelihoodAR1WithC` we assuming that :math:`c = 0` and that means that the formula of `log-likelihood` is:
@@ -373,7 +335,6 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
 
     errorArr = np.array(__calcSimpleDeviation(data, comparedata))
 
-
     # I summarize from 2 to n, but range starts in 1 (in python it is zero index), so just shift it with one
     measerror = np.array(measerror)
     measerror = __jitter_measerror_if_needed("LikelihoodAR1NoC", measerror)
@@ -391,8 +352,7 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
         if missingparams.__len__() > 0:
             raise LikelihoodError(
                 "Unfortunately contains your param list not all parameters which are needed for this class."
-                "Following parameter are needed, too: "+str(missingparams))
-
+                "Following parameter are needed, too: " + str(missingparams))
 
         parameternames = np.array(parameternames)
         randomparset = np.array(randomparset)
@@ -403,14 +363,13 @@ def LikelihoodAR1NoC(data, comparedata, measerror=None,params=None):
             warnings.warn("The parameter 'phi' should be real between -1 and 1 and is: " + str(phi))
             return np.NAN
 
-
     sum_1 = np.sum(np.log(measerror[1:]))
-    sum_2 = np.sum(( (errorArr[1:] - phi * errorArr[:-1]) / measerror[1:]) ** 2)
+    sum_2 = np.sum(((errorArr[1:] - phi * errorArr[:-1]) / measerror[1:]) ** 2)
 
     # TODO Maximizing with negative to zero?
-    return -float(-(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
-                                                                       errorArr[0] ** 2 - sum_1 - 0.5 * sum_2)
-
+    return -float(
+        -(n / 2) * np.log(2 * np.pi) + 0.5 * np.log(1 - phi ** 2) - 0.5 * (1 - phi ** 2) * (1 / measerror[0] ** 2) * \
+        errorArr[0] ** 2 - sum_1 - 0.5 * sum_2)
 
 
 def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None):
@@ -468,8 +427,6 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     :rtype: float
     """
 
-
-
     __standartChecksBeforeStart(data, comparedata)
     errorArr = __calcSimpleDeviation(data, comparedata)
     if measerror is None:
@@ -478,19 +435,20 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     comparedata = np.array(comparedata)
     measerror = __jitter_measerror_if_needed("generalizedLikelihoodFunction", measerror)
 
-    paramDependencies = ["likelihood_beta","likelihood_xi","likelihood_sigma0","likelihood_sigma1","likelihood_phi1","likelihood_muh"]
+    paramDependencies = ["likelihood_beta", "likelihood_xi", "likelihood_sigma0", "likelihood_sigma1",
+                         "likelihood_phi1", "likelihood_muh"]
 
     if params is None:
         # for this params look into http://onlinelibrary.wiley.com/doi/10.1029/2009WR008933/epdf, page 5
-        beta = np.random.uniform(-0.99,1,1)
-        xi = np.random.uniform(0.01,10,1)
-        sigma0 = np.random.uniform(0,1,1)
+        beta = np.random.uniform(-0.99, 1, 1)
+        xi = np.random.uniform(0.01, 10, 1)
+        sigma0 = np.random.uniform(0, 1, 1)
         sigma1 = np.random.uniform(0, 1, 1)
         phi1 = np.random.uniform(0, .99, 1)
         muh = np.random.uniform(0, 100, 1)
 
     else:
-        missingparams=[]
+        missingparams = []
         randomparset, parameternames = params
         parameternames = np.array(parameternames)
         randomparset = np.array(randomparset)
@@ -501,8 +459,8 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
 
         if missingparams.__len__() > 0:
             raise LikelihoodError(
-                            "Unfortunately contains your param list not all parameters which are needed for this class."
-                            "Following parameter are needed, too: "+str(missingparams))
+                "Unfortunately contains your param list not all parameters which are needed for this class."
+                "Following parameter are needed, too: " + str(missingparams))
 
         beta = float(randomparset[np.where(parameternames == 'likelihood_beta')])
         xi = float(randomparset[np.where(parameternames == 'likelihood_xi')])
@@ -512,26 +470,24 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         muh = float(randomparset[np.where(parameternames == 'likelihood_muh')])
 
         # Break the calculation if given parameter are not valid
-        if beta <=-1 or beta > 1:
-            warnings.warn("The parameter 'beta' should be greater then -1 and less equal 1 and is: "+str(beta))
+        if beta <= -1 or beta > 1:
+            warnings.warn("The parameter 'beta' should be greater then -1 and less equal 1 and is: " + str(beta))
             return np.NAN
         if xi < 0.1 or xi > 10:
-            warnings.warn("The parameter 'xi' should be between 0.1 and 10 and is: "+str(xi))
+            warnings.warn("The parameter 'xi' should be between 0.1 and 10 and is: " + str(xi))
             return np.NAN
         if sigma0 < 0 or sigma0 > 1:
-            warnings.warn("The parameter 'sigma0' should be between 0 and 1 and is: "+str(sigma0))
+            warnings.warn("The parameter 'sigma0' should be between 0 and 1 and is: " + str(sigma0))
             return np.NAN
         if sigma1 < 0 or sigma1 > 1:
-            warnings.warn("The parameter 'sigma1' should be between 0 and 1 and is: "+str(sigma1))
+            warnings.warn("The parameter 'sigma1' should be between 0 and 1 and is: " + str(sigma1))
             return np.NAN
         if phi1 < 0 or phi1 > 1:
-            warnings.warn("The parameter 'phi1' should be between 0 and 1 and is: "+str(phi1))
+            warnings.warn("The parameter 'phi1' should be between 0 and 1 and is: " + str(phi1))
             return np.NAN
         if muh < 0 or muh > 100:
-            warnings.warn("The parameter 'muh' should be between 0 and 100 and is: "+str(muh))
+            warnings.warn("The parameter 'muh' should be between 0 and 100 and is: " + str(muh))
             return np.NAN
-
-
 
     try:
         omegaBeta = np.sqrt(math.gamma(3 * (1 + beta) / 2)) / ((1 + beta) * np.sqrt(math.gamma((1 + beta) / 2) ** 3))
@@ -542,7 +498,6 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     except ValueError:
         raise LikelihoodError("Please check your parameter input there is something wrong with the parameter")
 
-
     if xi != 0.0:
         mu_xi = M_1 * (xi - (xi ** (-1)))
     else:
@@ -550,9 +505,8 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
 
     n = data.__len__()
 
-
     sum_at = 0
-    #formula for a_t is from page 3, (6)
+    # formula for a_t is from page 3, (6)
     for j in range(n - 1):
         t = j + 1
         if t > 0 and t < n and type(t) == type(1):
@@ -572,20 +526,18 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     # where Y_{ht} should be the simulated model data and mu_t = exp(mu_h * Y_{ht}).
     # So, mu_h is "a bias parameter to be inferred from the model." (cite, page 3, formula (3))
 
-    mu_t = np.mean(muh*comparedata)
+    mu_t = np.mean(muh * comparedata)
 
-    E = comparedata*mu_t
+    E = comparedata * mu_t
 
-    sigmas = sigma0 +sigma1*E
+    sigmas = sigma0 + sigma1 * E
     if sigmas[sigmas <= 0.0].size > 0:
         warnings.warn("Sorry, you comparedata have negative values. Maybe you model has some inaccurate"
-                              " assumptions or there is another error."
-                              " We cannot calculate this likelihood")
+                      " assumptions or there is another error."
+                      " We cannot calculate this likelihood")
         return np.NAN
 
-    return n * np.log(omegaBeta * (2 * sigma_xi) / np.abs(xi + (1 / xi))) - np.sum(np.log( sigmas  )) - cBeta * sum_at
-
-
+    return n * np.log(omegaBeta * (2 * sigma_xi) / np.abs(xi + (1 / xi))) - np.sum(np.log(sigmas)) - cBeta * sum_at
 
 
 def LaplacianLikelihood(data, comparedata, measerror=None):
@@ -598,7 +550,8 @@ def LaplacianLikelihood(data, comparedata, measerror=None):
 
             p = -\\sum_{t=1}^n \\log(2\\sigma_t)-\\sum_{t=1}^n (\\frac{|e_t(x)|}{\\sigma_t})
 
-    `Usage:` Maximizing the likelihood value guides to the best model, because the less :math:`\\sum_{t=1}^n (\\frac{|e_t(x)|}{\\sigma_t})`
+    `Usage:` Maximizing the likelihood value guides to the best model,
+    because the less :math:`\\sum_{t=1}^n (\\frac{|e_t(x)|}{\\sigma_t})`
     is the better fits the model simulation data to the observed data.
 
     :param data: observed measurements as a numerical list
@@ -634,8 +587,8 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
     For detailed mathematical question take a look into hessd-12-2155-2015.pdf
     (https://www.hydrol-earth-syst-sci-discuss.net/12/2155/2015/hessd-12-2155-2015.pdf) pages 2164-2165
 
-    `Usage:` Maximizing the likelihood value guides to the best model. Be aware that only a right model asumption leads to
-    a result which makes sense.
+    `Usage:` Maximizing the likelihood value guides to the best model. Be aware that only a right model
+    assumption leads to a result which makes sense.
 
     :param data: observed measurements as a numerical list
     :type data: list
@@ -654,12 +607,12 @@ def SkewedStudentLikelihoodHomoscedastic(data, comparedata, measerror=None):
 
     res = np.array(__calcSimpleDeviation(data, comparedata))
 
-    #TODO Maximizing with negative to zero?
+    # TODO Maximizing with negative to zero?
     # Original: -np.prod(1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2)))
-    return -np.sum( ( 1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2))))
+    return -np.sum((1 / (np.sqrt(2 * np.pi) * measerror) * np.exp(-1 * (res ** 2) / (2))))
 
 
-def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,params=None):
+def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None, params=None):
     """
     Under the assumption that the data are heteroscedastic, i.e. the they have for every measurement another error and
     that the residuals are non-Gaussian distributed we perform a likelihoodcalculation based on this formualar, having
@@ -743,7 +696,6 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
         missingparams = []
         randomparset, parameternames = params
 
-
         randomparset = np.array(randomparset)
 
         for nm in paramDependencies:
@@ -760,7 +712,9 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
         phi = randomparset[parameternames == 'likelihood_phi']
 
         if abs(phi) > 1:
-            warnings.warn("[SkewedStudentLikelihoodHeteroscedastic] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
+            warnings.warn(
+                "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'phi' should be between -1 and 1 and is: " + str(
+                    phi))
             return np.NAN
         if nu <= 2:
             warnings.warn(
@@ -775,21 +729,21 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None,par
 
     eta_all = diff[1:] - phi * diff[:-1] * np.sqrt(1 - phi ** 2)
     c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
-        (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
+            (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
 
     for_c2 = -1 * (c_1) ** 2 + (k ** 3 + 1 / k ** 3) / (k + 1 / k)
 
     c_2 = np.sqrt(for_c2)
 
     # TODO Maximizing with negative to zero?
-    return np.log(-np.prod( (2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
-        (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
-                   * (1 + (1 / (nu - 2)) * (
-                       (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
-                       -(nu + 1) / 2)))
+    return np.log(-np.prod((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
+            (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
+                           * (1 + (1 / (nu - 2)) * (
+            (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
+                                   -(nu + 1) / 2)))
 
 
-def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, measerror=None,params=None):
+def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, measerror=None, params=None):
     """
 
     This function is based of the previos one, called `SkewedStudentLikelihoodHeteroscedastic`. We expand
@@ -859,9 +813,10 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
         k = randomparset[parameternames == 'likelihood_kappa'][0]
         phi = randomparset[parameternames == 'likelihood_phi'][0]
 
-
         if abs(phi) > 1:
-            warnings.warn("[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'phi' should be between -1 and 1 and is: "+str(phi))
+            warnings.warn(
+                "[SkewedStudentLikelihoodHeteroscedasticAdvancedARModel] The parameter 'phi' should be between -1 and 1 and is: " + str(
+                    phi))
             return np.NAN
         if nu <= 2:
             warnings.warn(
@@ -877,25 +832,24 @@ def SkewedStudentLikelihoodHeteroscedasticAdvancedARModel(data, comparedata, mea
     N = data.__len__()
     eta_all = (res[1:] - phi * res[:-1] + phi / (N) * np.sum(res)) * np.sqrt(1 - phi ** 2)
 
-    c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / ((k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
+    c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
+                (k + (1 / k)) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * (nu - 1))
     for_c2 = -1 * (c_1) ** 2 + (k ** 3 + 1 / k ** 3) / (k + 1 / k)
 
     c_2 = np.sqrt(for_c2)
 
     # TODO Maximizing with negative to zero?
     datas = ((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
-        (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
-                   * (1 + (1 / (nu - 2)) * (
-        (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
-                       -(nu + 1) / 2))
+            (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
+             * (1 + (1 / (nu - 2)) * (
+                    (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
+                     -(nu + 1) / 2))
 
     return np.log(-np.prod((2 * c_2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2))) / (
-        (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
-                   * (1 + (1 / (nu - 2)) * (
-        (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
-                       -(nu + 1) / 2)))
-
-
+            (k + 1 / k) * math.gamma(nu / 2) * np.sqrt(np.pi * nu) * np.sqrt(1 - phi ** 2) * measerror[1:]) \
+                           * (1 + (1 / (nu - 2)) * (
+            (c_1 + c_2 * eta_all) / (k ** (np.sign(c_1 + c_2 * eta_all)))) ** 2) ** (
+                                   -(nu + 1) / 2)))
 
 
 def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
@@ -925,7 +879,7 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
     :rtype: float
     """
 
-    __standartChecksBeforeStart(data,comparedata)
+    __standartChecksBeforeStart(data, comparedata)
     if measerror is None:
         measerror = __generateMeaserror(data)
     sigmas = np.array(measerror)
@@ -933,8 +887,9 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
 
     size = sigmas[sigmas == 0.0].size
     if size > 0:
-        warnings.warn("[NoisyABCGaussianLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
-        sigmas[sigmas == 0.0] = np.random.uniform(0.01,0.1,size)
+        warnings.warn(
+            "[NoisyABCGaussianLikelihood] reaslized that there are distinct distributed values. We jittered the values but the result can be far away from the truth.")
+        sigmas[sigmas == 0.0] = np.random.uniform(0.01, 0.1, size)
 
     if measerror == 0.0:
         warnings.warn(
@@ -946,8 +901,8 @@ def NoisyABCGaussianLikelihood(data, comparedata, measerror=None):
     comparedata = np.array(comparedata)
 
     # The euclidean distance has a bit diffrent formula then the original paper showed
-    return -m/2*np.log(2*np.pi)-m*np.log(measerror)-0.5*1/(measerror**2)* np.sqrt( np.sum( ((data-comparedata)/sigmas)**2 ))
-
+    return -m / 2 * np.log(2 * np.pi) - m * np.log(measerror) - 0.5 * 1 / (measerror ** 2) * np.sqrt(
+        np.sum(((data - comparedata) / sigmas) ** 2))
 
 
 def ABCBoxcarLikelihood(data, comparedata, measerror=None):
@@ -984,8 +939,7 @@ def ABCBoxcarLikelihood(data, comparedata, measerror=None):
     # Usage of euclidean distance changes the formula a bit
 
     # TODO Maximizing with negative to zero?
-    return np.min(measerror-np.sqrt(((data-comparedata)/measerror)**2))
-
+    return np.min(measerror - np.sqrt(((data - comparedata) / measerror) ** 2))
 
 
 def LimitsOfAcceptability(data, comparedata, measerror=None):
@@ -1059,10 +1013,10 @@ def InverseErrorVarianceShapingFactor(data, comparedata, G=10):
     else:
         # Gives an better convergence, so close values are more less and apart values are more great.
         # (0 is the best so to say).
-        return -G*np.log(errArr)**3
+        return -G * np.log(errArr) ** 3
 
 
-def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):
+def NashSutcliffeEfficiencyShapingFactor(data, comparedata, G=10):
     """
     This function use the opposite ratio of variance of the error terms between observed and simulated and the variance
     of the observed data as a base to claculate the
@@ -1094,22 +1048,24 @@ def NashSutcliffeEfficiencyShapingFactor(data, comparedata,G=10):
     errArr = np.array(__calcSimpleDeviation(data, comparedata))
 
     if np.nanvar(data) == 0.0:
-        warnings.warn("[NashSutcliffeEfficiencyShapingFactor] reaslized that the variance of the data is zero. Thereforee is no likelihood calculation possible")
+        warnings.warn(
+            "[NashSutcliffeEfficiencyShapingFactor] reaslized that the variance of the data is zero. Thereforee is no likelihood calculation possible")
         return np.NAN
     else:
-        ratio = np.nanvar(errArr)/np.nanvar(data)
+        ratio = np.nanvar(errArr) / np.nanvar(data)
 
         if ratio > 1:
-            warnings.warn("[NashSutcliffeEfficiencyShapingFactor]: The ratio between residual variation and observation "
-                          "variation is bigger then one and therefore"
-                          "we can not calculate the liklihood. Please use another function which fits to this data and / or "
-                          "model")
+            warnings.warn(
+                "[NashSutcliffeEfficiencyShapingFactor]: The ratio between residual variation and observation "
+                "variation is bigger then one and therefore"
+                "we can not calculate the liklihood. Please use another function which fits to this data and / or "
+                "model")
             return np.NAN
         else:
-            return G*np.log(1-ratio)
+            return G * np.log(1 - ratio)
 
 
-def ExponentialTransformErrVarShapingFactor(data, comparedata,G=10):
+def ExponentialTransformErrVarShapingFactor(data, comparedata, G=10):
     """
     This function use the variance of the error terms between observed and simulated data as a base to claculate the
     likelihood.
@@ -1137,7 +1093,8 @@ def ExponentialTransformErrVarShapingFactor(data, comparedata,G=10):
 
     errArr = np.array(__calcSimpleDeviation(data, comparedata))
 
-    return -G*np.nanvar(errArr)
+    return -G * np.nanvar(errArr)
+
 
 def sumOfAbsoluteErrorResiduals(data, comparedata):
     """
@@ -1159,5 +1116,5 @@ def sumOfAbsoluteErrorResiduals(data, comparedata):
     """
     __standartChecksBeforeStart(data, comparedata)
 
-    errArr = np.array(__calcSimpleDeviation(data,comparedata))
-    return -1*np.log(np.sum(np.abs(errArr)))
+    errArr = np.array(__calcSimpleDeviation(data, comparedata))
+    return -1 * np.log(np.sum(np.abs(errArr)))
