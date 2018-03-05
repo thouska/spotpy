@@ -273,6 +273,7 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None, params=None):
         missingparams = []
         randomparset, parameternames = params
         randomparset = np.array(randomparset)
+        parameternames = np.array(parameternames)
         for nm in paramDependencies:
             if nm not in parameternames:
                 missingparams.append(nm)
@@ -283,10 +284,10 @@ def LikelihoodAR1WithC(data, comparedata, measerror=None, params=None):
                 "Following parameter are needed, too: " + str(missingparams))
 
         phi = float(randomparset[parameternames == 'likelihood_phi'])
-        # Break the calculation if given parameter are not valid
-        if abs(phi) >= 1:
-            warnings.warn("The parameter 'phi' should be real between -1 and 1 and is: " + str(phi))
-            return np.NAN
+    # Break the calculation if given parameter are not valid
+    if abs(phi) >= 1:
+        warnings.warn("The parameter 'phi' should be real between -1 and 1 and is: " + str(phi))
+        return np.NAN
 
     expect = np.nanmean(data)
     errorArr = np.array(__calcSimpleDeviation(data, comparedata))
@@ -697,6 +698,7 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None, pa
         randomparset, parameternames = params
 
         randomparset = np.array(randomparset)
+        parameternames = np.array(parameternames)
 
         for nm in paramDependencies:
             if nm not in parameternames:
@@ -707,25 +709,25 @@ def SkewedStudentLikelihoodHeteroscedastic(data, comparedata, measerror=None, pa
                 "Unfortunately contains your param list not all parameters which are needed for this class."
                 "Following parameter are needed, too: " + str(missingparams))
 
-        nu = randomparset[parameternames == 'likelihood_nu']
-        k = randomparset[parameternames == 'likelihood_kappa']
-        phi = randomparset[parameternames == 'likelihood_phi']
+        nu = randomparset[parameternames == 'likelihood_nu'][0]
+        k = randomparset[parameternames == 'likelihood_kappa'][0]
+        phi = randomparset[parameternames == 'likelihood_phi'][0]
 
-        if abs(phi) > 1:
-            warnings.warn(
-                "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'phi' should be between -1 and 1 and is: " + str(
-                    phi))
-            return np.NAN
-        if nu <= 2:
-            warnings.warn(
-                "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'nu' should be greater then 2 and is: " + str(
-                    nu))
-            return np.NAN
-        if k <= 0:
-            warnings.warn(
-                "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'k' should be greater then 0 and is: " + str(
-                    k))
-            return np.NAN
+    if abs(phi) > 1:
+        warnings.warn(
+            "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'phi' should be between -1 and 1 and is: " + str(
+                phi))
+        return np.NAN
+    if nu <= 2:
+        warnings.warn(
+            "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'nu' should be greater then 2 and is: " + str(
+                nu))
+        return np.NAN
+    if k <= 0:
+        warnings.warn(
+            "[SkewedStudentLikelihoodHeteroscedastic] The parameter 'k' should be greater then 0 and is: " + str(
+                k))
+        return np.NAN
 
     eta_all = diff[1:] - phi * diff[:-1] * np.sqrt(1 - phi ** 2)
     c_1 = ((k ** 2 - 1 / (k ** 2)) * 2 * math.gamma((nu + 1) / 2) * np.sqrt(nu / (nu - 2)) * (nu - 2)) / (
