@@ -329,13 +329,12 @@ class sql(database):
                     new_line_back_array.extend(list(map(float, clm.split(","))))
                 else:
                     new_line_back_array.append(clm)
-            list_for_back_array.append(new_line_back_array)
+            list_for_back_array.append(tuple(new_line_back_array))
 
         headers = []
         if sys.version_info[0] >= 3:
             for row in self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");"):
                 if "simulation" in row[1]:
-                    headers.append((row[1], "<f8"))
                     headers.extend([(row[1]+"_"+str(j), "<f8")  for j in range(1,sims_per_row+1)])
                 else:
                     headers.append((row[1], "<f8"))
@@ -350,11 +349,7 @@ class sql(database):
                 else:
                     headers.append((unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")))
 
-        try:
-            back = np.array(list_for_back_array, dtype=headers)
-        except TypeError:
-            back = np.rec.array(list_for_back_array, dtype=headers).tolist()
-            back = np.array(back)
+        back = np.array(list_for_back_array, dtype=headers)
 
         self.db.close()
         return back
