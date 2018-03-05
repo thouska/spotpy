@@ -350,10 +350,12 @@ class sql(database):
                 else:
                     headers.append((unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")))
 
+        try:
+            back = np.array(list_for_back_array, dtype=headers)
+        except TypeError:
+            back = np.rec.array(list_for_back_array, dtype=headers).tolist()
+            back = np.array(back)
 
-
-
-        back = np.array(list_for_back_array, dtype=headers)
         self.db.close()
         return back
 
