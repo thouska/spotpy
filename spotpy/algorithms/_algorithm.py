@@ -128,13 +128,14 @@ class _algorithm(object):
         the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
         sim_timeout is not None.
         If the model run has been broken simlply '[nan]' will be returned.
-
-
+    random_state: int or None, default: None
+        the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,sim_timeout = None):
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,sim_timeout = None,
+                 random_state=None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -164,6 +165,11 @@ class _algorithm(object):
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
+        
+        # Set the random state
+        if random_state is None:
+            random_state = np.random.randint(low=0, high=2**30)
+        np.random.seed(random_state)
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
