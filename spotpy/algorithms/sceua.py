@@ -206,7 +206,7 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
-            print ('burn-in started...')
+            print ('burn-in sampling started...')
 
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
@@ -264,7 +264,7 @@ class sceua(_algorithm):
             print(
                 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
-        print ('burn-in completed...')
+        print ('burn-in sampling completed...')
 
         # Begin evolution loops:
         nloop = 0
@@ -349,14 +349,15 @@ class sceua(_algorithm):
 
             criter = np.append(criter, bestf)
 
-            if nloop >= kstop:  # nodig zodat minimum zoveel doorlopen worden
+            if nloop >= kstop:  # necessary so that the area of high posterior density is visited as much as possible
+                print ('objective function convergence criteria is now being updated and assessed...')
                 criter_change = np.abs(
                     criter[nloop - 1] - criter[nloop - kstop]) * 100
                 criter_change = criter_change / \
                     np.mean(np.abs(criter[nloop - kstop:nloop]))
                 print ('updated convergence criteria: %f' % criter_change)
                 if criter_change < pcento:
-                    text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' % (
+                    text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f' % (
                         kstop, pcento)
                     print(text)
                     print(
@@ -366,7 +367,7 @@ class sceua(_algorithm):
         print(text)
         text = 'NORMALIZED GEOMETRIC RANGE = %f' % gnrng
         print(text)
-        text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' % (
+        text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT' % (
             kstop, criter_change)
         print(text)
 
