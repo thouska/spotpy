@@ -248,7 +248,7 @@ class dream(_algorithm):
         
         #firstcall = True
         
-        print('Inititalize ',self.nChains, ' chain(s)...')
+        print('Initialize ', self.nChains, ' chain(s)...')
         self.iter=0
         #for i in range(10):
         startpoints = self.get_regular_startingpoint(nChains)
