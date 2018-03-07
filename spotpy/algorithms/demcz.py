@@ -60,7 +60,7 @@ class demcz(_algorithm):
     by the <organization>. The name of the
     <organization> may not be used to endorse or promote products derived
     from this software without specific prior written permission.
-    THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+    THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR
     IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
     """
@@ -96,8 +96,8 @@ class demcz(_algorithm):
             * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
     
         save_sim: boolean
-            *True:  Simulation results will be saved
-            *False: Simulationt results will not be saved
+            * True:  Simulation results will be saved
+            * False: Simulationt results will not be saved
     
         alt_objfun: str or None, default: 'log_p'
             alternative objectivefunction to be used for algorithm

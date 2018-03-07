@@ -36,8 +36,8 @@ class mle(_algorithm):
         * csv: A csv file will be created, which you can import afterwards.        
 
     save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
+        * True:  Simulation results will be saved
+        * False: Simulationt results will not be saved
      '''
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf,
