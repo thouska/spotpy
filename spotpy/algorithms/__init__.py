@@ -13,10 +13,10 @@ PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
 Imports the different algorithms from this package.
 To reduce dependencies, one may select here just the needed algorithm.
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 from ._algorithm import _algorithm
 from .demcz import demcz     # Differential Evolution Markov Chain
 from .lhs import lhs         # Latin Hypercube Sampling
@@ -30,3 +30,4 @@ from .fast import fast       # Fourier Amplitude Sensitivity Test
 from .abc import abc         # Artificial Bee Colony
 from .fscabc import fscabc   # Fitness Scaling Artificial Bee Colony
 from .dream import dream     # DiffeRential Evolution Adaptive Metropolis
+from .list import list       # Samples from  given spotpy database

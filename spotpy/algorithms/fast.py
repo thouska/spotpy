@@ -185,7 +185,7 @@ class fast(_algorithm):
 
     def compute_total_order(self, outputs, N, omega):
         f = np.fft.fft(outputs)
-        Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
+        Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
         V = 2 * np.sum(Sp)
         Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
         return (1 - Dt / V)
