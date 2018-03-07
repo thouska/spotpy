@@ -37,6 +37,12 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.lognashsutcliffe(self.evaluation + 3, self.simulation + 3)
         self.assertAlmostEqual(res, -2.3300973555530344, self.tolerance)
 
+    def test_lognashsutcliffe_with_0_values(self):
+        evaluation, simulation = self.evaluation + 3, self.simulation + 3
+        simulation[0] = 0
+        res = of.lognashsutcliffe(evaluation, simulation, epsilon=0.00001)
+        self.assertAlmostEqual(res, -125.77518894078659, self.tolerance)
+
     def test_lognashsutcliffe_for_invalid_obs_is_nan(self):
         res = of.lognashsutcliffe(self.evaluation, self.simulation)
         self.assertTrue(np.isnan(res))
