@@ -53,7 +53,7 @@ def __jitter_measerror_if_needed(fun_name, measerror):
     size = measerror[measerror == 0.0].size
     if size > 0:
         warnings.warn(
-            "[" + fun_name + "] reaslized that there are distinct distributed values. "
+            "[" + fun_name + "] realized that there are distinct distributed values. "
                              "We jittered the values but the result can be far away from the truth.")
 
         measerror[measerror == 0.0] = np.random.uniform(0.01, 0.1, size)

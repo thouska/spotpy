@@ -116,7 +116,7 @@ class mcmc(_algorithm):
         self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        print('Inititalize ',self.nChains, ' chain(s)...')
+        print('Initialize ', self.nChains, ' chain(s)...')
         self.iter=0
         param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
         for curChain,randompar,simulations in self.repeat(param_generator):

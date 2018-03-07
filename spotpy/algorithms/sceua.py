@@ -280,6 +280,7 @@ class sceua(_algorithm):
 
         while icall < repetitions and gnrng > peps and criter_change > pcento:
             nloop += 1
+            print ('ComplexEvo loop #%d in progress...' % nloop)
             # print nloop
             # print 'Start MPI'
             # Loop on complexes (sub-populations);
