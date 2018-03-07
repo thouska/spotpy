@@ -169,13 +169,13 @@ class TestAnalyser(unittest.TestCase):
         from spotpy.examples.spot_setup_rosenbrock import spot_setup
         spot_setup_object = spot_setup()
         results = []
-        parallel = "umpc"
+        parallel = "seq"
         dbformat = "ram"
         timeout = 5
         self.sampler = spotpy.algorithms.fast(spot_setup_object, parallel=parallel,
                                                dbname='test_get_sensitivity_of_fast', dbformat=dbformat,
                                                sim_timeout=timeout)
-        self.sampler.sample(300)
+        self.sampler.sample(200)
         results.append(self.sampler.getdata())
         results = np.array(results)[0]
         get_sensitivity_of_fast = spotpy.analyser.get_sensitivity_of_fast(results)

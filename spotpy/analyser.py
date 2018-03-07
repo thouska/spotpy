@@ -42,6 +42,32 @@ def load_csv_results(filename, usecols=None):
     else:
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,skip_footer=1,invalid_raise=False,usecols=usecols)[1:]
 
+def load_csv_parameter_results(filename, usecols=None):
+    """
+    Get an array of your results in the given file, without the first and the
+    last column. The first line may have a different objectivefunction and the last
+    line may be incomplete, which would result in an error.
+
+    :filename: Expects an available filename, without the csv, in your working directory
+    :type: str
+
+    :return: Result array
+    :rtype: array
+    """
+    ofile=open(filename+'.csv')
+    line = ofile.readline()
+    header=line.split(',')
+    ofile.close()
+    
+    words=[]
+    index =[]
+    for i,word in enumerate(header): 
+        if word.startswith('par'):
+           words.append(word)
+           index.append(i)
+    return np.genfromtxt(filename+'.csv', delimiter=',', names=words, 
+                         usecols=index, invalid_raise=False, skip_header=1)
+
 def get_header(results):
     return results.dtype.names
 
@@ -1072,7 +1098,7 @@ def _compute_total_order(outputs, N, omega):
     '''Needed for FAST sensitivity'''
     f = np.fft.fft(outputs)
     #print(f)
-    Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
+    Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
     V = 2 * np.sum(Sp)
     Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
     return (1 - Dt / V)
