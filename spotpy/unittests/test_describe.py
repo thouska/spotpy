@@ -69,6 +69,30 @@ class TestDescribe(unittest.TestCase):
                 sampler = scls(spot_setup=model, dbformat='ram', dbname='äöü')
                 self.sampler_test(sampler)
 
+if sys.version_info > (3, 5):
+
+    class TestDescribeRst(unittest.TestCase):
+
+        def test_setup_rst(self):
+            setup = SpotSetup()
+            rst = spotpy.describe.rst(setup)
+
+        def test_sampler_rst(self):
+            for sname, scls in inspect.getmembers(spotpy.algorithms, inspect.isclass):
+                if not sname.startswith('_'):
+                    model = SpotSetup()
+                    sampler = scls(spot_setup=model, dbformat='ram', dbname='äöü')
+                    rst = spotpy.describe.rst(sampler)
+
+                    rst.append('This is a test for ``rst.append().``\n' * 10, 'Appending', 1)
+                    rst.append_math(r'c = \sqrt{a^2 + b^2}')
+                    rst.append(title='Image', titlelevel=2)
+                    rst.append_image('https://img.shields.io/travis/thouska/spotpy/master.svg',
+                                     target='https://travis-ci.org/thouska/spotpy',
+                                     width='200px')
+
+                    rst.as_html()
+
 
 if __name__ == '__main__':
     unittest.main()
