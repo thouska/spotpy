@@ -159,7 +159,7 @@ if sys.version_info > (3, 5):
             return '\n'.join(self.rst_text)
 
         @classmethod
-        def _as_rst_caption(cls, s, level: int):
+        def _as_rst_caption(cls, s, level = int):
             """
             Marks text as a section caption
             :param s: String to be marked as caption
