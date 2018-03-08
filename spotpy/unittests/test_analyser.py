@@ -212,8 +212,8 @@ class TestAnalyser(unittest.TestCase):
         self.assertEqual(type(compare_different_objectivefunctions[1]),type(np.array([0.5])[0]))
 
     def test_plot_parameter_uncertainty(self):
-        posterior = spotpy.analyser.get_posterior(self.results)
-        self.assertEqual(len(posterior), len(self.rep)/10)
+        posterior = spotpy.analyser.get_posterior(self.results,percentage=10)
+        self.assertAlmostEqual(len(posterior)/100, self.rep/1000, tolerance=1)
         self.assertEqual(type(posterior), type(np.array([])))
         spotpy.analyser.plot_parameter_uncertainty(get_posterior,
                                                    self.sampler.evaluation)
