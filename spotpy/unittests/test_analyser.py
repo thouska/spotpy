@@ -215,7 +215,7 @@ class TestAnalyser(unittest.TestCase):
         get_posterior = spotpy.analyser.get_posterior(
             self.results
         )
-        self.assertEqual(len(get_posterior[0]), self.rep)
+        self.assertEqual(len(get_posterior[0]), len(self.rep)/10)
         self.assertEqual(type(get_posterior[0]), type(np.array([])))
         spotpy.analyser.plot_parameter_uncertainty(get_posterior,
                                                    self.sampler.evaluation)
