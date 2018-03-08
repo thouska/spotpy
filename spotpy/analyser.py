@@ -260,9 +260,9 @@ def get_posterior(results,percentage=10, maximize=True):
     :rtype: array
     """
     if maximize:
-        index = np.where(results['like1']>np.percentile(results,100.0-percentage))
+        index = np.where(results['like1']>np.percentile(results['like1'],100.0-percentage))
     else:
-        index = np.where(results['like1']>np.percentile(results,100.0-percentage))
+        index = np.where(results['like1']>np.percentile(results['like1'],100.0-percentage))
     return results[index]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):
