@@ -215,7 +215,7 @@ class TestAnalyser(unittest.TestCase):
         posterior = spotpy.analyser.get_posterior(self.results,percentage=10)
         self.assertAlmostEqual(len(posterior)/100, self.rep/1000, 1)
         self.assertEqual(type(posterior), type(np.array([])))
-        spotpy.analyser.plot_parameter_uncertainty(get_posterior,
+        spotpy.analyser.plot_parameter_uncertainty(posterior,
                                                    self.sampler.evaluation)
 
         fig_name = "test_plot_parameter_uncertainty.png"
@@ -236,7 +236,7 @@ class TestAnalyser(unittest.TestCase):
         dbformat = "ram"
         timeout = 5
 
-        sampler = spotpy.algorithms.dream(spot_setup_object, parallel=parallel,
+        sampler = spotpy.algorithms.fast(spot_setup_object, parallel=parallel,
                                           dbname='test_get_sensitivity_of_fast', dbformat=dbformat,
                                           sim_timeout=timeout)
         sampler.sample(300)
@@ -255,10 +255,6 @@ class TestAnalyser(unittest.TestCase):
         self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         # tidy up all
         os.remove(fig_name)
-
-
-
-
 
 
     def setup_griewank(self):
