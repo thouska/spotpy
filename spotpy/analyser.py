@@ -260,9 +260,9 @@ def get_posterior(results,percentage=10, maximize=True):
     :rtype: array
     """
     if maximize:
-        index = np.where(result['like1']>np.percentile(results,100.0-percentage))
+        index = np.where(results['like1']>np.percentile(results,100.0-percentage))
     else:
-        index = np.where(result['like1']>np.percentile(results,100.0-percentage))
+        index = np.where(results['like1']>np.percentile(results,100.0-percentage))
     return results[index]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):
@@ -539,8 +539,8 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
     from matplotlib import colors
+    likes=calc_like(results,evaluation,spotpy.objectivefunctions.rmse)
     cnames=list(colors.cnames)
-    likes=calc_like(results,evaluation)
     data=likes
     #Calc confidence Interval
     mean = np.average(data)
@@ -741,7 +741,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     if sort:
         results=sort_like(results)
     if calculatelike:
-        likes=calc_like(results, evaluation)
+        likes=calc_like(results, evaluation,spotpy.objectivefunctions.rmse)
         maximum=max(likes)
         par=get_parameters(results)
         sim=get_modelruns(results)
@@ -800,18 +800,15 @@ def plot_bestmodelrun(results,evaluation):
     array.
     The plot will be saved as a .png file.
 
-    Args:
-        results (array): Expects an numpy array which should of an index "like" for
+    :results: Expects an numpy array which should of an index "like" for
               objectivefunctions and "sim" for simulations.
+     type: Array
 
-        evaluation (list): Should contain the values of your observations. Expects that this list has the same lenght as the number of simulations in your result array.
+     :evaluation: Should contain the values of your observations. Expects that this list has the same lenght as the number of simulations in your result array.
+     :type: list
 
     Returns:
         figure. Plot of the simulation with the maximum objectivefunction value in the result array as a blue line and dots for the evaluation data.
-
-    A really great idea. A way you might use me is
-    >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
-
     """
     import pylab as plt
     fig= plt.figure(figsize=(16,9))
@@ -922,7 +919,7 @@ def plot_objectivefunctiontraces(results,evaluation,algorithms,filename='Like_tr
 
     for i in range(len(results)):
         ax  = plt.subplot(1,len(results),i+1)
-        likes=calc_like(results[i],evaluation)
+        likes=calc_like(results[i],evaluation,spotpy.objectivefunctions.rmse)
         ax.plot(likes,'b-')
         ax.set_ylim(0,25)
         ax.set_xlim(0,len(results[0]))

@@ -89,7 +89,7 @@ class TestAnalyser(unittest.TestCase):
     def test_calc_like(self):
         calc_like = spotpy.analyser.calc_like(
             self.results,
-            self.sampler.evaluation)
+            self.sampler.evaluation,spotpy.objectivefunctions.rmse)
         self.assertEqual(len(calc_like), 1)
         self.assertEqual(type(calc_like), type([]))
 
