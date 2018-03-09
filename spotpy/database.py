@@ -110,14 +110,25 @@ class database(object):
         self.header.extend(['par{0}'.format(x) for x in parnames])
         #print(self.singular_data_lens[2])
         #print(type(self.singular_data_lens[2]))        
+        self.header_simulations = []
         if self.save_sim:
-            for i in range(len(simulations)):
-                if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
-                    for j in range(len(simulations[i])):
-                        self.header.extend(['simulation' + str(i+1)+'_'+str(j+1)])
-                else:
-                    self.header.extend(['simulation' + '_'+str(i)])
-                                    #for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
+            if isinstance(self, sql):
+                if len(simulations) > 0:
+                    if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
+                        for i in range(1,len(simulations)+1):
+                            self.header_simulations.extend(['simulation' + '_' + str(i)])
+                    else:
+                        self.header_simulations.extend(['simulation' + '_' + str(1)])
+
+
+            else:
+                for i in range(len(simulations)):
+                    if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
+                        for j in range(len(simulations[i])):
+                            self.header.extend(['simulation' + str(i+1)+'_'+str(j+1)])
+                    else:
+                        self.header.extend(['simulation' + '_'+str(i)])
+
 
         self.header.append('chain')
 
@@ -261,20 +272,38 @@ class sql(database):
         # Create Table
 #        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
 #                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
+
+        if len(self.header_simulations) > 0:
+            self.header_simulations.append("")
+            qrs_sep = ", "
+        else:
+            qrs_sep = ""
+
+        if len(self.header) > 0:
+            self.header.append("")
+
         self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
-                     ('''+' real ,'.join(self.header)+''')''')
+                     ('''+' real ,'.join(self.header)[:-1] + qrs_sep +
+                                 ' text ,'.join(self.header_simulations)[:-1] + ''')''')
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
+
+        sims = []
+        if len(simulations) > 0:
+                if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
+                    for i in range(len(simulations)):
+                        sims.append([(','.join(list(map(str, simulations[i]))))])
+                else:
+                    sims.append(','.join(map(str, simulations)))
+
         coll = (self.dim_dict['like'](objectivefunction) +
                 self.dim_dict['par'](parameterlist) +
-                self.dim_dict['simulation'](simulations) +
-                [chains])
-        # Apply rounding of floats
-        coll = map(self.db_precision, coll)
+                [chains] +
+                self.dim_dict['simulation'](sims))
         try:
             self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
-        except Exception:
+        except IOError:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
             self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
@@ -288,18 +317,45 @@ class sql(database):
         self.db = PickalableSQL3Connect(self.dbname + '.db')
         self.db_cursor = PickalableSQL3Cursor(self.db)
 
+        sims_per_row = None
+
+        list_for_back_array = []
+        for row in self.db_cursor.execute('SELECT * FROM ' + self.dbname):
+            new_line_back_array = []
+            for clm in list(row):
+                if type(clm) == type(""):
+                    if sims_per_row is None:
+                        sims_per_row = len(clm.split(","))
+                    new_line_back_array.extend(list(map(float, clm.split(","))))
+                else:
+                    new_line_back_array.append(clm)
+            list_for_back_array.append(tuple(new_line_back_array))
+
+        headers = []
         if sys.version_info[0] >= 3:
-            headers = [(row[1],"<f8") for row in
-                       self.db_cursor.execute("PRAGMA table_info(" + self.dbname+");")]
+            for row in self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");"):
+                if "simulation" in row[1]:
+                    headers.extend([(row[1]+"_"+str(j), "<f8")  for j in range(1,sims_per_row+1)])
+                else:
+                    headers.append((row[1], "<f8"))
+
+
         else:
             # Workaround for python2
-            headers = [(unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")) for row in
-                       self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");")]
-        
-        back = np.array([row for row in self.db_cursor.execute('SELECT * FROM ' + self.dbname)],dtype=headers)
+            for row in self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");"):
+                if "simulation" in row[1]:
+                    headers.extend([(unicode(row[1] + "_" + str(j)).encode("ascii"), unicode("<f8").encode("ascii"))
+                                for j in range(1, sims_per_row + 1)])
+                else:
+                    headers.append((unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")))
+
+        back = np.array(list_for_back_array, dtype=headers)
 
         self.db.close()
         return back
+
+
+
         
 class noData(database):
     """

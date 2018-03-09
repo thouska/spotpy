@@ -101,7 +101,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(str(type(sqldata)), str(type(np.array([]))))
         self.assertEqual(len(sqldata[0]), 32)
         self.assertEqual(len(sqldata), 1)
-        self.assertEqual(len(sql.header), 32)
+        self.assertEqual(len(sql.header), 8)
 
 
     def test_sql_multiline_false(self):
@@ -113,7 +113,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(str(type(sqldata)), str(type(np.array([]))))
         self.assertEqual(len(sqldata[0]), 7)
         self.assertEqual(len(sqldata), 1)
-        self.assertEqual(len(sql.header), 7)
+        self.assertEqual(len(sql.header), 8)
 
     def test_sql_single(self):
         sql = db.sql("UnitTest_tmp",self.parnames, self.like, self.randompar, simulations=self.simulations,
@@ -124,7 +124,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(str(type(sqldata)), str(type(np.array([]))))
         self.assertEqual(len(sqldata[0]), 12)
         self.assertEqual(len(sqldata), 1)
-        self.assertEqual(len(sql.header), 12)
+        self.assertEqual(len(sql.header), 8)
 
     def test_sql_single_false(self):
         sql = db.sql("UnitTest_tmp",self.parnames, self.like, self.randompar, simulations=self.simulations,
@@ -136,7 +136,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(str(type(sqldata)), str(type(np.array([]))))
         self.assertEqual(len(sqldata[0]), 7)
         self.assertEqual(len(sqldata), 1)
-        self.assertEqual(len(sql.header), 7)
+        self.assertEqual(len(sql.header), 8)
 
     def test_ram_multiline(self):
         ram = db.ram("UnitTest_tmp", self.parnames, self.like, self.randompar, simulations=self.simulations_multi,
