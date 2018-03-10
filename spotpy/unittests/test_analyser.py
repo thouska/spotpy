@@ -485,16 +485,18 @@ class TestAnalyser(unittest.TestCase):
             pickfil = open(picklefilename, "wb")
             pickle.dump(sampler.getdata(), pickfil)
 
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.remove("RosenMC.csv")
+            os.remove("setup_griewank_pickle")
+            os.remove("test_plot_autocorellation.csv")
+            os.remove("test_analyser_MC_results")
+            os.remove("Posteriot_parameter_uncertainty.png")
+        except FileNotFoundError:
+            pass
+
+
 
 if __name__ == '__main__':
     unittest.main(exit=False)
-    try:
-        os.remove("RosenMC.csv")
-        os.remove("setup_griewank_pickle")
-        os.remove("test_plot_autocorellation.csv")
-        os.remove("test_analyser_MC_results")
-        os.remove("Posteriot_parameter_uncertainty.png")
-    except FileNotFoundError:
-        pass
-
-
