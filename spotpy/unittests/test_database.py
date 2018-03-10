@@ -34,9 +34,6 @@ class TestDatabase(unittest.TestCase):
         for filename in glob.glob("UnitTest_tmp*"):
             os.remove(filename)
 
-        for filename in glob.glob("../UnitTest_tmp*"):
-            os.remove(filename)
-
     def objf(self):
         return np.random.uniform(0, 1, 1)[0]
 
