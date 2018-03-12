@@ -450,7 +450,9 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     index=[]
     no_index=[]
     threshold = 0.2
-
+    
+    first_sens_call=True
+    first_insens_call=True
     try:
         Si.values()
     except AttributeError:
@@ -461,16 +463,22 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
             names.append(parnames[j])
             values.append(list(Si.values())[1][j])
             index.append(j)
+            if first_sens_call:
+                ax.bar(j, list(Si.values())[1][j], color='blue', label='Sensitive Parameters')
+            else:
+                ax.bar(j, list(Si.values())[1][j], color='blue')
+            first_sens_call=False
+            
+
         else:
             no_names.append(parnames[j])
             no_values.append(list(Si.values())[1][j])
             no_index.append(j)
-
-    if len(no_index) > 0 and len(no_values) > 0:
-        ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')
-
-    else:
-        ax.bar(index, values, color='blue', label='Sensitive Parameters')
+            if first_insens_call:
+                ax.bar(j,list(Si.values())[1][j],color='orange', label = 'Insensitive parameter')
+            else:
+                ax.bar(j,list(Si.values())[1][j],color='orange')
+            first_insens_call=False
 
     ax.set_ylim([0,1])
 
@@ -482,7 +490,7 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
     fig.savefig('FAST_sensitivity.png',dpi=300)
-
+    
 
 def plot_heatmap_griewank(results,algorithms):
     """Example Plot as seen in the SPOTPY Documentation"""
