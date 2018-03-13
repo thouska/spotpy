@@ -7,18 +7,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Tobias Houska
 
 Holds functions to analyse results out of the database.
-Note: This part of SPOTPY is in alpha status and not ready for production use.
+Note: This part of SPOTPY is in alpha status and not yet ready for production use.
 '''
-
-
-
-
 
 import numpy as np
 import spotpy
-
-
-
 
 font = {'family' : 'calibri',
     'weight' : 'normal',
@@ -37,7 +30,6 @@ def load_csv_results(filename, usecols=None):
     :rtype: array
     """
     if usecols == None:
-        #return np.genfromtxt(filename+'.csv',delimiter=',',names=True,skip_footer=1,invalid_raise=False)[1:]
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,invalid_raise=False)
     else:
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,skip_footer=1,invalid_raise=False,usecols=usecols)[1:]
@@ -113,8 +105,6 @@ def get_parameters(results):
     """
     fields=[word for word in results.dtype.names if word.startswith('par')]
     results = results[fields]
-    #print results.dtype.names# = get_parameternames(results)
-    #results.dtype.names = get_parameternames(results)
     return results
 
 def get_parameternames(results):
@@ -209,7 +199,7 @@ def get_percentiles(results,sim_number=''):
         p95.append(np.percentile(list(results[fields[i]]),95))
     return p5,p25,p50,p75,p95
 
-def calc_like(results,evaluation):
+def calc_like(results,evaluation,objectivefunction):
     """
     Calculate another objectivefunction of your results
 
@@ -218,6 +208,9 @@ def calc_like(results,evaluation):
 
     :evaluation: Expects values, which correspond to your simulations
     :type: list
+    
+    :objectivefunction: Takes evaluation and simulation data and returns a objectivefunction, e.g. spotpy.objectvefunction.rmse
+    :type: function
 
     :return: New objectivefunction list
     :rtype: list
@@ -225,8 +218,7 @@ def calc_like(results,evaluation):
     likes=[]
     sim=get_modelruns(results)
     for s in sim:
-        likes.append(spotpy.objectivefunctions.rmse(list(s),evaluation))
-        #likes.append(objectivefunctions.agreementindex(list(s),evaluation))
+        likes.append(objectivefunction(list(s),evaluation))
     return likes
 
 def compare_different_objectivefunctions(like1,like2):
@@ -251,21 +243,27 @@ def compare_different_objectivefunctions(like1,like2):
         print('like1 is signifikant different to like2: p<0.05' )
     return out
 
-def get_posterior(results,percentage=10):
+def get_posterior(results,percentage=10, maximize=True):
     """
     Get the best XX% of your result array (e.g. best 10% model runs would be a threshold setting of 0.9)
 
-    :results: Expects an numpy array which should have as first axis an index "like". This will be sorted.
+    :results: Expects an numpy array which should have as first axis an index "like1". This will be sorted .
     :type: array
 
-    :threshold: Optional, ratio of values that will be deleted
+    :percentag: Optional, ratio of values that will be deleted.
     :type: float
+    
+    :maximize: If True (default), higher "like1" column values are assumed to be better.
+               If False, lower "like1" column values are assumed to be better.
 
     :return: Posterior result array
     :rtype: array
     """
-    reduction_factor = (100.0-percentage)/100.0    
-    return np.sort(results,axis=0)[int(len(results)*reduction_factor):]
+    if maximize:
+        index = np.where(results['like1']>=np.percentile(results['like1'],100.0-percentage))
+    else:
+        index = np.where(results['like1']>=np.percentile(results['like1'],100.0-percentage))
+    return results[index]
 
 def plot_parameter_uncertainty(posterior_results,evaluation):
     import pylab as plt
@@ -452,7 +450,9 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     index=[]
     no_index=[]
     threshold = 0.2
-
+    
+    first_sens_call=True
+    first_insens_call=True
     try:
         Si.values()
     except AttributeError:
@@ -463,16 +463,22 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
             names.append(parnames[j])
             values.append(list(Si.values())[1][j])
             index.append(j)
+            if first_sens_call:
+                ax.bar(j, list(Si.values())[1][j], color='blue', label='Sensitive Parameters')
+            else:
+                ax.bar(j, list(Si.values())[1][j], color='blue')
+            first_sens_call=False
+            
+
         else:
             no_names.append(parnames[j])
             no_values.append(list(Si.values())[1][j])
             no_index.append(j)
-
-    if len(no_index) > 0 and len(no_values) > 0:
-        ax.bar(no_index,no_values,color='orange', label = 'Insensitive parameter')
-
-    else:
-        ax.bar(index, values, color='blue', label='Sensitive Parameters')
+            if first_insens_call:
+                ax.bar(j,list(Si.values())[1][j],color='orange', label = 'Insensitive parameter')
+            else:
+                ax.bar(j,list(Si.values())[1][j],color='orange')
+            first_insens_call=False
 
     ax.set_ylim([0,1])
 
@@ -484,10 +490,7 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
     fig.savefig('FAST_sensitivity.png',dpi=300)
-
-
-
-
+    
 
 def plot_heatmap_griewank(results,algorithms):
     """Example Plot as seen in the SPOTPY Documentation"""
@@ -512,17 +515,15 @@ def plot_heatmap_griewank(results,algorithms):
     x, y = np.meshgrid(x, y)
 
     z=1+ (x**2+y**2)/4000 - np.cos(x/np.sqrt(2))*np.cos(y/np.sqrt(3))
-    #z = 100.0*(x - x**2.0)**2.0 + (1 - y)**2.0
-    #
-    #norm = cm.colors.Normalize(vmax=abs(z).max(), vmin=-abs(z).max())
+
     cmap = plt.get_cmap('autumn')
-    #levels = np.linspace(-5, 5, 20)
+
     rows=2.0
     for i in range(subplots):
         amount_row = int(np.ceil(subplots/rows))
         ax = plt.subplot(rows, amount_row, i+1)
-        CS = ax.contourf(x, y, z,locator=ticker.LogLocator(),cmap=cm.rainbow)#cmap)#,levels=levels)
-        #CS = ax.contourf(x, y, z,cmap=cm.rainbow)#cmap)#,levels=levels)
+        CS = ax.contourf(x, y, z,locator=ticker.LogLocator(),cmap=cm.rainbow)
+
         ax.plot(results[i]['par0'],results[i]['par1'],'ko',alpha=0.2,markersize=1.9)
         ax.xaxis.set_ticks([])
         if i==0:
@@ -539,7 +540,6 @@ def plot_heatmap_griewank(results,algorithms):
 
         ax.set_title(algorithms[i])
 
-    #plt.tight_layout()
     fig.savefig('test.png', bbox_inches='tight')  # <------ this
 
 
@@ -547,8 +547,8 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
     from matplotlib import colors
+    likes=calc_like(results,evaluation,spotpy.objectivefunctions.rmse)
     cnames=list(colors.cnames)
-    likes=calc_like(results,evaluation)
     data=likes
     #Calc confidence Interval
     mean = np.average(data)
@@ -749,7 +749,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     if sort:
         results=sort_like(results)
     if calculatelike:
-        likes=calc_like(results, evaluation)
+        likes=calc_like(results, evaluation,spotpy.objectivefunctions.rmse)
         maximum=max(likes)
         par=get_parameters(results)
         sim=get_modelruns(results)
@@ -796,11 +796,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     plt.legend()
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
-    plt.ylim(0,70) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
     plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
-#    plt.text(0, 0, bestparameterstring[0:-2],
-#        horizontalalignment='left',
-#        verticalalignment='bottom')
     fig.savefig('bestmodelrun.png')
     text='The figure as been saved as "bestmodelrun.png"'
     print(text)
@@ -812,18 +808,15 @@ def plot_bestmodelrun(results,evaluation):
     array.
     The plot will be saved as a .png file.
 
-    Args:
-        results (array): Expects an numpy array which should of an index "like" for
+    :results: Expects an numpy array which should of an index "like" for
               objectivefunctions and "sim" for simulations.
+     type: Array
 
-        evaluation (list): Should contain the values of your observations. Expects that this list has the same lenght as the number of simulations in your result array.
+     :evaluation: Should contain the values of your observations. Expects that this list has the same lenght as the number of simulations in your result array.
+     :type: list
 
     Returns:
         figure. Plot of the simulation with the maximum objectivefunction value in the result array as a blue line and dots for the evaluation data.
-
-    A really great idea. A way you might use me is
-    >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
-
     """
     import pylab as plt
     fig= plt.figure(figsize=(16,9))
@@ -934,7 +927,7 @@ def plot_objectivefunctiontraces(results,evaluation,algorithms,filename='Like_tr
 
     for i in range(len(results)):
         ax  = plt.subplot(1,len(results),i+1)
-        likes=calc_like(results[i],evaluation)
+        likes=calc_like(results[i],evaluation,spotpy.objectivefunctions.rmse)
         ax.plot(likes,'b-')
         ax.set_ylim(0,25)
         ax.set_xlim(0,len(results[0]))

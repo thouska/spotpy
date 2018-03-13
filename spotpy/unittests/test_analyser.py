@@ -89,7 +89,7 @@ class TestAnalyser(unittest.TestCase):
     def test_calc_like(self):
         calc_like = spotpy.analyser.calc_like(
             self.results,
-            self.sampler.evaluation)
+            self.sampler.evaluation,spotpy.objectivefunctions.rmse)
         self.assertEqual(len(calc_like), 1)
         self.assertEqual(type(calc_like), type([]))
 
@@ -212,12 +212,10 @@ class TestAnalyser(unittest.TestCase):
         self.assertEqual(type(compare_different_objectivefunctions[1]),type(np.array([0.5])[0]))
 
     def test_plot_parameter_uncertainty(self):
-        get_posterior = spotpy.analyser.get_posterior(
-            self.results
-        )
-        self.assertEqual(len(get_posterior[0]), self.rep)
-        self.assertEqual(type(get_posterior[0]), type(np.array([])))
-        spotpy.analyser.plot_parameter_uncertainty(get_posterior,
+        posterior = spotpy.analyser.get_posterior(self.results,percentage=10)
+        self.assertAlmostEqual(len(posterior)/100, self.rep/1000, 1)
+        self.assertEqual(type(posterior), type(np.array([])))
+        spotpy.analyser.plot_parameter_uncertainty(posterior,
                                                    self.sampler.evaluation)
 
         fig_name = "test_plot_parameter_uncertainty.png"
@@ -238,7 +236,7 @@ class TestAnalyser(unittest.TestCase):
         dbformat = "ram"
         timeout = 5
 
-        sampler = spotpy.algorithms.dream(spot_setup_object, parallel=parallel,
+        sampler = spotpy.algorithms.fast(spot_setup_object, parallel=parallel,
                                           dbname='test_get_sensitivity_of_fast', dbformat=dbformat,
                                           sim_timeout=timeout)
         sampler.sample(300)
@@ -257,10 +255,6 @@ class TestAnalyser(unittest.TestCase):
         self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
         # tidy up all
         os.remove(fig_name)
-
-
-
-
 
 
     def setup_griewank(self):
@@ -491,16 +485,18 @@ class TestAnalyser(unittest.TestCase):
             pickfil = open(picklefilename, "wb")
             pickle.dump(sampler.getdata(), pickfil)
 
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.remove("RosenMC.csv")
+            os.remove("setup_griewank_pickle")
+            os.remove("test_plot_autocorellation.csv")
+            os.remove("test_analyser_MC_results")
+            os.remove("Posteriot_parameter_uncertainty.png")
+        except FileNotFoundError:
+            pass
+
+
 
 if __name__ == '__main__':
     unittest.main(exit=False)
-    try:
-        os.remove("RosenMC.csv")
-        os.remove("setup_griewank_pickle")
-        os.remove("test_plot_autocorellation.csv")
-        os.remove("test_analyser_MC_results")
-        os.remove("Posteriot_parameter_uncertainty.png")
-    except FileNotFoundError:
-        pass
-
-

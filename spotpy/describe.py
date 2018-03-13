@@ -82,21 +82,28 @@ if sys.version_info > (3, 5):
     import webbrowser
 
 
-    def _as_rst_caption(s, caption_sign):
-        """
-        Marks text as a section caption
-        :param s: String to be marked as caption
-        :param caption_sign: Sign for the caption, eg. =, -, #, ~
-        :return: The string as rst caption
-        """
-        s = unicode(s)
-        return s + '\n' + caption_sign * len(s) + '\n\n'
 
     class rst:
         """
         Creates a reStructuredText description of a sampler or a setup
+
+        Usage:
+        >>>description = spotpy.describe.rst(sampler)
+        >>>print(description) # Prints the rst source text
+        >>># Add additional text section
+        >>>description.append('#. One idea' + '\n' + '#. Another one.', title='Ideas', titlelevel=2)
+        >>>description.append_image('media/image.png')
+        >>>print(description.as_html()) # Create html
+        >>>description.show_in_browser()
         """
+
+        caption_characters = '=-#~*+^'
+
         def __init__(self, setup_or_sampler):
+            """
+            Creates a reStructuredText description of a sampler or a setup
+            :param setup_or_sampler: Either a spotpy.algorithm sampler or a spotpy setup
+            """
             if isinstance(setup_or_sampler, _algorithm):
                 self.setup = setup_or_sampler.setup
                 self.sampler = setup_or_sampler
@@ -109,29 +116,57 @@ if sys.version_info > (3, 5):
             if self.setup:
                 self.rst_text.append(self._setup_text())
 
-        def append(self, extra_rst):
+        def append(self, text='', title=None, titlelevel=1):
             """
             Appends additional descriptions in reStructured text to the generated text
-
-            :param extra: reStructuredText to be appended
+            :param text: The rst text to add
+            :param title: A title for the text
+            :param titlelevel: The level of the section (0->h1.title, 1->h1, 2->h2, etc.)
             :return:
             """
-            self.rst_text.append(extra_rst)
+            res = '\n'
+            if title:
+                res += rst._as_rst_caption(title, titlelevel)
+            self.rst_text.append(res + text)
 
-        def append_image(self, imgpath, linkpath=None):
+        def append_image(self, imgpath, **kwargs):
             """
             Links an image to the output
             :param imgpath: Path to the image (must be found from the http server)
-            :param linkpath: A link target of the image (may be None for no link)
+            :param kwargs: Any keyword with value is translated in rst as `:keyword: value`
+                            and added to the image description
+
+            >>>description.append_image('https://img.shields.io/travis/thouska/spotpy/master.svg',
+            ...                         target='https://github.com/thouska',
+            ...                         width='200px')
             """
             rst = '.. image:: {}'.format(imgpath)
-            if linkpath:
-                rst += ' :target: ' + linkpath
+            for k, v in kwargs.items():
+                rst += '\n  :{}: {}'.format(k, v)
+            rst += '\n'
+            self.append(rst)
+
+        def append_math(self, latex):
+            """
+            Appends a block equation to the output
+            :param latex: Latex formula
+            """
+            rst =  '.. math::\n'
+            rst += '  ' + latex + '\n'
             self.append(rst)
 
         def __str__(self):
             return '\n'.join(self.rst_text)
 
+        @classmethod
+        def _as_rst_caption(cls, s, level=1):
+            """
+            Marks text as a section caption
+            :param s: String to be marked as caption
+            :param level: Caption level 0-6, translates to 0=h1.title, 1=h1, 2=h2, etc.
+            :return: The string as rst caption
+            """
+            return s + '\n' + cls.caption_characters[level] * len(s) + '\n\n'
 
         css = """
             body, table, div, p, dl {
@@ -188,8 +223,8 @@ if sys.version_info > (3, 5):
             if publish_string is None:
                 raise NotImplementedError('The docutils package needs to be installed')
             args = {'input_encoding': 'unicode',
-                    'output_encoding' : 'unicode'}
-            res = publish_string(source='\n'.join(self.rst_text),
+                    'output_encoding': 'unicode'}
+            res = publish_string(source=str(self),
                                  writer_name='html5',
                                  settings_overrides=args)
             style_idx = res.index('</style>')
@@ -205,10 +240,10 @@ if sys.version_info > (3, 5):
             :param filename: The html filename, if None use <setup class name>.html
             :param css: A style string, if None the default style is used
             """
-            html = self.html(css)
+            html = self.as_html(css).replace('unicode', 'utf-8')
             fn = filename or type(self.setup).__name__ + '.html'
             path = Path(fn).absolute()
-            path.write_text(html)
+            path.write_text(html, encoding='utf-8')
             webbrowser.open_new_tab(path.as_uri())
 
         def _sampler_text(self):
@@ -217,7 +252,7 @@ if sys.version_info > (3, 5):
             :return:
             """
             obj = self.sampler
-            cname = _as_rst_caption(type(obj).__name__, '=')
+            cname = rst._as_rst_caption(type(obj).__name__, 0)
             s = [
                  '- **db format:** ' + obj.dbformat,
                  '- **db name:** ' + obj.dbname,
@@ -234,11 +269,11 @@ if sys.version_info > (3, 5):
             """
             # Get class name
             obj = self.setup
-            cname = _as_rst_caption(type(obj).__name__, '=')
+            cname = rst._as_rst_caption(type(obj).__name__, 0)
             # Add doc string
             mdoc = _getdoc(obj).strip('\n').replace('\r', '\n') + '\n\n'
             # Get parameters from class
-            param_caption = _as_rst_caption('Parameters', '-')
+            param_caption = rst._as_rst_caption('Parameters', 1)
             params = '\n'.join('#. **{p.name}:** {p}'.format(p=p) for p in get_parameters_from_setup(obj))
             return cname + mdoc + param_caption + params
 

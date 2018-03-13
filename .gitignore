@@ -9,7 +9,8 @@ __pycache__/
 #other files
 *.out
 *.in
-docs/*
+site/*
+mkdocs.yml
 
 # Distribution / packaging
 .Python
