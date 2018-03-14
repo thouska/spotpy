@@ -536,7 +536,7 @@ def get_parameters_array(setup):
     return res
 
 
-def create_set(setup, random=False, **kwargs):
+def create_set(setup, valuetype='optguess', **kwargs):
     """
     Returns a named tuple holding parameter values, to be used with the simulation method of a setup
 
@@ -550,8 +550,7 @@ def create_set(setup, random=False, **kwargs):
     >>> result = model.simulation(param_set)
 
     :param setup: A spotpy compatible Model object
-    :param random: If True, undefined parameters are filled with a random realisation of the
-                    parameter distribution, when False undefined parameters are filled with optguess
+    :param valuetype: Select between 'optguess' (defaul), 'random', 'minbound' and 'maxbound'.
     :param kwargs: Any keywords can be used to set certain parameters to fixed values
     :return: namedtuple of parameter values
     """
@@ -562,13 +561,8 @@ def create_set(setup, random=False, **kwargs):
     # Create the namedtuple from the parameter names
     partype = get_namedtuple_from_paramnames(setup, params['name'])
 
-    # Get the values
-    if random:
-        # Use the generated values from the distribution
-        pardict = dict(zip(params['name'], params['random']))
-    else:
-        # Use opt guess instead of a random value
-        pardict = dict(zip(params['name'], params['optguess']))
+    # Use the generated values from the distribution
+    pardict = dict(zip(params['name'], params[valuetype]))
 
     # Overwrite parameters with keyword arguments
     pardict.update(kwargs)
