@@ -35,7 +35,7 @@ if __name__ == "__main__":
     
     sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv', alt_objfun=None)
     r_hat = sampler.sample(rep,nChains=nChains,convergence_limit=convergence_limit, 
-                           runs_after_convergence=runs_after_convergence, acceptance_test_option = 6)
+                           runs_after_convergence=runs_after_convergence)
     
     
     
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     
     
     # Example plot to show the convergence #################
-    fig= plt.figure(figsize=(16,9))
+    fig= plt.figure(figsize=(12,16))
     plt.subplot(2,1,1)
     for i in range(int(max(results['chain']))+1):
         index=np.where(results['chain']==i)
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     for i in range(int(max(results['chain']))):
         index=np.where(results['chain']==i)
         plt.plot(x[index],'.')
-    plt.ylabel('x1')
+    plt.ylabel('cmax')
     plt.ylim(min_vs[0],max_vs[0])
     
     
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     widths = np.diff(bins)
     hist *= normed_value
     plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('x1')
+    plt.ylabel('cmax')
     plt.xlim(min_vs[0],max_vs[0])
     
     
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     for i in range(int(max(results['chain']))):
         index=np.where(results['chain']==i)
         plt.plot(x[index],'.')
-    plt.ylabel('x2')
+    plt.ylabel('bexp')
     plt.ylim(min_vs[1],max_vs[1])
     
     plt.subplot(5,2,4)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     widths = np.diff(bins)
     hist *= normed_value
     plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('x2')
+    plt.ylabel('bexp')
     plt.xlim(min_vs[1],max_vs[1])
     
     
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     for i in range(int(max(results['chain']))):
         index=np.where(results['chain']==i)
         plt.plot(x[index],'.')
-    plt.ylabel('x3')
+    plt.ylabel('alpha')
     plt.ylim(min_vs[2],max_vs[2])
     
     
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     widths = np.diff(bins)
     hist *= normed_value
     plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('x3')
+    plt.ylabel('alpha')
     plt.xlim(min_vs[2],max_vs[2])
     
     
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     for i in range(int(max(results['chain']))):
         index=np.where(results['chain']==i)
         plt.plot(x[index],'.')
-    plt.ylabel('x4')
+    plt.ylabel('Ks')
     plt.ylim(min_vs[3],max_vs[3])
     
     
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     widths = np.diff(bins)
     hist *= normed_value
     plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('x4')
+    plt.ylabel('Ks')
     plt.xlim(min_vs[3],max_vs[3])
     
     
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     for i in range(int(max(results['chain']))):
         index=np.where(results['chain']==i)
         plt.plot(x[index],'.')
-    plt.ylabel('x5')
+    plt.ylabel('Kq')
     plt.ylim(min_vs[4],max_vs[4])
     plt.xlabel('Iterations')
     
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     widths = np.diff(bins)
     hist *= normed_value
     plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('x5')
+    plt.ylabel('Kq')
     plt.xlabel('Parameter range')
     plt.xlim(min_vs[4],max_vs[4])
     plt.show()
