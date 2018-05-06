@@ -13,7 +13,7 @@ setup(
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
   license = 'MIT',
-  packages = ["spotpy", "spotpy.examples", "spotpy.examples.hymod_python", "spotpy.examples.hymod_exe", "spotpy.algorithms", "spotpy.parallel", "spotpy.gui"],
+  packages = ["spotpy", "spotpy.examples", "spotpy.examples.hymod_python", "spotpy.examples.hymod_exe", "spotpy.algorithms", "spotpy.parallel", "spotpy.gui", "spotpy.hydrology"],
   package_data={
    'spotpy.examples.hymod_exe': ['*'],
    'spotpy.examples.hymod_python': ['*'],
