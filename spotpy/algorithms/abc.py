@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Patrick Lauer
-
-This class holds the Artificial Bee Colony(ABC) algorithm, based on Karaboga (2007):
-
-D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.
-
-D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x
-
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -23,46 +18,48 @@ import itertools
 
 
 class abc(_algorithm):
-    '''
-    Implements the ABC algorithm from Karaboga (2007).
+    """
+    This class holds the Artificial Bee Colony(ABC) algorithm, based on Karaboga (2007).
+    D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.
+    D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x
 
-    Input
-    ----------
-    spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
-            and return an list of simulation results (as long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination. Which can 
-            be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
-            observation.
-        evaluation: function
-            Should return the true values as return by the model.
+    """
 
-    dbname: str
-        * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+    def __init__(self, *args, **kwargs):
+        """
+        Input
+        ----------
+        spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the parameter-function
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can
+                be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model simulation and
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
 
-    dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.        
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
 
-    parallel: str
-        * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
-        * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
-        * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
 
-    save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
-     '''
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf):
+        save_sim: boolean
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
+        """
 
-        _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
-                           save_threshold=save_threshold)
+        super(abc, self).__init__(*args, **kwargs)
+
 
     def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, ownlimit=False, limit=24):
         """
@@ -192,8 +189,13 @@ class abc(_algorithm):
                         break
                 j = random.randint(0, (self.nopt - 1))
             # Generate new input parameters
-                work[i][3][j] = work[z][1][j] + \
-                    random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
+                try:
+                    work[i][3][j] = work[z][1][j] + \
+                        random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
+                except UnboundLocalError:
+                    z=0
+                    work[i][3][j] = work[z][1][j] + \
+                        random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
                 if work[i][3][j] < lb[j]:
                     work[i][3][j] = lb[j]
                 if work[i][3][j] > ub[j]:

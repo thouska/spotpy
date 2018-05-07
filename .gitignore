@@ -7,13 +7,10 @@ __pycache__/
 *.so
 
 #other files
-#*.rst
-*.gitignore
-*.yml
-*.csv
 *.out
 *.in
-docs/*
+site/*
+mkdocs.yml
 
 # Distribution / packaging
 .Python
@@ -95,6 +92,8 @@ ENV/
 
 # Spyder project settings
 .spyderproject
+# PyCharm
+.idea/
 
 # Rope project settings
 .ropeproject
