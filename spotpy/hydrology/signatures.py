@@ -549,3 +549,13 @@ def get_recession(data, measurements_per_day=None):
     return b, 1/np.exp(t0), r2
 
 
+def get_zero_q_freq(data, measurements_per_day=1):
+    """
+    Calculates the frequency of timesteps with Q = 0 mm/day
+    :param data: the timeseries
+    :param measurements_per_day:
+    :return: percent of timesteps without streamflow
+    """
+    return ((len(data) - np.count_nonzero(data)) / len(data)) * 100
+
+
