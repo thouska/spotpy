@@ -6,19 +6,15 @@ python:
 
   # command to install dependencies
 install:
-  #- pip install pandas
   - python setup.py install
   - pip install coveralls
   - pip install pathos
   - pip install numpy
   - pip install matplotlib
-  - pip install scipy
-  - pip install pandas
   - pip install pytest pytest-pep8 pytest-cov
   # Use docutils to generate html describe
   - pip install docutils
-  #- pip install matplotlib
-  #- travis_wait pip install scipy
+
 
 script:
   - pip uninstall spotpy -y
