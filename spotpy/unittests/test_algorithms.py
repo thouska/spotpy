@@ -21,17 +21,16 @@ from spotpy.describe import describe
 #https://docs.python.org/3/library/unittest.html
 
 class TestAlgorithms(unittest.TestCase):
+    def __init__(self):
+        # How many digits to match in case of floating point answers
+        self.tolerance = 7
+        #Create samplers for every algorithm:
+        self.spot_setup = spot_setup()
+        self.rep = 1000
+        self.timeout = 10 #Given in Seconds
 
-    # How many digits to match in case of floating point answers
-    self.tolerance = 7
-    #Create samplers for every algorithm:
-    self.spot_setup=spot_setup()
-    self.rep=1000
-    self.timeout=10 #Given in Seconds
-
-    self.parallel = "seq"
-    self.dbformat = "csv"
-
+        self.parallel = "seq"
+        self.dbformat = "csv"
 
     def test_mc(self):
         sampler=spotpy.algorithms.mc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
