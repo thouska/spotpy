@@ -34,67 +34,80 @@ class TestAlgorithms(unittest.TestCase):
 
     def test_mc(self):
         sampler=spotpy.algorithms.mc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_lhs(self):
         sampler=spotpy.algorithms.lhs(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_mle(self):
         sampler=spotpy.algorithms.mle(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_mcmc(self):
         sampler=spotpy.algorithms.mcmc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_demcz(self):
         sampler=spotpy.algorithms.demcz(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_dream(self):
         sampler=spotpy.algorithms.dream(spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_sceua(self):
         sampler=spotpy.algorithms.sceua(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_abc(self):
         sampler=spotpy.algorithms.abc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_fscabc(self):
         sampler=spotpy.algorithms.fscabc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_rope(self):
         sampler=spotpy.algorithms.rope(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_sa(self):
         sampler=spotpy.algorithms.sa(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
         
     def test_list(self):
         sampler=spotpy.algorithms.list(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), self.rep, self.tolerance)
 
     def test_fast(self):
         sampler=spotpy.algorithms.fast(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        results = sampler.sample(self.rep)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
         self.assertAlmostEqual(len(results), 2, self.tolerance) #Si values should be returned
 
     @classmethod
