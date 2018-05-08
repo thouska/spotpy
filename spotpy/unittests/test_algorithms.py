@@ -21,7 +21,7 @@ from spotpy.describe import describe
 #https://docs.python.org/3/library/unittest.html
 
 class TestAlgorithms(unittest.TestCase):
-    def __init__(self):
+    def setUp(self):
         # How many digits to match in case of floating point answers
         self.tolerance = 7
         #Create samplers for every algorithm:
