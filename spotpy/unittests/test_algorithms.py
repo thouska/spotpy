@@ -88,7 +88,7 @@ class TestAlgorithms(unittest.TestCase):
         results = sampler.sample(rep)
         self.assertAlmostEqual(len(results), rep, self.tolerance)
         
-        def test_list(self):
+    def test_list(self):
         sampler=spotpy.algorithms.list(spot_setup,parallel=parallel, dbname='Rosen', dbformat=dbformat, sim_timeout=timeout)
         results = sampler.sample(rep)
         self.assertAlmostEqual(len(results), rep, self.tolerance)
