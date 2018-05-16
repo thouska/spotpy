@@ -546,7 +546,7 @@ def get_recession(data, measurements_per_day=None):
     """
 
     q = fill_nan(data)
-    # Only divide by the median if it is above 0, to avoid mathmatical errors
+    # Only use median of flows above 0, to avoid mathmatical errors.
     q = q / np.median(q[q>0])
     dqdt = np.diff(q)
     # Use only recession situation (dqdt < 0)
