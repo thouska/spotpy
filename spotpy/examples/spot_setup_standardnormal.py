@@ -4,7 +4,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
-This example implements the Rosenbrock function into SPOT.  
+This example implements the Standard Normal function into SPOT.  
 '''
 from __future__ import absolute_import
 from __future__ import division
@@ -23,9 +23,9 @@ class spot_setup(object):
         
     def parameters(self):
         return spotpy.parameter.generate(self.params)
-        
-    def simulation(self,x):      
-        simulations= (1.0/(std*np.sqrt(2*np.pi)))**((-1.0/2.0)*(((x-self.mean)/self.std)**2))
+
+    def simulation(self,x):
+        simulations= (1.0/(self.std*np.sqrt(2*np.pi)))**((-1.0/2.0)*(((x-self.mean)/self.std)**2))
         return simulations
         
     def evaluation(self):

@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 import pathos.multiprocessing as mp
 
 class PhaseChange(object):
@@ -19,27 +20,34 @@ class PhaseChange(object):
         self.phase=phase
         
 class ForEach(object):
+    """
+    ForEach is a classes for multiprocessed work based on a generater object which is given if __call__ is called
+    We using the pathos multiprocessing module and the orderd map function where results are saved until results in
+    the given order are caluculated. We yielding back the result so a generator object is created.
+    """
     def __init__(self,process):
         self.size = mp.cpu_count()
         self.process = process
         self.phase=None
-        self.pool = mp.ProcessingPool(mp.cpu_count())
-        
+        self.pool = mp.ProcessingPool(self.size)
+
     def is_idle(self):
         return False
     def terminate(self):
-        self.pool.close()
+        pass
 
     def start(self):
         pass
+
     def setphase(self,phasename):
         self.phase=phasename
 
 
     def f(self, job):
-        return self.process(job)
-     
-    def __call__(self,jobs):
-        results = self.pool.map(self.f, jobs)
-        return results
+        data = self.process(job)
+        return data
 
+    def __call__(self,jobs):
+        results = self.pool.imap(self.f, jobs)
+        for i in results:
+            yield i

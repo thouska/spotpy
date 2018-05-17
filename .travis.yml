@@ -1,7 +1,6 @@
 language: python
 python:
   - "2.7"
-  - "3.4"
   - "3.5"
   - "3.6"
 
@@ -9,11 +8,21 @@ python:
 install:
   #- pip install pandas
   - python setup.py install
+  - pip install coveralls
+  - pip install pathos
+  - pip install numpy
+  - pip install matplotlib
+  - pip install scipy
+  - pip install pandas
+  - pip install pytest pytest-pep8 pytest-cov
+  # Use docutils to generate html describe
+  - pip install docutils
   #- pip install matplotlib
   #- travis_wait pip install scipy
-# command to run tests
 
 script:
-  - python spotpy/examples/tutorial_rosenbrock.py
-  - python spotpy/unittests/test_database.py
-  - python spotpy/unittests/test_signatures.py
+  - pip uninstall spotpy -y
+  - py.test  spotpy/unittests/test_* spotpy/examples/tutorial_rosenbrock.py  --cov spotpy --cov-report term-missing -v
+
+after_success:
+  - coveralls

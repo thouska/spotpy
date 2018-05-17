@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
-Copyright (c) 2015 by Tobias Houska
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+"""
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
-This class holds the MonteCarlo (MC) algorithm.
-'''
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -14,14 +13,10 @@ from . import _algorithm
 
 
 class mc(_algorithm):
-    '''
-    MonteCarlo
-
-    The monte carlo algorithm is so primitive, that giving a reference would
-    be ridiculous. The parameters are just generated from their respective
-    distribution functions without any direction. The approach is also called
-    "brute force".
-    '''
+    """
+    The Monte Carlo algorithm generates random parameters from their respective
+    distribution functions.
+    """
 
     def __init__(self, *args, **kwargs):
         """
@@ -46,13 +41,14 @@ class mc(_algorithm):
         dbformat: str
             * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
             * csv: A csv file will be created, which you can import afterwards.
+
         parallel: str
             * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
             * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
 
         save_sim: boolean
-            *True:  Simulation results will be saved
-            *False: Simulationt results will not be saved
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
         """
 
         super(mc, self).__init__(*args, **kwargs)
@@ -70,7 +66,7 @@ class mc(_algorithm):
         self.set_repetiton(repetitions)
         # A generator that produces parametersets if called
         param_generator = ((rep, self.parameter()['random'])
-                           for rep in range(int(repetitions) - 1))
+                           for rep in range(int(repetitions)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database 
             self.postprocessing(rep, randompar, simulations)

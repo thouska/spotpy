@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
-
-This class holds the MaximumLikelihoodEstimation (MLE) algorithm.
 '''
 
 from . import _algorithm
@@ -41,17 +36,19 @@ class mle(_algorithm):
         * csv: A csv file will be created, which you can import afterwards.        
 
     save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
+        * True:  Simulation results will be saved
+        * False: Simulationt results will not be saved
      '''
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf):
+    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, save_threshold=-np.inf,
+                 sim_timeout=None):
         if parallel != 'seq':
             raise Exception('ERROR: Please set parallel=seq as MLE is only useable in sequetial mode')
-        
+
         _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
-                           save_threshold=save_threshold)
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim, save_threshold=save_threshold,
+                            sim_timeout=sim_timeout)
+
 
     def check_par_validity(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):

@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Patrick Lauer
-
-This class holds the Fitness Scaled Chaotic Artificial Bee Colony(FSCABC) algorithm, based on Zhang (2011):
-
-Yudong Zhang, Lenan Wu, and Shuihua Wang. “Magnetic Resonance Brain Image Classification by an Improved Artificial Bee Colony Algorithm.” Progress In Electromagnetics Research 116. EMW Publishing: 65–79. 2011
-
-Yudong Zhang, Lenan Wu, and Shuihua Wang. “UCAV Path Planning by Fitness-Scaling Adaptive Chaotic Particle Swarm Optimization.” Mathematical Problems in Engineering 2013. Hindawi Publishing Corporation. 2013
-
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -22,48 +17,53 @@ import random
 
 
 class fscabc(_algorithm):
-    '''
-    Implements the FSCABC algorithm from Zhang (2011).
+    """
+    This class holds the Fitness Scaled Chaotic Artificial Bee Colony(FSCABC) algorithm, 
+    based on:
+    
+    Yudong Zhang, Lenan Wu, and Shuihua Wang (2011). Magnetic Resonance Brain Image 
+    Classification by an Improved Artificial Bee Colony Algorithm. 
+    Progress In Electromagnetics Research
+    
+    Yudong Zhang, Lenan Wu, and Shuihua Wang (2013). 
+    UCAV Path Planning by Fitness-Scaling Adaptive Chaotic Particle Swarm Optimization. 
+    Mathematical Problems in Engineering
+    """
 
-    Input
-    ----------
-    spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
-            and return an list of simulation results (as long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination. Which can 
-            be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
-            observation.
-        evaluation: function
-            Should return the true values as return by the model.
+    def __init__(self, *args, **kwargs):
+        """
+        Input
+        ----------
+        spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the parameter-function
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can
+                be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model simulation and
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
 
-    dbname: str
-        * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
 
-    dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.        
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
 
-    parallel: str
-        * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
-        * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
-        * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
 
-    save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
-     '''
+        save_sim: boolean
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
+        """
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True, breakpoint=None, 
-                 backup_every_rep=100, save_threshold=-np.inf):
-
-        _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim, 
-                            breakpoint=breakpoint, backup_every_rep=backup_every_rep,
-                           save_threshold=save_threshold)
+        super(fscabc, self).__init__(*args, **kwargs)
 
     def mutate(self, r):
         x = 4 * r * (1 - r)

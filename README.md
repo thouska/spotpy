@@ -7,6 +7,7 @@ A Statistical Parameter Optimization Tool for Python
 [![Python Versions][pypi-pyv-image]][pypi-pyv-link]
 [![Build Status][travis-image]][travis-link]
 [![License][license-image]][license-link]
+[![Coverage Status](https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master)](https://coveralls.io/github/thouska/spotpy?branch=master)
 
 [pypi-v-image]: https://img.shields.io/pypi/v/spotpy.png
 [pypi-v-link]: https://pypi.python.org/pypi/spotpy
@@ -88,48 +89,6 @@ Some features you can use with the SPOTPY package are:
   * Gamma
   * Wald
   * Weilbull
-
-* A toolbox of hydrological signatures, to see a hydrological fit of modeled data to the measured one. 
-
-To use this signatures, you call the _get_**HydrologicalSignature** function and entering the measured and the modeled data.
-Setting `mode='calc_Dev'` performs our desired calculation. Sometimes additional parameters are needed, as for example
-a timestamp list (in a pandas object) or threshold values. The closer the return value is to zero, the more fits the simulated 
-data with measured one. 
-
-
-	spotpy.signatures.getSlopeFDC(measured_data,results,mode='calc_Dev')
-
-By changing the value of `mode` to `'get_signature'`, we get the signature value _only_ for the parameter `data`.
-
-By changing the value of `mode` to `'get_raw_data'`, we get a raw calculation of flood-signatures, belonging to each signature calculation.
-
-**tutorial_signatures.py** contains al available functions and it's mode settings.
-
-  * List of available hydrological signatures, additional required parameters are in brackets
-    * getMeanFlow
-    * getMedianFlow
-    * getSkewness
-    * getCoeffVariation
-    * getQ001
-    * getQ01
-    * getQ1
-    * getQ5
-    * getQ10
-    * getQ20
-    * getQ85
-    * getQ95
-    * getQ99
-    * getSlopeFDC
-    * getAverageFloodOverflowPerSection(datetime_series, threshold_value)
-    * getAverageFloodFrequencyPerSection(datetime_series, threshold_value)
-    * getAverageFloodDuration(datetime_series, threshold_value)
-    * getAverageBaseflowUnderflowPerSection(datetime_series, threshold_value)
-    * getAverageBaseflowFrequencyPerSection(datetime_series, threshold_value)
-    * getFloodFrequency(datetime_series, threshold_value)
-    * getBaseflowFrequency (datetime_series, threshold_value)
-    * getLowFlowVar(datetime_series)
-    * getHighFlowVar(datetime_series)
-    * getBaseflowIndex(datetime_series)
 
 * Wide range to adapt algorithms to perform uncertainty-, sensitivity analysis or calibration
   of a model.

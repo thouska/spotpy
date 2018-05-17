@@ -17,7 +17,7 @@ import numpy as np
 import io
 import time
 from itertools import product
-
+import sqlite3
 import sys
 if sys.version_info[0] >= 3:
     unicode = str
@@ -136,9 +136,6 @@ class ram(database):
         super(ram, self).__init__(*args, **kwargs)
         # init the status vars
         self.ram = []
-        # store init item only if dbinit
-        if kwargs.get('dbinit', True):
-            self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None,
              chains=1):
@@ -185,11 +182,9 @@ class csv(database):
             self.db = io.open(self.dbname + '.csv', 'w')
             # write header line
             self.db.write(unicode(','.join(self.header) + '\n'))
-            self.save(self.like, self.randompar, self.simulations, self.chains)
         else:
             # Continues writing file
             self.db = io.open(self.dbname + '.csv', 'a')
-            self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +
@@ -218,10 +213,31 @@ class csv(database):
     def finalize(self):
         self.db.close()
 
-    def getdata(self, dbname=None):
-        data = np.genfromtxt(
-            self.dbname + '.csv', delimiter=',', names=True)[0:]
+    def getdata(self):
+        data = np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)
         return data
+
+
+class PickalableSWIG:
+    def __setstate__(self, state):
+        self.__init__(*state['args'])
+    def __getstate__(self):
+        return {'args': self.args}
+
+
+class PickalableSQL3Connect(sqlite3.Connection, PickalableSWIG):
+    def __init__(self, *args,**kwargs):
+        self.args = args
+        sqlite3.Connection.__init__(self,*args,**kwargs)
+
+
+class PickalableSQL3Cursor(sqlite3.Cursor, PickalableSWIG):
+    def __init__(self, *args,**kwargs):
+        self.args = args
+        sqlite3.Cursor.__init__(self,*args,**kwargs)
+
+
+
 
 class sql(database):
 
@@ -231,7 +247,6 @@ class sql(database):
     """
 
     def __init__(self, *args, **kwargs):
-        import sqlite3
         import os
         # init base class
         super(sql, self).__init__(*args, **kwargs)
@@ -240,16 +255,14 @@ class sql(database):
             os.remove(self.dbname + '.db')
         except:
             pass
-        self.db = sqlite3.connect(self.dbname + '.db')
-        self.db_cursor = self.db.cursor()
+
+        self.db = PickalableSQL3Connect(self.dbname + '.db')
+        self.db_cursor = PickalableSQL3Cursor(self.db)
         # Create Table
 #        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
 #                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
         self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
                      ('''+' real ,'.join(self.header)+''')''')
-        # store init item only if dbinit
-        if kwargs.get('dbinit', True):
-            self.save(self.like, self.randompar, self.simulations, self.chains)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (self.dim_dict['like'](objectivefunction) +
@@ -259,12 +272,12 @@ class sql(database):
         # Apply rounding of floats
         coll = map(self.db_precision, coll)
         try:
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
         except Exception:
             input("Please close the file " + self.dbname +
                   " When done press Enter to continue...")
-            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+str(','.join(map(str, coll)))+")")
+            self.db_cursor.execute("INSERT INTO "+self.dbname+" VALUES ("+'"'+str('","'.join(map(str, coll)))+'"'+")")
 
         self.db.commit()
 
@@ -272,10 +285,19 @@ class sql(database):
         self.db.close()
 
     def getdata(self):
-        import sqlite3
-        self.db = sqlite3.connect(self.dbname + '.db')
-        self.db_cursor = self.db.cursor()
-        back = [row for row in self.db_cursor.execute('SELECT * FROM '+self.dbname)]
+        self.db = PickalableSQL3Connect(self.dbname + '.db')
+        self.db_cursor = PickalableSQL3Cursor(self.db)
+
+        if sys.version_info[0] >= 3:
+            headers = [(row[1],"<f8") for row in
+                       self.db_cursor.execute("PRAGMA table_info(" + self.dbname+");")]
+        else:
+            # Workaround for python2
+            headers = [(unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")) for row in
+                       self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");")]
+        
+        back = np.array([row for row in self.db_cursor.execute('SELECT * FROM ' + self.dbname)],dtype=headers)
+
         self.db.close()
         return back
         
@@ -296,3 +318,35 @@ class noData(database):
 
     def getdata(self):
         pass
+
+class custom(database):
+    """
+    This class is a simple wrapper over the database API, and can be used
+    when the user provides a custom save function.
+    """
+
+    def __init__(self, *args, **kwargs):
+        if 'setup' not in kwargs:
+            raise ValueError("""
+                You must use either of ram, csv, sql or noData for your dbformat,
+                OR implement a `save` function in your spot_setup class.
+            """)
+        self.setup = kwargs['setup']
+        super(custom, self).__init__(*args, **kwargs)
+
+    def save(self, objectivefunction, parameterlist, simulations, *args, **kwargs):
+        self.setup.save(objectivefunction, parameterlist, simulations, *args, **kwargs)
+
+    def finalize(self):
+        pass
+
+    def getdata(self):
+        pass
+
+
+def get_datawriter(dbformat, *args, **kwargs):
+    """Given a dbformat (ram, csv, sql, noData, etc), return the constructor
+        of the appropriate class from this file.
+    """
+    datawriter = globals()[dbformat](*args, **kwargs)
+    return datawriter

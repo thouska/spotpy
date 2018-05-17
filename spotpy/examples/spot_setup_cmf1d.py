@@ -113,7 +113,7 @@ def _load_data(filename):
     """
     def str2date(s):
         """Converts a string to a datetime"""
-        return np.datetime64(s, 's').astype(datetime)
+        return datetime.strptime(s.decode(), '%Y-%m-%d %H:%M:%S')
     # Load the data
     return np.recfromcsv(filename, converters={0: str2date}, comments='#')
 
@@ -152,8 +152,9 @@ class Cmf1d_Model(object):
 
     def __init__(self, days=None):
 
-        self.driver_data = _load_data('cmf1d_data/driver_data_site24.csv')
-        self.evaluation_data = _load_data('cmf1d_data/soilmoisture_site24.csv')
+        self.driver_data = _load_data('cmf_data/driver_data_site24.csv')
+        self.evaluation_data = np.loadtxt('cmf_data/soilmoisture_site24.csv', delimiter=',',
+                                          comments='#', usecols=[1,2,3])
 
         self.datastart = self.driver_data.time[0]
 
@@ -174,17 +175,15 @@ class Cmf1d_Model(object):
         self.model.load_meteo(driver_data=self.driver_data)
         self.__doc__ += '\n\n' + cmf.describe(self.model.project)
 
-
     def make_parameters(self, random=False, **kwargs):
         return spotpy.parameter.create_set(self)
-
 
     def evaluation(self):
         """
         :return: The evaluation soilmoisture as a 2d array 
         """
-        names = list(self.evaluation_data.dtype.names[1:])
-        return self.evaluation_data[names].view(np.float).reshape(self.evaluation_data.shape + (-1,))
+
+        return self.evaluation_data
 
     def objectivefunction(self, simulation, evaluation):
         """
@@ -235,7 +234,6 @@ class Cmf1d_Model(object):
             for k, v in par._asdict().items():
                 print('    {} = {:0.4g}'.format(k,v))
 
-
         eval_layers = self.get_eval_layers(self.eval_depth)
         # Prepare result array with nan's
         result = np.nan * np.ones(shape=(len(self.evaluation_data), len(eval_layers)))
@@ -275,7 +273,6 @@ if __name__ == '__main__':
                                         save_sim=False)
         sampler.sample(runs)
     else:
-        parameterset = spotpy.parameters.create_set(model)
-        result = model.simulation(parameterset, verbose=True)
-        rmse = model.objectivefunction(result, model.evaluation())
-        print('Model ready, RMSE={:0.4f}% soil moisture'.format(-rmse*100))
+        from spotpy.gui.mpl import GUI
+        gui = GUI(model)
+        gui.show()

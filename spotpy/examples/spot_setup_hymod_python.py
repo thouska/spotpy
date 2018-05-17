@@ -23,10 +23,11 @@ class spot_setup(object):
         #Load Observation data from file
         self.PET,self.Precip   = [], []
         self.date,self.trueObs = [], []
-        self.owd = os.path.realpath(__file__)+os.sep+'..'
+        self.owd = os.path.dirname(os.path.realpath(__file__))
         self.hymod_path = self.owd+os.sep+'hymod_python'
         climatefile = open(self.hymod_path+os.sep+'hymod_input.csv', 'r')
         headerline = climatefile.readline()[:-1]
+
         if ';' in headerline:
             self.delimiter = ';'
         else:
@@ -39,6 +40,7 @@ class spot_setup(object):
             self.PET.append(float(values[2]))
             self.trueObs.append(float(values[3]))
 
+        climatefile.close()
         self.params = [spotpy.parameter.Uniform('cmax',low=1.0 , high=500,  optguess=412.33),
                    spotpy.parameter.Uniform('bexp',low=0.1 , high=2.0,  optguess=0.1725),
                    spotpy.parameter.Uniform('alpha',low=0.1 , high=0.99, optguess=0.8127),

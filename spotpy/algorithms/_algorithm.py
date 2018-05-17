@@ -1,24 +1,30 @@
-# -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 
-This class holds the standards for every algorithm.
+This file holds the standards for every algorithm.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
-
 from spotpy import database, objectivefunctions
 from spotpy import parameter
-
 import numpy as np
 import time
+import threading
+
+try:
+    from queue import Queue
+except ImportError:
+    # If the running python version is 2.* we have only Queue available as a multiprocessing class
+    # we need to stop the whole main process which this sleep for one microsecond otherwise the subprocess is not
+    # finished and the main process can not access it and put it as garbage away (Garbage collectors cause)
+    # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
+    # workaround
+    from Queue import Queue
 
 
 
@@ -118,12 +124,18 @@ class _algorithm(object):
         * any str: if str is found in spotpy.objectivefunctions, 
             this objectivefunction is used, else falls back to None 
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
-
+    sim_timeout: float, int or None, default: None
+        the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
+        sim_timeout is not None.
+        If the model run has been broken simlply '[nan]' will be returned.
+    random_state: int or None, default: None
+        the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16):
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,sim_timeout = None,
+                 random_state=None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -147,13 +159,20 @@ class _algorithm(object):
             objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
-        self.dbname = dbname
-        self.dbformat = dbformat
+        self.dbname = dbname or 'customDb'
+        self.dbformat = dbformat or 'custom'
         self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
         self.dbinit = dbinit
         
+        # Set the random state
+        if random_state is None:
+            random_state = np.random.randint(low=0, high=2**30)
+        np.random.seed(random_state)
+
+        # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
+        self.sim_timeout = sim_timeout
         self.save_threshold = save_threshold
 
         if breakpoint == 'read' or breakpoint == 'readandwrite':
@@ -168,9 +187,18 @@ class _algorithm(object):
             from spotpy.parallel.sequential import ForEach
         elif parallel == 'mpi':
             from spotpy.parallel.mpi import ForEach
+
+        # MPC is based on pathos mutiprocessing and uses ordered map, so results are given back in the order
+        # as the parameters are
         elif parallel == 'mpc':
-            print('Multiprocessing is in still testing phase and may result in errors')
             from spotpy.parallel.mproc import ForEach
+
+        # UMPC is based on pathos mutiprocessing and uses unordered map, so results are given back in the order
+        # as the subprocesses are finished which may speed up the whole simulation process but is not recommended if
+        # objective functions do their calculation based on the order of the data because the order of the result is chaotic
+        # and randomized
+        elif parallel == 'umpc':
+            from spotpy.parallel.umproc import ForEach
         else:
             raise ValueError(
                 "'%s' is not a valid keyword for parallel processing" % parallel)
@@ -190,10 +218,13 @@ class _algorithm(object):
         self.status = _RunStatistic()
 
     def __str__(self):
-        return '{type}({mtype}(), dbname={dbname}'.format(
+        return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
             mtype=type(self.setup).__name__,
             dbname=self.dbname)
+
+    def __repr__(self):
+        return '{type}()'.format(type=type(self).__name__)
 
     def get_parameters(self):
         """
@@ -217,38 +248,33 @@ class _algorithm(object):
         print(self.status.params)
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
         print(text)
-    
-    def _init_database(self, like, randompar, simulations, chains=1):
-        if self.dbinit==True:        
+
+    def _init_database(self, like, randompar, simulations):
+        if self.dbinit:
             print('Initialize database...')
-            writerclass = getattr(database, self.dbformat)
-            
-            self.datawriter = writerclass(
-                self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim, 
-                dbinit=self.dbinit, db_precision=self.db_precision)
-            self.dbinit=False
-            
+
+            self.datawriter = database.get_datawriter(self.dbformat,
+                self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim,
+                dbinit=self.dbinit, db_precision=self.db_precision, setup=self.setup)
+
+            self.dbinit = False
+
     def save(self, like, randompar, simulations, chains=1):
+        # Initialize the database if no run was performed so far
+        self._init_database(like, randompar, simulations)
 
         #try if like is a list of values compare it with save threshold setting
-        try: 
+        try:
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
-                # Initialize the database if no run was performed so far
-                self._init_database(like, randompar, simulations, chains=1)
                 self.datawriter.save(like, randompar, simulations, chains=chains)
         #If like value is not a iterable, it is assumed to be a float
         except TypeError: # This is also used if not threshold was set
             try:
                 if like>self.save_threshold: #Compares float/float
-                    # Initialize the database if no run was performed so far
-                    self._init_database(like, randompar, simulations, chains=1)        
                     self.datawriter.save(like, randompar, simulations, chains=chains)
             except TypeError:# float/list would result in an error, because it does not make sense
                 if like[0]>self.save_threshold: #Compares list/float
-                    # Initialize the database if no run was performed so far
-                    self._init_database(like, randompar, simulations, chains=1)        
-                    self.datawriter.save(like, randompar, simulations,
-                                         chains=chains)
+                    self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
@@ -264,14 +290,7 @@ class _algorithm(object):
             pickle.dump(work, breakfile)
 
     def getdata(self):
-        if self.dbformat == 'ram':
-            return self.datawriter.data
-        if self.dbformat == 'csv':
-            return np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)#[1:]
-        if self.dbformat == 'sql':
-            return self.datawriter.getdata
-        if self.dbformat == 'noData':
-            return self.datawriter.getdata
+        return self.datawriter.getdata()
 
     def postprocessing(self, rep, randompar, simulation, chains=1, save=True, negativlike=False):
         like = self.getfitness(simulation=simulation, params=randompar)
@@ -309,5 +328,27 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
-        # Call self.model with a namedtuple instead of another sequence
-        return id, params, self.model(self.partype(*params))
+
+        # we need a layer to fetch returned data from a threaded process into a queue.
+        def model_layer(q,params):
+            # Call self.model with a namedtuple instead of another sequence
+            q.put(self.model(self.partype(*params)))
+
+        # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
+        # incompability which the main thread. Therefore only for older Python version a workaround follows
+        que = Queue()
+        sim_thread = threading.Thread(target=model_layer, args=(que, params))
+        sim_thread.daemon = True
+        sim_thread.start()
+
+
+        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
+        # long it needs to run
+        sim_thread.join(self.sim_timeout)
+
+        # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
+        # '[nan]' otherwise get the result from the thread
+        model_result = [np.NAN]
+        if not que.empty():
+            model_result = que.get()
+        return id, params, model_result

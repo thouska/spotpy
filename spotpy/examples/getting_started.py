@@ -24,7 +24,7 @@ if __name__ == '__main__':
     sampler = spotpy.algorithms.mc(spot_setup(), dbname='RosenMC', dbformat='ram')
 
     #Now we can sample with the implemented Monte Carlo algortihm:
-    sampler.sample(100000)                # Sample 100.000 parameter combinations
+    sampler.sample(10000)                # Sample 100.000 parameter combinations
     results=sampler.getdata()
     #Now we want to have a look at the results. First we want to know, what the algorithm has done during the 10.000 iterations:
     #spot.analyser.plot_parametertrace(results)     # Use the analyser to show the parameter trace

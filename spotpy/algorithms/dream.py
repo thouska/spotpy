@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
-:author: Tobias Houska
-
-This class holds the MarkovChainMonteCarlo (MCMC) algorithm based on Metropolis et al. (1953).
-
-Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H. and Teller, E.: Equation of state calculations by fast computing machines, J. Chem. Phys., 21(6), 1087–1092, 1953.
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska and Motjaba Sadegh
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -21,44 +16,46 @@ import time
 
 
 class dream(_algorithm):
-    '''
-    Implements the MarkovChainMonteCarlo algorithm.
-
-    Input
-    ----------
-    spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
-            and return an list of simulation results (as long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination. Which can 
-            be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
-            observation.
-        evaluation: function
-            Should return the true values as return by the model.
-
-    dbname: str
-        * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-
-    dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.        
-
-    save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
-
-    alt_objfun: str or None, default: 'log_p'
-        alternative objectivefunction to be used for algorithm
-        * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions, 
-            this objectivefunction is used, else falls back to None 
-            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
-     '''
+    """
+    Implements the DiffeRential Evolution Adaptive Metropolis (DREAM) algorithhm 
+    based on:
+    Vrugt, J. A. (2016) Markov chain Monte Carlo simulation using the DREAM software package.
+    """
 
     def __init__(self, *args, **kwargs):
+        """
+        Input
+        ----------
+        spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the parameter-function
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can
+                be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model simulation and
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
+
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
+
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+
+        save_sim: boolean
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
+        """
+
+
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'log_p'
         super(dream, self).__init__(*args, **kwargs)
@@ -251,7 +248,7 @@ class dream(_algorithm):
         
         #firstcall = True
         
-        print('Inititalize ',self.nChains, ' chain(s)...')
+        print('Initialize ', self.nChains, ' chain(s)...')
         self.iter=0
         #for i in range(10):
         startpoints = self.get_regular_startingpoint(nChains)

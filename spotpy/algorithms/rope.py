@@ -1,20 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Alejandro Chamorro-Chavez
-
-This class holds the Robust Parameter Estimation (ROPE) algorithm based on
-Bárdossy and Singh (2008).
-
-Bárdossy, A. and Singh, S. K.:
-Robust estimation of hydrological model parameters,
-Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
 '''
-
-
+from __future__ import unicode_literals, division, absolute_import
 from . import _algorithm
 import time
 import numpy as np
@@ -23,14 +13,18 @@ import random
 
 class rope(_algorithm):
     '''
-    Implements the Robust Parameter Estimation (ROPE) algorithm
-    (Bárdossy and Singh, 2008)
+    This class holds the Robust Parameter Estimation (ROPE) algorithm based on
+    Bárdossy and Singh (2008).
 
-   '''
+    Bárdossy, A. and Singh, S. K.:
+    Robust estimation of hydrological model parameters,
+    Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
+    '''
 
     def __init__(self, spot_setup, dbname=None, dbformat=None,
-                 parallel='seq', save_sim=True):
-        """
+                 parallel='seq', save_sim=True, save_threshold=-np.inf,sim_timeout = None):
+            
+        '''
         Input
         ----------
         :param spot_setup: class
@@ -46,16 +40,16 @@ class rope(_algorithm):
                 simulation and observation.
             evaluation: function
                 Should return the true values as return by the model.
-
+    
         :param dbname: str
             * Name of the database where parameter, objectivefunction value and
             simulation results will be saved.
-
+    
         :param dbformat: str
             * ram: fast suited for short sampling time. no file will be created and
             results are saved in an array.
             * csv: A csv file will be created, which you can import afterwards.
-
+    
         :param parallel: str
             * seq: Sequentiel sampling (default): Normal iterations on one core
             of your cpu.
@@ -63,18 +57,14 @@ class rope(_algorithm):
             (recommended for windows os).
             * mpi: Message Passing Interface: Parallel computing on cluster pcs
             (recommended for unix os).
-
+    
         :param save_sim: boolean
             *True:  Simulation results will be saved
             *False: Simulationt results will not be saved
-
-        """
-    def __init__(self, spot_setup, dbname=None, dbformat=None,
-                 parallel='seq', save_sim=True, save_threshold=-np.inf):
-
+        '''
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel,
-                            save_sim=save_sim, save_threshold=save_threshold)
+                            save_sim=save_sim, save_threshold=save_threshold,sim_timeout = sim_timeout)
 
     def create_par(self, min_bound, max_bound):
         return np.random.uniform(low=min_bound, high=max_bound)
@@ -163,9 +153,9 @@ class rope(_algorithm):
         segment = 1 / float(first_run)
         # Get the minimum and maximum value for each parameter from the
 
-        # Create an matrx to store the parameter sets
+        # Create a matrix to store the parameter sets
         matrix = np.empty((first_run, len(parmin)))
-        # Create the LatinHypercube matrx as in McKay et al. (1979):
+        # Create the LatinHypercube matrix as in McKay et al. (1979):
         for i in range(int(first_run)):
             segmentMin = i * segment
             pointInSegment = segmentMin + (random.random() * segment)
@@ -202,7 +192,7 @@ class rope(_algorithm):
                                                percentage_following_runs)
             valid = False
             trials = 0
-            while valid is False and trials < 10:
+            while valid is False and trials < 10 and repetitions_following_runs>1: 
                 new_pars = self.programm_depth(best_pars, repetitions_following_runs)
                 if len(new_pars) == repetitions_following_runs:
                     valid = True
@@ -211,8 +201,10 @@ class rope(_algorithm):
             pars = []
             likes = []
             print(len(new_pars))
+            if(int(repetitions_following_runs) > len(new_pars)):
+                repetitions_following_runs = len(new_pars)
             param_generator = (
-                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))
+                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))   
             for rep, ropepar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
                 like = self.postprocessing(first_run + rep + repetitions_following_runs * subset, ropepar, simulations)
@@ -272,7 +264,7 @@ class rope(_algorithm):
             LNDEP = self.fHDEPTHAB(N, NP, X, TL, EPS, LLEN)
             for L in range(LLEN):
                 ITRY = ITRY + 1
-                if LNDEP[L] > 1:
+                if LNDEP[L] >= 1:
                     #test.append(TL[L, :])
                     CL = np.vstack((CL, TL[L, :]))
                     IPOS = IPOS + 1

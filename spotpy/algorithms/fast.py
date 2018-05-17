@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and the SALib team
-
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -141,6 +139,13 @@ class fast(_algorithm):
 
         if Y.size % (D) == 0:
             N = int(Y.size / D)
+        elif Y.size > D:
+            N = int(Y.size / D)
+            rest = Y.size - N*D
+            print("""
+                We can not use """ + str(rest) + """ samples which was generated
+                of totaly """ + str(Y.size) + """ 
+                """)
         else:
             print("""
                 Error: Number of samples in model output file must be a multiple of D, 
@@ -180,7 +185,7 @@ class fast(_algorithm):
 
     def compute_total_order(self, outputs, N, omega):
         f = np.fft.fft(outputs)
-        Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
+        Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
         V = 2 * np.sum(Sp)
         Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
         return (1 - Dt / V)
@@ -234,5 +239,6 @@ class fast(_algorithm):
             # this is likely to crash if database does not assign name 'like1'
             Si = self.analyze(
                 bounds, data['like1'], len(bounds), names, print_to_console=True)
+            return Si
         except AttributeError:  # Happens if no database was assigned
             pass

@@ -9,8 +9,8 @@ __pycache__/
 #other files
 *.out
 *.in
-*.csv
-docs/*
+site/*
+mkdocs.yml
 
 # Distribution / packaging
 .Python
@@ -92,6 +92,8 @@ ENV/
 
 # Spyder project settings
 .spyderproject
+# PyCharm
+.idea/
 
 # Rope project settings
 .ropeproject

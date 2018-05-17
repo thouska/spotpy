@@ -1,18 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (c) 2015 by Tobias Houska
-
-This file is part of Statistical Parameter Estimation Tool (SPOTPY).
-
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Stijn Van Hoey
-
-This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, based on Duan (1994):
-
-Duan, Q., Sorooshian, S. and Gupta, V. K.: Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol., 158(3), 265–284, 1994.
-
-Based on Optimization_SCE
-Copyright (c) 2011 Stijn Van Hoey.
 '''
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -24,50 +16,53 @@ import time
 
 
 class sceua(_algorithm):
-    '''
-    Implements the SCE-UA algorithm from Duan (1994), 
-    converted to python by Van Hoey (2011), restructured and parallelized by Houska et al (2015).
+    """
+    This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, 
+    based on:
+    Duan, Q., Sorooshian, S. and Gupta, V. K. (1994) 
+    Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol.
 
-    Input
-    ----------
-    spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
-            and return an list of simulation results (as long as evaluation list)
-        parameter: function
-            When called, it should return a random parameter combination. Which can 
-            be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
-            observation.
-        evaluation: function
-            Should return the true values as return by the model.
+    Based on the PYthon package Optimization_SCE
+    Copyright (c) 2011 Stijn Van Hoey.
+    Restructured and parallelized by Houska et al (2015):
+    Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L. (2015) 
+    SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE.
 
-    dbname: str
-        * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-
-    dbformat: str
-        * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        * csv: A csv file will be created, which you can import afterwards.        
-
-    parallel: str
-        * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
-        * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
-        * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
-
-    save_sim: boolean
-        *True:  Simulation results will be saved
-        *False: Simulationt results will not be saved
-
-    alt_objfun: str or None, default: 'rmse'
-        alternative objectivefunction to be used for algorithm
-        * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions, 
-            this objectivefunction is used, else falls back to None 
-            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
-     '''
+    """
 
     def __init__(self, *args, **kwargs):
+        """
+        Input
+        ----------
+        spot_setup: class
+            model: function
+                Should be callable with a parameter combination of the parameter-function
+                and return an list of simulation results (as long as evaluation list)
+            parameter: function
+                When called, it should return a random parameter combination. Which can
+                be e.g. uniform or Gaussian
+            objectivefunction: function
+                Should return the objectivefunction for a given list of a model simulation and
+                observation.
+            evaluation: function
+                Should return the true values as return by the model.
+
+        dbname: str
+            * Name of the database where parameter, objectivefunction value and simulation results will be saved.
+
+        dbformat: str
+            * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
+            * csv: A csv file will be created, which you can import afterwards.
+
+        parallel: str
+            * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
+            * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
+
+        save_sim: boolean
+            * True:  Simulation results will be saved
+            * False: Simulation results will not be saved
+        """
+
         if 'alt_objfun' not in kwargs:
             kwargs['alt_objfun'] = 'rmse'
         super(sceua, self).__init__(*args, **kwargs)
@@ -211,6 +206,8 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
+            print ('burn-in sampling started...')
+
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
             for rep, randompar, simulations in self.repeat(param_generator):
@@ -267,6 +264,8 @@ class sceua(_algorithm):
             print(
                 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
+        print ('burn-in sampling completed...')
+
         # Begin evolution loops:
         nloop = 0
         criter = []
@@ -277,8 +276,11 @@ class sceua(_algorithm):
         #acttime = time.time()
         self.repeat.setphase('ComplexEvo')
 
+        print ('ComplexEvo started...')
+
         while icall < repetitions and gnrng > peps and criter_change > pcento:
             nloop += 1
+            print ('ComplexEvo loop #%d in progress...' % nloop)
             # print nloop
             # print 'Start MPI'
             # Loop on complexes (sub-populations);
@@ -348,13 +350,15 @@ class sceua(_algorithm):
 
             criter = np.append(criter, bestf)
 
-            if nloop >= kstop:  # nodig zodat minimum zoveel doorlopen worden
+            if nloop >= kstop:  # necessary so that the area of high posterior density is visited as much as possible
+                print ('objective function convergence criteria is now being updated and assessed...')
                 criter_change = np.abs(
                     criter[nloop - 1] - criter[nloop - kstop]) * 100
                 criter_change = criter_change / \
                     np.mean(np.abs(criter[nloop - kstop:nloop]))
+                print ('updated convergence criteria: %f' % criter_change)
                 if criter_change < pcento:
-                    text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE THRESHOLD %f' % (
+                    text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f' % (
                         kstop, pcento)
                     print(text)
                     print(
@@ -364,7 +368,7 @@ class sceua(_algorithm):
         print(text)
         text = 'NORMALIZED GEOMETRIC RANGE = %f' % gnrng
         print(text)
-        text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f' % (
+        text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT' % (
             kstop, criter_change)
         print(text)
 

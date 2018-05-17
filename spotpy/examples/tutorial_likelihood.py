@@ -11,7 +11,7 @@ import numpy as np
 import spotpy
 
 # First we use all available likelihood functions just alone. The pydoc of every function tells, if we can add a
-# parameter `param` to the function which includes model parameter. The `param` musst be None or a tuple with values
+# parameter `param` to the function which includes model parameter. The `param` must be None or a tuple with values
 # and names. If `param` is None, the needed values are calculated by the function itself.
 
 data, comparedata = np.random.normal(1500, 2530, 20), np.random.normal(15, 25, 20)
@@ -152,7 +152,7 @@ class spot_setup_gauss(object):
         return observations
 
     def objectivefunction(self, simulation=simulation, evaluation=evaluation, params=None):
-        # Some functions do not nee a `param` attribute, you will see that in the documentation or if an error occur.
+        # Some functions do not need a `param` attribute, you will see that in the documentation or if an error occur.
         # objectivefunction = spotpy.likelihoods.LimitsOfAcceptability(evaluation, simulation,params=params)
         #objectivefunction = spotpy.likelihoods.NoisyABCGaussianLikelihood(evaluation, simulation)
         #objectivefunction = spotpy.likelihoods.LimitsOfAcceptability(evaluation, simulation)
