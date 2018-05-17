@@ -291,7 +291,7 @@ def get_sfdc(data, measurements_per_day=None):
     elif Q33 == 0 and not Q66 == 0:
         return -np.log(Q66) / (2/3 - 1/3)
     elif not Q33 == 0 and Q66 == 0:
-        return np.log(Q33)
+        return np.log(Q33) / (2/3 - 1/3)
     else:
         return (np.log(Q33) - np.log(Q66)) / (2/3 - 1/3)
 
