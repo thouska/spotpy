@@ -166,7 +166,7 @@ class sceua(_algorithm):
             analysed parameters
         kstop: int
             maximum number of evolution loops before convergency
-        pcento: int 
+        pcento: float
             the percentage change allowed in kstop loops before convergency
         peps: float
             Convergence criterium        
