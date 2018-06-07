@@ -243,7 +243,7 @@ def get_skewness(data, measurements_per_day=None):
     :limit: 0.2, 2.0
 
     """
-    return get_mean(data) / get_q50(data)
+    return get_mean(data) / get_q50(data) if get_q50(data) > 0 else 0
 
 
 def get_qcv(data, measurements_per_day=None):
@@ -284,7 +284,16 @@ def get_sfdc(data, measurements_per_day=None):
     Q33 = Quantile(33)(data)/mean
     Q66 = Quantile(66)(data)/mean
 
-    return (np.log(Q33) - np.log(Q66)) / (2/3 - 1/3)
+    # Determine if the fdc has a slope at this tage and return the 
+    # corresponding values
+    if Q33 == 0 and Q66 == 0:
+        return 0
+    elif Q33 == 0 and not Q66 == 0:
+        return -np.log(Q66) / (2/3 - 1/3)
+    elif not Q33 == 0 and Q66 == 0:
+        return np.log(Q33) / (2/3 - 1/3)
+    else:
+        return (np.log(Q33) - np.log(Q66)) / (2/3 - 1/3)
 
 
 def calc_baseflow(data, measurements_per_day=1):
@@ -324,7 +333,9 @@ def calc_baseflow(data, measurements_per_day=1):
         :return: True if Q[i] is a baseflow
         """
         if 0 < i < len(Q)-1:
-            return Q[i] * 0.9 < min(Q[i - 1], Q[i + 1])
+            # The boolean expression after the or works with the assumption
+            # that flow values of 0 can always be considered as baseflow. 
+            return (Q[i] * 0.9 < min(Q[i - 1], Q[i + 1])) or (Q[i] == 0)
         else:
             return False
 
@@ -334,7 +345,6 @@ def calc_baseflow(data, measurements_per_day=1):
               if is_baseflow(i, Q)]
 
     QB_raw = Q[QB_pos]
-
     # get interpolated values for each minflow timestep (Step 3)
     QB_int = np.interp(irange(Q), QB_pos, QB_raw)
 
@@ -484,7 +494,7 @@ def get_qlv(data, measurements_per_day=1):
     data = fill_nan(data)
     lf = np.mean(summarize(data, year, np.min))
 
-    return lf / get_q50(data)
+    return lf / get_q50(data) if get_q50(data) > 0 else 0
 
 
 def get_qhv(data, measurements_per_day=1):
@@ -508,7 +518,7 @@ def get_qhv(data, measurements_per_day=1):
     data = fill_nan(data)
     lf = np.mean(summarize(data, year, np.max))
 
-    return lf / get_q50(data)
+    return lf / get_q50(data) if get_q50(data) > 0 else 0
 
 
 def get_recession(data, measurements_per_day=None):
@@ -536,8 +546,8 @@ def get_recession(data, measurements_per_day=None):
     """
 
     q = fill_nan(data)
-    q /= np.median(q)
-
+    # Only use median of flows above 0, to avoid mathmatical errors.
+    q = q / np.median(q[q>0])
     dqdt = np.diff(q)
     # Use only recession situation (dqdt < 0)
     q = q[:-1][dqdt < 0]
