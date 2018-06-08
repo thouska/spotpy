@@ -162,14 +162,14 @@ class sceua(_algorithm):
         repetitions: int
             maximum number of function evaluations allowed during optimization
         ngs: int
-            number of complexes (sub-populations), take more then the number of
+            number of complexes (sub-populations), take more than the number of
             analysed parameters
         kstop: int
-            maximum number of evolution loops before convergency
+            the number of past evolution loops and their respective objective value to assess whether the marginal improvement at the current loop (in percentage) is less than pcento
         pcento: float
-            the percentage change allowed in kstop loops before convergency
+            the percentage change allowed in the past kstop loops below which convergence is assumed to be achieved.
         peps: float
-            Convergence criterium        
+            Value of the normalized geometric range of the parameters in the population below which convergence is deemed achieved.
         """
         print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
@@ -269,7 +269,7 @@ class sceua(_algorithm):
         # Begin evolution loops:
         nloop = 0
         criter = []
-        criter_change = 1e+5
+        criter_change_pcent = 1e+5
 
         #starttime = time.time()
         #intervaltime = starttime
@@ -278,7 +278,7 @@ class sceua(_algorithm):
 
         print ('ComplexEvo started...')
 
-        while icall < repetitions and gnrng > peps and criter_change > pcento:
+        while icall < repetitions and gnrng > peps and criter_change_pcent > pcento:
             nloop += 1
             print ('ComplexEvo loop #%d in progress...' % nloop)
             # print nloop
@@ -352,12 +352,15 @@ class sceua(_algorithm):
 
             if nloop >= kstop:  # necessary so that the area of high posterior density is visited as much as possible
                 print ('objective function convergence criteria is now being updated and assessed...')
-                criter_change = np.abs(
-                    criter[nloop - 1] - criter[nloop - kstop]) * 100
-                criter_change = criter_change / \
-                    np.mean(np.abs(criter[nloop - kstop:nloop]))
-                print ('updated convergence criteria: %f' % criter_change)
-                if criter_change < pcento:
+                absolute_change = np.abs(
+                    criter[nloop - 1] - criter[nloop - kstop])
+                denominator = np.mean(np.abs(criter[(nloop - kstop):nloop]))
+                if denominator == 0.0:
+                    criter_change_pcent = 0.0
+                else:
+                    criter_change_pcent = absolute_change / denominator * 100
+                print ('updated convergence criteria: %f' % criter_change_pcent)
+                if criter_change_pcent < pcento:
                     text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f' % (
                         kstop, pcento)
                     print(text)
@@ -369,7 +372,7 @@ class sceua(_algorithm):
         text = 'NORMALIZED GEOMETRIC RANGE = %f' % gnrng
         print(text)
         text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT' % (
-            kstop, criter_change)
+            kstop, criter_change_pcent)
         print(text)
 
         # reshape BESTX
