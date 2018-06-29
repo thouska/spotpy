@@ -258,8 +258,10 @@ class _algorithm(object):
             print('Initialize database...')
 
             self.datawriter = database.get_datawriter(self.dbformat,
-                self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim,
-                dbappend=self.dbappend, db_precision=self.db_precision, setup=self.setup)
+                self.dbname, self.parnames, like, randompar, simulations,
+                save_sim=self.save_sim, dbappend=self.dbappend,
+                dbinit=self.dbinit, db_precision=self.db_precision,
+                setup=self.setup)
 
             self.dbinit = False
 
