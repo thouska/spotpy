@@ -133,9 +133,9 @@ class _algorithm(object):
     """
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 parallel='seq', save_sim=True, alt_objfun=None, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,sim_timeout = None,
-                 random_state=None):
+                 dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
+                 breakpoint=None, backup_every_rep=100, save_threshold=-np.inf,
+                 db_precision=np.float16, sim_timeout=None, random_state=None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         self.model = self.setup.simulation
@@ -164,7 +164,11 @@ class _algorithm(object):
         self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
+        # Two parameters to control the data base handling
+        # 'dbinit' triggers the initial creation of the data base file
+        # 'dbappend' used to append to the existing data base, after restart
         self.dbinit = dbinit
+        self.dbappend = dbappend
         
         # Set the random state
         if random_state is None:
@@ -177,7 +181,7 @@ class _algorithm(object):
 
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
-            self.dbinit = False
+            self.dbappend = True
             self.breakdata = self.read_breakdata(self.dbname)
 
         # Now a repeater (ForEach-object) is loaded
@@ -255,7 +259,7 @@ class _algorithm(object):
 
             self.datawriter = database.get_datawriter(self.dbformat,
                 self.dbname, self.parnames, like, randompar, simulations, save_sim=self.save_sim,
-                dbinit=self.dbinit, db_precision=self.db_precision, setup=self.setup)
+                dbappend=self.dbappend, db_precision=self.db_precision, setup=self.setup)
 
             self.dbinit = False
 
