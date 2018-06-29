@@ -177,7 +177,7 @@ class csv(database):
         # init base class
         super(csv, self).__init__(*args, **kwargs)
         # store init item only if dbinit
-        if kwargs.get('dbinit', True):
+        if kwargs.get('dbappend', False):
             # Create a open file, which needs to be closed after the sampling
             self.db = io.open(self.dbname + '.csv', 'w')
             # write header line
