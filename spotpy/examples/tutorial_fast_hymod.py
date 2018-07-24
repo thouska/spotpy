@@ -30,6 +30,6 @@ if __name__ == "__main__":
     
     # Example plot to show the sensitivity index of each parameter
     spotpy.analyser.plot_fast_sensitivity(results, number_of_sensitiv_pars=3)
-
-     # Example to get the sensitivity index of each parameter
-     SI = spotpy.analyser.get_sensitivity_of_fast(results)  
+    
+    # Example to get the sensitivity index of each parameter    
+    SI = spotpy.analyser.get_sensitivity_of_fast(results)
