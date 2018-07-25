@@ -16,7 +16,7 @@ class TestFast(unittest.TestCase):
     def setUp(self):
 
         self.spot_setup = spot_setup()
-        self.rep = 800 # REP must be a multiply of amount of parameters which are in 7 if using hymod
+        self.rep = 200 # REP must be a multiply of amount of parameters which are in 7 if using hymod
         self.timeout = 10  # Given in Seconds
 
 
@@ -28,7 +28,7 @@ class TestFast(unittest.TestCase):
 
         sampler.sample(self.rep)
         results = sampler.getdata()
-        self.assertEqual(800,len(results))
+        self.assertEqual(200,len(results))
 
 
 
