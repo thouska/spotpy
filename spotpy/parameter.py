@@ -187,8 +187,8 @@ class Base(object):
             sample = self(size=1000)
             self.step = param_args.get('step') or (np.percentile(sample, 50) - np.percentile(sample, 40))
             self.optguess = param_args.get('optguess') or np.median(sample)
-            self.minbound = param_args.get('minbound', _round_sig(np.min(sample)))
-            self.maxbound = param_args.get('maxbound', _round_sig(np.max(sample)))
+            self.minbound = param_args.get('minbound' or _round_sig(np.min(sample)))
+            self.maxbound = param_args.get('maxbound' or _round_sig(np.max(sample)))
 
         else:
 
