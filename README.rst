@@ -1,16 +1,6 @@
-.. image:: https://img.shields.io/pypi/v/spotpy.png
-  :target: https://pypi.python.org/pypi/spotpy
-.. image:: https://img.shields.io/travis/thouska/spotpy/master.png
-  :target: https://travis-ci.org/thouska/spotpy
-.. image:: https://img.shields.io/badge/license-MIT-blue.png
-  :target: http://opensource.org/licenses/MIT
-.. image:: https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master
-  :target: https://coveralls.io/github/thouska/spotpy?branch=master
-
-
-
-Purpose
--------
+SPOTPY
+========
+**A Statistical Parameter Optimization Tool for Python**
 
 SPOTPY is a Python tool that enables the use of Computational optimization techniques for calibration, uncertainty 
 and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One
@@ -151,8 +141,9 @@ Or, after downloading the source code and making sure python is in your path:
 
 	python setup.py install
 
+	
 Papers citing SPOTPY
--------
+--------------------
 See `Google Scholar <https://scholar.google.de/scholar?cites=17155001516727704728&as_sdt=2005&sciodt=0,5&hl=de>`__ for a continuously updated list.
 
 
