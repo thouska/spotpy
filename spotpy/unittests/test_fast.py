@@ -1,9 +1,9 @@
 import unittest
+import sys
 
 try:
     import spotpy
 except ImportError:
-    import sys
     sys.path.append(".")
     import spotpy
 
@@ -30,8 +30,6 @@ if sys.version_info >= (3, 5):
             sampler.sample(self.rep)
             results = sampler.getdata()
             self.assertEqual(203,len(results))
-
-
 
 
 if __name__ == '__main__':
