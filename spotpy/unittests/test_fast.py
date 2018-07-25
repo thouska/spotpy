@@ -28,7 +28,7 @@ class TestFast(unittest.TestCase):
 
         sampler.sample(self.rep)
         results = sampler.getdata()
-        self.assertEqual(805,len(results))
+        self.assertEqual(800,len(results))
 
 
 
