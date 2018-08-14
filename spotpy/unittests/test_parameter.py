@@ -86,6 +86,7 @@ class TestUniformParameterDistribution(unittest.TestCase):
 
     def test_uniform_has_correct_bounds(self):
         unif = parameter.Uniform("test", low=0, high=1)
+        print(unif.minbound)
         self.assertGreaterEqual(unif.minbound, 0)
         self.assertLessEqual(unif.maxbound, 1)
 

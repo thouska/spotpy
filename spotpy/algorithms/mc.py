@@ -66,7 +66,7 @@ class mc(_algorithm):
         self.set_repetiton(repetitions)
         # A generator that produces parametersets if called
         param_generator = ((rep, self.parameter()['random'])
-                           for rep in range(int(repetitions) - 1))
+                           for rep in range(int(repetitions)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database 
             self.postprocessing(rep, randompar, simulations)

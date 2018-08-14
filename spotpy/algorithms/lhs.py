@@ -83,7 +83,7 @@ class lhs(_algorithm):
 
         # A generator that produces the parameters
         param_generator = ((rep, matrix[rep])
-                           for rep in range(int(repetitions) - 1))
+                           for rep in range(int(repetitions)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database 
             self.postprocessing(rep, randompar, simulations)

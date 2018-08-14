@@ -177,12 +177,14 @@ class csv(database):
         # init base class
         super(csv, self).__init__(*args, **kwargs)
         # store init item only if dbinit
-        if kwargs.get('dbinit', True):
+        if kwargs.get('dbappend', False) is False:
+            print("* Database file '{}.csv' created.".format(self.dbname))
             # Create a open file, which needs to be closed after the sampling
             self.db = io.open(self.dbname + '.csv', 'w')
             # write header line
             self.db.write(unicode(','.join(self.header) + '\n'))
         else:
+            print("* Appending to database file '{}.csv'.".format(self.dbname))
             # Continues writing file
             self.db = io.open(self.dbname + '.csv', 'a')
 

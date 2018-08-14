@@ -415,18 +415,15 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
                   (parnames[i], Si['S1'][i], Si['ST'][i]))
     return Si
 
-def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sensitiv_pars=10):
+def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10):
     """
     Example, how to plot the sensitivity for every parameter of your result array, created with the FAST algorithm
 
-    :results: Expects an numpy array which should have as first axis an index "like" or "like1".
+    :results: Expects an numpy array which should have an header defined with the keyword like.
     :type: array
 
-    :likes: Optional, header of your objectivefunction
+    :like: Default 'like1', Collum of which the sensitivity indices will be estimated on
     :type: list
-
-    :like_indices: Optional, index of objectivefunction to base the sensitivity on, default=None first objectivefunction is taken
-    :type: int
 
     :number_of_sensitiv_pars: Optional, this number of most sensitive parameters will be shown in the legend
     :type: int
@@ -449,7 +446,11 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
     no_values = []
     index=[]
     no_index=[]
-    threshold = 0.2
+    
+    try:
+        threshold = np.sort(list(Si.values())[1])[-number_of_sensitiv_pars]    
+    except IndexError:
+        threshold = 0
     
     first_sens_call=True
     first_insens_call=True
@@ -459,7 +460,7 @@ def plot_fast_sensitivity(results,likes=['mean'],like_indices=None,number_of_sen
         exit("Our SI is wrong: " +str(Si))
 
     for j in range(len(list(Si.values())[1])):
-        if list(Si.values())[1][j]>threshold:
+        if list(Si.values())[1][j]>=threshold:
             names.append(parnames[j])
             values.append(list(Si.values())[1][j])
             index.append(j)
