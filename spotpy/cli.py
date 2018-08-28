@@ -1,13 +1,10 @@
 from __future__ import division, print_function, unicode_literals
 
-import click
-import inspect
 from . import algorithms, database, describe
 import click
 import inspect
 import io
 import os
-
 
 def get_config_from_file():
     """
@@ -47,7 +44,6 @@ def make_type_from_module(module, *exclude):
     return click.Choice([n for n, m in members if not n.startswith('_')])
 
 
-
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
 def cli():
     pass
@@ -63,15 +59,20 @@ def cli():
 @click.option('--parallel', '-p', type=click.Choice(['seq', 'mpc', 'mpi']), default='seq',
               help='Parallelization: seq = no parallelization, mpi = MPI (for clusters), mpc = multiprocessing')
 @click.option('--runs', '-n', type=click.INT, default=1, help='Number of runs')
+@click.option('--config', '-c', is_flag=True,
+              help='Print only the configuration, can be used to create a config file with your_model.py > spotpy.conf')
 def run(ctx, **kwargs):
     """
     Runs a sampler for automatic calibration
     """
     setup = ctx.obj
-    sampler_class = get_sampler_from_string(kwargs.pop('sampler'))
-    runs = kwargs.pop('runs')
-    sampler = sampler_class(setup, **kwargs)
-    sampler.sample(runs)
+    if kwargs.pop('config', None):
+        click.echo('\n'.join('{} = {}'.format(k, v) for k, v in kwargs.items()))
+    else:
+        sampler_class = get_sampler_from_string(kwargs.pop('sampler'))
+        runs = kwargs.pop('runs')
+        sampler = sampler_class(setup, **kwargs)
+        sampler.sample(runs)
 
 
 @cli.command()
