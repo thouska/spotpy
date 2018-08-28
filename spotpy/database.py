@@ -352,3 +352,45 @@ def get_datawriter(dbformat, *args, **kwargs):
     """
     datawriter = globals()[dbformat](*args, **kwargs)
     return datawriter
+
+
+class hdf5(database):
+    """
+    A database class to store the result in hdf5 tables.
+
+    This is only available if PyTables is installed
+    """
+
+    def __init__(self, *args, **kwargs):
+        try:
+            import tables
+        except ImportError:
+            raise ImportError('PyTables package missing: hdf5 database is only available if PyTables is installed')
+        # init base class
+        super(hdf5, self).__init__(*args, **kwargs)
+        # store init item only if dbinit
+        if kwargs.get('dbappend', False) is False:
+            print("* Database file '{}.h5' created.".format(self.dbname))
+            # Create a open file, which needs to be closed after the sampling
+            self.db = tables.open_file(self.dbname + '.h5', 'w', self.dbname)
+            header_struct = {key: tables.FloatCol(pos=pos) for pos, key in enumerate(self.header)}
+            self.table = self.db.create_array('/', 'simulation', names=self.header)
+        else:
+            print("* Appending to database file '{}.h5'.".format(self.dbname))
+            # Continues writing file
+            self.db = tables.open_file(self.dbname + '.h5', 'a')
+            self.table = self.db.root.simulation
+
+    def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
+        coll = (self.dim_dict['like'](objectivefunction) +
+                self.dim_dict['par'](parameterlist) +
+                self.dim_dict['simulation'](simulations) +
+                [chains])
+        self.table.append(coll)
+
+    def finalize(self):
+        self.db.close()
+
+    def getdata(self):
+        data = np.array(self.table[:])
+        return data

@@ -146,7 +146,7 @@ class SingleStorage(object):
         """
         Sets the parameters of the model by creating the connections
         """
-        par = par or spotpy.parameter.create_set(self, random=False)
+        par = par or spotpy.parameter.create_set(self, valuetype='optguess')
 
         # Some shortcuts to gain visibility
         c = self.project[0]
