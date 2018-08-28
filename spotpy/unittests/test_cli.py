@@ -13,7 +13,6 @@ class TestCLI(unittest.TestCase):
         runner = CliRunner()
         result = runner.invoke(cli, ['run', '--config'])
         self.assertEqual(result.exit_code, 0)
-        cli.
 
 
 if __name__ == '__main__':
