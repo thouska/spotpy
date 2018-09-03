@@ -112,8 +112,23 @@ class TestConstantParameterDistribution(unittest.TestCase):
 
     def test_constant_gives_only_constants(self):
         nums = set([self.const() for _ in range(1000)])
-        self.assertEqual(len(nums), 1)
-        self.assertEqual(nums.pop(), 10)
+        self.assertEqual(len(nums), 1, 'All results must be the same')
+        self.assertEqual(nums.pop(), 10, 'All results must be 10')
+
+    def test_parameter_settings(self):
+        p = parameter.generate([self.const])[0]
+        self.assertEqual(p['random'], 10, 'Random value must always be 10')
+        self.assertEqual(p['optguess'], 10, 'Optguess value must always be 10')
+        self.assertEqual(p['maxbound'], 10, 'maxbound value must always be 10')
+        self.assertEqual(p['minbound'], 10, 'minbound value must always be 10')
+        self.assertEqual(p['step'], 0, 'step value must always be 0')
+
+    def test_find_constant_parameters(self):
+        flex = parameter.Uniform('flexible', 0, 1)
+        p = parameter.generate([flex, self.const])
+        constant_parameters = parameter.find_constant_parameters(p)
+        self.assertFalse(constant_parameters[0], 'Flexible parameter detected as constant')
+        self.assertTrue(constant_parameters[1], 'Constant parameter not detected')
 
 
 class TestNormalParameterDistribution(unittest.TestCase):
@@ -439,6 +454,25 @@ class TestParameterClasses(unittest.TestCase):
                 _ = cls(*args[:-1], step=1)
             with self.assertRaises(TypeError):
                 _ = cls(cls.__name__, *args[:-1], step=1)
+
+
+class TestConstantParameter(unittest.TestCase):
+    """
+    Issues #166 and #175 result from the fact that Constant parameters
+    are not "real" parameters. Algorithms like SCEUA and DREAM need to
+    be aware which parameters are "real" and which are constant or from a
+    list. This test will check the behaviour of constant parameters
+    """
+
+    def setUp(self):
+        self.parameters = [parameter.Uniform('flexible', 0, 1),
+                           parameter.Constant('constant', 1)]
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
