@@ -337,6 +337,17 @@ class TestParameterArguments(unittest.TestCase):
             self.assertTrue(p_with_name.step == 1,
                             'Step overridden by class (name={})'.format(repr(p_with_name.name)))
 
+    def test_minbound_zero(self):
+        param = spotpy.parameter.Normal(name="parname", mean=0.6, stddev=0.2, optguess=0.6, minbound=0, maxbound=1)
+        self.assertEqual(param.minbound, 0)
+
+    def test_maxbound_zero(self):
+        param = spotpy.parameter.Normal(name="parname", mean=-0.6, stddev=0.2, optguess=-0.6, minbound=-1, maxbound=0)
+        self.assertEqual(param.maxbound, 0)
+
+    def test_optguess_zero(self):
+        param = spotpy.parameter.Normal(name="parname", mean=0.1, stddev=0.2, optguess=0.0, minbound=-1, maxbound=1)
+        self.assertEqual(param.optguess, 0)
 
 def make_args(pcls):
     """
