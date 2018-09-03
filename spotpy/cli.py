@@ -6,6 +6,7 @@ import inspect
 import io
 import os
 
+
 def get_config_from_file():
     """
     Gets the spotpy configuration from a config file 'spotpy.conf'.
@@ -69,7 +70,8 @@ def run(ctx, **kwargs):
     if kwargs.pop('config', None):
         click.echo('\n'.join('{} = {}'.format(k, v) for k, v in kwargs.items()))
     else:
-        sampler_class = get_sampler_from_string(kwargs.pop('sampler'))
+        sampler_name = kwargs.pop('sampler')
+        sampler_class = get_sampler_from_string(sampler_name)
         runs = kwargs.pop('runs')
         sampler = sampler_class(setup, **kwargs)
         sampler.sample(runs)
