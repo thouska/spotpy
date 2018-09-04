@@ -324,6 +324,8 @@ class Constant(Base):
     def __init__(self, *args, **kwargs):
         super(Constant, self).__init__(self, *args, **kwargs)
 
+    value = property(lambda self: self.rndargs[0])
+
     def __call__(self, size=None):
         """
         Returns the next value from the data list
@@ -331,12 +333,12 @@ class Constant(Base):
         :return:
         """
         if size:
-            return np.ones(size, dtype=float) * self.rndargs[0]
+            return np.ones(size, dtype=float) * self.value
         else:
-            return self.rndargs[0]
+            return self.value
 
     def astuple(self):
-        return self(), self.name, self.rndargs[0], self.rndargs[0], 0, 0
+        return self(), self.name, 0, self.value, self.value, self.value
 
 
 class Normal(Base):
@@ -534,6 +536,16 @@ def get_parameters_array(setup):
     # Return the class and the object parameters together
     res = np.concatenate(param_arrays)
     return res
+
+
+def find_constant_parameters(parameter_array):
+    """
+    Checks which parameters are constant
+    :param parameter_array: Return array from parameter.get_parameter_array(setup)
+    :return: A True / False array with the len(result) == len(parameter_array)
+    """
+    return (parameter_array['maxbound'] - parameter_array['minbound'] == 0.0)
+
 
 
 def create_set(setup, valuetype='optguess', **kwargs):

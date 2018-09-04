@@ -214,11 +214,6 @@ class _algorithm(object):
         # the normal work on the chains
         self.repeat = ForEach(self.simulate)
 
-        # In MPI, this command will do nothing on the master process
-        # but the worker processes are going to wait for jobs.
-        # Hence the workers will only receive parameters for the
-        # simulate function, new calculation phases and the termination
-        self.repeat.start()
         self.status = _RunStatistic()
 
     def __str__(self):
@@ -237,8 +232,15 @@ class _algorithm(object):
         return parameter.get_parameters_array(self.setup)
 
     def set_repetiton(self, repetitions):
+
         self.status.repetitions = repetitions
-        
+
+        # In MPI, this command will do nothing on the master process
+        # but the worker processes are going to wait for jobs.
+        # Hence the workers will only receive parameters for the
+        # simulate function, new calculation phases and the termination
+        self.repeat.start()
+
     def final_call(self):
         self.repeat.terminate()
         try:
