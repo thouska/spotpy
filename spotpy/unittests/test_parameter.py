@@ -456,24 +456,5 @@ class TestParameterClasses(unittest.TestCase):
                 _ = cls(cls.__name__, *args[:-1], step=1)
 
 
-class TestConstantParameter(unittest.TestCase):
-    """
-    Issues #166 and #175 result from the fact that Constant parameters
-    are not "real" parameters. Algorithms like SCEUA and DREAM need to
-    be aware which parameters are "real" and which are constant or from a
-    list. This test will check the behaviour of constant parameters
-    """
-
-    def setUp(self):
-        self.parameters = [parameter.Uniform('flexible', 0, 1),
-                           parameter.Constant('constant', 1)]
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     unittest.main()
