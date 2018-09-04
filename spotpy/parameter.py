@@ -111,20 +111,21 @@ class _ArgumentHelper(object):
             )
         # Return the name, the distribution parameter values, and a tuple of unprocessed args and kwargs
         if as_dict:
-            return dict((n, a) for n, a in zip(names, attributes))
+            # Creates the name / value dict with entries where the value is not None
+            return dict((n, a) for n, a in zip(names, attributes) if a is not None)
         else:
             return attributes
 
     def __len__(self):
         return len(self.args) + len(self.kwargs)
 
-    def get(self, argname):
+    def get(self, argname, default=None):
         """
         Checks if argname is in kwargs, if present it is returned and removed else none.
         :param argname:
         :return:
         """
-        return self.kwargs.pop(argname, None)
+        return self.kwargs.pop(argname, default)
 
     def check_complete(self):
         """
@@ -136,9 +137,21 @@ class _ArgumentHelper(object):
             error = '{}: {} arguments where given but only {} could be used'.format(self.classname, total_args, self.processed_args)
             raise TypeError(error)
 
+
 def _round_sig(x, sig=3):
+    """
+    Rounds x to sig significant digits
+    :param x: The value to round
+    :param sig: Number of significant digits
+    :return: rounded value
+    """
     from math import floor, log10
-    return round(x, sig-int(floor(log10(abs(x))))-1)
+    # Check for zero to avoid math value error with log10(0.0)
+    if abs(x) < 1e-12:
+        return 0
+    else:
+        return round(x, sig-int(floor(log10(abs(x))))-1)
+
 
 class Base(object):
     """
@@ -185,10 +198,10 @@ class Base(object):
             param_args = arghelper.attributes(['step', 'optguess', 'minbound', 'maxbound'], as_dict=True)
             # Draw one sample of size 1000
             sample = self(size=1000)
-            self.step = param_args.get('step') or (np.percentile(sample, 50) - np.percentile(sample, 40))
-            self.optguess = param_args.get('optguess') or np.median(sample)
-            self.minbound = param_args.get('minbound') or _round_sig(np.min(sample))
-            self.maxbound = param_args.get('maxbound') or _round_sig(np.max(sample))
+            self.step = param_args.get('step', _round_sig(np.percentile(sample, 50) - np.percentile(sample, 40)))
+            self.optguess = param_args.get('optguess', _round_sig(np.median(sample)))
+            self.minbound = param_args.get('minbound', _round_sig(np.min(sample)))
+            self.maxbound = param_args.get('maxbound', _round_sig(np.max(sample)))
 
         else:
 
@@ -482,6 +495,7 @@ class Weibull(Base):
         """
         super(Weibull, self).__init__(rnd.weibull, *args, **kwargs)
 
+
 class Triangular(Base):
     """
     A parameter sampling from a triangular distribution
@@ -614,7 +628,7 @@ def get_parameters_from_setup(setup):
     >>>     p2 = parameter.Gamma(2.3)
     >>>
     >>> setup = SpotpySetup()
-    >>> parameters = spotpy.parameter.get_parameters_from_setup(setup)
+    >>> parameters = parameter.get_parameters_from_setup(setup)
     """
 
     # Get all class variables
