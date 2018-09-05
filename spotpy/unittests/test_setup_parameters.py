@@ -115,8 +115,8 @@ class TestSetupVariants(unittest.TestCase):
         self.assertEqual(param_names, 'a,b,c,d', '{} Parameter names should be "a,b,c,d" but got "{}"'
                          .format(o, param_names))
 
-    def make_sampler(self, o):
-        sampler = spotpy.algorithms.mc(spot_setup=o, dbformat='ram')
+    def make_sampler(self, o, algo=spotpy.algorithms.mc):
+        sampler = algo(spot_setup=o, dbformat='ram')
         sampler.sample(10)
 
     def test_parameter_class(self):
@@ -138,7 +138,49 @@ class TestSetupVariants(unittest.TestCase):
         for o in self.objects:
             self.make_sampler(o)
 
+    def test_abc_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.abc)
 
-if __name__ == '__main__':
+    def test_demcz_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.demcz)
+
+    def test_dream_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.dream)
+
+    def test_fscabc_sampler(self):
+        for o in self.objects: self.make_sampler(o, spotpy.algorithms.fscabc)
+
+    def test_lhs_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.lhs)
+
+    def test_mc_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.mc)
+
+    def test_mcmc_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.mcmc)
+
+    def test_mle_sampler(self):
+        for o in self.objects: self.make_sampler(o, spotpy.algorithms.mle)
+
+    def test_rope_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.rope)
+
+    def test_sa_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.sa)
+
+    def test_sceua_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.sceua)
+
+
+if __name__ == '_main__':
     unittest.main(verbosity=3)
 
