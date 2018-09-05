@@ -132,6 +132,8 @@ class _algorithm(object):
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
+    _excluded_parameter_classes = (parameter.List,)
+
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
                  breakpoint=None, backup_every_rep=100, save_threshold=-np.inf,
@@ -229,7 +231,7 @@ class _algorithm(object):
         """
         Returns the parameter array from the setup
         """
-        return parameter.get_parameters_array(self.setup)
+        return parameter.get_parameters_array(self.setup, self._excluded_parameter_classes)
 
     def set_repetiton(self, repetitions):
 

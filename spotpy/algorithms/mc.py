@@ -17,7 +17,7 @@ class mc(_algorithm):
     The Monte Carlo algorithm generates random parameters from their respective
     distribution functions.
     """
-
+    _excluded_parameter_classes = ()
     def __init__(self, *args, **kwargs):
         """
         Input

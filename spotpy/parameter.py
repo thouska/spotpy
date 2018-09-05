@@ -530,7 +530,26 @@ def generate(parameters):
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
 
-def get_parameters_array(setup):
+def checked_parameter_types(parameters, excluded_parameter_types=()):
+
+    if not excluded_parameter_types:
+        return parameters
+
+    problems = []
+    for param in parameters:
+        for param_type in excluded_parameter_types:
+            if isinstance(param, param_type):
+                problems.append(param, param_type)
+
+    if problems:
+        problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
+        raise TypeError('Selected algorithm does not accept the following parameters: ' + problem_string)
+
+
+
+
+
+def get_parameters_array(setup, excluded_parameter_types=()):
     """
     Returns the parameter array from the setup
     """
@@ -538,9 +557,12 @@ def get_parameters_array(setup):
     # function
     param_arrays = []
     # Get parameters defined with the setup class
+    setup_parameters = checked_parameter_types(get_parameters_from_setup(setup), excluded_parameter_types)
+
     param_arrays.append(
         # generate creates the array as defined in the setup API
-        generate(get_parameters_from_setup(setup))
+
+        generate(setup_parameters)
     )
 
     if hasattr(setup, 'parameters') and callable(setup.parameters):
