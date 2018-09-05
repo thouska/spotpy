@@ -160,7 +160,7 @@ class _algorithm(object):
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
         self.dbname = dbname or 'customDb'
-        self.dbformat = dbformat or 'custom'
+        self.dbformat = dbformat or 'ram'
         self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
