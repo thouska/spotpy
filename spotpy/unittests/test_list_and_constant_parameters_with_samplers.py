@@ -59,7 +59,7 @@ class RosenbrockWithList(Rosenbrock):
     x = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
     y = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
     z = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
-    l = parameter.List(range(10), repeat=True)
+    l = parameter.List(np.arange(0, 10), repeat=True, doc='list parameter for testing')
 
 
 def get_all_samplers():
@@ -80,8 +80,7 @@ class TestConstantSetups(unittest.TestCase):
         sampler_name = sampler_class.__name__
         print(sampler_name)
         sampler = sampler_class(self.setup, dbformat='ram', save_sim=False)
-        sampler.sample(100)
-        print(sampler.datawriter.ram[-1])
+        sampler.sample(1000)
         print('-' * 50)
         self.assertTrue(all(line[-2] == 0 for line in sampler.datawriter.ram),
                         msg='Parameter c == 0 not true in all lines')
@@ -125,7 +124,6 @@ class TestListSetups(unittest.TestCase):
     def setUp(self):
         self.setup = RosenbrockWithList()
         print(spotpy.describe.setup(self.setup))
-
 
     def test_list_parameter(self):
 
