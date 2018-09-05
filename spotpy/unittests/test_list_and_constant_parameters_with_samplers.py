@@ -39,10 +39,10 @@ class RosenbrockWithConstant(Rosenbrock):
 
     Result at (1,1,1) is 0.
     """
+    c = parameter.Constant(0, doc='Constant offset, should stay 0')
     x = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
     y = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
     z = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
-    c = parameter.Constant(0, doc='Constant offset, should stay 0')
 
     def simulation(self, vector):
 
@@ -56,10 +56,10 @@ class RosenbrockWithList(Rosenbrock):
 
     Result at (1,1,1) is 0.
     """
+    l = parameter.List(np.arange(0, 10), repeat=True, doc='list parameter for testing')
     x = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
     y = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
     z = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
-    l = parameter.List(np.arange(0, 10), repeat=True, doc='list parameter for testing')
 
 
 def get_all_samplers():
@@ -80,7 +80,7 @@ class TestConstantSetups(unittest.TestCase):
         sampler = sampler_class(self.setup, dbformat='ram', save_sim=False)
         sampler.sample(1000)
 
-        self.assertTrue(all(line[-2] == 0 for line in sampler.datawriter.ram),
+        self.assertTrue(all(line[1] == 0 for line in sampler.datawriter.ram),
                         msg='Parameter c == 0 not true in all lines with sampler {}'.format(sampler))
 
     def test_abc_sampler_with_constant(self):
