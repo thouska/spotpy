@@ -46,7 +46,7 @@ class RosenbrockWithConstant(Rosenbrock):
 
     def simulation(self, vector):
 
-        simulations = np.array(super().simulation([vector.x, vector.y, vector.z])) + vector.c
+        simulations = [v + vector[-1] for v in super().simulation(vector[:-1])]
         return simulations
 
 
@@ -75,10 +75,49 @@ class TestConstantSetups(unittest.TestCase):
     def setUp(self):
         self.setup = RosenbrockWithConstant()
 
+    def sampler_with_constant(self, sampler_class):
 
-    def test_samplers_with_constant(self):
-        print(spotpy.describe.setup(self.setup))
+        sampler_name = sampler_class.__name__
+        print(sampler_name)
+        sampler = sampler_class(self.setup, dbformat='ram', save_sim=False)
+        sampler.sample(100)
+        print(sampler.datawriter.ram[-1])
+        print('-' * 50)
+        self.assertTrue(all(line[-2] == 0 for line in sampler.datawriter.ram),
+                        msg='Parameter c == 0 not true in all lines')
 
+    def test_abc_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.abc)
+
+    def test_demcz_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.demcz)
+
+    def test_dream_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.dream)
+
+    def test_fscabc_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.fscabc)
+
+    def test_lhs_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.lhs)
+
+    def test_mc_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.mc)
+
+    def test_mcmc_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.mcmc)
+
+    def test_mle_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.mle)
+
+    def test_rope_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.rope)
+
+    def test_sa_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.sa)
+
+    def test_sceua_sampler_with_constant(self):
+        self.sampler_with_constant(spotpy.algorithms.sceua)
 
 
 class TestListSetups(unittest.TestCase):

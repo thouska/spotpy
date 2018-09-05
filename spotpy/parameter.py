@@ -532,18 +532,18 @@ def generate(parameters):
 
 def checked_parameter_types(parameters, excluded_parameter_types=()):
 
-    if not excluded_parameter_types:
-        return parameters
+    if excluded_parameter_types:
+        problems = []
+        for param in parameters:
+            for param_type in excluded_parameter_types:
+                if isinstance(param, param_type):
+                    problems.append(param, param_type)
 
-    problems = []
-    for param in parameters:
-        for param_type in excluded_parameter_types:
-            if isinstance(param, param_type):
-                problems.append(param, param_type)
+        if problems:
+            problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
+            raise TypeError('Selected algorithm does not accept the following parameters: ' + problem_string)
 
-    if problems:
-        problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
-        raise TypeError('Selected algorithm does not accept the following parameters: ' + problem_string)
+    return parameters
 
 
 

@@ -188,6 +188,7 @@ class sceua(_algorithm):
         self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
             'maxbound']
         bound = self.bu - self.bl  # np.array
+        stochastic_parameters = bound != 0
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -293,7 +294,7 @@ class sceua(_algorithm):
                                for rep in range(int(self.ngs)))
             for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
                 icall += len(likes)
-                x[k2, :] = cx[k1, :]
+                x[k2, stochastic_parameters] = cx[k1, stochastic_parameters]
                 xf[k2] = cf[k1]
                 #print(len(likes))
                 for i in range(len(likes)):
