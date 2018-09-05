@@ -125,7 +125,7 @@ class sceua(_algorithm):
                 lcs.sort()
 
                 # Construct the simplex:
-                s = np.zeros((self.nps, self.nopt))
+
                 s = cx[lcs, :]
                 sf = cf[lcs]
 
@@ -188,7 +188,7 @@ class sceua(_algorithm):
         self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
             'maxbound']
         bound = self.bu - self.bl  # np.array
-        stochastic_parameters = bound != 0
+        self.stochastic_parameters = bound != 0
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -250,7 +250,7 @@ class sceua(_algorithm):
 
         # Computes the normalized geometric range of the parameters
         gnrng = np.exp(
-            np.mean(np.log((np.max(x, axis=0) - np.min(x, axis=0)) / bound)))
+            np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
         # Check for convergency;
         if icall >= repetitions:
@@ -294,7 +294,7 @@ class sceua(_algorithm):
                                for rep in range(int(self.ngs)))
             for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
                 icall += len(likes)
-                x[k2, stochastic_parameters] = cx[k1, stochastic_parameters]
+                x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
                 #print(len(likes))
                 for i in range(len(likes)):
@@ -336,7 +336,7 @@ class sceua(_algorithm):
 
             # Computes the normalized geometric range of the parameters
             gnrng = np.exp(
-                np.mean(np.log((np.max(x, axis=0) - np.min(x, axis=0)) / bound)))
+                np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
             # Check for convergency;
             if icall >= repetitions:
@@ -397,7 +397,7 @@ class sceua(_algorithm):
             #   iviol = flag indicating if constraints are violated
             #         = 1 , yes
             #         = 0 , no
-
+        constant_parameters = np.invert(self.stochastic_parameters)
         self.nps, self.nopt = s.shape
         alpha = 1.0
         beta = 0.5
@@ -411,7 +411,7 @@ class sceua(_algorithm):
 
         # Attempt a reflection point
         snew = ce + alpha * (ce - sw)
-
+        snew[constant_parameters] = sw[constant_parameters]
         # Check if is outside the bounds:
         ibound = 0
         s1 = snew - self.bl
@@ -440,6 +440,8 @@ class sceua(_algorithm):
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
             snew = sw + beta * (ce - sw)
+            snew[constant_parameters] = sw[constant_parameters]
+
             simulations = self.model(snew)
             like = self.postprocessing(icall, snew, simulations, save=False)
 #            like = self.objectivefunction(
