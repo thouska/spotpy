@@ -33,33 +33,23 @@ class Rosenbrock(object):
         return objectivefunction
 
 
-class RosenbrockWithConstant(Rosenbrock):
+class RosenbrockWithConstantAndList(Rosenbrock):
     """
     A 3 dimensional implementation of the Rosenbrock function
 
     Result at (1,1,1) is 0.
     """
     c = parameter.Constant(0, doc='Constant offset, should stay 0')
+    l = parameter.List(np.arange(0, 10), repeat=True, doc='list parameter for testing')
     x = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
     y = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
     z = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
 
     def simulation(self, vector):
-
-        simulations = [v + vector[-1] for v in super().simulation(vector[:-1])]
+        x = np.array(vector)
+        simulations = [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
         return simulations
 
-
-class RosenbrockWithList(Rosenbrock):
-    """
-    A 3 dimensional implementation of the Rosenbrock function
-
-    Result at (1,1,1) is 0.
-    """
-    l = parameter.List(np.arange(0, 10), repeat=True, doc='list parameter for testing')
-    x = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
-    y = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
-    z = parameter.Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
 
 
 def get_all_samplers():
@@ -116,18 +106,3 @@ class TestConstantSetups(unittest.TestCase):
     def test_sceua_sampler_with_constant(self):
         self.sampler_with_constant(spotpy.algorithms.sceua)
 
-
-class TestListSetups(unittest.TestCase):
-
-    def setUp(self):
-        self.setup = RosenbrockWithList()
-
-    def test_list_parameter(self):
-
-        for sampler_name, sampler_class in get_all_samplers():
-            if parameter.List in sampler_class._excluded_parameter_classes:
-                with self.assertRaises(TypeError, msg="Sampler {} did not raise TypeError for List parameter"):
-                    _ = sampler_class(self.setup, dbformat='ram')
-            else:
-                sampler = sampler_class(self.setup, dbformat='ram')
-                sampler.sample(10)

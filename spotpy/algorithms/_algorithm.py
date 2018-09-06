@@ -132,7 +132,7 @@ class _algorithm(object):
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
-    _excluded_parameter_classes = (parameter.List,)
+    _excluded_parameter_classes = (parameter.List, parameter.Constant)
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
@@ -148,8 +148,11 @@ class _algorithm(object):
         # For me (Philipp) it is totally unclear why all the samplers should call this function
         # again and again instead of
         # TODO: just storing a definite list of parameter objects here
+        param_info = parameter.get_parameters_array(self.setup)
+        self.all_params = param_info['random']
+        self.par_positions = parameter.get_non_constant_indices(spot_setup)
         self.parameter = self.get_parameters
-        self.parnames = self.parameter()['name']
+        self.parnames = param_info['name']
 
         # Create a type to hold the parameter values using a namedtuple
         self.partype = parameter.get_namedtuple_from_paramnames(
@@ -302,18 +305,20 @@ class _algorithm(object):
     def getdata(self):
         return self.datawriter.getdata()
 
-    def postprocessing(self, rep, randompar, simulation, chains=1, save=True, negativlike=False):
-        like = self.getfitness(simulation=simulation, params=randompar)
+    def postprocessing(self, rep, params, simulation, chains=1, save=True, negativlike=False):
+        self.all_params[self.par_positions] = params
+        params = self.all_params
+        like = self.getfitness(simulation=simulation, params=params)
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
         if save is True:
             if negativlike is True:
-                self.save(-like, randompar, simulations=simulation, chains=chains)              
-                self.status(rep, -like, randompar)
+                self.save(-like, params, simulations=simulation, chains=chains)              
+                self.status(rep, -like, params)
             else:
-                self.save(like, randompar, simulations=simulation, chains=chains)
-                self.status(rep, like, randompar)
+                self.save(like, params, simulations=simulation, chains=chains)
+                self.status(rep, like, params)
         if type(like)==type([]):
             return like[0]
         else:        
@@ -338,6 +343,8 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
+        self.all_params[self.par_positions] = params
+        params = self.all_params
 
         # we need a layer to fetch returned data from a threaded process into a queue.
         def model_layer(q,params):
