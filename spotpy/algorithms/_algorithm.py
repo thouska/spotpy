@@ -132,7 +132,7 @@ class _algorithm(object):
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
-    _excluded_parameter_classes = (parameter.List, parameter.Constant)
+    _unaccepted_parameter_types = (parameter.List, parameter.Constant,)
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
@@ -234,7 +234,8 @@ class _algorithm(object):
         """
         Returns the parameter array from the setup
         """
-        return parameter.get_parameters_array(self.setup, self._excluded_parameter_classes)
+        par = parameter.get_parameters_array(self.setup, self._unaccepted_parameter_types)
+        return par
 
     def set_repetiton(self, repetitions):
 
@@ -306,6 +307,7 @@ class _algorithm(object):
         return self.datawriter.getdata()
 
     def postprocessing(self, rep, params, simulation, chains=1, save=True, negativlike=False):
+        #Add potential Constant parameters 
         self.all_params[self.par_positions] = params
         params = self.all_params
         like = self.getfitness(simulation=simulation, params=params)
@@ -344,17 +346,17 @@ class _algorithm(object):
         """
         id, params = id_params_tuple
         self.all_params[self.par_positions] = params
-        params = self.all_params
+        all_params = self.all_params
 
         # we need a layer to fetch returned data from a threaded process into a queue.
-        def model_layer(q,params):
+        def model_layer(q,all_params):
             # Call self.model with a namedtuple instead of another sequence
-            q.put(self.model(self.partype(*params)))
+            q.put(self.model(self.partype(*all_params)))
 
         # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
         # incompability which the main thread. Therefore only for older Python version a workaround follows
         que = Queue()
-        sim_thread = threading.Thread(target=model_layer, args=(que, params))
+        sim_thread = threading.Thread(target=model_layer, args=(que, all_params))
         sim_thread.daemon = True
         sim_thread.start()
 

@@ -695,7 +695,7 @@ def get_non_constant_indices(setup):
     return par_index
 
 
-def get_parameters_from_setup(setup, excluded_parameter_types):
+def get_parameters_from_setup(setup, excluded_parameter_types=()):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
