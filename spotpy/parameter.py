@@ -682,17 +682,21 @@ def get_non_constant_indices(setup):
     # Get all class variables
     cls = type(setup)
     class_variables = vars(cls).items()
-    
+
     par_index = []
     i=0
+    contained_class_parameter=False
     #for i in range(len(class_variables)):
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
+            contained_class_parameter=True
             if not isinstance(attrobj, Constant):
                 par_index.append(i)
             i+=1
-    return par_index
+
+    if contained_class_parameter:
+        return par_index
 
 
 def get_parameters_from_setup(setup, excluded_parameter_types=()):
