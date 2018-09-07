@@ -63,7 +63,7 @@ def get_all_samplers():
 
 class TestConstantSetups(unittest.TestCase):
     def setUp(self):
-        self.setup = RosenbrockWithConstant()
+        self.setup = RosenbrockWithConstantAndList()
 
     def sampler_with_constant(self, sampler_class):
 

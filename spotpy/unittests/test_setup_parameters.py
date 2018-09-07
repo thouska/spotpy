@@ -67,36 +67,12 @@ class SpotSetupParameterFunction(SpotSetupBase):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'abcd'])
 
 
-class SpotSetupMixedParameterFunction(SpotSetupBase):
-    """
-    A Test case with two parameters as class parameters (a,b)
-    and 2 given from the parameter function
-    """
-    a = parameter.Uniform(0, 1)
-    b = parameter.Uniform(1, 2)
-
-    def parameters(self):
-        return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
-
-
 class SpotSetupParameterList(SpotSetupBase):
     """
     A Test case with 4 parameters given from the parameter list
     """
     def __init__(self):
         self.parameters = [parameter.Uniform(name, -1, 1) for name in 'abcd']
-
-
-class SpotSetupMixedParameterList(SpotSetupBase):
-    """
-    A Test case with two parameters as class parameters (a,b)
-    and 2 given from the parameter function
-    """
-    a = parameter.Uniform(0, 1)
-    b = parameter.Uniform(1, 2)
-
-    def parameters(self):
-        return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
 
 
 class TestSetupVariants(unittest.TestCase):
@@ -127,12 +103,6 @@ class TestSetupVariants(unittest.TestCase):
 
     def test_parameter_list(self):
         self.parameter_count_test(SpotSetupParameterList())
-
-    def test_parameter_mixed_list(self):
-        self.parameter_count_test(SpotSetupMixedParameterList())
-
-    def test_parameter_mixed_function(self):
-        self.parameter_count_test(SpotSetupMixedParameterFunction())
 
     def test_sampler(self):
         for o in self.objects:
