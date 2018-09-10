@@ -539,12 +539,11 @@ def generate(parameters):
 
 
 def checked_parameter_types(parameters, unaccepted_parameter_types=()):
-
     if unaccepted_parameter_types:
         problems = []
         for param in parameters:
             for param_type in unaccepted_parameter_types:
-                if isinstance(param, param_type):
+               if type(param) == param_type:
                     problems.append(param, param_type)
 
         if problems:
@@ -553,7 +552,8 @@ def checked_parameter_types(parameters, unaccepted_parameter_types=()):
 
     return parameters
 
-def get_positions_of_parameter(setup, parameter_type):
+
+def get_parameters_array(setup, unaccepted_parameter_types=()):
     """
     Returns the parameter array from the setup
     """
@@ -561,31 +561,8 @@ def get_positions_of_parameter(setup, parameter_type):
     # function
     param_arrays = []
     # Get parameters defined with the setup class
-    setup_parameters = checked_parameter_types(get_parameters_from_setup(setup,excluded_parameter_types), unaccepted_parameter_types)
-
-    param_arrays.append(
-        # generate creates the array as defined in the setup API
-        generate(setup_parameters)
-    )
-
-    if hasattr(setup, 'parameters') and callable(setup.parameters):
-        # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
-        param_arrays.append(setup.parameters())
-
-    # Return the class and the object parameters together
-    res = np.concatenate(param_arrays)
-    return res
-
-def get_parameters_array(setup, excluded_parameter_types=(), unaccepted_parameter_types=()):
-    """
-    Returns the parameter array from the setup
-    """
-    # Put the parameter arrays as needed here, they will be merged at the end of this
-    # function
-    param_arrays = []
-    # Get parameters defined with the setup class
-    setup_parameters = checked_parameter_types(get_parameters_from_setup(setup,excluded_parameter_types), unaccepted_parameter_types)
-
+    #setup_parameters = checked_parameter_types(, unaccepted_parameter_types)
+    setup_parameters = get_parameters_from_setup(setup,unaccepted_parameter_types)
     param_arrays.append(
         # generate creates the array as defined in the setup API
         generate(setup_parameters)
@@ -660,7 +637,7 @@ def get_namedtuple_from_paramnames(owner, parnames):
                       parnames)  # get parameter names
 
 
-def get_non_constant_indices(setup):
+def get_unaccepted_indices(setup, unaccepted_parameter_types=()):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
@@ -691,7 +668,7 @@ def get_non_constant_indices(setup):
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
             contained_class_parameter=True
-            if not isinstance(attrobj, Constant):
+            if isinstance(attrobj, unaccepted_parameter_types):
                 par_index.append(i)
             i+=1
 
@@ -699,7 +676,7 @@ def get_non_constant_indices(setup):
         return par_index
 
 
-def get_parameters_from_setup(setup, excluded_parameter_types=()):
+def get_parameters_from_setup(setup, unaccepted_parameter_types=()):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
@@ -726,7 +703,7 @@ def get_parameters_from_setup(setup, excluded_parameter_types=()):
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
-            if isinstance(attrobj, excluded_parameter_types):
+            if isinstance(attrobj, unaccepted_parameter_types):
                 pass
             # Set the attribute name
             else:

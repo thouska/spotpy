@@ -63,12 +63,12 @@ def get_all_samplers():
 
 class TestConstantSetups(unittest.TestCase):
     def setUp(self):
-        self.setup = RosenbrockWithConstantAndList()
+        self.setup = RosenbrockWithConstantAndList
 
     def sampler_with_constant(self, sampler_class):
 
-        sampler = sampler_class(self.setup, dbformat='ram', save_sim=False)
-        sampler.sample(1000)
+        sampler = sampler_class(self.setup(), dbformat='ram', save_sim=False)
+        sampler.sample(100)
 
         self.assertTrue(all(line[1] == 0 for line in sampler.datawriter.ram),
                         msg='Parameter c == 0 not true in all lines with sampler {}'.format(sampler))
@@ -106,3 +106,5 @@ class TestConstantSetups(unittest.TestCase):
     def test_sceua_sampler_with_constant(self):
         self.sampler_with_constant(spotpy.algorithms.sceua)
 
+if __name__ == '__main__':
+    unittest.main()

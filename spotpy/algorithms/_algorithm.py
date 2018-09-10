@@ -132,7 +132,7 @@ class _algorithm(object):
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
-    _unaccepted_parameter_types = (parameter.List, parameter.Constant,)
+    _unaccepted_parameter_types = (parameter.Constant,parameter.List, )
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
@@ -150,7 +150,14 @@ class _algorithm(object):
         # TODO: just storing a definite list of parameter objects here
         param_info = parameter.get_parameters_array(self.setup)
         self.all_params = param_info['random']
-        self.par_positions = parameter.get_non_constant_indices(spot_setup)
+        self.unacepeted_positions = parameter.get_unaccepted_indices(spot_setup)
+        if self.unacepeted_positions:
+            self.non_constant_positions = []
+            for i, val in enumerate(self.all_params):
+                if self.all_params[i] not in self.unacepeted_positions:
+                    self.non_constant_positions.append(i)
+        else: 
+            self.non_constant_positions = np.arange(0,len(self.all_params))
         self.parameter = self.get_parameters
         self.parnames = param_info['name']
 
@@ -234,8 +241,8 @@ class _algorithm(object):
         """
         Returns the parameter array from the setup
         """
-        par = parameter.get_parameters_array(self.setup, self._unaccepted_parameter_types)
-        return par
+        par = parameter.get_parameters_array(self.setup)
+        return par[self.non_constant_positions]
 
     def set_repetiton(self, repetitions):
 
@@ -307,8 +314,8 @@ class _algorithm(object):
         return self.datawriter.getdata()
 
     def postprocessing(self, rep, params, simulation, chains=1, save=True, negativlike=False):
-        #Add potential Constant parameters 
-        self.all_params[self.par_positions] = params
+        #Add potential Constant parameters
+        self.all_params[self.non_constant_positions] = params
         params = self.all_params
         like = self.getfitness(simulation=simulation, params=params)
         # Save everything in the database, if save is True
@@ -345,7 +352,7 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
-        self.all_params[self.par_positions] = params
+        self.all_params[self.non_constant_positions] = params #TODO: List parameters are not updated if not accepted for the algorithm, we may have to warn/error if list is given
         all_params = self.all_params
 
         # we need a layer to fetch returned data from a threaded process into a queue.
