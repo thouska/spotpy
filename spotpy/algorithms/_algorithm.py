@@ -112,7 +112,7 @@ class _algorithm(object):
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
-    save_thresholde: float or list
+    save_threshold: float or list
         Compares the given value/list of values with return value/list of values from spot_setup.objectivefunction.
         If the objectivefunction value is higher, the results are saved in the database. If not they are ignored (saves storage).
     db_precision:np.float type
@@ -132,7 +132,7 @@ class _algorithm(object):
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
-    _unaccepted_parameter_types = (parameter.Constant,parameter.List, )
+    _unaccepted_parameter_types = (parameter.List, )
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
@@ -148,16 +148,17 @@ class _algorithm(object):
         # For me (Philipp) it is totally unclear why all the samplers should call this function
         # again and again instead of
         # TODO: just storing a definite list of parameter objects here
-        param_info = parameter.get_parameters_array(self.setup)
+        param_info = parameter.get_parameters_array(self.setup, unaccepted_parameter_types=self._unaccepted_parameter_types)
         self.all_params = param_info['random']
-        self.unacepeted_positions = parameter.get_unaccepted_indices(spot_setup)
-        if self.unacepeted_positions:
+        self.constant_positions = parameter.get_constant_indices(spot_setup)
+        if self.constant_positions:
             self.non_constant_positions = []
             for i, val in enumerate(self.all_params):
-                if self.all_params[i] not in self.unacepeted_positions:
+                if self.all_params[i] not in self.constant_positions:
                     self.non_constant_positions.append(i)
         else: 
             self.non_constant_positions = np.arange(0,len(self.all_params))
+        print(self.non_constant_positions)
         self.parameter = self.get_parameters
         self.parnames = param_info['name']
 
@@ -183,9 +184,9 @@ class _algorithm(object):
         self.dbappend = dbappend
         
         # Set the random state
-        if random_state is None:
+        if random_state is None: #ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state)
+        np.random.seed(random_state) 
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
@@ -241,8 +242,8 @@ class _algorithm(object):
         """
         Returns the parameter array from the setup
         """
-        par = parameter.get_parameters_array(self.setup)
-        return par[self.non_constant_positions]
+        pars = parameter.get_parameters_array(self.setup)
+        return pars[self.non_constant_positions]
 
     def set_repetiton(self, repetitions):
 

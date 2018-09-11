@@ -538,17 +538,17 @@ def generate(parameters):
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
 
-def checked_parameter_types(parameters, unaccepted_parameter_types=()):
+def check_parameter_types(parameters, unaccepted_parameter_types):
     if unaccepted_parameter_types:
         problems = []
         for param in parameters:
             for param_type in unaccepted_parameter_types:
                if type(param) == param_type:
-                    problems.append(param, param_type)
+                    problems.append([param, param_type])
 
         if problems:
             problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
-            raise TypeError('Selected algorithm does not accept the following parameters: ' + problem_string)
+            raise TypeError('List parameters are only accepted for Monte Carlo (MC) sampler: ' + problem_string)
 
     return parameters
 
@@ -562,7 +562,8 @@ def get_parameters_array(setup, unaccepted_parameter_types=()):
     param_arrays = []
     # Get parameters defined with the setup class
     #setup_parameters = checked_parameter_types(, unaccepted_parameter_types)
-    setup_parameters = get_parameters_from_setup(setup,unaccepted_parameter_types)
+    setup_parameters = get_parameters_from_setup(setup)
+    check_parameter_types(setup_parameters, unaccepted_parameter_types)
     param_arrays.append(
         # generate creates the array as defined in the setup API
         generate(setup_parameters)
@@ -637,7 +638,7 @@ def get_namedtuple_from_paramnames(owner, parnames):
                       parnames)  # get parameter names
 
 
-def get_unaccepted_indices(setup, unaccepted_parameter_types=()):
+def get_constant_indices(setup, unaccepted_parameter_types=(Constant)):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
@@ -676,7 +677,7 @@ def get_unaccepted_indices(setup, unaccepted_parameter_types=()):
         return par_index
 
 
-def get_parameters_from_setup(setup, unaccepted_parameter_types=()):
+def get_parameters_from_setup(setup):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
@@ -703,14 +704,14 @@ def get_parameters_from_setup(setup, unaccepted_parameter_types=()):
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
-            if isinstance(attrobj, unaccepted_parameter_types):
-                pass
-            # Set the attribute name
-            else:
-                if not attrobj.name:
-                    attrobj.name = attrname
-                # Add parameter to dict
-                parameters.append(attrobj)
+#            if isinstance(attrobj, unaccepted_parameter_types):
+#                pass
+#            # Set the attribute name
+#            else:
+            if not attrobj.name:
+                attrobj.name = attrname
+            # Add parameter to dict
+            parameters.append(attrobj)
 
     # starting with Python 3.6 the order of the class defined parameters are presevered with vars,
     # prior the sorting changes.

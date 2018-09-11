@@ -124,26 +124,28 @@ class ForEach(object):
         Breaks when master sent StopIteration
         :return: Nothing, calls exit()
         """
-        assert self.is_worker()
-        while True:
-            # Wait for a message
-            obj = self.comm.recv(source=0, tag=tag.job)
-            # Handle messages
-            if type(obj) is StopIteration:
-                # Stop message
-                break
-            elif type(obj) is PhaseChange:
-                # Phase change
-                self.phase = obj.phase
-            else:  # obj is a job for self.process
-                # Send the object back for processing it
-                res = self.process(obj)
-                self.comm.send(res, dest=0, tag=tag.answer)
-
-        if callable(self.on_worker_terminate):
-            self.on_worker_terminate()
-
-        exit()
+        try:
+            assert self.is_worker()
+            while True:
+                # Wait for a message
+                obj = self.comm.recv(source=0, tag=tag.job)
+                # Handle messages
+                if type(obj) is StopIteration:
+                    # Stop message
+                    break
+                elif type(obj) is PhaseChange:
+                    # Phase change
+                    self.phase = obj.phase
+                else:  # obj is a job for self.process
+                    # Send the object back for processing it
+                    res = self.process(obj)
+                    self.comm.send(res, dest=0, tag=tag.answer)
+    
+            if callable(self.on_worker_terminate):
+                self.on_worker_terminate()
+        
+        finally:
+            exit()
 
     def __send(self, jobiter):
         """
