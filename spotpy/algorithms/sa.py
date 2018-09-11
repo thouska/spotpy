@@ -130,5 +130,3 @@ def frandom(Enew, Eold, Titer):
     else:
         accepted = True
     return accepted
-
-
