@@ -17,7 +17,7 @@ class list(_algorithm):
     """
     This class holds the List sampler, which samples from a given spotpy database
     """
-
+    _excluded_parameter_classes = ()
     def __init__(self, *args, **kwargs):
         """
         Input
