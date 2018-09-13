@@ -20025,18 +20025,59 @@ class FixedRandomizer():
                 x[i] = self.uniform_list[self.uniform_counter]
                 self.uniform_counter = self.uniform_counter + 1
             else:
-                raise Exception("ERROR END ind my_randN")
+                raise Exception("ERROR END in my_rand")
         if len(x) == 1:
             return x[0]
         else:
             return x
 
-    def my_randi
+    def my_randint(self,x_from,x_to):
+        vals = [j for j in range(x_from,x_to)]
+        vals_size = len(vals)
+        if vals_size == 0:
+            raise ValueError("x_to >= x_from")
+        fraq = 1 / vals_size
+        if self.uniform_counter < self.max_uniform_counter:
+            q_uni = self.uniform_list[self.uniform_counter]
+            pos = np.int(np.floor(q_uni / fraq))
+            self.uniform_counter += 1
+            return vals[pos]
+        else:
+            raise Exception("ERROR END in my_randint")
+
+    def my_randn(self,loc,scale):
+
+        if loc != 0 or scale != 1:
+            raise ValueError("Only my_randn(0,1) implemented yet!") # TODO!
+
+        if self.normal_counter < self.max_normal_counter:
+            x = self.normal_list[self.normal_counter]
+            self.normal_counter += 1
+            return x
+
+        else:
+            raise Exception("ERROR END in my_randn")
+
+        # TODO: better Exceptions
 
 
+
+
+
+
+# TODO Convert this to unittest
 f_rand = FixedRandomizer()
-print(f_rand.my_rand(10))
-print(np.random.rand(10))
+# print(f_rand.my_rand(10))
+# print(np.random.rand(10))
+
+# for k in range(100):
+#     print(f_rand.my_randint(1,101010))
+#     print(np.random.randint(1,101010))
+#     print("----------------------")
+
+print(np.random.normal(0, 1))
+print(f_rand.my_randn(0,1))
+
 exit()
 
 #todo read in users own initial soultion, no we just generate it self
