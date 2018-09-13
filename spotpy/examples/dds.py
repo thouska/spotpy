@@ -10009,9 +10009,9 @@ class FixedRandomizer():
                   0.715363917574095
                     ]
 
-
+        self.uniform_list*=3
         self.max_normal_counter = 10000
-        self.max_uniform_counter = 10000
+        self.max_uniform_counter = 30000
 
         self.normal_list = [
           0.9723088366617443,
@@ -20025,7 +20025,7 @@ class FixedRandomizer():
                 x[i] = self.uniform_list[self.uniform_counter]
                 self.uniform_counter = self.uniform_counter + 1
             else:
-                raise Exception("ERROR END in my_rand")
+                raise Exception("ERROR END in my_rand. Counter is: "+str(self.uniform_counter))
         if len(x) == 1:
             return x[0]
         else:
@@ -20066,7 +20066,7 @@ class FixedRandomizer():
 
 
 # TODO Convert this to unittest
-f_rand = FixedRandomizer()
+# f_rand = FixedRandomizer()
 # print(f_rand.my_rand(10))
 # print(np.random.rand(10))
 
@@ -20075,10 +20075,9 @@ f_rand = FixedRandomizer()
 #     print(np.random.randint(1,101010))
 #     print("----------------------")
 
-print(np.random.normal(0, 1))
-print(f_rand.my_randn(0,1))
+# print(np.random.normal(0, 1))
+# print(f_rand.my_randn(0,1))
 
-exit()
 
 #todo read in users own initial soultion, no we just generate it self
 
@@ -20092,11 +20091,22 @@ def ackley(vector):
     return [-20.0 * np.exp(-0.2 * np.sqrt(firstSum / n)) - np.exp(secondSum / n) + 20 + np.e]
 
 
+
+def ackley10(vector):
+    length = len(vector)
+    sum1 = 0
+    sum2 = 0
+    for i in range(length):
+        sum1=sum1+vector[i]**2
+        sum2=sum2+np.cos(2*np.pi*vector[i])
+    return -20*np.exp(-0.2*(sum1/length)**0.5)-np.exp(sum2/length)
+
+
 def get_objfunc(x):
-    return ackley(x)[0]
+    return ackley10(x)
 
 
-def dds(sinitial,its,to_max,fraction1,maxiter):
+def dds(f_rand,sinitial,its,to_max,fraction1,maxiter):
 
     # ! name,LowerB,UpperB,Integer?
     # 1	-2.0	2.0  0
@@ -20157,10 +20167,13 @@ def dds(sinitial,its,to_max,fraction1,maxiter):
 
         for i in range(its):
             if Discrete_flag == 0:  # continuous variable
-                stest = S_min + S_range * np.random.rand(num_dec)  # uniform random samples
+                #TODO back: stest = S_min + S_range * np.random.rand(num_dec)  # uniform random samples
+                stest = S_min + S_range * f_rand.my_rand(num_dec)
+
             else: #  discrete case
                 for j in range(num_dec):
-                    stest[j] = np.random.randint(S_min[j], S_max[j] + 1)  # randi([S_min(1,j), S_max(1,j)],1,1);
+                    # TODO back: stest[j] = np.random.randint(S_min[j], S_max[j] + 1)  # randi([S_min(1,j), S_max(1,j)],1,1);
+                    stest[j] = f_rand.my_randint(S_min[j], S_max[j] + 1)
 
             Jtest = to_max * get_objfunc(stest)  # get obj function value
 
@@ -20199,32 +20212,58 @@ def dds(sinitial,its,to_max,fraction1,maxiter):
 
     for i in range(ileft):  # remaining F evals after initialization
         # Determine variable selected as neighbour
-        Pn = 1.0 - np.log(i) / np.log(ileft)  # 1.0-i/ileft;# probability of being selected as neighbour
+        Pn = 1.0 - np.log(i+1) / np.log(ileft)  # 1.0-i/ileft;# probability of being selected as neighbour
         dvn_count = 0  # counter for how many decision variables vary in neighbour
         stest = list(sbest)  # define stest initially as current (sbest for greedy)
-        randnums = np.random.rand(num_dec)
+
+
+        #TODO back: randnums = np.random.rand(num_dec)
+        randnums = f_rand.my_rand(num_dec)
+
+        # print(stest)
+        # print(randnums);
+        # print(Pn);
+        # choosed_nums = []
         for j in range(num_dec):
             if randnums[j] < Pn:  # then j th DV selected to vary in neighbour
                 dvn_count = dvn_count + 1
-                new_value = neigh_value_mixed(sbest[j], S_min[j], S_max[j], fraction1, j)
+                new_value = neigh_value_mixed(sbest[j], S_min[j], S_max[j], fraction1, j+1)
 
+                # choosed_nums+=[j]
                 # TODO make this method!!
                 # TODO more efficient!!
 
                 stest[j] = new_value  # change relevant dec var value in stest
 
+        # print(choosed_nums)
+        # print(stest)
+        # print("--------------------")
+
+
         if dvn_count == 0:  # no DVs selected at random, so select ONE
-            dec_var = np.int(np.ceil((num_dec-1) * np.random.rand()))  # which dec var to modify for neighbour
-            new_value = neigh_value_mixed(sbest[dec_var], S_min[dec_var], S_max[dec_var], fraction1, dec_var)
+            #TODO back: dec_var = np.int(np.ceil((num_dec-1) * np.random.rand()))  # which dec var to modify for neighbour
+            dec_var = np.int(np.ceil((num_dec) * f_rand.my_rand()))
+
+
+            new_value = neigh_value_mixed(sbest[dec_var-1], S_min[dec_var-1], S_max[dec_var-1], fraction1, dec_var-1)
             # TODO more efficient!
-            stest[dec_var] = new_value  # change relevant dec var value in stest
+
+            stest[dec_var-1] = new_value  # change relevant dec var value in stest
+
+
 
         # get ojective function value
+
         Jtest = to_max * get_objfunc(stest)
 
-        #print(Jtest,Jbest)
 
+        # if (i+1)%100 == 0:
+        #     print(Jtest)
+
+        #print([Jtest, Jbest]);
+        #print(stest)
         if Jtest <= Jbest:
+
             Jbest = Jtest
             sbest = list(stest)
             it_sbest = i + its  # iteration number best solution found
@@ -20282,7 +20321,10 @@ def neigh_value_continuous(s,s_min,s_max,fraction1):
 
     s_range = s_max - s_min
 
-    snew = s + np.random.normal(0, 1) * fraction1 * s_range
+    #TODO back: snew = s + np.random.normal(0, 1) * fraction1 * s_range
+    snew = s + f_rand.my_randn(0, 1) * fraction1 * s_range
+
+
 
     # NEED to deal with variable upper and lower bounds:
     # Originally bounds in DDS were 100# reflective
@@ -20291,7 +20333,8 @@ def neigh_value_continuous(s,s_min,s_max,fraction1):
     # boundaries reflective with 50# chance and absorptive with 50# chance.
     # M. Asadzadeh and B. Tolson Dec 2008
 
-    P_Abs_or_Ref = np.random.rand()
+    #TODO back: P_Abs_or_Ref = np.random.rand()
+    P_Abs_or_Ref = f_rand.my_rand()
 
 
     if snew < s_min:  # works for any pos or neg s_min
@@ -20345,10 +20388,13 @@ def neigh_value_discrete(s,s_min,s_max,fraction1):
 
     # s_range is the range of the real variable (s_max-s_min)
     s_range = s_max - s_min
-    delta = np.random.normal(0, 1) * fraction1 * s_range
+    #TODO back: delta = np.random.normal(0, 1) * fraction1 * s_range
+    delta = f_rand.my_randn(0, 1) * fraction1 * s_range
     snew = s + delta
 
-    P_Abs_or_Ref = np.random.rand()
+    #TODO back: P_Abs_or_Ref = np.random.rand()
+    P_Abs_or_Ref = f_rand.my_rand()
+
     if snew < s_min - 0.5:  # works for any pos or neg s_min
         if P_Abs_or_Ref <= 0.5:  # with 50% chance reflect
             snew = (s_min - 0.5) + ((s_min - 0.5) - snew)
@@ -20373,7 +20419,12 @@ def neigh_value_discrete(s,s_min,s_max,fraction1):
 
     snew = np.round(snew)  # New value must be integer
     if snew == s:  # pick a number between s_max and s_min by a Uniform distribution
-        sample = s_min - 1 + np.ceil((s_max - s_min) * np.random.rand())  # last term gives range = # options - 1.  First terms shift to allow min value
+        #TODO back: sample = s_min - 1 + np.ceil((s_max - s_min) * np.random.rand())  # last term gives range = # options - 1.  First terms shift to allow min value
+        sample = s_min - 1 + np.ceil((s_max - s_min) * f_rand.my_rand())
+        print(sample)
+        print(s_min - 1 + np.ceil((s_max - s_min) * np.random.rand()))
+        exit()
+
         if sample < s:
             snew = sample
         else:  # must increment option number by one
@@ -20382,9 +20433,9 @@ def neigh_value_discrete(s,s_min,s_max,fraction1):
 
 def neigh_value_mixed(s,s_min,s_max,fraction1,j):
     # todo discrete flagg as a class field
-    Discrete_flag = 1 # TODO should be a vector, I did not understand yet form where this should come
+    Discrete_flag = 0 # TODO should be a vector, I did not understand yet form where this should come
 
-    if Discrete_flag:
+    if Discrete_flag == 0:
         return neigh_value_continuous(s, s_min, s_max, fraction1)
     else:
         return neigh_value_discrete(s,s_min,s_max,fraction1)
@@ -20394,9 +20445,12 @@ def neigh_value_mixed(s,s_min,s_max,fraction1,j):
 #farction is r_val
 # maxiter is line 6 -> 1000
 # np.random.seed(150)
+
+f_rand = FixedRandomizer()
+
 for runs in range(2):
     maxiter = 1000
     num_samples=np.max([5,round(0.005*maxiter)])
     Initial_solution = [] # TODO if user had seom, read it in
 
-    dds(Initial_solution,num_samples,1,0.2,1000)
+    dds(f_rand,Initial_solution,num_samples,1,0.2,maxiter)
