@@ -18,7 +18,7 @@ class spot_setup(object):
     """
     A 3 dimensional implementation of the Rosenbrock function
 
-    Result at (0,0,0) is 0.
+    Result at (1,1,1) is 0.
     """
     x = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
     y = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
