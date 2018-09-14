@@ -85,7 +85,7 @@ class sa(_algorithm):
         Titer = Tini
         x = self.parameter()['optguess']
         Xopt = x
-        simulations = self.model(x)
+        _, _, simulations = self.simulate((1, x))
         Enew = self.postprocessing(1, x, simulations)
         Eopt = Enew
         rep = 0
@@ -109,7 +109,7 @@ class sa(_algorithm):
 
                 x = self.check_par_validity(x)
 
-                simulations = self.model(x)
+                _, _, simulations = self.simulate((rep+1, x))
                 Enew = self.postprocessing(rep+1, x, simulations)
                 rep += 1
 

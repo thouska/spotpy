@@ -88,8 +88,7 @@ class sceua(_algorithm):
         """
         
         if not self.repeat.phase:  # burn-in
-            id, params = id_params_tuple
-            return id, params, self.model(params)
+            return _algorithm.simulate(self, id_params_tuple)
 
         else:  # complex-evolution
             igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
@@ -235,6 +234,8 @@ class sceua(_algorithm):
             idx = np.argsort(xf)
             xf = np.sort(xf)
             x = x[idx, :]
+        else:
+            raise ValueError("Don't know the breakpoint keyword {}".format(self.breakpoint))
         
         # Record the best and worst points;
         bestx = x[0, :]
@@ -428,7 +429,7 @@ class sceua(_algorithm):
             snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
 
         ##    fnew = functn(self.nopt,snew);
-        simulations = self.model(snew)
+        _, _, simulations = _algorithm.simulate(self, (icall, snew))
         like = self.postprocessing(icall, snew, simulations, save=False)
         #like = self.objectivefunction(
         #    evaluation=self.evaluation, simulation=simulations)
@@ -442,7 +443,7 @@ class sceua(_algorithm):
             snew = sw + beta * (ce - sw)
             snew[constant_parameters] = sw[constant_parameters]
 
-            simulations = self.model(snew)
+            _, _, simulations = _algorithm.simulate(self, (icall, snew))
             like = self.postprocessing(icall, snew, simulations, save=False)
 #            like = self.objectivefunction(
 #                evaluation=self.evaluation, simulation=simulations)
@@ -452,7 +453,7 @@ class sceua(_algorithm):
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
                 snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
-                simulations = self.model(snew)
+                _, _, simulations = _algorithm.simulate(self, (icall, snew))
                 like = self.postprocessing(icall, snew, simulations, save=False)
 #                like = self.objectivefunction(
 #                    evaluation=self.evaluation, simulation=simulations)
