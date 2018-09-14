@@ -9,7 +9,6 @@ import unittest
 try:
     import spotpy
 except ImportError:
-    import sys
     sys.path.append(".")
     import spotpy
 from spotpy import parameter
@@ -66,7 +65,6 @@ class SpotSetupParameterFunction(SpotSetupBase):
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'abcd'])
 
-
 class SpotSetupMixedParameterFunction(SpotSetupBase):
     """
     A Test case with two parameters as class parameters (a,b)
@@ -74,7 +72,6 @@ class SpotSetupMixedParameterFunction(SpotSetupBase):
     """
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
-
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
 
@@ -86,7 +83,6 @@ class SpotSetupParameterList(SpotSetupBase):
     def __init__(self):
         self.parameters = [parameter.Uniform(name, -1, 1) for name in 'abcd']
 
-
 class SpotSetupMixedParameterList(SpotSetupBase):
     """
     A Test case with two parameters as class parameters (a,b)
@@ -94,11 +90,9 @@ class SpotSetupMixedParameterList(SpotSetupBase):
     """
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
-
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
-
-
+    
 class TestSetupVariants(unittest.TestCase):
     def setUp(self):
         # Get all Setups from this module
@@ -127,10 +121,10 @@ class TestSetupVariants(unittest.TestCase):
 
     def test_parameter_list(self):
         self.parameter_count_test(SpotSetupParameterList())
-
+        
     def test_parameter_mixed_list(self):
         self.parameter_count_test(SpotSetupMixedParameterList())
-
+        
     def test_parameter_mixed_function(self):
         self.parameter_count_test(SpotSetupMixedParameterFunction())
 

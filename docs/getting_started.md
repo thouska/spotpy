@@ -35,7 +35,7 @@ We can see that the parameters *x* and *y*, which drive the the Rosenbrock funct
 
 If you want to see the best 10% of your samples, which is called posterior parameter distribution, you have to do something like this:
 
-	posterior=spotpy.analyser.get_posterior(results,threshold=0.9)
+	posterior=spotpy.analyser.get_posterior(results,percentage=10)
 	spotpy.analyser.plot_parameterInteraction(posterior) 
 
 This should give you a parameter interaction plot of your best 10% samples, which should look like Fig. 2:
@@ -50,7 +50,7 @@ Note that your `results` are a normal NumPy array. That means you are not limite
 
 Let us find out the best found parameter set:
 
-	print spotpy.analyser.get_best_parameterset(results)
+	print(spotpy.analyser.get_best_parameterset(results))
 	
 And you will get something like
 

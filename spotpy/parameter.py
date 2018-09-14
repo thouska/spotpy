@@ -172,7 +172,7 @@ class Base(object):
     The Uniform parameter class is the reference implementation.
     """
     __rndargs__ = ()
-    def __init__(self, rndfunc, *args, **kwargs):
+    def __init__(self, rndfunc, rndfuncname, *args, **kwargs):
         """
         :name:     Name of the parameter
         :rndfunc:  Function to draw a random number, 
@@ -188,6 +188,7 @@ class Base(object):
                 rndfunc(*rndargs, size=1000)
         """
         self.rndfunc = rndfunc
+        self.rndfunctype = rndfuncname
         arghelper = _ArgumentHelper(self, *args, **kwargs)
         self.name = arghelper.name()
         arghelper.alias('default', 'optguess')
@@ -272,7 +273,7 @@ class Uniform(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Uniform, self).__init__(rnd.uniform, *args, **kwargs)
+        super(Uniform, self).__init__(rnd.uniform, 'Uniform', *args, **kwargs)
 
 
 class List(Base):
@@ -287,7 +288,7 @@ class List(Base):
     __rndargs__ = ('values', )
     def __init__(self, *args, **kwargs):
         self.repeat = kwargs.pop('repeat', False)
-        super(List, self).__init__(None,  *args, **kwargs)
+        super(List, self).__init__(None,  'List', *args, **kwargs)
         self.values, = self.rndargs
 
         # Hack to avoid skipping the first value. See __call__ function below.
@@ -335,7 +336,7 @@ class Constant(Base):
     __rndargs__ = 'scalar',
 
     def __init__(self, *args, **kwargs):
-        super(Constant, self).__init__(self, *args, **kwargs)
+        super(Constant, self).__init__(self, 'Constant', *args, **kwargs)
 
     value = property(lambda self: self.rndargs[0])
 
@@ -372,7 +373,7 @@ class Normal(Base):
                 rndfunc(*rndargs, size=1000) 
         """
 
-        super(Normal, self).__init__(rnd.normal, *args, **kwargs)
+        super(Normal, self).__init__(rnd.normal, 'Normal', *args, **kwargs)
 
 
 class logNormal(Base):
@@ -392,7 +393,7 @@ class logNormal(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(logNormal, self).__init__(rnd.lognormal, *args, **kwargs)
+        super(logNormal, self).__init__(rnd.lognormal, 'logNormal', *args, **kwargs)
 
 
 class Chisquare(Base):
@@ -411,7 +412,7 @@ class Chisquare(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Chisquare, self).__init__(rnd.chisquare, *args, **kwargs)
+        super(Chisquare, self).__init__(rnd.chisquare, 'Chisquare', *args, **kwargs)
 
 
 class Exponential(Base):
@@ -431,7 +432,7 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Exponential, self).__init__(rnd.exponential,  *args, **kwargs)
+        super(Exponential, self).__init__(rnd.exponential, 'Exponential', *args, **kwargs)
 
 
 class Gamma(Base):
@@ -453,7 +454,7 @@ class Gamma(Base):
                 rndfunc(*rndargs, size=1000)
         """
 
-        super(Gamma, self).__init__(rnd.gamma,  *args, **kwargs)
+        super(Gamma, self).__init__(rnd.gamma, 'Gamma', *args, **kwargs)
 
 
 class Wald(Base):
@@ -474,7 +475,7 @@ class Wald(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Wald, self).__init__(rnd.wald, *args, **kwargs)
+        super(Wald, self).__init__(rnd.wald, 'Wald', *args, **kwargs)
 
 
 class Weibull(Base):
@@ -493,7 +494,7 @@ class Weibull(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Weibull, self).__init__(rnd.weibull, *args, **kwargs)
+        super(Weibull, self).__init__(rnd.weibull, 'Weibull', *args, **kwargs)
 
 
 class Triangular(Base):
@@ -514,9 +515,16 @@ class Triangular(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Triangular, self).__init__(rnd.triangular, *args, **kwargs)
+        super(Triangular, self).__init__(rnd.triangular, 'Triangular', *args, **kwargs)
 
-
+def get_classes():
+    keys = []
+    current_module = sys.modules[__name__]
+    for key in dir(current_module):
+        if isinstance( getattr(current_module, key), type ):
+            keys.append(key)
+    return keys
+    
 def generate(parameters):
     """
     This function generates a parameter set from a list of parameter objects. The parameter set
@@ -530,7 +538,22 @@ def generate(parameters):
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
 
-def get_parameters_array(setup):
+def check_parameter_types(parameters, unaccepted_parameter_types):
+    if unaccepted_parameter_types:
+        problems = []
+        for param in parameters:
+            for param_type in unaccepted_parameter_types:
+               if type(param) == param_type:
+                    problems.append([param, param_type])
+
+        if problems:
+            problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
+            raise TypeError('List parameters are only accepted for Monte Carlo (MC) sampler: ' + problem_string)
+
+    return parameters
+
+
+def get_parameters_array(setup, unaccepted_parameter_types=()):
     """
     Returns the parameter array from the setup
     """
@@ -538,9 +561,12 @@ def get_parameters_array(setup):
     # function
     param_arrays = []
     # Get parameters defined with the setup class
+    #setup_parameters = checked_parameter_types(, unaccepted_parameter_types)
+    setup_parameters = get_parameters_from_setup(setup)
+    check_parameter_types(setup_parameters, unaccepted_parameter_types)
     param_arrays.append(
         # generate creates the array as defined in the setup API
-        generate(get_parameters_from_setup(setup))
+        generate(setup_parameters)
     )
 
     if hasattr(setup, 'parameters') and callable(setup.parameters):
@@ -612,7 +638,7 @@ def get_namedtuple_from_paramnames(owner, parnames):
                       parnames)  # get parameter names
 
 
-def get_parameters_from_setup(setup):
+def get_constant_indices(setup, unaccepted_parameter_types=(Constant)):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 
@@ -635,11 +661,53 @@ def get_parameters_from_setup(setup):
     cls = type(setup)
     class_variables = vars(cls).items()
 
+    par_index = []
+    i=0
+    contained_class_parameter=False
+    #for i in range(len(class_variables)):
+    for attrname, attrobj in class_variables:
+        # Check if it is an spotpy parameter
+        if isinstance(attrobj, Base):
+            contained_class_parameter=True
+            if isinstance(attrobj, unaccepted_parameter_types):
+                par_index.append(i)
+            i+=1
+
+    if contained_class_parameter:
+        return par_index
+
+
+def get_parameters_from_setup(setup):
+    """
+    Returns a list of the class defined parameters, and
+    overwrites the names of the parameters. 
+    By defining parameters as class members, as shown below,
+    one can omit the parameters function of the setup.
+    
+    Usage:
+    
+    >>> from spotpy import parameter
+    >>> class SpotpySetup:
+    >>>     # Add parameters p1 & p2 to the setup. 
+    >>>     p1 = parameter.Uniform(20, 100)
+    >>>     p2 = parameter.Gamma(2.3)
+    >>>
+    >>> setup = SpotpySetup()
+    >>> parameters = parameter.get_parameters_from_setup(setup)
+    """
+
+    # Get all class variables
+    cls = type(setup)
+    class_variables = vars(cls).items()
+    
     parameters = []
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
-            # Set the attribute name
+#            if isinstance(attrobj, unaccepted_parameter_types):
+#                pass
+#            # Set the attribute name
+#            else:
             if not attrobj.name:
                 attrobj.name = attrname
             # Add parameter to dict
