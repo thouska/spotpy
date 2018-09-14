@@ -12,7 +12,6 @@ install:
   - pip install numpy
   - pip install matplotlib
   - pip install pandas
-<<<<<<< HEAD
   - pip install scipy
   - pip install click
   - pip install pytest pytest-pep8 pytest-cov
