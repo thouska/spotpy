@@ -140,7 +140,6 @@ class _algorithm(object):
                  db_precision=np.float16, sim_timeout=None, random_state=None):
         # Initialize the user defined setup class
         self.setup = spot_setup
-        self.model = self.setup.simulation
         # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
         # as well as the parameters function. The new method get_parameters
         # can deal with a missing parameters function
@@ -359,7 +358,7 @@ class _algorithm(object):
         # we need a layer to fetch returned data from a threaded process into a queue.
         def model_layer(q,all_params):
             # Call self.model with a namedtuple instead of another sequence
-            q.put(self.model(self.partype(*all_params)))
+            q.put(self.setup.simulation(self.partype(*all_params)))
 
         # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
         # incompability which the main thread. Therefore only for older Python version a workaround follows
