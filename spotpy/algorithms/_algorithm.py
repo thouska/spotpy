@@ -12,6 +12,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
 from spotpy import parameter
+import sys
 import numpy as np
 import time
 import threading
@@ -48,8 +49,9 @@ class _RunStatistic(object):
         self.last_print = time.time()
         
         self.repetitions = None
-
-    def __call__(self, rep, objectivefunction, params):
+        self.stop = False
+        
+    def __call__(self, objectivefunction, params):
         self.curparmeterset = params
         self.rep+=1
         if type(objectivefunction) == type([]):
@@ -64,6 +66,8 @@ class _RunStatistic(object):
                 self.params = params
                 self.objectivefunction = objectivefunction
                 self.bestrep = self.rep
+        if self.rep == self.repetitions:
+            self.stop = True
         self.print_status()
 
     def print_status(self):
@@ -314,26 +318,30 @@ class _algorithm(object):
     def getdata(self):
         return self.datawriter.getdata()
 
-    def postprocessing(self, rep, params, simulation, chains=1, save=True, negativlike=False):
+    def update_params(self, params):
         #Add potential Constant parameters
         self.all_params[self.non_constant_positions] = params
-        params = self.all_params
+        return self.all_params
+            
+    
+    def postprocessing(self, rep, params, simulation, chains=1, save=True, negativlike=False): # TODO: rep not necessaray
+    
+        params = self.update_params(params)
         like = self.getfitness(simulation=simulation, params=params)
+        self.status(like, params)
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
         if save is True:
             if negativlike is True:
                 self.save(-like, params, simulations=simulation, chains=chains)              
-                self.status(rep, -like, params)
             else:
-                self.save(like, params, simulations=simulation, chains=chains)
-                self.status(rep, like, params)
+                self.save(like, params, simulations=simulation, chains=chains)    
         if type(like)==type([]):
             return like[0]
         else:        
             return like
-    
+
     
     def getfitness(self, simulation, params):
         """
