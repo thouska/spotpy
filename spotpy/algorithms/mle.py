@@ -78,7 +78,7 @@ class mle(_algorithm):
         for i in range(burnIn):
             randompar = self.parameter()['random']
             pars.append(randompar)
-            simulations = self.model(randompar)
+            _, _, simulations = self.simulate((i, randompar))
             sims.append(simulations)
             like = self.postprocessing(i, randompar, simulations)
             likes.append(like)
@@ -92,7 +92,7 @@ class mle(_algorithm):
             # Use stepsize provided for every dimension.
             new_par = np.random.normal(loc=old_par, scale=stepsizes)
             new_par = self.check_par_validity(new_par)
-            new_simulations = self.model(new_par)
+            _, _, new_simulations = self.simulate((i, new_par))
             new_like = self.postprocessing(rep+burnIn, new_par, new_simulations)
             # Accept new candidate in Monte-Carlo fashing.
             if (new_like > old_like):
