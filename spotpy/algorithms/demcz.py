@@ -198,7 +198,7 @@ class demcz(_algorithm):
 
                 burnInpar[i][rep] = vector
 
-                likelist = self.postprocessing(i, list(vector), simulations, chains=rep)
+                likelist = self.postprocessing(i, vector, simulations, chains=rep)
                 #likelist = self.objectivefunction(
                 #evaluation=self.evaluation, simulation=simulations)
                 simulationlist.append(simulations)

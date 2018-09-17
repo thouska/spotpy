@@ -88,8 +88,7 @@ class sceua(_algorithm):
         """
         
         if not self.repeat.phase:  # burn-in
-            id, params = id_params_tuple
-            return id, params, self.model(params)
+            return _algorithm.simulate(self, id_params_tuple)
 
         else:  # complex-evolution
             igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
@@ -125,7 +124,7 @@ class sceua(_algorithm):
                 lcs.sort()
 
                 # Construct the simplex:
-                s = np.zeros((self.nps, self.nopt))
+
                 s = cx[lcs, :]
                 sf = cf[lcs]
 
@@ -188,6 +187,7 @@ class sceua(_algorithm):
         self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
             'maxbound']
         bound = self.bu - self.bl  # np.array
+        self.stochastic_parameters = bound != 0
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -234,6 +234,8 @@ class sceua(_algorithm):
             idx = np.argsort(xf)
             xf = np.sort(xf)
             x = x[idx, :]
+        else:
+            raise ValueError("Don't know the breakpoint keyword {}".format(self.breakpoint))
         
         # Record the best and worst points;
         bestx = x[0, :]
@@ -249,7 +251,7 @@ class sceua(_algorithm):
 
         # Computes the normalized geometric range of the parameters
         gnrng = np.exp(
-            np.mean(np.log((np.max(x, axis=0) - np.min(x, axis=0)) / bound)))
+            np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
         # Check for convergency;
         if icall >= repetitions:
@@ -335,7 +337,7 @@ class sceua(_algorithm):
 
             # Computes the normalized geometric range of the parameters
             gnrng = np.exp(
-                np.mean(np.log((np.max(x, axis=0) - np.min(x, axis=0)) / bound)))
+                np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
             # Check for convergency;
             if icall >= repetitions:
@@ -396,7 +398,7 @@ class sceua(_algorithm):
             #   iviol = flag indicating if constraints are violated
             #         = 1 , yes
             #         = 0 , no
-
+        constant_parameters = np.invert(self.stochastic_parameters)
         self.nps, self.nopt = s.shape
         alpha = 1.0
         beta = 0.5
@@ -410,7 +412,7 @@ class sceua(_algorithm):
 
         # Attempt a reflection point
         snew = ce + alpha * (ce - sw)
-
+        snew[constant_parameters] = sw[constant_parameters]
         # Check if is outside the bounds:
         ibound = 0
         s1 = snew - self.bl
@@ -427,7 +429,7 @@ class sceua(_algorithm):
             snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
 
         ##    fnew = functn(self.nopt,snew);
-        simulations = self.model(snew)
+        _, _, simulations = _algorithm.simulate(self, (icall, snew))
         like = self.postprocessing(icall, snew, simulations, save=False)
         #like = self.objectivefunction(
         #    evaluation=self.evaluation, simulation=simulations)
@@ -439,7 +441,9 @@ class sceua(_algorithm):
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
             snew = sw + beta * (ce - sw)
-            simulations = self.model(snew)
+            snew[constant_parameters] = sw[constant_parameters]
+
+            _, _, simulations = _algorithm.simulate(self, (icall, snew))
             like = self.postprocessing(icall, snew, simulations, save=False)
 #            like = self.objectivefunction(
 #                evaluation=self.evaluation, simulation=simulations)
@@ -449,7 +453,7 @@ class sceua(_algorithm):
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
                 snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
-                simulations = self.model(snew)
+                _, _, simulations = _algorithm.simulate(self, (icall, snew))
                 like = self.postprocessing(icall, snew, simulations, save=False)
 #                like = self.objectivefunction(
 #                    evaluation=self.evaluation, simulation=simulations)

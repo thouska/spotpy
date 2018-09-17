@@ -9,7 +9,6 @@ import unittest
 try:
     import spotpy
 except ImportError:
-    import sys
     sys.path.append(".")
     import spotpy
 from spotpy import parameter
@@ -66,7 +65,6 @@ class SpotSetupParameterFunction(SpotSetupBase):
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'abcd'])
 
-
 class SpotSetupMixedParameterFunction(SpotSetupBase):
     """
     A Test case with two parameters as class parameters (a,b)
@@ -74,7 +72,6 @@ class SpotSetupMixedParameterFunction(SpotSetupBase):
     """
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
-
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
 
@@ -86,7 +83,6 @@ class SpotSetupParameterList(SpotSetupBase):
     def __init__(self):
         self.parameters = [parameter.Uniform(name, -1, 1) for name in 'abcd']
 
-
 class SpotSetupMixedParameterList(SpotSetupBase):
     """
     A Test case with two parameters as class parameters (a,b)
@@ -94,11 +90,9 @@ class SpotSetupMixedParameterList(SpotSetupBase):
     """
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
-
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
-
-
+    
 class TestSetupVariants(unittest.TestCase):
     def setUp(self):
         # Get all Setups from this module
@@ -115,8 +109,8 @@ class TestSetupVariants(unittest.TestCase):
         self.assertEqual(param_names, 'a,b,c,d', '{} Parameter names should be "a,b,c,d" but got "{}"'
                          .format(o, param_names))
 
-    def make_sampler(self, o):
-        sampler = spotpy.algorithms.mc(spot_setup=o, dbformat='ram')
+    def make_sampler(self, o, algo=spotpy.algorithms.mc):
+        sampler = algo(spot_setup=o, dbformat='ram')
         sampler.sample(10)
 
     def test_parameter_class(self):
@@ -127,10 +121,10 @@ class TestSetupVariants(unittest.TestCase):
 
     def test_parameter_list(self):
         self.parameter_count_test(SpotSetupParameterList())
-
+        
     def test_parameter_mixed_list(self):
         self.parameter_count_test(SpotSetupMixedParameterList())
-
+        
     def test_parameter_mixed_function(self):
         self.parameter_count_test(SpotSetupMixedParameterFunction())
 
@@ -138,7 +132,49 @@ class TestSetupVariants(unittest.TestCase):
         for o in self.objects:
             self.make_sampler(o)
 
+    def test_abc_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.abc)
 
-if __name__ == '__main__':
+    def test_demcz_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.demcz)
+
+    def test_dream_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.dream)
+
+    def test_fscabc_sampler(self):
+        for o in self.objects: self.make_sampler(o, spotpy.algorithms.fscabc)
+
+    def test_lhs_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.lhs)
+
+    def test_mc_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.mc)
+
+    def test_mcmc_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.mcmc)
+
+    def test_mle_sampler(self):
+        for o in self.objects: self.make_sampler(o, spotpy.algorithms.mle)
+
+    def test_rope_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.rope)
+
+    def test_sa_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.sa)
+
+    def test_sceua_sampler(self):
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.sceua)
+
+
+if __name__ == '_main__':
     unittest.main(verbosity=3)
 
