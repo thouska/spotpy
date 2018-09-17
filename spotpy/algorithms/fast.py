@@ -190,7 +190,7 @@ class fast(_algorithm):
         Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
         return (1 - Dt / V)
 
-    def sample(self, repetitions):
+    def sample(self, repetitions, M=4):
         """
         Samples from the FAST algorithm.
 
@@ -214,7 +214,7 @@ class fast(_algorithm):
         bounds = []
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
-        Matrix = self.matrix(bounds, N, M=4)
+        Matrix = self.matrix(bounds, N, M=M)
         lastbackup=0
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
@@ -238,6 +238,6 @@ class fast(_algorithm):
             data = self.datawriter.getdata()
             # this is likely to crash if database does not assign name 'like1'
             Si = self.analyze(
-                bounds, data['like1'], len(bounds), names, print_to_console=True)
+                bounds, data['like1'], len(bounds), names, M=M, print_to_console=True)
         except AttributeError:  # Happens if no database was assigned
             pass

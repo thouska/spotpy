@@ -10,11 +10,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
-import spotpy
 import numpy as np
-import time
 import random
-import itertools
 
 
 class abc(_algorithm):
@@ -82,9 +79,6 @@ class abc(_algorithm):
         """
         print('Starting the ABC algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
-        # Initialize the Progress bar
-        #starttime = time.time()
-        #intervaltime = starttime
         # Initialize ABC parameters:
         randompar = self.parameter()['random']
         self.nopt = randompar.size
@@ -96,38 +90,22 @@ class abc(_algorithm):
         lb, ub = self.parameter()['minbound'], self.parameter()['maxbound']
         # Initialization
         work = []
+        icall = 0
+        gnrng = 1e100
         # Calculate the objective function
         param_generator = (
             (rep, self.parameter()['random']) for rep in range(eb))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate fitness
             like = self.postprocessing(rep, randompar, simulations, chains = 1)
-            #like = self.objectivefunction(
-            #    evaluation=self.evaluation, simulation=simulations)
-            
-            # Save everything in the database
-            #self.save(like, randompar, simulations=simulations)
-            #self.status(rep, like, randompar)
             c = 0
             p = 0
-            # (fit_x,x,fit_v,v,limit,normalized fitness)
             work.append([like, randompar, like, randompar, c, p])
-            # Progress bar
-            #acttime = time.time()
-            # get str showing approximate timeleft to end of simulation in H,
-            # M, S
-            #timestr = time.strftime("%H:%M:%S", time.gmtime(round(((acttime - starttime) /
-            #                                                       (rep + 1)) * (repetitions - (rep + 1)))))
-            # Refresh progressbar every second
-            #if acttime - intervaltime >= 2:
-            #    text = '%i of %i (best like=%g) est. time remaining: %s' % (rep, repetitions,
-            #                                                                self.status.objectivefunction, timestr)
-            #    print(text)
-            #    intervaltime = time.time()
+            icall +=1
+            if self.status.stop:
+                print('Stopping samplig')
+                break
 
-        icall = 0
-        gnrng = 1e100
-        # and criter_change>pcento:
         while icall < repetitions and gnrng > peps:
             psum = 0
         # Employed bee phase
@@ -154,21 +132,16 @@ class abc(_algorithm):
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
                 clike = self.postprocessing(icall+eb, randompar, simulations, chains = 2)
-
-                #clike = self.objectivefunction(
-                #    evaluation=self.evaluation, simulation=simulations)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
-                    work[rep][4] = work[rep][4] + 1
-                
-                #self.save(
-                #    clike, work[rep][3], simulations=simulations, chains=icall)
-                #self.status(rep, work[rep][0], work[rep][1])
+                    work[rep][4] = work[rep][4] + 1                
                 icall += 1
-            # Probability distribution for roulette wheel selection
+                if self.status.stop:
+                    print('Stopping samplig')
+                    break            # Probability distribution for roulette wheel selection
             bn = []
             for i, val in enumerate(work):
                 psum = psum + (1 / work[i][0])
@@ -205,18 +178,16 @@ class abc(_algorithm):
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
                 clike = self.postprocessing(icall+eb, randompar, simulations, chains = 3)
-                #clike = self.objectivefunction(
-                #    evaluation=self.evaluation, simulation=simulations)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
                     work[rep][4] = work[rep][4] + 1                
-                #self.save(
-                #    clike, work[rep][3], simulations=simulations, chains=icall)
-                #self.status(rep, work[rep][0], work[rep][1])
                 icall += 1
+                if self.status.stop:
+                    print('Stopping samplig')
+                    break
         # Scout bee phase
             for i, val in enumerate(work):
                 if work[i][4] >= self.limit:
@@ -225,16 +196,12 @@ class abc(_algorithm):
                     t, work[i][0], simulations = self.simulate(
                         (icall, work[i][1]))
                     clike = self.postprocessing(icall+eb, randompar, simulations, chains = 4)
-                    #clike = self.objectivefunction(
-                    #    evaluation=self.evaluation, simulation=simulations)
-                    #self.save(
-                    #    clike, work[rep][3], simulations=simulations, chains=icall)
                     work[i][0] = clike
                     icall += 1
+                    if self.status.stop:
+                        print('Stopping samplig')
+                        break
             gnrng = -self.status.objectivefunction
-            #text = '%i of %i (best like=%g) est. time remaining: %s' % (
-            #    icall, repetitions, self.status.objectivefunction, timestr)
-            #print(text)
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
                 print('ON THE MAXIMUM NUMBER OF TRIALS ')

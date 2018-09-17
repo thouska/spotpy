@@ -10,9 +10,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from . import _algorithm
-import spotpy
 import numpy as np
-import time
 
 
 class sceua(_algorithm):
@@ -73,12 +71,6 @@ class sceua(_algorithm):
             randompar = np.column_stack(
                 (randompar, self.parameter()['random']))
         return np.amin(randompar, axis=1), np.amax(randompar, axis=1)
-    """
-    def simulate(self,params):
-        if self.repeat.phase=='burnin':
-            id,params = params
-            simulations =
-    """
 
     def simulate(self, id_params_tuple):
         """This overwrites the simple wrapper function of _algorithms.py
@@ -95,9 +87,6 @@ class sceua(_algorithm):
             igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
             self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status = sce_vars
             # Partition the population into complexes (sub-populations);
-#            cx=np.zeros((self.npg,self.nopt))
-#            cf=np.zeros((self.npg))
-            # print(igs)
             k1 = np.arange(self.npg, dtype=int)
             k2 = k1 * self.ngs + igs
             cx[k1, :] = x[k2, :]
@@ -113,11 +102,9 @@ class sceua(_algorithm):
                 lcs[0] = 1
                 for k3 in range(1, self.nps):
                     for i in range(1000):
-                        #lpos = 1 + int(np.floor(self.npg+0.5-np.sqrt((self.npg+0.5)**2 - self.npg*(self.npg+1)*np.random.random())))
                         lpos = int(np.floor(
                             self.npg + 0.5 - np.sqrt((self.npg + 0.5)**2 - self.npg * (self.npg + 1) * np.random.random())))
-                        # idx=find(lcs(1:k3-1)==lpos)
-                        # check of element al eens gekozen
+                        # check if the element has already been chosen
                         idx = (lcs[0:k3] == lpos).nonzero()
                         if idx[0].size == 0:
                             break
@@ -125,16 +112,14 @@ class sceua(_algorithm):
                 lcs.sort()
 
                 # Construct the simplex:
-
                 s = cx[lcs, :]
                 sf = cf[lcs]
 
                 snew, fnew, icall, simulation = self._cceua(s, sf, icall)
                 likes.append(fnew)
                 pars.append(snew)
-                #self.status(igs, -fnew, snew)
                 sims.append(simulation)
-                #self.datawriter.save(-fnew,list(snew), simulations = list(simulation),chains = igs)
+                
                 # Replace the worst point in Simplex with the new point:
                 s[-1, :] = snew
                 sf[-1] = fnew
@@ -147,9 +132,11 @@ class sceua(_algorithm):
                 idx = np.argsort(cf)
                 cf = np.sort(cf)
                 cx = cx[idx, :]
-
+                
+                if self.status.stop:
+                    print('Stopping simulation mode')
+                    return igs, likes, pars, sims, cx, cf, k1, k2
             # Replace the complex back into the population;
-
             return igs, likes, pars, sims, cx, cf, k1, k2
 
     def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001):
@@ -165,23 +152,14 @@ class sceua(_algorithm):
             number of complexes (sub-populations), take more than the number of
             analysed parameters
         kstop: int
-<<<<<<< HEAD
-            maximum number of evolution loops before convergency
-        pcento: float
-            the percentage change allowed in kstop loops before convergency
-=======
             the number of past evolution loops and their respective objective value to assess whether the marginal improvement at the current loop (in percentage) is less than pcento
         pcento: float
             the percentage change allowed in the past kstop loops below which convergence is assumed to be achieved.
->>>>>>> master
         peps: float
             Value of the normalized geometric range of the parameters in the population below which convergence is deemed achieved.
         """
         print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
-        # Initialize the Progress bar
-        starttime = time.time()
-        #intervaltime = starttime
         # Initialize SCE parameters:
         self.ngs = ngs
         randompar = self.parameter()['random']
@@ -201,14 +179,10 @@ class sceua(_algorithm):
             x = data_frombreak[1][0]
             xf = data_frombreak[1][1]
             gnrng = data_frombreak[2]
-            acttime = time.time()
+
         elif self.breakpoint is None or self.breakpoint == 'write':
             # Create an initial population to fill array x(npt,self.self.nopt):
             x = self._sampleinputmatrix(npt, self.nopt)
-
-            # Set Ininitial parameter position
-            # iniflg=1
-
             nloop = 0
             icall = 0
             xf = np.zeros(npt)
@@ -219,40 +193,25 @@ class sceua(_algorithm):
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.postprocessing(icall, randompar, simulations, negativlike=True)
-                
-                #like = self.objectivefunction(
-                #    evaluation=self.evaluation, simulation=simulations)
-                # Save everything in the database
-                
+                like = self.postprocessing(icall, randompar, simulations, negativlike=True)              
                 xf[rep] = like
-                #self.save(-like, randompar, simulations=simulations)
-                #self.status(rep, -like, randompar)
                 icall += 1
-                # Progress bar
-                #acttime = time.time()
-                #if acttime - intervaltime >= 2:
-                #    text = '%i of %i (best like=%g)' % (
-                #        rep, repetitions, self.status.objectivefunction)
-                #    print(text)
-                #    intervaltime = time.time()
-
+                if self.status.stop:
+                    #icall = repetitions
+                    print('Stopping samplig')
+                    break
             # Sort the population in order of increasing function values;
             idx = np.argsort(xf)
             xf = np.sort(xf)
             x = x[idx, :]
         
-        # Record the best and worst points;
+        # Record the best points;
         bestx = x[0, :]
         bestf = xf[0]
-        # worstx=x[-1,:]
-        # worstf=xf[-1]
 
         BESTF = bestf
         BESTX = bestx
         ICALL = icall
-        # Compute the standard deviation for each parameter
-        # xnstd=np.std(x,axis=0)
 
         # Computes the normalized geometric range of the parameters
         gnrng = np.exp(
@@ -278,9 +237,6 @@ class sceua(_algorithm):
         criter = []
         criter_change_pcent = 1e+5
 
-        #starttime = time.time()
-        #intervaltime = starttime
-        #acttime = time.time()
         self.repeat.setphase('ComplexEvo')
 
         print ('ComplexEvo started...')
@@ -288,8 +244,6 @@ class sceua(_algorithm):
         while icall < repetitions and gnrng > peps and criter_change_pcent > pcento:
             nloop += 1
             print ('ComplexEvo loop #%d in progress...' % nloop)
-            # print nloop
-            # print 'Start MPI'
             # Loop on complexes (sub-populations);
             cx = np.zeros((self.npg, self.nopt))
             cf = np.zeros((self.npg))
@@ -302,26 +256,19 @@ class sceua(_algorithm):
                 icall += len(likes)
                 x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
-                #print(len(likes))
                 for i in range(len(likes)):
-                    #print(icall)
                     like = self.postprocessing(icall+i, pars[i], sims[i], chains=i, negativlike=True)
-                    #self.save(-likes[i], pars[i],
-                    #                     simulations=sims[i], chains=igs)
-                    #self.status(icall, -likes[i], pars[i])
+                    if self.status.stop:
+                        icall = repetitions
+                        print('Stopping samplig')
+                        break
                 if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
                   and icall >= self.backup_every_rep:
                     work = (icall, (x, xf), gnrng)
                     self.write_breakdata(self.dbname, work)
-
-                    
-            # Progress bar
-#            acttime = time.time()
-#            if acttime - intervaltime >= 2:
-#                text = '%i of %i (best like=%g)' % (
-#                    icall, repetitions, self.status.objectivefunction)
-#                print(text)
-#                intervaltime = time.time()
+                if self.status.stop:
+                    break
+                
             # End of Loop on Complex Evolution;
 
             # Shuffled the complexes;
@@ -332,8 +279,6 @@ class sceua(_algorithm):
             # Record the best and worst points;
             bestx = x[0, :]
             bestf = xf[0]
-            # worstx=x[-1,:]
-            # worstf=xf[-1]
 
             # appenden en op einde reshapen!!
             BESTX = np.append(BESTX, bestx, axis=0)
@@ -431,17 +376,16 @@ class sceua(_algorithm):
             ibound = 2
 
         if ibound >= 1:
-            snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
+            snew = self._sampleinputmatrix(1, self.nopt)[0]
 
         ##    fnew = functn(self.nopt,snew);
         simulations = self.model(snew)
         like = self.postprocessing(icall, snew, simulations, save=False)
-        #like = self.objectivefunction(
-        #    evaluation=self.evaluation, simulation=simulations)
-        # bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
         fnew = like
-        #fnew = self.model(snew)
         icall += 1
+        if self.status.stop:
+            print('Stopping complex evolution')
+            return snew, fnew, icall, simulations
 
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
@@ -450,22 +394,19 @@ class sceua(_algorithm):
 
             simulations = self.model(snew)
             like = self.postprocessing(icall, snew, simulations, save=False)
-#            like = self.objectivefunction(
-#                evaluation=self.evaluation, simulation=simulations)
             fnew = like
             icall += 1
+            if self.status.stop:
+                print('Stopping complex evolution')
+                return snew, fnew, icall, simulations
+
 
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
-                snew = self._sampleinputmatrix(1, self.nopt)[0]  # checken!!
+                snew = self._sampleinputmatrix(1, self.nopt)[0]
                 simulations = self.model(snew)
                 like = self.postprocessing(icall, snew, simulations, save=False)
-#                like = self.objectivefunction(
-#                    evaluation=self.evaluation, simulation=simulations)
-                # bcf.algorithms._makeSCEUAformat(self.model,self.observations,snew)
                 fnew = like
-                # print 'NSE = '+str((fnew-1)*-1)
-                #fnew = self.model(snew)
                 icall += 1
 
         # END OF CCE
@@ -483,7 +424,3 @@ class sceua(_algorithm):
         for i in range(nrows):
             x[i, :] = self.parameter()['random']
         return x
-        # Matrix=np.empty((nrows,npars))
-        # for i in range(nrows):
-        # Matrix[i]= self.parameter()['random']
-        # return Matrix

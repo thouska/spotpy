@@ -124,7 +124,9 @@ class rope(_algorithm):
                                           / (subsets-1))
         # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
-            repetitions_following_runs+=1
+            print('Warning: Burn-in samples and total number of repetions are not compatible.\n'
+                  'SPOTPY will automatically adjust the number of total repetitions.')
+            repetitions_following_runs-=1
 
             
         if NDIR is None:

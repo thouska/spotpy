@@ -12,7 +12,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy import database, objectivefunctions
 from spotpy import parameter
-import sys
 import numpy as np
 import time
 import threading
@@ -162,7 +161,6 @@ class _algorithm(object):
                     self.non_constant_positions.append(i)
         else: 
             self.non_constant_positions = np.arange(0,len(self.all_params))
-        print(self.non_constant_positions)
         self.parameter = self.get_parameters
         self.parnames = param_info['name']
 
