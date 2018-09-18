@@ -212,6 +212,8 @@ class Base(object):
             self.maxbound = 0.0
 
         self.description = arghelper.get('doc')
+
+        self.is_distinct = not not arghelper.get("distinct")
         arghelper.check_complete()
 
     def __call__(self, **kwargs):

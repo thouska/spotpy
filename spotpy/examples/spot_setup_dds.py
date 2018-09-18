@@ -4,11 +4,55 @@ from spotpy.objectivefunctions import rmse
 import numpy as np
 
 
+def ackley10(vector):
+    length = len(vector)
+    sum1 = 0
+    sum2 = 0
+    for i in range(length):
+        sum1 = sum1 + vector[i] ** 2
+        sum2 = sum2 + np.cos(2 * np.pi * vector[i])
+    return -20 * np.exp(-0.2 * (sum1 / length) ** 0.5) - np.exp(sum2 / length)
+
+
+def griewank10(vector):
+    sum1 = 0
+    term2 = 1
+    term3 = 1
+
+    for i in range(len(vector)):
+        sum1 = sum1 + (vector[i] ** 2) / 4000
+        term2 = term2 * np.cos(vector[i] / (i + 1) ** 0.5)
+
+    return sum1 - term2 + term3
+
+
 class spot_setup(object):
+    """
+        Setup for a simple example to run DDS Algorithm
+    """
 
     def __init__(self):
-        self.params = [Uniform(str(j),-2, 2, 1.5, 3.0, -2, 2, doc=str(j)+' value of Rosenbrock function')
-                       for j in range(10)]
+        self.params = None
+        self.objfunc = None
+
+    def _objfunc_switcher(self, name):
+        """
+        Set new parameter and objective function while setup is instanced in a test case
+        :param name: function name which overwrites initial objective function
+        :return:
+        """
+
+        if name == "ackley":
+            self.objfunc = ackley10
+            self.params = [Uniform(str(j), -2, 2, 1.5, 3.0, -2, 2, doc=str(j) + ' value of Rosenbrock function')
+                           for j in range(10)]
+        elif name == "griewank":
+            self.objfunc = griewank10
+            self.params = [Uniform('d' + str(j), -500, 700, 1.5, 3.0, -500, 700,
+                                   doc=str(j) + 'distinc parameter within a boundary', distinct=True)
+                           for j in range(2)] + [Uniform('c' + str(j), -500, 700, 1.5, 3.0, -500, 700,
+                                                         doc=str(j) + 'continuous parameter within a boundary')
+                                                 for j in range(8)]
 
     def parameters(self):
         return spotpy.parameter.generate(self.params)
@@ -23,4 +67,7 @@ class spot_setup(object):
         return observations
 
     def objectivefunction(self, simulation, evaluation):
-        objectivefunction = -rmse(evaluation=evaluation, simulation=simulation)
+        if self.objfunc is None:
+            print("Please choose an objectivefunction with '_objfunc_switcher' method")
+        else:
+            return self.objfunc(simulation)
