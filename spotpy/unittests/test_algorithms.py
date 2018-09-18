@@ -74,7 +74,7 @@ class TestAlgorithms(unittest.TestCase):
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertLessEqual(len(results), self.rep) #Sceua save per definition not all sampled runs
-#
+
     def test_abc(self):
         sampler=spotpy.algorithms.abc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
@@ -89,9 +89,9 @@ class TestAlgorithms(unittest.TestCase):
 
     def test_rope(self):
         sampler=spotpy.algorithms.rope(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        sampler.sample(self.rep+1)
+        sampler.sample(self.rep)
         results = sampler.getdata()
-        self.assertLessEqual(len(results), self.rep)
+        self.assertEqual(len(results), self.rep)
 
     def test_sa(self):
         sampler=spotpy.algorithms.sa(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
