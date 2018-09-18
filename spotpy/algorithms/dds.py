@@ -48,60 +48,58 @@ class DDS(_algorithm):
         # self.np_random = np.random
         self.np_random = FixedRandomizer()
 
-    def __set_np_random(self,f_rand):
+    def __set_np_random(self, f_rand):
         self.np_random = f_rand
 
-    def sample(self, repetitions,obj_func,fraction1,trials = 1):
+    def sample(self, repetitions, fraction1, trials=1):
         """
             --- --- --- -- .--.--.-.--.---.---.-.-.-..-.-.--
         """
 
         result_list = []
-        sinitial, its, to_max = [], np.max([5, round(0.005 * repetitions)]), 1
-
-        #print(self.objectivefunction([121312,12,12],[1214123,34,34]))
-        #exit()
+        sinitial, its, to_max = [], np.int(np.max([5, round(0.005 * repetitions)])), 1
 
         self.set_repetiton(repetitions)
 
         self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
-        self.discrete_flag = 0  # TODO determine if variable is type : continuous (0) or integer (1)
+        self.discrete_flag = [u.is_distinct for u in self.setup.params]
 
         num_dec = len(self.min_bound)  # num_dec is the number of decision variables
 
         for trial in range(trials):
 
             solution = np.array(repetitions * [(3 + num_dec) * [0.0]])
-
-            stest = []
             sbest = []
             Jbest = []
 
-            s_range = self.max_bound-self.min_bound
-
+            s_range = self.max_bound - self.min_bound
 
             # =================================================================================================
             # INITIAL SOLUTION
             # =================================================================================================
 
-            # own initial solution:
+            # # todo implement own initial solution
             # sinitial = self.parameter()['random']
 
             if its > 1:  # its is the number of function evaluations to initialize the DDS algorithm solution
-                print('Finding best starting point for trial '+str(trial)+' using '+str(its)+' random samples.')
+                print('Finding best starting point for trial ' + str(trial + 1) + ' using ' + str(
+                    its) + ' random samples.')
                 ileft = repetitions - its  # use this to reduce number of fevals in DDS loop
                 if ileft <= 0:
                     raise ValueError('# Initialization samples >= Max # function evaluations.')
 
                 for i in range(its):
-                    if self.discrete_flag == 0:  # continuous variable
+                    stest = []
+                    if not self.discrete_flag[i]:  # continuous variable
                         stest = self.min_bound + s_range * self.np_random.rand(num_dec)
 
                     else:  # discrete case
                         for j in range(num_dec):
-                            stest[j] = self.np_random.randint(self.min_bound[j], self.max_bound[j] + 1)
+                            stest.append(
+                                self.np_random.randint(np.int(self.min_bound[j]), np.int(self.max_bound[j]) + 1))
 
-                    Jtest = to_max * obj_func(stest)  # get obj function value
+                    # TODO how to use the simulation in this case
+                    Jtest = to_max * self.objectivefunction(stest, [])  # get obj function value
 
                     if i == 0:
                         Jbest = Jtest
@@ -118,7 +116,7 @@ class DDS(_algorithm):
             else:  # know its=1, using a user supplied initial solution.  Calculate obj func value.
                 ileft = repetitions - 1  # use this to reduce number of fevals in DDS loop
                 stest = sinitial  # get from the inputs
-                Jtest = get_objfunc(stest)  # get obj function value
+                Jtest = self.objectivefunction(stest, [])  # get obj function value
                 Jbest = Jtest
                 sbest = list(stest)
                 solution[0, 0] = 1
@@ -126,11 +124,8 @@ class DDS(_algorithm):
                 solution[0, 2] = to_max * Jtest
                 solution[0, 3:3 + num_dec] = stest
 
-
-
             it_sbest = its  # needed to initialize variable and avoid code failure when small # iterations
             trial_initial = list(sbest)  # extra variable here to simplify code for tracking initial DDS solution
-
 
             #
             # # A generator that produces parametersets if called
@@ -141,87 +136,52 @@ class DDS(_algorithm):
             #     self.postprocessing(rep, randompar, simulations)
             # self.final_call()
 
+            param_generator = ((rep, self.np_random.rand(num_dec)) for rep in range(int(ileft)))
 
+            for rep, randompar, simulations in self.repeat(param_generator):
+                self.postprocessing(rep, randompar, simulations)
 
-            #param_generator = ((rep, 1.0 - np.log(rep + 1) / np.log(ileft), np_random.rand(num_dec)) for rep in range(int(ileft)))
-
-            # TODO implement like this!
-            # import pprint
-            # pprint.pprint(list(param_generator))
-            # exit()
-
-            for i in range(ileft):  # remaining F evals after initialization
-                # Determine variable selected as neighbour
-                Pn = 1.0 - np.log(i + 1) / np.log(ileft)  # 1.0-i/ileft;# probability of being selected as neighbour
+                Pn = 1.0 - np.log(rep + 1) / np.log(ileft)
                 dvn_count = 0  # counter for how many decision variables vary in neighbour
                 stest = list(sbest)  # define stest initially as current (sbest for greedy)
 
-                randnums = self.np_random.rand(num_dec)
-
-
+                # TODO: maybe loop with np vectors / array to be faster...
                 for j in range(num_dec):
-                    if randnums[j] < Pn:  # then j th DV selected to vary in neighbour
+                    if randompar[j] < Pn:  # then j th DV selected to vary in neighbour
                         dvn_count = dvn_count + 1
-                        new_value = self.neigh_value_mixed(sbest[j], self.min_bound[j], self.max_bound[j], fraction1, j + 1)
-
-                        # TODO make this method!!
-                        # TODO more efficient!!
-
+                        new_value = self.neigh_value_mixed(sbest[j], self.min_bound[j], self.max_bound[j], fraction1, j)
                         stest[j] = new_value  # change relevant dec var value in stest
 
-                # print(choosed_nums)
-                # print(stest)
-                # print("--------------------")
-
                 if dvn_count == 0:  # no DVs selected at random, so select ONE
-                    # TODO back: dec_var = np.int(np.ceil((num_dec-1) * np.random.rand()))  # which dec var to modify for neighbour
                     dec_var = np.int(np.ceil((num_dec) * self.np_random.rand()))
-
-                    new_value = self.neigh_value_mixed(sbest[dec_var - 1], self.min_bound[dec_var - 1], self.max_bound[dec_var - 1], fraction1,
-                                                  dec_var - 1)
-                    # TODO more efficient!
+                    new_value = self.neigh_value_mixed(sbest[dec_var - 1], self.min_bound[dec_var - 1],
+                                                       self.max_bound[dec_var - 1], fraction1,
+                                                       dec_var - 1)
 
                     stest[dec_var - 1] = new_value  # change relevant dec var value in stest
 
-                # get ojective function value
+                Jtest = to_max * self.objectivefunction(stest, simulations)
 
-                Jtest = to_max * obj_func(stest)
-
-                # print([Jtest, Jbest]);
-                # print(stest)
                 if Jtest <= Jbest:
                     Jbest = Jtest
                     sbest = list(stest)
                     it_sbest = i + its  # iteration number best solution found
 
-                    ### write new status file so that best sol'n not lost with long
-                    ### runs (i.e. SWAT or other models called).  June 05 - BT
-                    # Comment this part of code out for fast problems!!
-                    #   filenam='status.out';
-                    #   fid = fopen(filenam,'w'); % opens file and discards current contents
-                    #   zzz=to_max*Jbest;
-                    #   fprintf(fid,'Current best objective function value of %12.5f found at iteration %6.0f\n',zzz,i+its);
-                    #   fprintf(fid,'under parameter set below: \n');
-                    #   fprintf(fid,' %e ',sbest);
-                    #   fclose(fid);
-                    ###
-
                 # accumulate results
+
                 solution[i + its, 0] = i + its
                 solution[i + its, 1] = to_max * Jbest
                 solution[i + its, 2] = to_max * Jtest
                 solution[i + its, 3:3 + num_dec] = stest
 
-            # end DDS function loop
+                # end DDS function loop
 
             print('Best solution found has obj function value of ' + str(to_max * Jbest) + ' \n\n')
-            # [list(solution), it_sbest, sbest, trial_initial]
-
             result_list.append({"sbest": sbest, "trial_initial": trial_initial, "objfunc_val": to_max * Jbest})
+
         return result_list
 
-
-    def neigh_value_continuous(self,s, s_min, s_max, fraction1):
+    def neigh_value_continuous(self, s, s_min, s_max, fraction1):
         # select a RANDOM neighbouring real value of a SINGLE decision variable
         # CEE 509, HW 5 by Bryan Tolson, Mar 5, 2003 AND ALSO CEE PROJECT
 
@@ -275,7 +235,7 @@ class DDS(_algorithm):
 
         return snew
 
-    def neigh_value_discrete(self,s, s_min, s_max, fraction1):
+    def neigh_value_discrete(self, s, s_min, s_max, fraction1):
         # Created by B.Tolson and B.Yung, June 2006
         # Modified by B. Tolson & M. Asadzadeh, Sept 2008
         # Modification: 1- Boundary for reflection at (s_min-0.5) & (s_max+0.5)
@@ -336,16 +296,8 @@ class DDS(_algorithm):
                 snew = sample + 1
         return snew
 
-    def neigh_value_mixed(self,s, s_min, s_max, fraction1, j):
-        if self.discrete_flag == 0:
+    def neigh_value_mixed(self, s, s_min, s_max, fraction1, j):
+        if not self.discrete_flag[j]:
             return self.neigh_value_continuous(s, s_min, s_max, fraction1)
         else:
             return self.neigh_value_discrete(s, s_min, s_max, fraction1)
-
-
-
-    # TODO: getestet werden sollten alle 5 Ergebnisvektoren
-
-
-
-
