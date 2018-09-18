@@ -121,12 +121,7 @@ class abc(_algorithm):
                     work[i][3][j] = lb[j]
                 if work[i][3][j] > ub[j]:
                     work[i][3][j] = ub[j]
-                '''
-                #Scout bee phase
-                if work[i][4] >= self.limit:
-                    work[i][3]=self.parameter()['random']
-                    work[i][4]=0
-                '''
+
             # Calculate the objective function
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):

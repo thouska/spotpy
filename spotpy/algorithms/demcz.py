@@ -13,11 +13,6 @@ from . import _algorithm
 import numpy as np
 
 
-
-class DEMCZError(Exception):
-    pass
-
-
 class demcz(_algorithm):
     """
     Implements the DE-MC_Z algorithm from ter Braak and Vrugt (2008).
@@ -121,65 +116,6 @@ class demcz(_algorithm):
             print('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
     
-    def analyse_demcz_status(self, nChains, new_likelist, old_likelist, old_like, proposalVectors, currentVectors, new_simulationlist, old_simulationlist, currentLogPs, proposalLogPs):        # apply the metrop decision to decide whether to accept or reject
-        # each chain proposal
-        decisions, acceptance = self._metropolis_hastings(
-            currentLogPs, proposalLogPs, nChains)
-        try:
-            self._update_accepts_ratio(self.accepts_ratio_weighting, acceptance)
-        except DEMCZError:
-            pass
-        
-        # choose from list of possible choices if 1d_decision is True at
-        # specific index, else use default choice
-        # np.choose(1d_decision[:,None], (list of possible choices, default
-        # choice)
-        save_likes=[]
-        save_pars=[]
-        save_sims=[]
-
-        for curchain in range(nChains):
-            if decisions[curchain]:
-               save_likes.append(float(new_likelist[curchain]))
-               old_like[curchain]=float(new_likelist[curchain])
-               save_pars.append(proposalVectors[curchain])
-               save_sims.append(new_simulationlist[curchain])
-            else:
-               save_likes.append(old_like[curchain])
-               save_pars.append(currentVectors[curchain])
-               save_sims.append(old_simulationlist[curchain])
-                  
-        currentVectors = np.choose(
-            decisions[:, np.newaxis], (currentVectors, proposalVectors))
-        currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
-
-        simulationlist = [[new_simulationlist, old_simulationlist][
-            int(x)][ix] for ix, x in enumerate(decisions)]
-
-        likelist = list(
-            np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
-
-        # we only want to recalculate convergence criteria when we are past
-        # the burn in period
-        if self.cur_iter % self.thin == 0:
-
-            historyStartMovementRate = self.adaptationRate
-            # try to adapt more when the acceptance rate is low and less
-            # when it is high
-            if self.adaptationRate == 'auto':
-                historyStartMovementRate = min(
-                    (.234 / self.accepts_ratio) * .5, .95)
-
-            self.history.record(
-                currentVectors, currentLogPs, historyStartMovementRate, grConvergence=self.grConvergence.R)
-
-        if self.history.nsamples > 0 and self.cur_iter > self.lastRecalculation * 1.1 and self.history.nsequence_histories > self.dimensions:
-            self.lastRecalculation = self.cur_iter
-            self.grConvergence.update(self.history)
-            self.covConvergence.update(self.history, 'all')
-            self.covConvergence.update(self.history, 'interest')
-        return likelist, simulationlist
-    
     def sample(self, repetitions, nChains=3, burnIn=100, thin=1, 
                convergenceCriteria=.8, variables_of_interest=None,
                DEpairs=2, adaptationRate='auto', eps=5e-2,
@@ -218,7 +154,6 @@ class demcz(_algorithm):
 
         # minbound,maxbound=self.find_min_max()
         # select variables if necessary
-
         if variables_of_interest is not None:
             slices = []
             for var in variables_of_interest:
@@ -261,16 +196,13 @@ class demcz(_algorithm):
             gamma = None
             self.accepts_ratio = 0.000001
     
-    
             # initilize the convergence diagnostic object
             grConvergence = _GRConvergence()
             covConvergence = _CovarianceConvergence()
     
             # get the starting log objectivefunction and position for each of the
             # chains
-    
             currentVectors = burnInpar[-1]
-    
             currentLogPs = self._logPs[-1]
     
             # 2)now loop through and sample
@@ -485,9 +417,6 @@ class _SimulationHistory(object):
     def sequence_histories(self):
         return self.group_sequence_histories('all')
 
-    def group_sequence_histories(self, name):
-        return self._sequence_histories[:, self.group_indicies[name], int(np.ceil(self.relevantHistoryStart)):self.relevantHistoryEnd]
-
     @property
     def nsequence_histories(self):
         return self.sequence_histories.shape[2]
@@ -497,8 +426,6 @@ class _SimulationHistory(object):
         return self.group_combined_history('all')
 
     def group_combined_history(self, name):
-        # print self._combined_history
-        # print self.relevantHistoryStart
         return self._combined_history[(int(np.ceil(self.relevantHistoryStart)) * self._nChains):(self.relevantHistoryEnd * self._nChains), self.group_indicies[name]]
 
     @property
