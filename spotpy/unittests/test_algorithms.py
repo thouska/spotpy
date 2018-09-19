@@ -30,7 +30,7 @@ class TestAlgorithms(unittest.TestCase):
         self.rep = 987
         self.timeout = 10 #Given in Seconds
 
-        self.parallel = "seq"
+        self.parallel = os.environ.get('SPOTPY_PARALLEL', 'seq')
         self.dbformat = "ram"
 
     def test_mc(self):
