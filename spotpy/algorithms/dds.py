@@ -88,8 +88,6 @@ class DDS(_algorithm):
         else:
             its = 1
             s_initial = np.array(s_initial)
-            print(np.all(s_initial <= self.max_bound))
-            print(np.all(s_initial >= self.min_bound))
             if not (np.all(s_initial <= self.max_bound) and np.all(s_initial >= self.min_bound)):
                 raise ValueError("User specified 's_initial' but the values are not within the parameter range")
 
@@ -138,9 +136,12 @@ class DDS(_algorithm):
             else:  # now its=1, using a user supplied initial solution.  Calculate obj func value.
                 i_left = repetitions - 1  # use this to reduce number of fevals in DDS loop
                 s_test = s_initial  # get from the inputs
-                nr, inpt, sims = self.simulate((trial, s_initial))
 
-                j_test = self.getfitness(sims, s_test)  # get obj function value
+                single_generator = ( (i,s_test) for i in range(1) )
+                rep, s_test_param, simulations = next(self.repeat(single_generator))
+
+                j_test = self.postprocessing(rep,s_test,simulations)
+
 
                 j_best = j_test
                 s_best = list(s_test)
