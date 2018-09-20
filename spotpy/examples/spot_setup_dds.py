@@ -66,7 +66,6 @@ class spot_setup(object):
         x = np.array(vector)
         # simulations = [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
         simulations = x * np.random.rand(len(vector))
-        # print(simulations)
         return simulations
 
     def evaluation(self):
@@ -74,9 +73,10 @@ class spot_setup(object):
         observations = [2, 3, 4]
         return observations
 
-    def objectivefunction(self, simulation, evaluation):
+    def objectivefunction(self, simulation, evaluation, params):
+
         if self.objfunc is None:
-            print(simulation, evaluation)
             return -rmse(evaluation, simulation)
         else:
-            return self.objfunc(evaluation)
+            pars, names = params
+            return self.objfunc(pars)

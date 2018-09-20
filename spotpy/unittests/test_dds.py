@@ -1,7 +1,7 @@
 import unittest
 import sys
 
-from spotpy.tools import FixedRandomizer
+
 
 try:
     import spotpy
@@ -9,7 +9,8 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-import numpy as np
+from spotpy.tools import FixedRandomizer
+
 import os
 from spotpy.examples.spot_setup_dds import spot_setup
 import json
