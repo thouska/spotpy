@@ -55,19 +55,28 @@ class spot_setup(object):
                                                  for j in range(8)]
 
     def parameters(self):
+        if self.params is None:
+            self.params = [
+                Uniform("0", -10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function'),
+                Uniform("1", -10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function'),
+                Uniform("z", -10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')]
         return spotpy.parameter.generate(self.params)
 
     def simulation(self, vector):
         x = np.array(vector)
-        simulations = [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
+        # simulations = [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
+        simulations = x * np.random.rand(len(vector))
+        # print(simulations)
         return simulations
 
     def evaluation(self):
-        observations = [0]
+        # observations = [0]
+        observations = [2, 3, 4]
         return observations
 
     def objectivefunction(self, simulation, evaluation):
         if self.objfunc is None:
-            print("Please choose an objectivefunction with '_objfunc_switcher' method")
+            print(simulation, evaluation)
+            return -rmse(evaluation, simulation)
         else:
-            return self.objfunc(simulation)
+            return self.objfunc(evaluation)

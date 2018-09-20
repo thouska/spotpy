@@ -1,6 +1,8 @@
 import unittest
 import sys
 
+from spotpy.tools import FixedRandomizer
+
 try:
     import spotpy
 except ImportError:
@@ -18,6 +20,7 @@ class TestDDS(unittest.TestCase):
         self.spot_setup = spot_setup()
         self.rep = 1000
         self.timeout = 1  # Given in Seconds
+        self.f_random = FixedRandomizer()
 
     def json_helper(self, run):
         with open(os.path.dirname(__file__) + "/DDS_references/run_" + str(run) + ".json") as f:
@@ -43,6 +46,9 @@ class TestDDS(unittest.TestCase):
     def test_run_6(self):
         self.run_a_dds(6)
 
+    def test_run_7(self):
+        self.run_a_dds(7)
+
     def run_a_dds(self, run):
         original_result = self.json_helper(run)
 
@@ -50,6 +56,7 @@ class TestDDS(unittest.TestCase):
 
         sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
                                         sim_timeout=self.timeout)
+        sampler._set_np_random(self.f_random)
 
         results = sampler.sample(original_result["evatrials"], original_result["r_val"], original_result["trial_runs"])
 
@@ -66,7 +73,7 @@ class TestDDS(unittest.TestCase):
             matlb_trial_initial = original_result["results"][t]["trial_initial"]
             for k in range(len(py_sbest)):
                 print(py_trial_initial[k], matlb_trial_initial[k])
-                self.assertTrue(np.abs(py_trial_initial[k] - matlb_trial_initial[k]) < 0.0001)
+                self.assertAlmostEqual(py_trial_initial[k],matlb_trial_initial[k], delta=0.0001)
 
 
 if __name__ == '__main__':
