@@ -1,7 +1,6 @@
 import unittest
 import sys
-
-
+import numpy as np
 
 try:
     import spotpy
@@ -50,6 +49,12 @@ class TestDDS(unittest.TestCase):
     def test_run_7(self):
         self.run_a_dds(7)
 
+    def test_run_own_initial_1(self):
+        self.run_a_dds("own_input_1")
+
+    def test_run_own_initial_2(self):
+        self.run_a_dds("own_input_2")
+
     def run_a_dds(self, run):
         original_result = self.json_helper(run)
 
@@ -59,11 +64,18 @@ class TestDDS(unittest.TestCase):
                                         sim_timeout=self.timeout)
         sampler._set_np_random(self.f_random)
 
-        results = sampler.sample(original_result["evatrials"], original_result["r_val"], original_result["trial_runs"])
+        if original_result.get("s_initial") is not None:
+            # if a parameter initialisation is given, test this:
+            results = sampler.sample(original_result["evatrials"], original_result["r_val"],
+                                     original_result["trial_runs"], s_initial=original_result["s_initial"])
+        else:
+            results = sampler.sample(original_result["evatrials"], original_result["r_val"],
+                                     original_result["trial_runs"])
 
         for t in range(original_result["trial_runs"]):
             print(results[t]["objfunc_val"], original_result["results"][t]["objfunc_val"])
-            self.assertAlmostEqual(results[t]["objfunc_val"] , original_result["results"][t]["objfunc_val"],delta=0.000001)
+            self.assertAlmostEqual(results[t]["objfunc_val"], original_result["results"][t]["objfunc_val"],
+                                   delta=0.000001)
             py_sbest = results[t]["sbest"]
             matlb_sbest = original_result["results"][t]["sbest"]
             for k in range(len(py_sbest)):
@@ -74,7 +86,18 @@ class TestDDS(unittest.TestCase):
             matlb_trial_initial = original_result["results"][t]["trial_initial"]
             for k in range(len(py_sbest)):
                 print(py_trial_initial[k], matlb_trial_initial[k])
-                self.assertAlmostEqual(py_trial_initial[k],matlb_trial_initial[k], delta=0.0001)
+                self.assertAlmostEqual(py_trial_initial[k], matlb_trial_initial[k], delta=0.0001)
+
+    def test_own_initial_out_of_borders_ackley_1(self):
+        self.spot_setup._objfunc_switcher("ackley")
+        sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
+                                        sim_timeout=self.timeout)
+
+        try:
+            sampler.sample(1000, s_initial=list(np.random.uniform(-2, 2, 9)) + [3])
+            self.assertTrue(False, "ValueError was not thrown")
+        except ValueError as e:
+            self.assertTrue(True, "a ValueError was thrown and this is expected")
 
 
 if __name__ == '__main__':
