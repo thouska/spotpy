@@ -87,6 +87,11 @@ class DDS(_algorithm):
             raise ValueError("User specified 's_initial' has not the same length as available parameters")
         else:
             its = 1
+            s_initial = np.array(s_initial)
+            print(np.all(s_initial <= self.max_bound))
+            print(np.all(s_initial >= self.min_bound))
+            if not (np.all(s_initial <= self.max_bound) and np.all(s_initial >= self.min_bound)):
+                raise ValueError("User specified 's_initial' but the values are not within the parameter range")
 
         for trial in range(trials):
 
@@ -113,7 +118,9 @@ class DDS(_algorithm):
                            range(int(num_dec))]) for rep in range(int(its)))
 
                 for rep, s_test, simulations in self.repeat(starting_generator):
-                    j_test = to_max * self.objectivefunction(simulations, s_test)  # get obj function value
+                    like = self.postprocessing(rep,s_test,simulations) # get obj function value
+                    #j_test = to_max * self.objectivefunction(simulations, s_test)  # get obj function value
+                    j_test = to_max * like
 
                     if rep == 0:
                         j_best = j_test
@@ -131,7 +138,10 @@ class DDS(_algorithm):
             else:  # now its=1, using a user supplied initial solution.  Calculate obj func value.
                 i_left = repetitions - 1  # use this to reduce number of fevals in DDS loop
                 s_test = s_initial  # get from the inputs
-                j_test = self.objectivefunction(s_test, self.simulate((trial, s_initial)))  # get obj function value
+                nr, inpt, sims = self.simulate((trial, s_initial))
+
+                j_test = self.getfitness(sims, s_test)  # get obj function value
+
                 j_best = j_test
                 s_best = list(s_test)
                 # solution[0, 0] = 1
@@ -145,7 +155,7 @@ class DDS(_algorithm):
             param_generator = ((rep, self.np_random.rand(num_dec)) for rep in range(int(i_left)))
 
             for rep, randompar, simulations in self.repeat(param_generator):
-                self.postprocessing(rep, randompar, simulations)
+
 
                 Pn = 1.0 - np.log(rep + 1) / np.log(i_left)
                 dvn_count = 0  # counter for how many decision variables vary in neighbour
@@ -167,7 +177,8 @@ class DDS(_algorithm):
 
                     s_test[dec_var - 1] = new_value  # change relevant dec var value in s_test
 
-                j_test = to_max * self.objectivefunction(simulations,s_test)
+                like = self.postprocessing(rep, s_test, simulations, chains=trial)
+                j_test = to_max * like
 
                 if j_test <= j_best:
                     j_best = j_test
