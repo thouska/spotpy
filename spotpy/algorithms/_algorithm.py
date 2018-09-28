@@ -30,7 +30,7 @@ except ImportError:
 
 class _RunStatistic(object):
     """
-    this class checks for each run if the objectivefunction got better and holds the 
+    this class checks for each run if the objectivefunction got better and holds the
     best parameter set.
     Every _algorithm has an object of this class as status.
     Usage:
@@ -46,7 +46,7 @@ class _RunStatistic(object):
         self.bestrep = 0
         self.starttime = time.time()
         self.last_print = time.time()
-        
+
         self.repetitions = None
 
     def __call__(self, rep, objectivefunction, params):
@@ -73,12 +73,12 @@ class _RunStatistic(object):
         if acttime - self.last_print >= 2:
             avg_time_per_run = (acttime - self.starttime) / (self.rep + 1)
             timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (self.rep + 1)))))
-                    
+
             text = '%i of %i (best like=%g) est. time remaining: %s' % (self.rep, self.repetitions,
                                                                         self.objectivefunction, timestr)
             print(text)
             self.last_print = time.time()
-        
+
     def __repr__(self):
         return 'Best objectivefunction: %g' % self.objectivefunction
 
@@ -90,24 +90,24 @@ class _algorithm(object):
     Input
     ----------
     spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
+        model: function
+            Should be callable with a parameter combination of the parameter-function
             and return an list of simulation results (as long as evaluation list)
         parameter: function
-            When called, it should return a random parameter combination. Which can 
+            When called, it should return a random parameter combination. Which can
             be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
+        objectivefunction: function
+            Should return the objectivefunction for a given list of a model simulation and
             observation.
         evaluation: function
             Should return the true values as return by the model.
 
     dbname: str
-        Name of the database where parameter, objectivefunction value and simulation 
+        Name of the database where parameter, objectivefunction value and simulation
         results will be saved.
     dbformat: str
          ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        csv: A csv file will be created, which you can import afterwards.        
+        csv: A csv file will be created, which you can import afterwards.
     parallel: str
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
@@ -121,8 +121,8 @@ class _algorithm(object):
     alt_objfun: str or None, default: 'rmse'
         alternative objectivefunction to be used for algorithm
         * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions, 
-            this objectivefunction is used, else falls back to None 
+        * any str: if str is found in spotpy.objectivefunctions,
+            this objectivefunction is used, else falls back to None
             e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
     sim_timeout: float, int or None, default: None
         the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
@@ -130,6 +130,8 @@ class _algorithm(object):
         If the model run has been broken simlply '[nan]' will be returned.
     random_state: int or None, default: None
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
+    simnames: list or None, default: None
+        a list of strings denoting the names of outputs being simulated by the model.
     """
 
     _unaccepted_parameter_types = (parameter.List, )
@@ -137,7 +139,8 @@ class _algorithm(object):
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
                  breakpoint=None, backup_every_rep=100, save_threshold=-np.inf,
-                 db_precision=np.float16, sim_timeout=None, random_state=None):
+                 db_precision=np.float16, sim_timeout=None, random_state=None,
+                 simnames=None):
         # Initialize the user defined setup class
         self.setup = spot_setup
         # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
@@ -155,7 +158,7 @@ class _algorithm(object):
             for i, val in enumerate(self.all_params):
                 if self.all_params[i] not in self.constant_positions:
                     self.non_constant_positions.append(i)
-        else: 
+        else:
             self.non_constant_positions = np.arange(0,len(self.all_params))
         print(self.non_constant_positions)
         self.parameter = self.get_parameters
@@ -171,6 +174,7 @@ class _algorithm(object):
             objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
+        self.simnames = simnames
         self.dbname = dbname or 'customDb'
         self.dbformat = dbformat or 'ram'
         self.db_precision = db_precision
@@ -181,11 +185,11 @@ class _algorithm(object):
         # 'dbappend' used to append to the existing data base, after restart
         self.dbinit = dbinit
         self.dbappend = dbappend
-        
+
         # Set the random state
         if random_state is None: #ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state) 
+        np.random.seed(random_state)
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
@@ -275,8 +279,8 @@ class _algorithm(object):
             self.datawriter = database.get_datawriter(self.dbformat,
                 self.dbname, self.parnames, like, randompar, simulations,
                 save_sim=self.save_sim, dbappend=self.dbappend,
-                dbinit=self.dbinit, db_precision=self.db_precision,
-                setup=self.setup)
+                dbinit=self.dbinit, simnames=self.simnames,
+                db_precision=self.db_precision, setup=self.setup)
 
             self.dbinit = False
 
@@ -323,17 +327,17 @@ class _algorithm(object):
         # before they actually save the run in a database (e.g. sce-ua)
         if save is True:
             if negativlike is True:
-                self.save(-like, params, simulations=simulation, chains=chains)              
+                self.save(-like, params, simulations=simulation, chains=chains)
                 self.status(rep, -like, params)
             else:
                 self.save(like, params, simulations=simulation, chains=chains)
                 self.status(rep, like, params)
         if type(like)==type([]):
             return like[0]
-        else:        
+        else:
             return like
-    
-    
+
+
     def getfitness(self, simulation, params):
         """
         Calls the user defined spot_setup objectivefunction
@@ -343,9 +347,9 @@ class _algorithm(object):
             return self.objectivefunction(evaluation=self.evaluation, simulation=simulation, params = (params,self.parnames))
 
         except TypeError: # Happens if the user does not allow to pass parameter in the spot_setup.objectivefunction
-            #print('Not using parameters in fitness function')            
+            #print('Not using parameters in fitness function')
             return self.objectivefunction(evaluation=self.evaluation, simulation=simulation)
-    
+
     def simulate(self, id_params_tuple):
         """This is a simple wrapper of the model, returning the result together with
         the run id and the parameters. This is needed, because some parallel things

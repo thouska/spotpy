@@ -30,7 +30,8 @@ class database(object):
     """
 
     def __init__(self, dbname, parnames, like, randompar, simulations=None,
-                 chains=1, save_sim=True, db_precision=np.float16, **kwargs):
+                 chains=1, save_sim=True, simnames=None,
+                 db_precision=np.float16, **kwargs):
         # Just needed for the first line in the database
         self.chains = chains
         self.dbname = dbname
@@ -39,13 +40,14 @@ class database(object):
         self.simulations = simulations
         self.save_sim = save_sim
         self.db_precision = db_precision
+        self.simnames = simnames
         if not save_sim:
             simulations = None
         self.dim_dict = {}
         self.singular_data_lens = [self._check_dims(name, obj) for name, obj in [(
             'like', like), ('par', randompar), ('simulation', simulations)]]
-        self._make_header(simulations,parnames)
-        
+        self._make_header(simulations,parnames,simnames)
+
         self.last_flush = time.time()
 
     def _check_dims(self, name, obj):
@@ -86,7 +88,7 @@ class database(object):
 
     def _array_to_list(self, obj):
         #print('array')
-        values = []        
+        values = []
         for val in obj:
             values.append(val)
         return values
@@ -94,7 +96,7 @@ class database(object):
 
     def _nestediterable_to_list(self, obj):
         #print('nested')
-        values = []        
+        values = []
         for nestedlist in obj:
             #print(len(nestedlist))
             for val in nestedlist:
@@ -103,22 +105,34 @@ class database(object):
         return values
         #return np.array(obj).flatten().tolist()
 
-    def _make_header(self, simulations,parnames):
+    def _make_header(self, simulations, parnames, simnames=None):
+        '''
+        Builds header for the database
+        <simnames> should be a list of names of outputs being simulated by the
+        model
+        '''
+        if simnames is not None and not isinstance(simnames, list):
+            simnames = None  # Be sure simnames is either None or list
         self.header = []
         self.header.extend(['like' + '_'.join(map(str, x))
                             for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
         self.header.extend(['par{0}'.format(x) for x in parnames])
         #print(self.singular_data_lens[2])
-        #print(type(self.singular_data_lens[2]))        
+        #print(type(self.singular_data_lens[2]))
         if self.save_sim:
             for i in range(len(simulations)):
                 if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
                     for j in range(len(simulations[i])):
-                        self.header.extend(['simulation' + str(i+1)+'_'+str(j+1)])
+                        if simnames is None:
+                            self.header.extend(['sim' + str(i+1)+'_'+str(j+1)])
+                        else:
+                            self.header.extend(['sim' + str(simnames[i])+'_'+str(j+1)])
                 else:
-                    self.header.extend(['simulation' + '_'+str(i)])
+                    if simnames is None:
+                        self.header.extend(['sim' + '_'+str(i+1)])
+                    else:
+                        self.header.extend(['sim' + str(simnames[i])])
                                     #for x in product(*self._tuple_2_xrange(self.singular_data_lens[2]))])
-
         self.header.append('chain')
 
     def _tuple_2_xrange(self, t):
@@ -146,7 +160,7 @@ class ram(database):
 
     def finalize(self):
         """
-        Is called in a last step of every algorithm. 
+        Is called in a last step of every algorithm.
         Forms the List of values into a strutured numpy array in order to have
         the same structure as a csv database.
         """
@@ -154,11 +168,11 @@ class ram(database):
                        'formats': [np.float] * len(self.header)}
         i = 0
         Y = np.zeros(len(self.ram), dtype=dt)
-        
+
         for line in self.ram:
             Y[i] = line
             i+=1
-        
+
         self.data = Y
 
     def getdata(self):
@@ -205,7 +219,7 @@ class csv(database):
             coll = map(self.db_precision, coll)
             self.db.write(
                 ','.join(map(str, coll)) + '\n')
-            
+
         acttime = time.time()
         # Force writing to disc at least every two seconds
         if acttime - self.last_flush >= 2:
@@ -253,7 +267,7 @@ class sql(database):
         # init base class
         super(sql, self).__init__(*args, **kwargs)
         # Create a open file, which needs to be closed after the sampling
-        try:        
+        try:
             os.remove(self.dbname + '.db')
         except:
             pass
@@ -297,12 +311,12 @@ class sql(database):
             # Workaround for python2
             headers = [(unicode(row[1]).encode("ascii"), unicode("<f8").encode("ascii")) for row in
                        self.db_cursor.execute("PRAGMA table_info(" + self.dbname + ");")]
-        
+
         back = np.array([row for row in self.db_cursor.execute('SELECT * FROM ' + self.dbname)],dtype=headers)
 
         self.db.close()
         return back
-        
+
 class noData(database):
     """
     This class saves the process in the working storage. It can be used if
