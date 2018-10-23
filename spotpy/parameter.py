@@ -595,11 +595,9 @@ class ParameterSet(object):
 
         :raises: KeyError, IndexError and TypeError
         """
-        try:
-            return self.__info['random'][item]
-        except TypeError:
-            positem = self.__lookup[item]
-        return self.__info['random'][positem]
+        if type(item) is str:
+            item = self.__lookup[item]
+        return self.__info['random'][item]
 
     def __setitem__(self, key, value):
         """

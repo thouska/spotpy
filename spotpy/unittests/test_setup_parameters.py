@@ -107,27 +107,27 @@ class TestParameterSet(unittest.TestCase):
 
     def test_assign(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
         self.assertEquals(list(self.ps), values)
         # Test if wrong number of parameters raises
         with self.assertRaises(ValueError):
-            self.ps(values[:-1])
+            self.ps(*values[:-1])
 
     def test_iter(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
         ps_values = list(self.ps)
         self.assertEquals(values, ps_values)
 
     def test_getitem(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
         self.assertEquals(self.ps['a'], 1.0)
         self.assertEquals(self.ps[0], 1.0)
 
     def test_getattr(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
 
         with self.assertRaises(AttributeError):
             _ = self.ps.__x
@@ -144,7 +144,7 @@ class TestParameterSet(unittest.TestCase):
 
     def test_dir(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
 
         attrs = dir(self.ps)
         for param in self.ps.name:
@@ -154,12 +154,12 @@ class TestParameterSet(unittest.TestCase):
 
     def test_str(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
         self.assertEquals(str(self.ps), 'parameters(a=1, b=1, c=1, d=1)')
 
     def test_repr(self):
         values = [1] * len(self.ps)
-        self.ps(values)
+        self.ps(*values)
         self.assertEquals(repr(self.ps), 'spotpy.parameter.ParameterSet()')
 
 
