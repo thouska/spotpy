@@ -114,7 +114,7 @@ class rope(_algorithm):
 
         if repetitions_first_run is None:
             #Take the first have of the repetitions as burn-in
-            first_run = int(repetitions / 2)
+            first_run = int(repetitions / 2.0)
 
         else:
             #Make user defined number of burn-in repetitions
@@ -124,11 +124,13 @@ class rope(_algorithm):
                                           / (subsets-1))
         # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
+            print('Warning: Burn-in samples and total number of repetions are not compatible.\n'
+                  'SPOTPY will automatically adjust the number of total repetitions.')
             repetitions_following_runs+=1
 
             
         if NDIR is None:
-            NDIR = int(repetitions_following_runs / 100)
+            NDIR = int(repetitions_following_runs / 100.0)
         self.NDIR = NDIR
 
         starttime = time.time()
@@ -139,7 +141,7 @@ class rope(_algorithm):
         # Init ROPE with one subset
         likes = []
         pars = []
-        segment = 1 / float(first_run)
+        segment = 1.0 / float(first_run)
         # Get the minimum and maximum value for each parameter from the
 
         # Create a matrix to store the parameter sets
@@ -164,6 +166,8 @@ class rope(_algorithm):
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second
+            if self.status.stop:
+                break
             if acttime - intervaltime >= 2:
                 text = '1 Subset: Run %i of %i (best like=%g)' % (
                     rep, first_run, self.status.objectivefunction)
@@ -196,6 +200,9 @@ class rope(_algorithm):
                 like = self.postprocessing(first_run + rep + repetitions_following_runs * subset, ropepar, simulations)
                 likes.append(like)
                 pars.append(ropepar)
+                if self.status.stop:
+                    print('Stopping samplig')
+                    break
 
                 # Progress bar
                 acttime = time.time()
@@ -209,6 +216,8 @@ class rope(_algorithm):
                             self.status.objectivefunction)
                         print(text)
                         intervaltime = time.time()
+            if self.status.stop:
+                break
 
         self.final_call()
         

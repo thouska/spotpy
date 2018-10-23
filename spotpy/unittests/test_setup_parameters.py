@@ -111,7 +111,7 @@ class TestSetupVariants(unittest.TestCase):
 
     def make_sampler(self, o, algo=spotpy.algorithms.mc):
         sampler = algo(spot_setup=o, dbformat='ram')
-        sampler.sample(10)
+        sampler.sample(100)
 
     def test_parameter_class(self):
         self.parameter_count_test(SpotSetupClassAttributes())

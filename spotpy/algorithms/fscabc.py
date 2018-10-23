@@ -70,8 +70,6 @@ class fscabc(_algorithm):
 
     def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=5, ownlimit=False, limit=24):
         """
-
-
         Parameters
         ----------
         repetitions: int
@@ -130,11 +128,15 @@ class fscabc(_algorithm):
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
                 like = self.postprocessing(rep, randompar, simulations)
-
                 c = 0
                 p = 0
                 # (fit_x,x,fit_v,v,limit,normalized fitness)
                 work.append([like, randompar, like, randompar, c, p])
+                icall +=1
+                if self.status.stop:
+                    #icall = repetitions
+                    print('Stopping samplig')
+                    break
 
         #Bee Phases
         while icall < repetitions and gnrng > peps:
@@ -169,6 +171,9 @@ class fscabc(_algorithm):
                 else:
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
+                if self.status.stop:
+                    print('Stopping samplig')
+                    break
                 
             # Fitness scaling
             bn = []
@@ -212,6 +217,9 @@ class fscabc(_algorithm):
                 else:
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
+                if self.status.stop:
+                    print('Stopping samplig')
+                    break
         # Scout bee phase
             for i, val in enumerate(work):
                 if work[i][4] >= self.limit:
@@ -224,6 +232,9 @@ class fscabc(_algorithm):
                     clike = self.postprocessing(icall, randompar, simulations, chains=3)
                     work[i][0] = clike
                     icall += 1
+                    if self.status.stop:
+                        print('Stopping samplig')
+                        break
             gnrng = -self.status.objectivefunction
 
             if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\

@@ -88,7 +88,7 @@ class sa(_algorithm):
         _, _, simulations = self.simulate((1, x))
         Enew = self.postprocessing(1, x, simulations)
         Eopt = Enew
-        rep = 0
+        rep = 1 # Because the model has been started once already
         while (Titer > 0.001 * Tini and rep < repetitions):
             for counter in range(Ntemp):
 
@@ -112,6 +112,8 @@ class sa(_algorithm):
                 _, _, simulations = self.simulate((rep+1, x))
                 Enew = self.postprocessing(rep+1, x, simulations)
                 rep += 1
+                if self.status.stop:
+                    break
 
 
             Titer = alpha * Titer
