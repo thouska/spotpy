@@ -636,8 +636,8 @@ class ParameterSet(object):
 
     def __str__(self):
         return 'parameters({})'.format(
-            ', '.join('{}={:g}'.format(k, self.__info['random'][v])
-                      for k, v in self.__lookup.items()
+            ', '.join('{}={:g}'.format(k, self.__info['random'][i])
+                      for i, k in enumerate(self.__info['name'])
                       )
         )
 
