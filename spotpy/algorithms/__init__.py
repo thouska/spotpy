@@ -32,3 +32,4 @@ from .fscabc import fscabc   # Fitness Scaling Artificial Bee Colony
 from .dream import dream     # DiffeRential Evolution Adaptive Metropolis
 from .list import list       # Samples from  given spotpy database
 from .dds import DDS
+from .pdds import PDDS

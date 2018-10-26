@@ -154,10 +154,11 @@ class DDS(_algorithm):
             trial_initial = list(s_best)  # extra variable here to simplify code for tracking initial DDS solution
 
             param_generator = ((rep, self.np_random.rand(num_dec)) for rep in range(int(i_left)))
-
+            print("WARNING: IMPLEMENTATION ERROR")
+            exit(1)
             for rep, randompar, simulations in self.repeat(param_generator):
 
-
+                print(rep, simulations)
                 Pn = 1.0 - np.log(rep + 1) / np.log(i_left)
                 dvn_count = 0  # counter for how many decision variables vary in neighbour
                 s_test = list(s_best)  # define s_test initially as current (s_best for greedy)
