@@ -17,6 +17,7 @@ install:
   - pip install pytest pytest-pep8 pytest-cov
   # Use docutils to generate html describe
   - pip install docutils
+  - pip install numba
 
 
 script:
