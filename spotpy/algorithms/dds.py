@@ -14,6 +14,16 @@ class DDS(_algorithm):
         selection for multi-objective optimization, Engineering Optimization. 10.1080/0305215X.2012.748046.
 
         http://www.civil.uwaterloo.ca/btolson/software.aspx
+
+        Method:
+        "The DDS algorithm is a novel and simple stochastic single-solution based heuristic global search
+        algorithm that was developed for the purpose of finding good global solutions
+        (as opposed to globally optimal solutions) within a specified maximum function (or model) evaluation limit."
+        (Page 3)
+
+        The DDS algorithm is a simple greedy algorithm, always using the best solution (min or max) from the current
+        point of view. This may not lead to the global optimization.
+
     """
 
     def __init__(self, *args, **kwargs):
@@ -59,18 +69,23 @@ class DDS(_algorithm):
         else:
             self.discrete_flag = [False] * len(self.max_bound)
 
-        # self.generator_repetitions will be set in `sample` and is needed to generate a generator which sends back actual parameter s_test
+        # self.generator_repetitions will be set in `sample` and is needed to generate a
+        # generator which sends back actual parameter s_test
         self.generator_repetitions = -1
 
         # holds currents best parameter
-        self.next_s_best = []
+        self.next_s_test = []
 
     def _set_np_random(self, f_rand):
         self.np_random = f_rand
 
     def get_next_s_test(self):
+        """
+        Fake a generator to run self.repeat to use multiprocessing
+        """
+        # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions - 1):
-            yield rep + 1, self.next_s_best
+            yield rep + 1, self.next_s_test
 
     def sample(self, repetitions, fraction1=0.2, trials=1, s_initial=[], to_max=1):
         """
@@ -84,7 +99,7 @@ class DDS(_algorithm):
         :param trials: amount of runs DDS algorithm will be performed
         :param s_initial: set an initial trial set
         :param to_max: 1 to minimize objective function, -1 maximized objective function
-        :return:
+        :return: a key-value set of all parameter combination which has been used. May changed in future.
         """
 
         self.fraction1 = fraction1
@@ -159,12 +174,12 @@ class DDS(_algorithm):
 
             it_sbest = its  # needed to initialize variable and avoid code failure when small # iterations
             trial_initial = list(s_best)  # extra variable here to simplify code for tracking initial DDS solution
-            self.next_s_best = list(s_best)
 
-            # important to set this field `generator_repetitions` so that method `get_next_s_test` can generate exact paremters
+            # important to set this field `generator_repetitions` so that
+            # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = i_left
 
-            self.next_s_best = self.calculate_next_s_test(num_dec, s_test, s_best, 0)
+            self.next_s_test = self.calculate_next_s_test(s_best, 0)
 
             for rep, s_test, simulations in self.repeat(self.get_next_s_test()):
 
@@ -177,39 +192,50 @@ class DDS(_algorithm):
                     s_best = list(s_test)
                     it_sbest = rep + its  # iteration number best solution found
 
-                # end DDS function loop
-                s_test = list(s_best)
-                self.next_s_best = self.calculate_next_s_test(num_dec, s_test, s_best, rep)
+                # prepare next s_test parameter based on s_best
+                self.next_s_test = self.calculate_next_s_test(s_best, rep)
 
-            print('Best solution found has obj function value of ' + str(to_max * j_best) + ' \n\n')
+            print('Best solution found has obj function value of ' + str(to_max * j_best) + ' at '
+                  + str(it_sbest) + '\n\n')
             result_list.append({"sbest": s_best, "trial_initial": trial_initial, "objfunc_val": to_max * j_best})
 
         return result_list
 
-    def calculate_next_s_test(self, num_dec, s_test, s_best, rep):
-        randompar = self.np_random.rand(num_dec)
+    def calculate_next_s_test(self, previous_s_tests, rep):
+        """
+        Needs to run in side `sample` method. Calculate the next set of parameters based on a given set.
+        This is greedy algorithm belonging to the DDS algorithm.
+
+        :param previous_s_tests: A set of parameters
+        :param rep: Position in DDS loop
+        :return: next parameter set
+        """
+        amount_params = len(previous_s_tests)
+
+        new_s_test = list(previous_s_tests)  # define new_s_test initially as current (previous_s_tests for greedy)
+
+        randompar = self.np_random.rand(amount_params)
 
         Pn = 1.0 - np.log(rep + 1) / np.log(self.generator_repetitions)
         dvn_count = 0  # counter for how many decision variables vary in neighbour
-        # s_test = list(s_best)  # define s_test initially as current (s_best for greedy)
 
-        for j in range(num_dec):
+        for j in range(amount_params):
             if randompar[j] < Pn:  # then j th DV selected to vary in neighbour
                 dvn_count = dvn_count + 1
 
-                new_value = self.neigh_value_mixed(s_best[j], self.min_bound[j], self.max_bound[j], self.fraction1,
-                                                   j)
-                s_test[j] = new_value  # change relevant dec var value in stest
+                new_value = self.neigh_value_mixed(previous_s_tests[j], self.min_bound[j], self.max_bound[j],
+                                                   self.fraction1, j)
+                new_s_test[j] = new_value  # change relevant dec var value in stest
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
-            dec_var = np.int(np.ceil(num_dec * self.np_random.rand()))
-            new_value = self.neigh_value_mixed(s_best[dec_var - 1], self.min_bound[dec_var - 1],
+            dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
+            new_value = self.neigh_value_mixed(previous_s_tests[dec_var - 1], self.min_bound[dec_var - 1],
                                                self.max_bound[dec_var - 1], self.fraction1,
                                                dec_var - 1)
 
-            s_test[dec_var - 1] = new_value  # change relevant dec var value in s_test
+            new_s_test[dec_var - 1] = new_value  # change relevant dec var value in s_test
 
-        return s_test
+        return new_s_test
 
     def neigh_value_continuous(self, s, s_min, s_max, fraction1):
         """
@@ -226,7 +252,7 @@ class DDS(_algorithm):
                             normal random number/s_range.  Eg:
                         std dev desired = fraction1 * s_range
                         for comparison:  variance (V) = (fraction1 * s_range)^2
-        :return:
+        :return: s_new, a new sample of values in beetween a given range
         """
 
         s_range = s_max - s_min
@@ -284,7 +310,7 @@ class DDS(_algorithm):
                   normal random number/s_range.  Eg:
                       std dev desired = fraction1 * s_range
                       for comparison:  variance (V) = (fraction1 * s_range)^2
-        :return:
+        :return: s_new, a new sample of values in beetween a given range
         """
 
         s_range = s_max - s_min
