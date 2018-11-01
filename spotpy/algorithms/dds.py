@@ -54,28 +54,46 @@ class DDS(_algorithm):
         self.np_random = np.random
         self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
 
-        if hasattr(self.setup,"params"):
+        if hasattr(self.setup, "params"):
             self.discrete_flag = [u.is_distinct for u in self.setup.params]
         else:
             self.discrete_flag = [False] * len(self.max_bound)
 
+        # self.generator_repetitions will be set in `sample` and is needed to generate a generator which sends back actual parameter s_test
+        self.generator_repetitions = -1
+
+        # holds currents best parameter
+        self.next_s_best = []
+
     def _set_np_random(self, f_rand):
         self.np_random = f_rand
 
-    def sample(self, repetitions, fraction1=0.2, trials=1, s_initial=[]):
+    def get_next_s_test(self):
+        for rep in range(self.generator_repetitions - 1):
+            yield rep + 1, self.next_s_best
+
+    def sample(self, repetitions, fraction1=0.2, trials=1, s_initial=[], to_max=1):
         """
-        Samples from the DDS Algorithm
+        Samples from the DDS Algorithm. User can define an own 's_initial' parameter configuration set. If not `s_initial`
+        is set, the algorithm defines an own
+
         :param repetitions:  Maximum number of runs.
         :type repetitions: int
         :param fraction1: value between 0 and 1
         :type fraction1: float
         :param trials: amount of runs DDS algorithm will be performed
         :param s_initial: set an initial trial set
+        :param to_max: 1 to minimize objective function, -1 maximized objective function
         :return:
         """
 
+        self.fraction1 = fraction1
+
+        # Check if `to_max` is correct
+        if to_max != 1 and to_max != -1:
+            raise ValueError("please specify `to_max` as 1 or -1")
+
         result_list = []
-        to_max = 1
 
         self.set_repetiton(repetitions)
 
@@ -91,17 +109,16 @@ class DDS(_algorithm):
             if not (np.all(s_initial <= self.max_bound) and np.all(s_initial >= self.min_bound)):
                 raise ValueError("User specified 's_initial' but the values are not within the parameter range")
 
+        # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
-
-            # solution = np.array(repetitions * [(3 + num_dec) * [0.0]])
             s_best = []
             j_best = []
 
             s_range = self.max_bound - self.min_bound
 
-            # =================================================================================================
-            # INITIAL SOLUTION
-            # =================================================================================================
+            # Calculate the initial Solution, if `its` > 1 otherwise the user defined a own one.
+            # If we need to find an initial solution we iterating its times to warm um the algorithm by trying which
+            # randomized generated input matches best (has minimal / maximum likelihood)
 
             if its > 1:  # its is the number of function evaluations to initialize the DDS algorithm solution
                 print('Finding best starting point for trial ' + str(trial + 1) + ' using ' + str(
@@ -116,8 +133,8 @@ class DDS(_algorithm):
                            range(int(num_dec))]) for rep in range(int(its)))
 
                 for rep, s_test, simulations in self.repeat(starting_generator):
-                    like = self.postprocessing(rep,s_test,simulations) # get obj function value
-                    #j_test = to_max * self.objectivefunction(simulations, s_test)  # get obj function value
+                    like = self.postprocessing(rep, s_test, simulations)  # get obj function value
+
                     j_test = to_max * like
 
                     if rep == 0:
@@ -128,57 +145,31 @@ class DDS(_algorithm):
                         j_best = j_test
                         s_best = list(s_test)
 
-                    # solution[rep, 0] = rep
-                    # solution[rep, 1] = to_max * j_best
-                    # solution[rep, 2] = to_max * j_test
-                    # solution[rep, 3:3 + num_dec] = s_test
-
             else:  # now its=1, using a user supplied initial solution.  Calculate obj func value.
                 i_left = repetitions - 1  # use this to reduce number of fevals in DDS loop
-                s_test = s_initial  # get from the inputs
+                s_test = list(s_initial)  # get from the inputs
 
-                single_generator = ( (i,s_test) for i in range(1) )
+                single_generator = ((i, s_test) for i in range(1))
                 rep, s_test_param, simulations = next(self.repeat(single_generator))
 
-                j_test = self.postprocessing(rep,s_test,simulations)
-
+                j_test = self.postprocessing(rep, s_test, simulations)
 
                 j_best = j_test
                 s_best = list(s_test)
-                # solution[0, 0] = 1
-                # solution[0, 1] = to_max * j_best
-                # solution[0, 2] = to_max * j_test
-                # solution[0, 3:3 + num_dec] = s_test
 
             it_sbest = its  # needed to initialize variable and avoid code failure when small # iterations
             trial_initial = list(s_best)  # extra variable here to simplify code for tracking initial DDS solution
+            self.next_s_best = list(s_best)
 
-            param_generator = ((rep, self.np_random.rand(num_dec)) for rep in range(int(i_left)))
+            # important to set this field `generator_repetitions` so that method `get_next_s_test` can generate exact paremters
+            self.generator_repetitions = i_left
 
-            for rep, randompar, simulations in self.repeat(param_generator):
+            self.next_s_best = self.calculate_next_s_test(num_dec, s_test, s_best, 0)
 
-
-                Pn = 1.0 - np.log(rep + 1) / np.log(i_left)
-                dvn_count = 0  # counter for how many decision variables vary in neighbour
-                s_test = list(s_best)  # define s_test initially as current (s_best for greedy)
-
-                for j in range(num_dec):
-                    if randompar[j] < Pn:  # then j th DV selected to vary in neighbour
-                        dvn_count = dvn_count + 1
-
-                        new_value = self.neigh_value_mixed(s_best[j], self.min_bound[j], self.max_bound[j], fraction1,
-                                                           j)
-                        s_test[j] = new_value  # change relevant dec var value in stest
-
-                if dvn_count == 0:  # no DVs selected at random, so select ONE
-                    dec_var = np.int(np.ceil(num_dec * self.np_random.rand()))
-                    new_value = self.neigh_value_mixed(s_best[dec_var - 1], self.min_bound[dec_var - 1],
-                                                       self.max_bound[dec_var - 1], fraction1,
-                                                       dec_var - 1)
-
-                    s_test[dec_var - 1] = new_value  # change relevant dec var value in s_test
+            for rep, s_test, simulations in self.repeat(self.get_next_s_test()):
 
                 like = self.postprocessing(rep, s_test, simulations, chains=trial)
+
                 j_test = to_max * like
 
                 if j_test <= j_best:
@@ -186,19 +177,39 @@ class DDS(_algorithm):
                     s_best = list(s_test)
                     it_sbest = rep + its  # iteration number best solution found
 
-                # accumulate results
-
-                # solution[rep + its, 0] = rep + its
-                # solution[rep + its, 1] = to_max * j_best
-                # solution[rep + its, 2] = to_max * j_test
-                # solution[rep + its, 3:3 + num_dec] = s_test
-
                 # end DDS function loop
+                s_test = list(s_best)
+                self.next_s_best = self.calculate_next_s_test(num_dec, s_test, s_best, rep)
 
             print('Best solution found has obj function value of ' + str(to_max * j_best) + ' \n\n')
             result_list.append({"sbest": s_best, "trial_initial": trial_initial, "objfunc_val": to_max * j_best})
 
         return result_list
+
+    def calculate_next_s_test(self, num_dec, s_test, s_best, rep):
+        randompar = self.np_random.rand(num_dec)
+
+        Pn = 1.0 - np.log(rep + 1) / np.log(self.generator_repetitions)
+        dvn_count = 0  # counter for how many decision variables vary in neighbour
+        # s_test = list(s_best)  # define s_test initially as current (s_best for greedy)
+
+        for j in range(num_dec):
+            if randompar[j] < Pn:  # then j th DV selected to vary in neighbour
+                dvn_count = dvn_count + 1
+
+                new_value = self.neigh_value_mixed(s_best[j], self.min_bound[j], self.max_bound[j], self.fraction1,
+                                                   j)
+                s_test[j] = new_value  # change relevant dec var value in stest
+
+        if dvn_count == 0:  # no DVs selected at random, so select ONE
+            dec_var = np.int(np.ceil(num_dec * self.np_random.rand()))
+            new_value = self.neigh_value_mixed(s_best[dec_var - 1], self.min_bound[dec_var - 1],
+                                               self.max_bound[dec_var - 1], self.fraction1,
+                                               dec_var - 1)
+
+            s_test[dec_var - 1] = new_value  # change relevant dec var value in s_test
+
+        return s_test
 
     def neigh_value_continuous(self, s, s_min, s_max, fraction1):
         """

@@ -19,6 +19,7 @@ class FixedRandomizerEndOfDataException(Exception):
 
 class FixedRandomizer():
     def __init__(self):
+        self.debug = False
         self.uniform_counter = 0
         self.normal_counter = 0
         self.uniform_list=list(np.loadtxt(os.path.dirname(__file__)+"/uniform_list.txt"))
@@ -37,6 +38,8 @@ class FixedRandomizer():
             if self.uniform_counter < self.max_uniform_counter:
                 x[i] = self.uniform_list[self.uniform_counter]
                 self.uniform_counter = self.uniform_counter + 1
+                if self.debug:
+                    print("fixrand::rand() counter = "+str(self.uniform_counter))
             else:
                 raise FixedRandomizerEndOfDataException("No more data left. Counter is: "+str(self.uniform_counter))
         if len(x) == 1:
@@ -54,6 +57,8 @@ class FixedRandomizer():
             q_uni = self.uniform_list[self.uniform_counter]
             pos = np.int(np.floor(q_uni / fraq))
             self.uniform_counter += 1
+            if self.debug:
+                print("fixrand::randint() counter = " + str(self.uniform_counter))
             return vals[pos]
         else:
             raise FixedRandomizerEndOfDataException("No more data left.")
@@ -64,6 +69,8 @@ class FixedRandomizer():
             if self.normal_counter < self.max_normal_counter:
                 x.append(self.normal_list[self.normal_counter]*scale + loc)
                 self.normal_counter += 1
+                if self.debug:
+                    print("fixrand::normal() counter = " + str(self.normal_counter))
 
             else:
                 raise FixedRandomizerEndOfDataException("No more data left.")
