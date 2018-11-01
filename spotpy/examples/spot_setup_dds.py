@@ -65,7 +65,8 @@ class spot_setup(object):
     def simulation(self, vector):
         x = np.array(vector)
         # simulations = [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
-        simulations = x * np.random.rand(len(vector))
+        #simulations = x * np.random.rand(len(vector))
+        simulations = x * np.sum(vector)
         return simulations
 
     def evaluation(self):
