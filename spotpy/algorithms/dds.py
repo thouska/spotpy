@@ -117,13 +117,13 @@ class DDS(_algorithm):
     def _set_np_random(self, f_rand):
         self.np_random = f_rand
 
-    def get_next_s_test(self):
+    def get_next_x_curr(self):
         """
         Fake a generator to run self.repeat to use multiprocessing
         """
         # We need to shift position and length of the sampling process
-        for rep in range(self.generator_repetitions - 1):
-            yield rep + 1, self.next_s_test
+        for rep in range(self.generator_repetitions):
+            yield rep, self.calculate_next_s_test(self.best_value.parameters,rep,self.r)
 
     def sample(self, repetitions, trials=1, s_initial=[]):
         """
@@ -191,21 +191,17 @@ class DDS(_algorithm):
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
 
-            self.next_s_test = self.calculate_next_s_test(self.best_value.parameters, 0, self.r)
+            #self.next_s_test = self.calculate_next_s_test(self.best_value.parameters, 0, self.r)
 
-            for rep, x_curr, simulations in self.repeat(self.get_next_s_test()):
+            for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
                 f_curr = self.postprocessing(rep, x_curr, simulations, chains=trial)
 
                 self.best_value.update(x_curr,f_curr,rep + initial_iterations)
 
                 # TODO MAXIMIZE!
-                # if f_curr <= f_best:
-                #     f_best = f_curr
-                #     x_best = list(x_curr)
-                #     repitionno_best = rep # iteration number best solution found
 
                 # prepare next x_curr parameter based on x_best
-                self.next_s_test = self.calculate_next_s_test(self.best_value.parameters,rep,self.r)
+                #self.next_s_test = self.calculate_next_s_test(self.best_value.parameters,rep,self.r)
 
             print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')
@@ -261,7 +257,7 @@ class DDS(_algorithm):
 
         return repetions_left, f_best, x_best
 
-    def calculate_next_s_test(self, previous_x_curr, rep, r):
+    def calculate_next_s_test(self, previous_x_curr, rep, all_rep, r):
         """
         Needs to run inside `sample` method. Calculate the next set of parameters based on a given set.
         This is greedy algorithm belonging to the DDS algorithm.
