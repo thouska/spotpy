@@ -257,7 +257,7 @@ class DDS(_algorithm):
 
         return repetions_left, f_best, x_best
 
-    def calculate_next_s_test(self, previous_x_curr, rep, all_rep, r):
+    def calculate_next_s_test(self, previous_x_curr, rep, r):
         """
         Needs to run inside `sample` method. Calculate the next set of parameters based on a given set.
         This is greedy algorithm belonging to the DDS algorithm.
