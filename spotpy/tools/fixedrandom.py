@@ -13,7 +13,6 @@ import os
 
 # replaces numpy.random module in a way
 
-
 class FixedRandomizerEndOfDataException(Exception):
     pass
 
