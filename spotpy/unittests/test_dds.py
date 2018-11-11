@@ -61,15 +61,15 @@ class TestDDS(unittest.TestCase):
         self.spot_setup._objfunc_switcher(original_result['objfunc'])
 
         sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
-                                        sim_timeout=self.timeout)
+                                        sim_timeout=self.timeout,r=original_result["r_val"])
         sampler._set_np_random(self.f_random)
 
         if original_result.get("s_initial") is not None:
             # if a parameter initialisation is given, test this:
-            results = sampler.sample(original_result["evatrials"], original_result["r_val"],
+            results = sampler.sample(original_result["evatrials"],
                                      original_result["trial_runs"], s_initial=original_result["s_initial"])
         else:
-            results = sampler.sample(original_result["evatrials"], original_result["r_val"],
+            results = sampler.sample(original_result["evatrials"],
                                      original_result["trial_runs"])
 
         for t in range(original_result["trial_runs"]):
@@ -105,12 +105,6 @@ class TestDDS(unittest.TestCase):
         sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
                                         sim_timeout=self.timeout)
         self.assertRaises(ValueError, sampler.sample, 1000, s_initial=list(np.random.uniform(-2, 2, 11)))
-
-    def test_wrong_min_max_input(self):
-        self.spot_setup._objfunc_switcher("ackley")
-        sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
-                                        sim_timeout=self.timeout)
-        self.assertRaises(ValueError, sampler.sample, 1000,to_max=1.1)
 
 
 if __name__ == '__main__':

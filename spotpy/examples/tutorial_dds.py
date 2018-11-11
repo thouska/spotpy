@@ -27,7 +27,7 @@ parallel = "seq"
 dbformat = "csv"
 sampler=spotpy.algorithms.DDS(spot_setup,parallel=parallel, dbname='DDS', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
-sampler.sample(rep, trials=1,fraction1=0.1)
+sampler.sample(rep, trials=1, r=0.1)
 results.append(sampler.getdata())
 
 
