@@ -83,6 +83,7 @@ class SpotSetupParameterList(SpotSetupBase):
     def __init__(self):
         self.parameters = [parameter.Uniform(name, -1, 1) for name in 'abcd']
 
+
 class SpotSetupMixedParameterList(SpotSetupBase):
     """
     A Test case with two parameters as class parameters (a,b)
@@ -90,9 +91,78 @@ class SpotSetupMixedParameterList(SpotSetupBase):
     """
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
+
     def parameters(self):
         return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
-    
+
+
+class TestParameterSet(unittest.TestCase):
+    def setUp(self):
+        model = SpotSetupParameterFunction()
+        param_info = model.parameters()
+        self.ps = parameter.ParameterSet(param_info)
+
+    def test_create(self):
+        self.assertEqual(type(self.ps), parameter.ParameterSet)
+
+    def test_assign(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+        self.assertEquals(list(self.ps), values)
+        # Test if wrong number of parameters raises
+        with self.assertRaises(ValueError):
+            self.ps(*values[:-1])
+
+    def test_iter(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+        ps_values = list(self.ps)
+        self.assertEquals(values, ps_values)
+
+    def test_getitem(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+        self.assertEquals(self.ps['a'], 1.0)
+        self.assertEquals(self.ps[0], 1.0)
+
+    def test_getattr(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+
+        with self.assertRaises(AttributeError):
+            _ = self.ps.__x
+
+        self.assertEquals(self.ps.a, 1.0)
+        self.assertEquals(list(self.ps.random), list(self.ps), 'Access to random variable does not equal list of names')
+
+        with self.assertRaises(AttributeError):
+            _ = self.ps.x
+
+    def test_setattr(self):
+        self.ps.a = 2
+        self.assertEquals(self.ps[0], 2)
+
+    def test_dir(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+
+        attrs = dir(self.ps)
+        for param in self.ps.name:
+            self.assertIn(param, attrs, 'Attribute {} not found in {}'.format(param, self.ps))
+        for prop in ['maxbound', 'minbound', 'name', 'optguess', 'random', 'step']:
+            self.assertIn(prop, attrs, 'Property {} not found in {}'.format(prop, self.ps))
+
+    def test_str(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+        self.assertEquals(str(self.ps), 'parameters(a=1, b=1, c=1, d=1)')
+
+    def test_repr(self):
+        values = [1] * len(self.ps)
+        self.ps(*values)
+        self.assertEquals(repr(self.ps), 'spotpy.parameter.ParameterSet()')
+
+
 class TestSetupVariants(unittest.TestCase):
     def setUp(self):
         # Get all Setups from this module
@@ -102,8 +172,8 @@ class TestSetupVariants(unittest.TestCase):
         self.assertGreater(len(self.objects), 0)
 
     def parameter_count_test(self, o):
-        params = parameter.create_set(o)
-        param_names = ','.join(pn for pn in params._fields)
+        params = parameter.create_set(o, valuetype='optguess')
+        param_names = ','.join(pn for pn in params.name)
         self.assertEqual(len(params), 4, '{} should have 4 parameters, but found only {} ({})'
                          .format(o, len(params), param_names))
         self.assertEqual(param_names, 'a,b,c,d', '{} Parameter names should be "a,b,c,d" but got "{}"'
