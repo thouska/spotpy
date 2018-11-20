@@ -73,8 +73,8 @@ class TestDDS(unittest.TestCase):
                                      original_result["trial_runs"])
 
         for t in range(original_result["trial_runs"]):
-            print(results[t]["objfunc_val"], original_result["results"][t]["objfunc_val"])
-            self.assertAlmostEqual(results[t]["objfunc_val"], original_result["results"][t]["objfunc_val"],
+            print(results[t]["objfunc_val"], -1*original_result["results"][t]["objfunc_val"])
+            self.assertAlmostEqual(results[t]["objfunc_val"], -1*original_result["results"][t]["objfunc_val"],
                                    delta=0.000001)
             py_sbest = results[t]["sbest"]
             matlb_sbest = original_result["results"][t]["sbest"]

@@ -1,37 +1,34 @@
 import numpy as np
 from spotpy.tools.fixedrandom import *
 from . import _algorithm
-import spotpy.parameter
 from spotpy.parameter import ParameterSet
 
-class BestValue(object):
-    # print(ps)
-    # print([ps.maxbound, ps.minbound, ps.optguess, ps.step, ps.random])
 
+class BestValue(object):
+    """
+        BestValue holds a parameter set and a best objective value, which is used by the DDS Algorithm.
+        Every time a new parameter set is sampled the `update` method is run and saves the new parameters, if the the
+        new calculated objective value is greater equals the current best one
+
+    """
     def __init__(self, parameters, obj_value):
-        # self.parameters = spotpy.parameter.Gamma()
-        # self.best_obj_val = spotpy.parameter.Gamma()
         self.parameters = parameters
         self.best_obj_val = obj_value
         self.best_rep = 0
 
-    # TODO Docstring
-    def update(self,curr_parameters, curr_obj_val, curr_rep):
+    def update(self, curr_parameters, curr_obj_val, curr_rep):
         """
-        Update on maximize
-        :param curr_parameters:
-        :param curr_obj_val:
+        Update on parameter set and the corresponding objective value on maximize
+        :param curr_parameters: a ParameterSet object
+        :type curr_parameters: ParameterSet
+        :param curr_obj_val: calculated new objective value
+        :type curr_obj_val: float
         :return:
         """
-        # TODO MAXIMAIZE
-        if self.best_obj_val is None or self.best_obj_val >= curr_obj_val:
+        if self.best_obj_val is None or self.best_obj_val <= curr_obj_val:
             self.best_obj_val = curr_obj_val
             self.parameters = curr_parameters
             self.best_rep = curr_rep
-
-    def init(self,parameters,obj_value): # fake init # todo change that
-        self.parameters = parameters
-        self.best_obj_val = obj_value
 
     def copy(self):
         to_copy = BestValue(self.parameters.copy(),self.best_obj_val)
@@ -111,14 +108,12 @@ class DDS(_algorithm):
         super(DDS, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
-
-
-        self.best_value = BestValue(ParameterSet(self.parameter()), 0)  # TODO set obj_value in a better way
+        self.best_value = BestValue(ParameterSet(self.parameter()), None)
 
         if hasattr(self.setup, "params"):
             self.discrete_flag = [u.is_distinct for u in self.setup.params]
         else:
-            self.discrete_flag = [False] * len(self.max_bound)
+            self.discrete_flag = [False] * len(self.best_value.parameters)
 
         # self.generator_repetitions will be set in `sample` and is needed to generate a
         # generator which sends back actual parameter s_test
@@ -239,7 +234,7 @@ class DDS(_algorithm):
                     f_best = f_curr
                     x_best = list(x_curr)
 
-                if f_curr <= f_best:
+                if f_curr >= f_best:
                     f_best = f_curr
                     x_best = list(x_curr)
 

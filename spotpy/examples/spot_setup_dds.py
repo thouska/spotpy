@@ -11,7 +11,7 @@ def ackley10(vector):
     for i in range(length):
         sum1 = sum1 + vector[i] ** 2
         sum2 = sum2 + np.cos(2 * np.pi * vector[i])
-    return -20 * np.exp(-0.2 * (sum1 / length) ** 0.5) - np.exp(sum2 / length)
+    return -1*(-20 * np.exp(-0.2 * (sum1 / length) ** 0.5) - np.exp(sum2 / length))
 
 
 def griewank10(vector):
@@ -23,7 +23,7 @@ def griewank10(vector):
         sum1 = sum1 + (vector[i] ** 2) / 4000
         term2 = term2 * np.cos(vector[i] / (i + 1) ** 0.5)
 
-    return sum1 - term2 + term3
+    return -1*(sum1 - term2 + term3)
 
 
 class spot_setup(object):
@@ -77,7 +77,7 @@ class spot_setup(object):
     def objectivefunction(self, simulation, evaluation, params):
 
         if self.objfunc is None:
-            return -rmse(evaluation, simulation)
+            return -1*rmse(evaluation, simulation)
         else:
             pars, names = params
             return self.objfunc(pars)
