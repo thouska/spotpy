@@ -9,6 +9,7 @@ from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
 import sys
+import copy
 
 if sys.version_info[0] >= 3:
     unicode = str
@@ -656,6 +657,12 @@ class ParameterSet(object):
         attrs = [attr for attr in vars(type(self)) if not attr.startswith('_')]
         return attrs + list(self.__info['name']) + list(self.__info.dtype.names)
 
+    def set_by_array(self,array):
+        for i, a in enumerate(array):
+            self.__setitem__(i,a)
+
+    def copy(self):
+        return ParameterSet(copy.deepcopy(self.__info))
 
 def get_classes():
     keys = []
