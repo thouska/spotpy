@@ -2,8 +2,12 @@ import numpy as np
 from spotpy.tools.fixedrandom import *
 from . import _algorithm
 import spotpy.parameter
+from spotpy.parameter import ParameterSet
 
 class BestValue(object):
+    # print(ps)
+    # print([ps.maxbound, ps.minbound, ps.optguess, ps.step, ps.random])
+
     def __init__(self, parameters, obj_value):
         # self.parameters = spotpy.parameter.Gamma()
         # self.best_obj_val = spotpy.parameter.Gamma()
@@ -28,6 +32,15 @@ class BestValue(object):
     def init(self,parameters,obj_value): # fake init # todo change that
         self.parameters = parameters
         self.best_obj_val = obj_value
+
+    def copy(self):
+        to_copy = BestValue(self.parameters.copy(),self.best_obj_val)
+        to_copy.best_rep = self.best_rep
+        return to_copy
+
+    def __str__(self):
+        return "BestValue(best_obj_val = " + str(self.best_obj_val) + ", best_rep = " + str(self.best_rep) + ", " \
+               + str(self.parameters)
 
 
 class DDS(_algorithm):
@@ -98,9 +111,9 @@ class DDS(_algorithm):
         super(DDS, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
-        self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
 
-        self.best_value = BestValue(self.parameter(), 0)  # TODO set obj_value in a better way
+
+        self.best_value = BestValue(ParameterSet(self.parameter()), 0)  # TODO set obj_value in a better way
 
         if hasattr(self.setup, "params"):
             self.discrete_flag = [u.is_distinct for u in self.setup.params]
@@ -123,9 +136,9 @@ class DDS(_algorithm):
         """
         # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions):
-            yield rep, self.calculate_next_s_test(self.best_value.parameters,rep,self.r)
+            yield rep, self.calculate_next_s_test(self.best_value.parameters,rep,self.generator_repetitions,self.r)
 
-    def sample(self, repetitions, trials=1, s_initial=[]):
+    def sample(self, repetitions, trials=1, x_initial=[]):
         """
         Samples from the DDS Algorithm.
 
@@ -154,7 +167,7 @@ class DDS(_algorithm):
         :param repetitions:  Maximum number of runs.
         :type repetitions: int
         :param trials: amount of runs DDS algorithm will be performed
-        :param s_initial: set an initial trial set as a first parameter configuration. If the set is empty the algorithm
+        :param x_initial: set an initial trial set as a first parameter configuration. If the set is empty the algorithm
                          select an own initial parameter configuration
         :return: a key-value set of all parameter combination which has been used. May changed in future.
         """
@@ -164,53 +177,42 @@ class DDS(_algorithm):
 
         self.set_repetiton(repetitions)
 
-        number_of_parameters = len(self.min_bound)  # number_of_parameters is the amount of parameters
+        number_of_parameters = len(self.best_value.parameters)  # number_of_parameters is the amount of parameters
 
-        if len(s_initial) == 0:
+        if len(x_initial) == 0:
             initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
-        elif len(s_initial) != number_of_parameters:
-            raise ValueError("User specified 's_initial' has not the same length as available parameters")
+        elif len(x_initial) != number_of_parameters:
+            raise ValueError("User specified 'x_initial' has not the same length as available parameters")
         else:
             initial_iterations = 1
-            s_initial = np.array(s_initial)
-            if not (np.all(s_initial <= self.max_bound) and np.all(s_initial >= self.min_bound)):
-                raise ValueError("User specified 's_initial' but the values are not within the parameter range")
+            x_initial = np.array(x_initial)
+            if not (np.all(x_initial <= self.best_value.parameters.maxbound) and np.all(x_initial >= self.best_value.parameters.minbound)):
+                raise ValueError("User specified 'x_initial' but the values are not within the parameter range")
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
             # repitionno_best saves on which iteration the best parameter configuration has been found
             repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
-            repetions_left, f_best, trial_initial = self.calc_initial_para_configuration(initial_iterations, trial, repetitions, s_initial)
+            repetions_left, trial_best_value = self.calc_initial_para_configuration(initial_iterations, trial, repetitions, x_initial)
+            self.best_value = trial_best_value.copy()
 
-            # TODO use ParameterSet Class
-            
-            #x_best = list(trial_initial)
-            self.best_value.init(trial_initial, f_best)
-            
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
 
-            #self.next_s_test = self.calculate_next_s_test(self.best_value.parameters, 0, self.r)
-
             for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
                 f_curr = self.postprocessing(rep, x_curr, simulations, chains=trial)
-
                 self.best_value.update(x_curr,f_curr,rep + initial_iterations)
-
-                # TODO MAXIMIZE!
-
-                # prepare next x_curr parameter based on x_best
-                #self.next_s_test = self.calculate_next_s_test(self.best_value.parameters,rep,self.r)
-
             print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": self.best_value.parameters, "trial_initial": trial_initial, "objfunc_val": self.best_value.best_obj_val})
+            debug_results.append({"sbest": self.best_value.parameters, "trial_initial": trial_best_value.parameters, "objfunc_val": self.best_value.best_obj_val})
 
         return debug_results
 
-    def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, s_initial):
-        parameter_bound_range = self.max_bound - self.min_bound
+    def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, x_initial):
+        best_value = BestValue(ParameterSet(self.parameter()), None)
+        max_bound, min_bound = best_value.parameters.maxbound, best_value.parameters.minbound
+        parameter_bound_range = max_bound - min_bound
         number_of_parameters = len(parameter_bound_range)
 
         # Calculate the initial Solution, if `initial_iterations` > 1 otherwise the user defined a own one.
@@ -226,16 +228,13 @@ class DDS(_algorithm):
                 raise ValueError('# Initialization samples >= Max # function evaluations.')
 
             starting_generator = (
-                (rep, [self.np_random.randint(np.int(self.min_bound[j]), np.int(self.max_bound[j]) + 1) if
-                       self.discrete_flag[j] else self.min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
+                (rep, [self.np_random.randint(np.int(min_bound[j]), np.int(max_bound[j]) + 1) if
+                       self.discrete_flag[j] else min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
                        for j in
                        range(int(number_of_parameters))]) for rep in range(int(initial_iterations)))
 
             for rep, x_curr, simulations in self.repeat(starting_generator):
-                like = self.postprocessing(rep, x_curr, simulations)  # get obj function value
-
-                f_curr = like
-
+                f_curr = self.postprocessing(rep, x_curr, simulations)  # get obj function value
                 if rep == 0:
                     f_best = f_curr
                     x_best = list(x_curr)
@@ -246,18 +245,15 @@ class DDS(_algorithm):
 
         else:  # now initial_iterations=1, using a user supplied initial solution.  Calculate obj func value.
             repetions_left = repetitions - 1  # use this to reduce number of fevals in DDS loop
-            x_curr = list(s_initial)  # get from the inputs
+            x_best = x_initial.copy()  # get from the inputs, must be a ParameterSet
+            rep, s_test_param, simulations = self.simulate((0, x_best))
+            f_best = self.postprocessing(rep, x_best, simulations)
 
-            rep, s_test_param, simulations = self.simulate((0, x_curr))
+        best_value.parameters.set_by_array(np.array(x_best))
+        best_value.best_obj_val = f_best
+        return repetions_left, best_value
 
-            f_curr = self.postprocessing(rep, x_curr, simulations)
-
-            f_best = f_curr
-            x_best = list(x_curr)
-
-        return repetions_left, f_best, x_best
-
-    def calculate_next_s_test(self, previous_x_curr, rep, r):
+    def calculate_next_s_test(self, previous_x_curr, rep, rep_limit, r):
         """
         Needs to run inside `sample` method. Calculate the next set of parameters based on a given set.
         This is greedy algorithm belonging to the DDS algorithm.
@@ -276,53 +272,54 @@ class DDS(_algorithm):
         :return: next parameter set
         """
         amount_params = len(previous_x_curr)
-
-        new_x_curr = list(previous_x_curr)  # define new_x_curr initially as current (previous_x_curr for greedy)
+        new_x_curr = previous_x_curr.copy()  # define new_x_curr initially as current (previous_x_curr for greedy)
 
         randompar = self.np_random.rand(amount_params)
 
-        probability_neighborhood = 1.0 - np.log(rep + 1) / np.log(self.generator_repetitions)
+        probability_neighborhood = 1.0 - np.log(rep + 1) / np.log(rep_limit)
         dvn_count = 0  # counter for how many decision variables vary in neighbour
 
         # TODO simplify this with np.arrays
+        min_bound = previous_x_curr.minbound
+        max_bound = previous_x_curr.maxbound
+
         for j in range(amount_params):
             if randompar[j] < probability_neighborhood:  # then j th DV selected to vary in neighbour
                 dvn_count = dvn_count + 1
 
-                new_value = self.neigh_value_mixed(previous_x_curr[j], self.min_bound[j], self.max_bound[j], r, j)
+                new_value = self.neigh_value_mixed(previous_x_curr[j], min_bound[j], max_bound[j], r, j)
                 new_x_curr[j] = new_value  # change relevant dec var value in x_curr
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
             dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
-            new_value = self.neigh_value_mixed(previous_x_curr[dec_var - 1], self.min_bound[dec_var - 1],
-                                               self.max_bound[dec_var - 1], r,
+            new_value = self.neigh_value_mixed(previous_x_curr[dec_var - 1], min_bound[dec_var - 1], max_bound[dec_var - 1], r,
                                                dec_var - 1)
 
             new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test
 
         return new_x_curr
 
-    def neigh_value_continuous(self, s, s_min, s_max, r):
+    def neigh_value_continuous(self, s, x_min, x_max, r):
         """
         select a RANDOM neighbouring real value of a SINGLE decision variable
         CEE 509, HW 5 by Bryan Tolson, Mar 5, 2003 AND ALSO CEE PROJECT
         variables:
-        s_range is the range of the real variable (s_max-s_min)
+        x_range is the range of the real variable (s_max-s_min)
 
         :param s: is a current SINGLE decision variable VALUE
-        :param s_min: is the min of variable s
-        :param s_max: is the max of variable s
+        :param x_min: is the min of variable s
+        :param x_max: is the max of variable s
         :param r: is the neighbourhood parameter (replaces V parameter~see not
                              It is defined as the ratio of the std deviation of the desired
-                            normal random number/s_range.  Eg:
-                        std dev desired = r * s_range
-                        for comparison:  variance (V) = (r * s_range)^2
-        :return: s_new, a new sample of values in beetween a given range
+                            normal random number/x_range.  Eg:
+                        std dev desired = r * x_range
+                        for comparison:  variance (V) = (r * x_range)^2
+        :return: x_new, a new sample of values in beetween a given range
         """
 
-        s_range = s_max - s_min
+        x_range = x_max - x_min
 
-        s_new = s + self.np_random.normal(0, 1) * r * s_range
+        x_new = s + self.np_random.normal(0, 1) * r * x_range
 
         # NEED to deal with variable upper and lower bounds:
         # Originally bounds in DDS were 100# reflective
@@ -333,29 +330,29 @@ class DDS(_algorithm):
 
         p_abs_or_ref = self.np_random.rand()
 
-        if s_new < s_min:  # works for any pos or neg s_min
+        if x_new < x_min:  # works for any pos or neg x_min
             if p_abs_or_ref <= 0.5:  # with 50%chance reflect
-                s_new = s_min + (s_min - s_new)
+                x_new = x_min + (x_min - x_new)
             else:  # with 50% chance absorb
-                s_new = s_min
+                x_new = x_min
 
-                # if reflection goes past s_max then value should be s_min since without reflection
+                # if reflection goes past x_max then value should be x_min since without reflection
                 # the approach goes way past lower bound.  This keeps X close to lower bound when X current
                 # is close to lower bound:
-            if s_new > s_max:
-                s_new = s_min
+            if x_new > x_max:
+                x_new = x_min
 
-        elif s_new > s_max:  # works for any pos or neg s_max
+        elif x_new > x_max:  # works for any pos or neg x_max
             if p_abs_or_ref <= 0.5:  # with 50% chance reflect
-                s_new = s_max - (s_new - s_max)
+                x_new = x_max - (x_new - x_max)
             else:  # with 50% chance absorb
-                s_new = s_max
+                x_new = x_max
 
-                # if reflection goes past s_min then value should be s_max for same reasons as above
-            if s_new < s_min:
-                s_new = s_max
+                # if reflection goes past x_min then value should be x_max for same reasons as above
+            if x_new < x_min:
+                x_new = x_max
 
-        return s_new
+        return x_new
 
     def neigh_value_discrete(self, s, s_min, s_max, r):
         """
