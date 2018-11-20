@@ -12,8 +12,6 @@ import sys
 
 if sys.version_info[0] >= 3:
     unicode = str
-
-from collections import namedtuple
 from itertools import cycle
 
 
@@ -519,6 +517,146 @@ class Triangular(Base):
         """
         super(Triangular, self).__init__(rnd.triangular, 'Triangular', *args, **kwargs)
 
+
+class ParameterSet(object):
+    """
+    A Pickable parameter set to use named parameters in a setup
+    Is not created by a user directly, but in algorithm.
+    Older versions used a namedtuple, which is not pickable.
+
+    An instance of ParameterSet is sent to the users setup.simulate method.
+
+    Usage:
+    >>> ps = ParameterSet(...)
+
+    Update values by arguments or keyword arguments
+
+    >>> ps(0, 1, 2)
+    >>> ps(a=1, c=2)
+
+    Assess parameter values of this parameter set
+
+    >>> ps[0] == ps['a'] == ps.a
+
+    A parameter set is a sequence:
+
+    >>> list(ps)
+
+    Assess the parameter set properties as arrays
+    >>> [ps.maxbound, ps.minbound, ps.optguess, ps.step, ps.random]
+
+
+    """
+    def __init__(self, param_info):
+        """
+        Creates a set of parameters from a parameter info array.
+        To create the parameter set from a setup use either:
+        >>> setup = ...
+        >>> ps = ParameterSet(get_parameters_array(setup))
+
+        or you can just use a function for this:
+
+        >>> ps = create_set(setup)
+
+        :param param_info: A record array containing the properties of the parameters
+               of this set.
+        """
+        self.__lookup = dict(("p" + x if x.isdigit() else x, i) for i, x in enumerate(param_info['name']))
+        self.__info = param_info
+
+    def __call__(self, *values, **kwargs):
+        """
+        Populates the values ('random') of the parameter set with new data
+        :param values: Contains the new values or omitted.
+                       If given, the number of values needs to match the number
+                       of parameters
+        :param kwargs: Can be used to set only single parameter values
+        :return:
+        """
+        if values:
+            if len(self.__info) != len(values):
+                raise ValueError('Given values do are not the same length as the parameter set')
+            self.__info['random'][:] = values
+        for k in kwargs:
+            try:
+                self.__info['random'][self.__lookup[k]] = kwargs[k]
+            except KeyError:
+                raise TypeError('{} is not a parameter of this set'.format(k))
+        return self
+
+    def __len__(self):
+        return len(self.__info['random'])
+
+    def __iter__(self):
+        return iter(self.__info['random'])
+
+    def __getitem__(self, item):
+        """
+        Provides item access
+        >>> ps[0] == ps['a']
+
+        :raises: KeyError, IndexError and TypeError
+        """
+        if type(item) is str:
+            item = self.__lookup[item]
+        return self.__info['random'][item]
+
+    def __setitem__(self, key, value):
+        """
+        Provides setting of item
+        >>> ps[0] = 1
+        >>> ps['a'] = 2
+        """
+        if key in self.__lookup:
+            key = self.__lookup[key]
+        self.__info['random'][key] = value
+
+    def __getattr__(self, item):
+        """
+        Provides the attribute access like
+        >>> print(ps.a)
+        """
+        if item.startswith('_'):
+            raise AttributeError('{} is not a member of this parameter set'.format(item))
+        elif item in self.__lookup:
+            return self.__info['random'][self.__lookup[item]]
+        elif item in self.__info.dtype.names:
+            return self.__info[item]
+        else:
+            raise AttributeError('{} is not a member of this parameter set'.format(item))
+
+    def __setattr__(self, key, value):
+        """
+        Provides setting of attributes
+        >>> ps.a = 2
+        """
+        # Allow normal usage
+        if key.startswith('_') or key not in self.__lookup:
+            return object.__setattr__(self, key, value)
+        else:
+            self.__info['random'][self.__lookup[key]] = value
+
+    def __str__(self):
+        return 'parameters({})'.format(
+            ', '.join('{}={:g}'.format(k, self.__info['random'][i])
+                      for i, k in enumerate(self.__info['name'])
+                      )
+        )
+
+    def __repr__(self):
+        return 'spotpy.parameter.ParameterSet()'
+
+    def __dir__(self):
+        """
+        Helps to show the field names in an interactive environment like IPython.
+        See: http://ipython.readthedocs.io/en/stable/config/integrating.html
+
+        :return: List of method names and fields
+        """
+        attrs = [attr for attr in vars(type(self)) if not attr.startswith('_')]
+        return attrs + list(self.__info['name']) + list(self.__info.dtype.names)
+
+
 def get_classes():
     keys = []
     current_module = sys.modules[__name__]
@@ -527,6 +665,7 @@ def get_classes():
             keys.append(key)
     return keys
     
+
 def generate(parameters):
     """
     This function generates a parameter set from a list of parameter objects. The parameter set
@@ -563,7 +702,6 @@ def get_parameters_array(setup, unaccepted_parameter_types=()):
     # function
     param_arrays = []
     # Get parameters defined with the setup class
-    #setup_parameters = checked_parameter_types(, unaccepted_parameter_types)
     setup_parameters = get_parameters_from_setup(setup)
     check_parameter_types(setup_parameters, unaccepted_parameter_types)
     param_arrays.append(
@@ -589,8 +727,7 @@ def find_constant_parameters(parameter_array):
     return (parameter_array['maxbound'] - parameter_array['minbound'] == 0.0)
 
 
-
-def create_set(setup, valuetype='optguess', **kwargs):
+def create_set(setup, valuetype='random', **kwargs):
     """
     Returns a named tuple holding parameter values, to be used with the simulation method of a setup
 
@@ -613,34 +750,13 @@ def create_set(setup, valuetype='optguess', **kwargs):
     params = get_parameters_array(setup)
 
     # Create the namedtuple from the parameter names
-    partype = get_namedtuple_from_paramnames(setup, params['name'])
-
-    # Use the generated values from the distribution
-    pardict = dict(zip(params['name'], params[valuetype]))
-
-    # Overwrite parameters with keyword arguments
-    pardict.update(kwargs)
+    partype = ParameterSet(params)
 
     # Return the namedtuple with fitting names
-    return partype(**pardict)
+    return partype(*params[valuetype], **kwargs)
 
 
-def get_namedtuple_from_paramnames(owner, parnames):
-    """
-    Returns the namedtuple classname for parameter names
-    :param owner: Owner of the parameters, usually the spotpy setup
-    :param parnames: Sequence of parameter names
-    :return: Class
-    """
-
-    # Get name of owner class
-    typename = type(owner).__name__
-    parnames = ["p" + x if x.isdigit() else x for x in list(parnames)]
-    return namedtuple('Par_' + typename,  # Type name created from the setup name
-                      parnames)  # get parameter names
-
-
-def get_constant_indices(setup, unaccepted_parameter_types=(Constant)):
+def get_constant_indices(setup, unaccepted_parameter_types=(Constant,)):
     """
     Returns a list of the class defined parameters, and
     overwrites the names of the parameters. 

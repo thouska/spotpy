@@ -191,7 +191,7 @@ class GUI:
         sim = self.setup.simulation(parset)
         objf = as_scalar(self.setup.objectivefunction(sim, self.setup.evaluation()))
         label = ('{:0.4g}=M('.format(objf)
-                 + ', '.join('{f}={v:0.4g}'.format(f=f, v=v) for f, v in zip(parset._fields, parset))
+                 + ', '.join('{f}={v:0.4g}'.format(f=f, v=v) for f, v in zip(parset.name, parset))
                  + ')')
         self.lines.extend(self.ax.plot(sim, '-', label=label))
         self.ax.legend()

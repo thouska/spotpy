@@ -164,8 +164,7 @@ class _algorithm(object):
         self.parnames = param_info['name']
 
         # Create a type to hold the parameter values using a namedtuple
-        self.partype = parameter.get_namedtuple_from_paramnames(
-            self.setup, self.parnames)
+        self.partype = parameter.ParameterSet(param_info)
 
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction

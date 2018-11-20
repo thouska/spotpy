@@ -127,7 +127,7 @@ class fscabc(_algorithm):
                 (rep, self.parameter()['random']) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                like = self.postprocessing(rep, randompar, simulations)
+                like = self.postprocessing(rep, randompar, simulations, negativlike=True)
                 c = 0
                 p = 0
                 # (fit_x,x,fit_v,v,limit,normalized fitness)
@@ -163,7 +163,7 @@ class fscabc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.postprocessing(icall, randompar, simulations, chains=1)
+                clike = self.postprocessing(icall, randompar, simulations, chains=1, negativlike=True)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -209,7 +209,7 @@ class fscabc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.postprocessing(icall, randompar, simulations, chains=2)
+                clike = self.postprocessing(icall, randompar, simulations, chains=2, negativlike=True)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -229,7 +229,7 @@ class fscabc(_algorithm):
                     work[i][4] = 0
                     t, work[i][0], simulations = self.simulate(
                         (icall, work[i][1]))
-                    clike = self.postprocessing(icall, randompar, simulations, chains=3)
+                    clike = self.postprocessing(icall, randompar, simulations, chains=3, negativlike=True)
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:

@@ -97,7 +97,7 @@ class abc(_algorithm):
             (rep, self.parameter()['random']) for rep in range(eb))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate fitness
-            like = self.postprocessing(rep, randompar, simulations, chains = 1)
+            like = self.postprocessing(rep, randompar, simulations, chains = 1, negativlike=True)
             c = 0
             p = 0
             work.append([like, randompar, like, randompar, c, p])
@@ -126,7 +126,7 @@ class abc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.postprocessing(icall+eb, randompar, simulations, chains = 2)
+                clike = self.postprocessing(icall+eb, randompar, simulations, chains = 2, negativlike=True)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -172,7 +172,7 @@ class abc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.postprocessing(icall+eb, randompar, simulations, chains = 3)
+                clike = self.postprocessing(icall+eb, randompar, simulations, chains = 3, negativlike=True)
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -190,7 +190,7 @@ class abc(_algorithm):
                     work[i][4] = 0
                     t, work[i][0], simulations = self.simulate(
                         (icall, work[i][1]))
-                    clike = self.postprocessing(icall+eb, randompar, simulations, chains = 4)
+                    clike = self.postprocessing(icall+eb, randompar, simulations, chains = 4, negativlike=True)
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:
