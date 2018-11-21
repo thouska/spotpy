@@ -92,19 +92,19 @@ class TestDDS(unittest.TestCase):
         self.spot_setup._objfunc_switcher("ackley")
         sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
                                         sim_timeout=self.timeout)
-        self.assertRaises(ValueError,sampler.sample,1000, x_initial=list(np.random.uniform(-2, 2, 9)) + [3])
+        self.assertRaises(ValueError,sampler.sample,1000, x_initial=np.random.uniform(-2, 2, 9) + [3])
 
     def test_own_initial_too_lees(self):
         self.spot_setup._objfunc_switcher("ackley")
         sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
                                         sim_timeout=self.timeout)
-        self.assertRaises(ValueError, sampler.sample, 1000, x_initial=list(np.random.uniform(-2, 2, 9)))
+        self.assertRaises(ValueError, sampler.sample, 1000, x_initial=np.random.uniform(-2, 2, 9))
 
     def test_own_initial_too_much(self):
         self.spot_setup._objfunc_switcher("ackley")
         sampler = spotpy.algorithms.DDS(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
                                         sim_timeout=self.timeout)
-        self.assertRaises(ValueError, sampler.sample, 1000, x_initial=list(np.random.uniform(-2, 2, 11)))
+        self.assertRaises(ValueError, sampler.sample, 1000, x_initial=np.random.uniform(-2, 2, 11))
 
 
 if __name__ == '__main__':
