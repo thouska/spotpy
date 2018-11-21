@@ -327,7 +327,7 @@ class List(Base):
                 raise IndexError(text)
 
     def astuple(self):
-        return self(), self.name, 0, 0, 0, 0
+        return self(), self.name, 0, 0, 0, 0, self.distinct
 
 
 class Constant(Base):
@@ -353,7 +353,7 @@ class Constant(Base):
             return self.value
 
     def astuple(self):
-        return self(), self.name, 0, self.value, self.value, self.value
+        return self(), self.name, 0, self.value, self.value, self.value, self.distinct
 
 
 class Normal(Base):
