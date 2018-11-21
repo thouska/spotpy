@@ -212,7 +212,7 @@ class Base(object):
 
         self.description = arghelper.get('doc')
 
-        self.is_distinct = not not arghelper.get("distinct")
+        self.distinct = not not arghelper.get("distinct")
         arghelper.check_complete()
 
     def __call__(self, **kwargs):
@@ -225,7 +225,7 @@ class Base(object):
         """
         Returns a tuple of a realization and the other parameter properties
         """
-        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound
+        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.distinct
     
     def __repr__(self):
         """
@@ -681,7 +681,7 @@ def generate(parameters):
     """
     dtype = [('random', '<f8'), ('name', '|U30'),
              ('step', '<f8'), ('optguess', '<f8'),
-             ('minbound', '<f8'), ('maxbound', '<f8')]
+             ('minbound', '<f8'), ('maxbound', '<f8'), ('distinct', 'bool')]
 
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 

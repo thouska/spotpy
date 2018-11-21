@@ -108,12 +108,8 @@ class DDS(_algorithm):
         super(DDS, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
-        self.best_value = BestValue(ParameterSet(self.parameter()), None)
 
-        if hasattr(self.setup, "params"):
-            self.discrete_flag = [u.is_distinct for u in self.setup.params]
-        else:
-            self.discrete_flag = [False] * len(self.best_value.parameters)
+        self.best_value = BestValue(ParameterSet(self.parameter()), None)
 
         # self.generator_repetitions will be set in `sample` and is needed to generate a
         # generator which sends back actual parameter s_test
@@ -209,6 +205,7 @@ class DDS(_algorithm):
         max_bound, min_bound = best_value.parameters.maxbound, best_value.parameters.minbound
         parameter_bound_range = max_bound - min_bound
         number_of_parameters = len(parameter_bound_range)
+        discrete_flag = best_value.parameters.distinct
 
         # Calculate the initial Solution, if `initial_iterations` > 1 otherwise the user defined a own one.
         # If we need to find an initial solution we iterating initial_iterations times to warm um the algorithm
@@ -224,7 +221,7 @@ class DDS(_algorithm):
 
             starting_generator = (
                 (rep, [self.np_random.randint(np.int(min_bound[j]), np.int(max_bound[j]) + 1) if
-                       self.discrete_flag[j] else min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
+                       discrete_flag[j] else min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
                        for j in
                        range(int(number_of_parameters))]) for rep in range(int(initial_iterations)))
 
@@ -282,12 +279,12 @@ class DDS(_algorithm):
             if randompar[j] < probability_neighborhood:  # then j th DV selected to vary in neighbour
                 dvn_count = dvn_count + 1
 
-                new_value = self.neigh_value_mixed(previous_x_curr[j], min_bound[j], max_bound[j], r, j)
+                new_value = self.neigh_value_mixed(previous_x_curr, min_bound[j], max_bound[j], r, j)
                 new_x_curr[j] = new_value  # change relevant dec var value in x_curr
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
             dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
-            new_value = self.neigh_value_mixed(previous_x_curr[dec_var - 1], min_bound[dec_var - 1], max_bound[dec_var - 1], r,
+            new_value = self.neigh_value_mixed(previous_x_curr, min_bound[dec_var - 1], max_bound[dec_var - 1], r,
                                                dec_var - 1)
 
             new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test
@@ -407,8 +404,9 @@ class DDS(_algorithm):
                 s_new = sample + 1
         return s_new
 
-    def neigh_value_mixed(self, s, s_min, s_max, r, j):
-        if not self.discrete_flag[j]:
-            return self.neigh_value_continuous(s, s_min, s_max, r)
+    def neigh_value_mixed(self, x_curr, x_min, x_max, r, j):
+        s = x_curr[j]
+        if not x_curr.distinct[j]:
+            return self.neigh_value_continuous(s, x_min, x_max, r)
         else:
-            return self.neigh_value_discrete(s, s_min, s_max, r)
+            return self.neigh_value_discrete(s, x_min, x_max, r)
