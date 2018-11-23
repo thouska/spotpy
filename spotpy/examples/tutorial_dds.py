@@ -16,6 +16,10 @@ from spotpy.describe import describe
 from spotpy.examples.spot_setup_dds import spot_setup
 from spotpy.examples.spot_setup_dds import ackley10
 
+import matplotlib
+matplotlib.use('agg')
+
+
 #Create samplers for every algorithm:
 results=[]
 spot_setup=spot_setup()
@@ -23,11 +27,11 @@ rep=3000
 timeout=10 #Given in Seconds
 
 
-parallel = "seq"
+parallel = "umpc"
 dbformat = "csv"
 sampler=spotpy.algorithms.DDS(spot_setup,parallel=parallel, dbname='DDS', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
-sampler.sample(rep, trials=1, r=0.1)
+sampler.sample(rep, trials=1)
 results.append(sampler.getdata())
 
 

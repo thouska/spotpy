@@ -353,7 +353,7 @@ class DDS(_algorithm):
                   + str(repitionno_best) + '\n\n')
             debug_results.append({"sbest": self.best_value.parameters, "trial_initial": trial_best_value.parameters,
                                   "objfunc_val": self.best_value.best_obj_val})
-
+        self.final_call()
         return debug_results
 
     def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, x_initial):
