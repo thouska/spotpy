@@ -14,7 +14,7 @@ install:
   - pip install pandas
   - pip install scipy
   - pip install click
-  - pip install pytest>=3.6 pytest-pep8 pytest-cov>=2.4.0,<2.6
+  - pip install pytest pytest-pep8 pytest-cov<=2.6
   # Use docutils to generate html describe
   - pip install docutils
   - pip install numba
