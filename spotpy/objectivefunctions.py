@@ -225,7 +225,7 @@ def mse(evaluation, simulation):
 
     if len(evaluation) == len(simulation):
         obs, sim = np.array(evaluation), np.array(simulation)
-        mse = np.mean((obs - sim)**2)
+        mse = np.nanmean((obs - sim)**2)
         return mse
     else:
         logging.warning("evaluation and simulation lists does not have the same length.")
