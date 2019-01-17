@@ -381,7 +381,7 @@ class sceua(_algorithm):
 
         ##    fnew = functn(self.nopt,snew);
         _, _, simulations = _algorithm.simulate(self, (icall, snew))
-        like = self.postprocessing(icall, snew, simulations, save=False)
+        like = self.postprocessing(icall, snew, simulations, save_run=False)
         fnew = like
         icall += 1
         if self.status.stop:
@@ -394,7 +394,7 @@ class sceua(_algorithm):
             snew[constant_parameters] = sw[constant_parameters]
 
             _, _, simulations = _algorithm.simulate(self, (icall, snew))
-            like = self.postprocessing(icall, snew, simulations, save=False)
+            like = self.postprocessing(icall, snew, simulations, save_run=False)
             fnew = like
             icall += 1
             if self.status.stop:
@@ -406,7 +406,7 @@ class sceua(_algorithm):
             if fnew > fw:
                 snew = self._sampleinputmatrix(1, self.nopt)[0]
                 _, _, simulations = _algorithm.simulate(self, (icall, snew))
-                like = self.postprocessing(icall, snew, simulations, save=False)
+                like = self.postprocessing(icall, snew, simulations, save_run=False)
                 fnew = like
                 icall += 1
 

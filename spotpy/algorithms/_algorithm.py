@@ -320,7 +320,7 @@ class _algorithm(object):
         return self.all_params
             
     
-    def postprocessing(self, rep, params, simulation, chains=1, save_sim=True, negativlike=False): # TODO: rep not necessaray
+    def postprocessing(self, rep, params, simulation, chains=1, save_run=True, negativlike=False): # TODO: rep not necessaray
     
         params = self.update_params(params)
         like = self.getfitness(simulation=simulation, params=params)
@@ -328,7 +328,7 @@ class _algorithm(object):
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
-        if save_sim is True and simulation is not [np.NAN]:
+        if save_run is True and simulation is not [np.NAN]:
             if negativlike is True:
                 self.save(-like, params, simulations=simulation, chains=chains)              
             else:
