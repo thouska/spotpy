@@ -44,7 +44,7 @@ class BestValue(object):
 
     def __str__(self):
         return "BestValue(best_obj_val = " + str(self.best_obj_val) + ", best_rep = " + str(self.best_rep) + ", " \
-               + str(self.parameters)
+               + str(self.parameters) + ")"
 
     def reset_rep(self):
         self.best_rep = 0
@@ -351,8 +351,7 @@ class DDS(_algorithm):
 
             print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": self.best_value.parameters, "trial_initial": trial_best_value.parameters,
-                                  "objfunc_val": self.best_value.best_obj_val})
+            debug_results.append({"sbest": self.best_value.parameters, "trial_initial": trial_best_value.parameters,"objfunc_val": self.best_value.best_obj_val})
         self.final_call()
         return debug_results
 
