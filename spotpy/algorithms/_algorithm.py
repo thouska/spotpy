@@ -328,11 +328,12 @@ class _algorithm(object):
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
-        if save_run is True and simulation is not [np.NAN]:
+        if save_run is True and simulation is not None:
+            print('saving')
             if negativlike is True:
-                self.save(-like, params, simulations=simulation, chains=chains)              
+                self.save(-like, params, simulations=simulation, chains=chains)
             else:
-                self.save(like, params, simulations=simulation, chains=chains)    
+                self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]
         else:        
@@ -379,7 +380,7 @@ class _algorithm(object):
 
         # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
         # '[nan]' and will not be saved. Otherwise get the result from the thread
-        model_result = [np.NAN]
+        model_result = None
         if not que.empty():
             model_result = que.get()
         return id, params, model_result
