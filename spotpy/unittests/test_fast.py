@@ -10,8 +10,8 @@ except ImportError:
 
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 
-# Test only untder Python 3 as Python >2.7.10 results in a strange fft error
-if sys.version_info >= (3, 5):
+# Test only untder Python 3 as lower versions results in a strange fft error
+if sys.version_info >= (3, 6):
 
     class TestFast(unittest.TestCase):
         def setUp(self):
@@ -29,7 +29,7 @@ if sys.version_info >= (3, 5):
     
             sampler.sample(self.rep)
             results = sampler.getdata()
-            self.assertEqual(203,len(results))
+            self.assertEqual(200,len(results))
 
 
 if __name__ == '__main__':

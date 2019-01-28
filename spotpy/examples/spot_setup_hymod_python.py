@@ -17,7 +17,16 @@ from spotpy.examples.hymod_python.hymod import hymod
 import os
 
 class spot_setup(object):
-    def __init__(self):
+    cmax  = spotpy.parameter.Uniform(low=1.0 , high=500,  optguess=412.33)
+    bexp  = spotpy.parameter.Uniform(low=0.1 , high=2.0,  optguess=0.1725)
+    alpha = spotpy.parameter.Uniform(low=0.1 , high=0.99, optguess=0.8127)
+    Ks    = spotpy.parameter.Uniform(low=0.0 , high=0.10, optguess=0.0404)
+    Kq    = spotpy.parameter.Uniform(low=0.1 , high=0.99, optguess=0.5592)
+    #fake1 =spotpy.parameter.Uniform(low=0.1 , high=10, optguess=0.5592)
+    #fake2 =spotpy.parameter.Uniform(low=0.1 , high=10, optguess=0.5592)
+        
+    def __init__(self, _used_algorithm = 'default'):
+        self._used_algorithm = _used_algorithm  
         #Transform [mm/day] into [l s-1], where 1.783 is the catchment area
         self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24) 
         #Load Observation data from file
@@ -41,16 +50,7 @@ class spot_setup(object):
             self.trueObs.append(float(values[3]))
 
         climatefile.close()
-        self.params = [spotpy.parameter.Uniform('cmax',low=1.0 , high=500,  optguess=412.33),
-                   spotpy.parameter.Uniform('bexp',low=0.1 , high=2.0,  optguess=0.1725),
-                   spotpy.parameter.Uniform('alpha',low=0.1 , high=0.99, optguess=0.8127),
-                   spotpy.parameter.Uniform('Ks',low=0.0 , high=0.10, optguess=0.0404),
-                   spotpy.parameter.Uniform('Kq',low=0.1 , high=0.99, optguess=0.5592),
-                   spotpy.parameter.Uniform('fake1',low=0.1 , high=10, optguess=0.5592),
-                   spotpy.parameter.Uniform('fake2',low=0.1 , high=10, optguess=0.5592)]
 
-    def parameters(self):
-        return spotpy.parameter.generate(self.params)
         
     def simulation(self,x):
         data = hymod(self.Precip, self.PET, x[0], x[1], x[2], x[3], x[4])
@@ -63,5 +63,8 @@ class spot_setup(object):
         return self.trueObs[366:]
     
     def objectivefunction(self,simulation,evaluation, params=None):
-        like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)
+        if self._used_algorithm == 'sceua':
+            like = spotpy.objectivefunctions.rmse(evaluation,simulation)
+        else:
+            like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)    
         return like
