@@ -103,7 +103,7 @@ class abc(_algorithm):
             work.append([like, randompar, like, randompar, c, p])
             icall +=1
             if self.status.stop:
-                print('Stopping samplig')
+                print('Stopping sampling')
                 break
 
         while icall < repetitions and gnrng > peps:
@@ -205,5 +205,6 @@ class abc(_algorithm):
 
             if gnrng < peps:
                 print(
-                    'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
+                    'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE AT RUN')
+                print(icall)
         self.final_call()
