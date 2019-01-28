@@ -333,7 +333,6 @@ class _algorithm(object):
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
         if save_run is True and simulation is not None:
-            print('saving')
             self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]

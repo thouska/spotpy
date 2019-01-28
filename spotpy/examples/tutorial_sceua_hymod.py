@@ -10,59 +10,164 @@ This class holds example code how to use the dream algorithm
 
 import numpy as np
 import spotpy
-from spotpy.examples.spot_setup_hymod_exe import spot_setup
-#from spotpy.examples.spot_setup_hymod_python import spot_setup
+from spotpy.examples.spot_setup_hymod_python import spot_setup
 import pylab as plt
 
 
 if __name__ == "__main__":
-    parallel ='seq'
-    # Initialize the Hymod example (will only work on Windows systems)
-    #spot_setup=spot_setup(parallel=parallel)
-    spot_setup=spot_setup()
+    parallel ='seq' # Runs everthing in sequential mode
+    np.random.seed(2000) # Makes the results reproduceable
     
-    # Create the Dream sampler of spotpy, al_objfun is set to None to force SPOTPY
+    # Initialize the Hymod example
+    # In this case, we tell the setup which algorithm we want to use, so
+    # we can use this exmaple for different algorithms
+    spot_setup=spot_setup(_used_algorithm='sceua')
+    
+    #Select number of maximum allowed repetitions
+    rep=10000
+        
+    # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
-    # spotpy.objectivefunctions.log_p) 
-    
-    #Select number of maximum repetitions
-    rep=20
-    
-    # Select five chains and set the Gelman-Rubin convergence limit
-    nChains                = 4
-    convergence_limit      = 1.2
-    runs_after_convergence = 100
-    np.random.seed(42)
+    # spotpy.objectivefunctions.rmse) 
     sampler=spotpy.algorithms.sceua(spot_setup, dbname='SCEUA_hymod', dbformat='csv', alt_objfun=None)
-    sampler.sample(rep)
     
+    #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
+    sampler.sample(rep,ngs=10, kstop=50, peps=0.1, pcento=0.1) 
     
-    
-    
-    # Load the results gained with the dream sampler, stored in DREAM_hymod.csv
+    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     results = spotpy.analyser.load_csv_results('SCEUA_hymod')
-    print(results['parcmax'][0:10])
-    # Get fields with simulation data
-    fields=[word for word in results.dtype.names if word.startswith('sim')]
+    
+    fig= plt.figure(1,figsize=(9,5))
+    plt.plot(results['like1'])
+    plt.show()
+    plt.ylabel('RMSE')
+    plt.xlabel('Iteration')
+    fig.savefig('hymod_objectivefunction.png',dpi=300)
+    
+    # Example plot to show the parameter distribution ###### 
+    fig= plt.figure(2,figsize=(9,9))
+    normed_value = 1
+    
+    plt.subplot(5,2,1)
+    x = results['parcmax']
+    for i in range(int(max(results['chain'])-1)):
+        index=np.where(results['chain']==i+1) #Ignores burn-in chain
+        plt.plot(x[index],'.')
+    plt.ylabel('cmax')
+    plt.ylim(spot_setup.cmax.minbound, spot_setup.cmax.maxbound)
     
     
-    # Example plot to show remaining parameter uncertainty #
-    fig= plt.figure(figsize=(16,9))
-    ax = plt.subplot(1,1,1)
-    q5,q25,q75,q95=[],[],[],[]
-    for field in fields:
-        q5.append(np.percentile(results[field][-100:-1],2.5))
-        q95.append(np.percentile(results[field][-100:-1],97.5))
-    #ax.plot(q5,color='dimgrey',linestyle='solid')
-    #ax.plot(q95,color='dimgrey',linestyle='solid')
-    #ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
-    #                linewidth=0,label='parameter uncertainty')  
-    ax.plot(spot_setup.evaluation(),'r.',label='data')
-    ax.set_ylim(-50,450)
-    ax.set_xlim(0,729)
-    ax.legend()
-    fig.savefig('python_hymod.png',dpi=300)
-    #########################################################
+    plt.subplot(5,2,2)
+    x = x[int(len(results)*0.9):] #choose the last 10% of the sample
+    hist, bins = np.histogram(x, bins=20, density=True)
+    widths = np.diff(bins)
+    hist *= normed_value
+    plt.bar(bins[:-1], hist, widths)
+    plt.ylabel('cmax')
+    plt.xlim(spot_setup.cmax.minbound, spot_setup.cmax.maxbound)
+    
+    
+    plt.subplot(5,2,3)
+    x = results['parbexp']
+    for i in range(int(max(results['chain'])-1)):
+        index=np.where(results['chain']==i+1)
+        plt.plot(x[index],'.')
+    plt.ylabel('bexp')
+    plt.ylim(spot_setup.bexp.minbound, spot_setup.bexp.maxbound)
+    
+    plt.subplot(5,2,4)
+    x = x[int(len(results)*0.9):]
+    hist, bins = np.histogram(x, bins=20, density=True)
+    widths = np.diff(bins)
+    hist *= normed_value
+    plt.bar(bins[:-1], hist, widths)
+    plt.ylabel('bexp')
+    plt.xlim(spot_setup.bexp.minbound, spot_setup.bexp.maxbound)
+    
+    
+    
+    plt.subplot(5,2,5)
+    x = results['paralpha']
+    for i in range(int(max(results['chain'])-1)):
+        index=np.where(results['chain']==i+1)
+        plt.plot(x[index],'.')
+    plt.ylabel('alpha')
+    plt.ylim(spot_setup.alpha.minbound, spot_setup.alpha.maxbound)
+    
+    
+    plt.subplot(5,2,6)
+    x = x[int(len(results)*0.9):]
+    hist, bins = np.histogram(x, bins=20, density=True)
+    widths = np.diff(bins)
+    hist *= normed_value
+    plt.bar(bins[:-1], hist, widths)
+    plt.ylabel('alpha')
+    plt.xlim(spot_setup.alpha.minbound, spot_setup.alpha.maxbound)
+    
+    
+    plt.subplot(5,2,7)
+    x = results['parKs']
+    for i in range(int(max(results['chain'])-1)):
+        index=np.where(results['chain']==i+1)
+        plt.plot(x[index],'.')
+    plt.ylabel('Ks')
+    plt.ylim(spot_setup.Ks.minbound, spot_setup.Ks.maxbound)
+    
+    
+    plt.subplot(5,2,8)
+    x = x[int(len(results)*0.9):]
+
+    hist, bins = np.histogram(x, bins=20, density=True)
+    widths = np.diff(bins)
+    hist *= normed_value
+    plt.bar(bins[:-1], hist, widths)
+    plt.ylabel('Ks')
+    plt.xlim(spot_setup.Ks.minbound, spot_setup.Ks.maxbound)
+    
+    
+    plt.subplot(5,2,9)
+    x = results['parKq']
+    for i in range(int(max(results['chain'])-1)):
+        index=np.where(results['chain']==i+1)
+        plt.plot(x[index],'.')
+    plt.ylabel('Kq')
+    plt.ylim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
+    plt.xlabel('Iterations')
+    
+    plt.subplot(5,2,10)
+    x = x[int(len(results)*0.9):]
+    hist, bins = np.histogram(x, bins=20, density=True)
+    widths = np.diff(bins)
+    hist *= normed_value
+    plt.bar(bins[:-1], hist, widths)
+    plt.ylabel('Kq')
+    plt.xlabel('Parameter range')
+    plt.xlim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
+    plt.show()
+    fig.savefig('hymod_parameters.png',dpi=300)
+    ########################################################
+#    print(results['parcmax'][0:10])
+#    # Get fields with simulation data
+#    fields=[word for word in results.dtype.names if word.startswith('sim')]
+#    
+#    
+#    # Example plot to show remaining parameter uncertainty #
+#    fig= plt.figure(figsize=(16,9))
+#    ax = plt.subplot(1,1,1)
+#    q5,q25,q75,q95=[],[],[],[]
+#    for field in fields:
+#        q5.append(np.percentile(results[field][-100:-1],2.5))
+#        q95.append(np.percentile(results[field][-100:-1],97.5))
+#    #ax.plot(q5,color='dimgrey',linestyle='solid')
+#    #ax.plot(q95,color='dimgrey',linestyle='solid')
+#    #ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
+#    #                linewidth=0,label='parameter uncertainty')  
+#    ax.plot(spot_setup.evaluation(),'r.',label='data')
+#    ax.set_ylim(-50,450)
+#    ax.set_xlim(0,729)
+#    ax.legend()
+#    fig.savefig('python_hymod.png',dpi=300)
+#    #########################################################
     
     
 
