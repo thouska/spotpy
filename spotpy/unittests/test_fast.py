@@ -29,7 +29,7 @@ if sys.version_info >= (3, 5):
     
             sampler.sample(self.rep)
             results = sampler.getdata()
-            self.assertEqual(203,len(results))
+            self.assertEqual(200,len(results))
 
 
 if __name__ == '__main__':

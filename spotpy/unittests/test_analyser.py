@@ -244,7 +244,6 @@ class TestAnalyser(unittest.TestCase):
         results.append(sampler.getdata())
         results = np.array(results)[0]
         print("Sampler is done with")
-        print(results)
         spotpy.analyser.plot_fast_sensitivity(results)
 
         fig_name = "FAST_sensitivity.png"
@@ -422,8 +421,7 @@ class TestAnalyser(unittest.TestCase):
             on_run = []
             for i in run:
                 on_run.append(i)
-            on_run = np.array(on_run)[:-9]
-            print(on_run)
+            on_run = np.array(on_run)[:-7]
             modelruns.append(on_run.tolist())
 
         test_plot_allmodelruns = spotpy.analyser.plot_allmodelruns(modelruns, sp.evaluation(),
