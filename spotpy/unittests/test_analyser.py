@@ -28,7 +28,7 @@ import numpy as np
 import spotpy.analyser
 import os
 import pickle
-
+import sys
 
 class TestAnalyser(unittest.TestCase):
     def setUp(self):
@@ -396,8 +396,8 @@ class TestAnalyser(unittest.TestCase):
         os.remove(fig_name)
 
     def test_plot_parameterInteraction(self):
-        # Test only untder Python 3 as Python >2.7.10 results in a strange ValueError
-        if sys.version_info >= (3, 5):
+        # Test only untder Python 3.6 as lower versions results in a strange ValueError
+        if sys.version_info >= (3, 6):
             self.setup_MC_results()
             spotpy.analyser.plot_parameterInteraction(pickle.load(open("test_analyser_MC_results","rb")))
             fig_name = "ParameterInteraction.png"
