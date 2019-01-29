@@ -320,19 +320,20 @@ class _algorithm(object):
         return self.all_params
             
     
-    def postprocessing(self, rep, params, simulation, chains=1, save=True, negativlike=False): # TODO: rep not necessaray
+    def postprocessing(self, rep, params, simulation, chains=1, save_run=True, negativlike=False): # TODO: rep not necessaray
     
         params = self.update_params(params)
-        like = self.getfitness(simulation=simulation, params=params)
+        if negativlike is True:
+            like = -self.getfitness(simulation=simulation, params=params)
+        else:
+            like = self.getfitness(simulation=simulation, params=params)
+
         self.status(like, params)
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
-        if save is True:
-            if negativlike is True:
-                self.save(-like, params, simulations=simulation, chains=chains)              
-            else:
-                self.save(like, params, simulations=simulation, chains=chains)    
+        if save_run is True and simulation is not None:
+            self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]
         else:        
@@ -378,8 +379,8 @@ class _algorithm(object):
         sim_thread.join(self.sim_timeout)
 
         # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
-        # '[nan]' otherwise get the result from the thread
-        model_result = [np.NAN]
+        # '[nan]' and will not be saved. Otherwise get the result from the thread
+        model_result = None
         if not que.empty():
             model_result = que.get()
         return id, params, model_result

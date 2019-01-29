@@ -14,9 +14,8 @@ install:
   - pip install pandas==0.23.4
   - pip install scipy
   - pip install click
-  - pip install pytest==4.0.1
-  - pip install pytest-pep8
-  - pip install pytest-cov==2.6.0
+  # Need to force pytest-cov to v2.6 as current version (2.6.1) is deprecated
+  - pip install pytest pytest-pep8 pytest-cov==2.6
   # Use docutils to generate html describe
   - pip install docutils
   - pip install numba

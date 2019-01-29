@@ -9,6 +9,7 @@ __pycache__/
 #other files
 *.out
 *.in
+*.png
 site/*
 mkdocs.yml
 

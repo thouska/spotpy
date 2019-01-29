@@ -215,7 +215,9 @@ class demcz(_algorithm):
             # 3) and we have not done more than the maximum number of iterations
     
             while cur_iter < maxChainDraws:
+                print(cur_iter, burnIn)
                 if cur_iter == burnIn:
+                    print('starting')
                     history.start_sampling()
     
                 # every5th iteration allow a big jump
@@ -262,13 +264,7 @@ class demcz(_algorithm):
                     # each chain proposal
                     decisions, acceptance = self._metropolis_hastings(
                         currentLogPs, proposalLogPs, nChains)
-                    try:
-                        self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
-                    except DEMCZError:
-                        pass
-    
-        
-        
+                    self._update_accepts_ratio(accepts_ratio_weighting, acceptance)        
                     # choose from list of possible choices if 1d_decision is True at
                     # specific index, else use default choice
                     # np.choose(1d_decision[:,None], (list of possible choices, default
@@ -276,8 +272,7 @@ class demcz(_algorithm):
                     save_likes=[]
                     save_pars=[]
                     save_sims=[]
-                    #print(len(self._logPs))
-        
+
                     for curchain in range(nChains):
                         if decisions[curchain]:
                            save_likes.append(float(new_likelist[curchain]))
@@ -324,7 +319,8 @@ class demcz(_algorithm):
                         cur_iter = maxChainDraws
                         print(
                             'All chains fullfil the convergence criteria. Sampling stopped.')
-
+                cur_iter+=1
+                
         # 3) finalize
         # only make the second half of draws available because that's the only
         # part used by the convergence diagnostic
@@ -416,6 +412,9 @@ class _SimulationHistory(object):
     @property
     def sequence_histories(self):
         return self.group_sequence_histories('all')
+
+    def group_sequence_histories(self, name):
+        return self._sequence_histories[:, self.group_indicies[name], int(np.ceil(self.relevantHistoryStart)):self.relevantHistoryEnd]
 
     @property
     def nsequence_histories(self):

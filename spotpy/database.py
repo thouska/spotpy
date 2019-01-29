@@ -112,7 +112,7 @@ class database(object):
         #print(type(self.singular_data_lens[2]))        
         if self.save_sim:
             for i in range(len(simulations)):
-                if type(simulations[0]) == type([]) or type(simulations[0]) == type(np.array([])):
+                if isinstance(simulations[0], list) or type(simulations[0]) == type(np.array([])):
                     for j in range(len(simulations[i])):
                         self.header.extend(['simulation' + str(i+1)+'_'+str(j+1)])
                 else:

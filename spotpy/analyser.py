@@ -1016,7 +1016,7 @@ def plot_autocorellation(parameterdistribution,parametername):
     cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     ax = plt.subplot(1,1,1)
-    pd.tools.plotting.autocorrelation_plot(parameterdistribution)
+    pd.plotting.autocorrelation_plot(parameterdistribution)
     plt.savefig('Autocorellation'+str(parametername),dpi=300)
 
 

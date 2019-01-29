@@ -65,13 +65,6 @@ class sceua(_algorithm):
             kwargs['alt_objfun'] = 'rmse'
         super(sceua, self).__init__(*args, **kwargs)
 
-    def find_min_max(self):
-        randompar = self.parameter()['random']
-        for i in range(1000):
-            randompar = np.column_stack(
-                (randompar, self.parameter()['random']))
-        return np.amin(randompar, axis=1), np.amax(randompar, axis=1)
-
     def simulate(self, id_params_tuple):
         """This overwrites the simple wrapper function of _algorithms.py
         and makes a two phase mpi parallelization possbile:
@@ -84,7 +77,7 @@ class sceua(_algorithm):
 
         else:  # complex-evolution
             igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
-            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status = sce_vars
+            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status, self.stochastic_parameters = sce_vars
             # Partition the population into complexes (sub-populations);
             k1 = np.arange(self.npg, dtype=int)
             k2 = k1 * self.ngs + igs
@@ -192,11 +185,10 @@ class sceua(_algorithm):
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.postprocessing(icall, randompar, simulations, negativlike=True)              
+                like = self.postprocessing(icall, randompar, simulations,chains=0)              
                 xf[rep] = like
                 icall += 1
                 if self.status.stop:
-                    #icall = repetitions
                     print('Stopping samplig')
                     break
             # Sort the population in order of increasing function values;
@@ -250,7 +242,7 @@ class sceua(_algorithm):
             cf = np.zeros((self.npg))
 
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
-                        self.nps, self.bl, self.bu, self.status]
+                        self.nps, self.bl, self.bu, self.status, self.stochastic_parameters]
             param_generator = ((rep, x, xf, icall, cx, cf, sce_vars)
                                for rep in range(int(self.ngs)))
             for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
@@ -258,7 +250,7 @@ class sceua(_algorithm):
                 x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
                 for i in range(len(likes)):
-                    like = self.postprocessing(icall+i, pars[i], sims[i], chains=i, negativlike=True)
+                    like = self.postprocessing(icall+i, pars[i], sims[i], chains=i+1)
                     if self.status.stop:
                         icall = repetitions
                         print('Stopping samplig')
@@ -381,7 +373,7 @@ class sceua(_algorithm):
 
         ##    fnew = functn(self.nopt,snew);
         _, _, simulations = _algorithm.simulate(self, (icall, snew))
-        like = self.postprocessing(icall, snew, simulations, save=False)
+        like = self.postprocessing(icall, snew, simulations, save_run=False)
         fnew = like
         icall += 1
         if self.status.stop:
@@ -394,7 +386,7 @@ class sceua(_algorithm):
             snew[constant_parameters] = sw[constant_parameters]
 
             _, _, simulations = _algorithm.simulate(self, (icall, snew))
-            like = self.postprocessing(icall, snew, simulations, save=False)
+            like = self.postprocessing(icall, snew, simulations, save_run=False)
             fnew = like
             icall += 1
             if self.status.stop:
@@ -406,7 +398,7 @@ class sceua(_algorithm):
             if fnew > fw:
                 snew = self._sampleinputmatrix(1, self.nopt)[0]
                 _, _, simulations = _algorithm.simulate(self, (icall, snew))
-                like = self.postprocessing(icall, snew, simulations, save=False)
+                like = self.postprocessing(icall, snew, simulations, save_run=False)
                 fnew = like
                 icall += 1
 

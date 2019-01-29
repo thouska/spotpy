@@ -40,4 +40,4 @@ from . import describe            # Contains some helper functions to describe s
 from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 from . import tools
 
-__version__ = '1.3.30'
+__version__ = '1.4.2'
