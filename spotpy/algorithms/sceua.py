@@ -77,7 +77,7 @@ class sceua(_algorithm):
 
         else:  # complex-evolution
             igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
-            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status = sce_vars
+            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status, self.stochastic_parameters = sce_vars
             # Partition the population into complexes (sub-populations);
             k1 = np.arange(self.npg, dtype=int)
             k2 = k1 * self.ngs + igs
@@ -242,7 +242,7 @@ class sceua(_algorithm):
             cf = np.zeros((self.npg))
 
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
-                        self.nps, self.bl, self.bu, self.status]
+                        self.nps, self.bl, self.bu, self.status, self.stochastic_parameters]
             param_generator = ((rep, x, xf, icall, cx, cf, sce_vars)
                                for rep in range(int(self.ngs)))
             for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
