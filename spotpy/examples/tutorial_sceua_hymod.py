@@ -145,30 +145,3 @@ if __name__ == "__main__":
     plt.xlim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
     plt.show()
     fig.savefig('hymod_parameters.png',dpi=300)
-    ########################################################
-#    print(results['parcmax'][0:10])
-#    # Get fields with simulation data
-#    fields=[word for word in results.dtype.names if word.startswith('sim')]
-#    
-#    
-#    # Example plot to show remaining parameter uncertainty #
-#    fig= plt.figure(figsize=(16,9))
-#    ax = plt.subplot(1,1,1)
-#    q5,q25,q75,q95=[],[],[],[]
-#    for field in fields:
-#        q5.append(np.percentile(results[field][-100:-1],2.5))
-#        q95.append(np.percentile(results[field][-100:-1],97.5))
-#    #ax.plot(q5,color='dimgrey',linestyle='solid')
-#    #ax.plot(q95,color='dimgrey',linestyle='solid')
-#    #ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
-#    #                linewidth=0,label='parameter uncertainty')  
-#    ax.plot(spot_setup.evaluation(),'r.',label='data')
-#    ax.set_ylim(-50,450)
-#    ax.set_xlim(0,729)
-#    ax.legend()
-#    fig.savefig('python_hymod.png',dpi=300)
-#    #########################################################
-    
-    
-
-    
