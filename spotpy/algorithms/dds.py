@@ -1,5 +1,4 @@
 import numpy as np
-from spotpy.tools.fixedrandom import *
 from . import _algorithm
 from spotpy.parameter import ParameterSet
 
@@ -184,13 +183,13 @@ class DDSGenerator:
         s = x_curr[j]
         x_min = x_curr.minbound[j]
         x_max = x_curr.maxbound[j]
-        if not x_curr.distinct[j]:
+        if not x_curr.as_int[j]:
             return self.neigh_value_continuous(s, x_min, x_max, r)
         else:
             return self.neigh_value_discrete(s, x_min, x_max, r)
 
 
-class DDS(_algorithm):
+class dds(_algorithm):
     """
         Implements the Dynamically dimensioned search algorithm for computationally efficient watershed model
         calibration
@@ -255,7 +254,7 @@ class DDS(_algorithm):
         except KeyError:
             self.r = 0.2  # default value
 
-        super(DDS, self).__init__(*args, **kwargs)
+        super(dds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
 
@@ -360,7 +359,7 @@ class DDS(_algorithm):
         max_bound, min_bound = best_value.parameters.maxbound, best_value.parameters.minbound
         parameter_bound_range = max_bound - min_bound
         number_of_parameters = len(parameter_bound_range)
-        discrete_flag = best_value.parameters.distinct
+        discrete_flag = best_value.parameters.as_int
 
         # Calculate the initial Solution, if `initial_iterations` > 1 otherwise the user defined a own one.
         # If we need to find an initial solution we iterating initial_iterations times to warm um the algorithm

@@ -11,8 +11,8 @@ from __future__ import unicode_literals
 import numpy as np
 import os
 
-# replaces numpy.random module in a way
 
+# replaces numpy.random module in a way
 class FixedRandomizerEndOfDataException(Exception):
     pass
 

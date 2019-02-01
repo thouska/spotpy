@@ -212,7 +212,7 @@ class Base(object):
 
         self.description = arghelper.get('doc')
 
-        self.distinct = not not arghelper.get("distinct")
+        self.as_int = not not arghelper.get("as_int")
         arghelper.check_complete()
 
     def __call__(self, **kwargs):
@@ -225,7 +225,7 @@ class Base(object):
         """
         Returns a tuple of a realization and the other parameter properties
         """
-        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.distinct
+        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.as_int
     
     def __repr__(self):
         """
@@ -327,7 +327,7 @@ class List(Base):
                 raise IndexError(text)
 
     def astuple(self):
-        return self(), self.name, 0, 0, 0, 0, self.distinct
+        return self(), self.name, 0, 0, 0, 0, self.as_int
 
 
 class Constant(Base):
@@ -353,7 +353,7 @@ class Constant(Base):
             return self.value
 
     def astuple(self):
-        return self(), self.name, 0, self.value, self.value, self.value, self.distinct
+        return self(), self.name, 0, self.value, self.value, self.value, self.as_int
 
 
 class Normal(Base):
@@ -681,7 +681,7 @@ def generate(parameters):
     """
     dtype = [('random', '<f8'), ('name', '|U30'),
              ('step', '<f8'), ('optguess', '<f8'),
-             ('minbound', '<f8'), ('maxbound', '<f8'), ('distinct', 'bool')]
+             ('minbound', '<f8'), ('maxbound', '<f8'), ('as_int', 'bool')]
 
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 

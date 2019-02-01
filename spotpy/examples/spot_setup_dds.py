@@ -49,7 +49,7 @@ class spot_setup(object):
         elif name == "griewank":
             self.objfunc = griewank10
             self.params = [Uniform('d' + str(j), -500, 700, 1.5, 3.0, -500, 700,
-                                   doc=str(j) + 'distinc parameter within a boundary', distinct=True)
+                                   doc=str(j) + 'distinc parameter within a boundary', as_int=True)
                            for j in range(2)] + [Uniform('c' + str(j), -500, 700, 1.5, 3.0, -500, 700,
                                                          doc=str(j) + 'continuous parameter within a boundary')
                                                  for j in range(8)]
