@@ -8,11 +8,75 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-from spotpy.unittests.dds_tests.fixedrandom import FixedRandomizer
-
 import os
 from spotpy.examples.spot_setup_dds import spot_setup
 import json
+
+
+# replaces numpy.random module in a way
+class FixedRandomizerEndOfDataException(Exception):
+    pass
+
+
+class FixedRandomizer():
+    def __init__(self):
+        self.debug = False
+        self.uniform_counter = 0
+        self.normal_counter = 0
+        self.uniform_list=list(np.loadtxt(os.path.dirname(__file__)+"/dds_tests/uniform_list.txt"))
+
+        self.uniform_list*=3
+        self.max_normal_counter = 10000
+        self.max_uniform_counter = 30000
+
+        self.normal_list = list(np.loadtxt(os.path.dirname(__file__)+"/dds_tests/normal_list.txt"))
+
+    def rand(self, dim_x=1, dim_y=1):
+        x = dim_x * [0]
+        for i in range(dim_x):
+            if self.uniform_counter < self.max_uniform_counter:
+                x[i] = self.uniform_list[self.uniform_counter]
+                self.uniform_counter = self.uniform_counter + 1
+                if self.debug:
+                    print("fixrand::rand() counter = "+str(self.uniform_counter))
+            else:
+                raise FixedRandomizerEndOfDataException("No more data left. Counter is: "+str(self.uniform_counter))
+        if len(x) == 1:
+            return x[0]
+        else:
+            return x
+
+    def randint(self,x_from,x_to):
+        vals = [j for j in range(x_from,x_to)]
+        vals_size = len(vals)
+        if vals_size == 0:
+            raise ValueError("x_to >= x_from")
+        fraq = 1 / vals_size
+        if self.uniform_counter < self.max_uniform_counter:
+            q_uni = self.uniform_list[self.uniform_counter]
+            pos = np.int(np.floor(q_uni / fraq))
+            self.uniform_counter += 1
+            if self.debug:
+                print("fixrand::randint() counter = " + str(self.uniform_counter))
+            return vals[pos]
+        else:
+            raise FixedRandomizerEndOfDataException("No more data left.")
+
+    def normal(self,loc,scale,size=1):
+        x = []
+        for j in range(size):
+            if self.normal_counter < self.max_normal_counter:
+                x.append(self.normal_list[self.normal_counter]*scale + loc)
+                self.normal_counter += 1
+                if self.debug:
+                    print("fixrand::normal() counter = " + str(self.normal_counter))
+
+            else:
+                raise FixedRandomizerEndOfDataException("No more data left.")
+        if len(x) == 1:
+            return x[0]
+        else:
+            return x
 
 
 class TestDDS(unittest.TestCase):
