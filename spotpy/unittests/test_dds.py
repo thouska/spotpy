@@ -51,7 +51,7 @@ class FixedRandomizer():
         vals_size = len(vals)
         if vals_size == 0:
             raise ValueError("x_to >= x_from")
-        fraq = 1 / vals_size
+        fraq = 1. / vals_size
         if self.uniform_counter < self.max_uniform_counter:
             q_uni = self.uniform_list[self.uniform_counter]
             pos = np.int(np.floor(q_uni / fraq))
