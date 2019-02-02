@@ -3,52 +3,6 @@ from . import _algorithm
 from spotpy.parameter import ParameterSet
 
 
-class BestValue(object):
-    """
-        BestValue holds a parameter set and a best objective value, which is used by the DDS Algorithm.
-        Every time a new parameter set is sampled the `update` method is run and saves the new parameters, if the the
-        new calculated objective value is greater equals the current best one
-
-    """
-
-    def __init__(self, parameters, obj_value):
-        self.parameters = parameters
-        self.best_obj_val = obj_value
-        self.best_rep = 0
-
-    def update(self, curr_parameters, curr_obj_val, curr_rep):
-        """
-        Update on parameter set and the corresponding objective value on maximize
-        :param curr_parameters: a ParameterSet object
-        :type curr_parameters: ParameterSet
-        :param curr_obj_val: calculated new objective value
-        :type curr_obj_val: float
-        :return:
-        """
-        if self.best_obj_val is None or self.best_obj_val <= curr_obj_val:
-            self.best_obj_val = curr_obj_val
-            self.parameters = curr_parameters
-            self.best_rep = curr_rep
-
-    def update_param(self, curr_parameters, curr_obj_val, curr_rep):
-        if self.best_obj_val is None or self.best_obj_val <= curr_obj_val:
-            self.best_obj_val = curr_obj_val
-            self.parameters.set_by_array(curr_parameters)
-            self.best_rep = curr_rep
-
-    def copy(self):
-        to_copy = BestValue(self.parameters.copy(), self.best_obj_val)
-        to_copy.best_rep = self.best_rep
-        return to_copy
-
-    def __str__(self):
-        return "BestValue(best_obj_val = " + str(self.best_obj_val) + ", best_rep = " + str(self.best_rep) + ", " \
-               + str(self.parameters) + ")"
-
-    def reset_rep(self):
-        self.best_rep = 0
-
-
 class DDSGenerator:
     """
         This class is used by the DDS algorithm to generate a new sample of parameters based on the current one.
@@ -258,7 +212,7 @@ class dds(_algorithm):
 
         self.np_random = np.random
 
-        self.best_value = BestValue(ParameterSet(self.parameter()), None)
+        self.status.params = ParameterSet(self.parameter())
 
         # self.generator_repetitions will be set in `sample` and is needed to generate a
         # generator which sends back actual parameter s_test
@@ -276,7 +230,7 @@ class dds(_algorithm):
         """
         # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions):
-            yield rep, self.calculate_next_s_test(self.best_value.parameters, rep, self.generator_repetitions, self.r)
+            yield rep, self.calculate_next_s_test(self.status.params, rep, self.generator_repetitions, self.r)
 
     def sample(self, repetitions, trials=1, x_initial=np.array([])):
         """
@@ -318,7 +272,7 @@ class dds(_algorithm):
 
         self.set_repetiton(repetitions)
 
-        number_of_parameters = len(self.best_value.parameters)  # number_of_parameters is the amount of parameters
+        number_of_parameters = len(self.status.params)  # number_of_parameters is the amount of parameters
 
         if len(x_initial) == 0:
             initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
@@ -327,40 +281,44 @@ class dds(_algorithm):
         else:
             initial_iterations = 1
             x_initial = np.array(x_initial)
-            if not (np.all(x_initial <= self.best_value.parameters.maxbound) and np.all(
-                    x_initial >= self.best_value.parameters.minbound)):
+            if not (np.all(x_initial <= self.status.params.maxbound) and np.all(
+                    x_initial >= self.status.params.minbound)):
                 raise ValueError("User specified 'x_initial' but the values are not within the parameter range")
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
+            self.status.objectivefunction = -1e308
             # repitionno_best saves on which iteration the best parameter configuration has been found
             repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
-            repetions_left, trial_best_value = self.calc_initial_para_configuration(initial_iterations, trial,
+            repetions_left = self.calc_initial_para_configuration(initial_iterations, trial,
                                                                                     repetitions, x_initial)
-            self.best_value = trial_best_value.copy()
-            self.best_value.reset_rep()
+            self.fix_status_params_format()
+            trial_best_value = self.status.params.copy()
 
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
 
             for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
-                f_curr = self.postprocessing(rep, x_curr, simulations, chains=trial)
-                self.best_value.update(x_curr, f_curr, rep + initial_iterations)
+                self.postprocessing(rep, x_curr, simulations, chains=trial)
+                self.fix_status_params_format()
 
-            print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
+            print('Best solution found has obj function value of ' + str(self.status.objectivefunction) + ' at '
                   + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": self.best_value.parameters, "trial_initial": trial_best_value.parameters,"objfunc_val": self.best_value.best_obj_val})
+            debug_results.append({"sbest": self.status.params, "trial_initial": trial_best_value,"objfunc_val": self.status.objectivefunction})
         self.final_call()
         return debug_results
 
+    def fix_status_params_format(self):
+        start_params = ParameterSet(self.parameter())
+        start_params.set_by_array([j for j in self.status.params])
+        self.status.params = start_params
+
     def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, x_initial):
-        best_value = BestValue(ParameterSet(self.parameter()), None)
-        max_bound, min_bound = best_value.parameters.maxbound, best_value.parameters.minbound
+        max_bound, min_bound = self.status.params.maxbound, self.status.params.minbound
         parameter_bound_range = max_bound - min_bound
         number_of_parameters = len(parameter_bound_range)
-        discrete_flag = best_value.parameters.as_int
-
+        discrete_flag = self.status.params.as_int
         # Calculate the initial Solution, if `initial_iterations` > 1 otherwise the user defined a own one.
         # If we need to find an initial solution we iterating initial_iterations times to warm um the algorithm
         # by trying which randomized generated input matches best
@@ -379,16 +337,17 @@ class dds(_algorithm):
                        range(number_of_parameters)]) for rep in range(int(initial_iterations)))
 
             for rep, x_curr, simulations in self.repeat(starting_generator):
-                f_curr = self.postprocessing(rep, x_curr, simulations)  # get obj function value
-                best_value.update_param(x_curr,f_curr,rep)
+                self.postprocessing(rep, x_curr, simulations)  # get obj function value
+                # status setting update
+                self.fix_status_params_format()
 
         else:  # now initial_iterations=1, using a user supplied initial solution.  Calculate obj func value.
             repetions_left = repetitions - 1  # use this to reduce number of fevals in DDS loop
-            rep, x_test_param, simulations = self.simulate((0, x_initial)) # get from the inputs
-            f_best = self.postprocessing(rep, x_test_param, simulations)
-            best_value.update_param(x_test_param, f_best, rep)
+            rep, x_test_param, simulations = self.simulate((0, x_initial))  # get from the inputs
+            self.postprocessing(rep, x_test_param, simulations)
+            self.fix_status_params_format()
 
-        return repetions_left, best_value
+        return repetions_left
 
     def calculate_next_s_test(self, previous_x_curr, rep, rep_limit, r):
         """
