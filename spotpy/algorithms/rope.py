@@ -66,20 +66,6 @@ class rope(_algorithm):
                             dbformat=dbformat, parallel=parallel,
                             save_sim=save_sim, save_threshold=save_threshold,sim_timeout = sim_timeout)
 
-    def create_par(self, min_bound, max_bound):
-        return np.random.uniform(low=min_bound, high=max_bound)
-
-    def check_par_validity(self, par):
-        if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
-            for i in range(len(par)):
-                if par[i] < self.min_bound[i]:
-                    par[i] = self.min_bound[i]
-                if par[i] > self.max_bound[i]:
-                    par[i] = self.max_bound[i]
-        else:
-            print('ERROR: Bounds have not the same lenghts as Parameterarray')
-        return par
-
     def get_best_runs(self, likes, pars, runs, percentage):
         '''
         Returns the best xx% of the runs'''
