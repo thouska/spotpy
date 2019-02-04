@@ -457,8 +457,8 @@ def kge_non_parametric(evaluation, simulation, return_all=False):
 
     output:
         kge: Kling-Gupta Efficiency
-
-    author: Nadine Maier
+    
+    author: Nadine Maier and Tobias Houska
     optional_output:
         cc: correlation 
         alpha: ratio of the standard deviation
@@ -474,15 +474,12 @@ def kge_non_parametric(evaluation, simulation, return_all=False):
         ### pandas version 
         #a  = pd.DataFrame({'eva': evaluation, 'sim': simulation})
         #cc = a.ix[:,1].corr(a.ix[:,0], method = 'spearman')
-       
-        sim_sort = np.sort(simulation)[::-1]
-        sim_exceedence = np.arange(1.,len(sim_sort)+1) / len(sim_sort)
 
-        eva_sort = np.sort(simulation)[::-1]
-        eva_exceedence = np.arange(1.,len(eva_sort)+1) / len(eva_sort)
-        alpha = np.nanmean(eva_exceedence - sim_exceedence)
+        fdc_sim = np.sort(simulation / (np.nanmean(simulation)*len(simulation)))
+        fdc_obs = np.sort(evaluation / (np.nanmean(evaluation)*len(evaluation)))
+        alpha = 1 - 0.5 * np.nanmean(np.abs(fdc_sim - fdc_obs))
  
-        beta = np.nansum(simulation) / np.nansum(evaluation)
+        beta = np.mean(simulation) / np.mean(evaluation)
         kge = 1 - np.sqrt((cc - 1)**2 + (alpha - 1)**2 + (beta - 1)**2)
         if return_all:
             return kge, cc, alpha, beta
