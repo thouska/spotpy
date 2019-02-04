@@ -65,11 +65,11 @@ class TestListParameterDistribution(unittest.TestCase):
 
     def test_astuple(self):
         _ = self.list_param()
-        v, name, step, optguess, minbound, maxbound = self.list_param.astuple()
+        v, name, step, optguess, minbound, maxbound, as_int = self.list_param.astuple()
         self.assertEqual(self.values[0], v)
         self.assertEqual("test", name)
 
-        # the values of step, optguess, minbound and maxbound don't matter
+        # the values of step, optguess, minbound, maxbound and as_int don't matter
 
 
 class TestUniformParameterDistribution(unittest.TestCase):

@@ -9,6 +9,7 @@ from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
 import sys
+import copy
 
 if sys.version_info[0] >= 3:
     unicode = str
@@ -210,6 +211,8 @@ class Base(object):
             self.maxbound = 0.0
 
         self.description = arghelper.get('doc')
+
+        self.as_int = not not arghelper.get("as_int")
         arghelper.check_complete()
 
     def __call__(self, **kwargs):
@@ -222,7 +225,7 @@ class Base(object):
         """
         Returns a tuple of a realization and the other parameter properties
         """
-        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound
+        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.as_int
     
     def __repr__(self):
         """
@@ -324,7 +327,7 @@ class List(Base):
                 raise IndexError(text)
 
     def astuple(self):
-        return self(), self.name, 0, 0, 0, 0
+        return self(), self.name, 0, 0, 0, 0, self.as_int
 
 
 class Constant(Base):
@@ -350,7 +353,7 @@ class Constant(Base):
             return self.value
 
     def astuple(self):
-        return self(), self.name, 0, self.value, self.value, self.value
+        return self(), self.name, 0, self.value, self.value, self.value, self.as_int
 
 
 class Normal(Base):
@@ -654,6 +657,12 @@ class ParameterSet(object):
         attrs = [attr for attr in vars(type(self)) if not attr.startswith('_')]
         return attrs + list(self.__info['name']) + list(self.__info.dtype.names)
 
+    def set_by_array(self,array):
+        for i, a in enumerate(array):
+            self.__setitem__(i,a)
+
+    def copy(self):
+        return ParameterSet(copy.deepcopy(self.__info))
 
 def get_classes():
     keys = []
@@ -672,7 +681,7 @@ def generate(parameters):
     """
     dtype = [('random', '<f8'), ('name', '|U30'),
              ('step', '<f8'), ('optguess', '<f8'),
-             ('minbound', '<f8'), ('maxbound', '<f8')]
+             ('minbound', '<f8'), ('maxbound', '<f8'), ('as_int', 'bool')]
 
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
