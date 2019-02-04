@@ -213,6 +213,7 @@ class csv(database):
             self.last_flush = time.time()
 
     def finalize(self):
+        self.db.flush() # Just to make sure that everything is written in file
         self.db.close()
 
     def getdata(self):
