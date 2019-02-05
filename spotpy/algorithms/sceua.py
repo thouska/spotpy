@@ -165,6 +165,7 @@ class sceua(_algorithm):
             'maxbound']
         bound = self.bu - self.bl  # np.array
         self.stochastic_parameters = bound != 0
+        proceed = True
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -189,7 +190,8 @@ class sceua(_algorithm):
                 xf[rep] = like
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
+                    print('Stopping samplig. Maximum number of repetitions reached already during burn-in')
+                    proceed = False
                     break
             # Sort the population in order of increasing function values;
             idx = np.argsort(xf)
@@ -233,14 +235,17 @@ class sceua(_algorithm):
         self.repeat.setphase('ComplexEvo')
 
         print ('ComplexEvo started...')
-
-        while icall < repetitions and gnrng > peps and criter_change_pcent > pcento:
+        proceed = True
+        while icall < repetitions and gnrng > peps and criter_change_pcent > pcento and proceed == True:
             nloop += 1
             print ('ComplexEvo loop #%d in progress...' % nloop)
             # Loop on complexes (sub-populations);
             cx = np.zeros((self.npg, self.nopt))
             cf = np.zeros((self.npg))
-
+            remaining_runs = repetitions - self.status.rep
+            if remaining_runs <= self.ngs:
+                self.ngs = remaining_runs-1
+                proceed = False
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
                         self.nps, self.bl, self.bu, self.status, self.stochastic_parameters]
             param_generator = ((rep, x, xf, icall, cx, cf, sce_vars)
@@ -250,18 +255,19 @@ class sceua(_algorithm):
                 x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
                 for i in range(len(likes)):
-                    like = self.postprocessing(icall+i, pars[i], sims[i], chains=i+1)
-                    if self.status.stop:
-                        icall = repetitions
-                        print('Stopping samplig')
-                        break
+                    if not self.status.stop:    
+                        like = self.postprocessing(icall+i, pars[i], sims[i], chains=i+1)
+                    else:
+                        #Collect data from all slaves but do not save
+                        proceed=False
+                        like = self.postprocessing(icall+i, pars[i], sims[i], chains=i+1, save_run=False)
+                        print('Skipping saving')
+                
                 if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
                   and icall >= self.backup_every_rep:
                     work = (icall, (x, xf), gnrng)
                     self.write_breakdata(self.dbname, work)
-                if self.status.stop:
-                    break
-                
+
             # End of Loop on Complex Evolution;
 
             # Shuffled the complexes;
@@ -282,6 +288,8 @@ class sceua(_algorithm):
             gnrng = np.exp(
                 np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
+            criter = np.append(criter, bestf)
+            
             # Check for convergency;
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
@@ -289,13 +297,12 @@ class sceua(_algorithm):
                 print(repetitions)
                 print('HAS BEEN EXCEEDED.')
 
-            if gnrng < peps:
+            elif gnrng < peps:
                 print(
                     'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
-            criter = np.append(criter, bestf)
 
-            if nloop >= kstop:  # necessary so that the area of high posterior density is visited as much as possible
+            elif nloop >= kstop:  # necessary so that the area of high posterior density is visited as much as possible
                 print ('objective function convergence criteria is now being updated and assessed...')
                 absolute_change = np.abs(
                     criter[nloop - 1] - criter[nloop - kstop])
@@ -305,12 +312,16 @@ class sceua(_algorithm):
                 else:
                     criter_change_pcent = absolute_change / denominator * 100
                 print ('updated convergence criteria: %f' % criter_change_pcent)
-                if criter_change_pcent < pcento:
+                if criter_change_pcent <= pcento:
                     text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f' % (
                         kstop, pcento)
                     print(text)
                     print(
                         'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
+            elif self.status.stop:
+                proceed = False
+                break        
+            
         # End of the Outer Loops
         text = 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % icall
         print(text)
