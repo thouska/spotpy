@@ -11,15 +11,26 @@ def nd_check(nd_set, y, x):
     # Algorithm from PADDS Matlab Code
 
     dominance_flag = 0
-    num_objs = len(y)
 
-    i = -1  # solution counter, np array starts with zero therefor a -1!
-    while i < nd_set.shape[1]:
-        print("h", y, x)
+    # These are simply reshaping problems if we want to loop over arrays but we have a single float given
+    try:
+        num_objs = y.shape[0]
+    except IndexError:
+        y = y.reshape((1, ))
+        num_objs = y.shape[0]
+    try:
+        pareto_high = nd_set.shape[1]
+    except IndexError:
+        nd_set = nd_set.reshape(1,nd_set.shape[0])
+        pareto_high = nd_set.shape[1]
+
+
+    i = -1  # solution counter
+    while i < nd_set.shape[0]-1:
         i += 1
-        num_eql = sum(y == nd_set[i, :num_objs])
-        num_imp = sum(y < nd_set[i, :num_objs])
-        num_deg = sum(y > nd_set[i, :num_objs])
+        num_eql = np.sum(y == nd_set[i, :num_objs])
+        num_imp = np.sum(y < nd_set[i, :num_objs])
+        num_deg = np.sum(y > nd_set[i, :num_objs])
 
         if num_imp == 0 and num_deg > 0:  # x is dominated
             dominance_flag = -1
@@ -30,7 +41,7 @@ def nd_check(nd_set, y, x):
             dominance_flag = 0  # X is non - dominated
             return nd_set, dominance_flag
         elif num_imp > 0 and num_deg == 0:  # X dominates ith solution in the ND_set
-            np.delete(nd_set, i, 0)
+            nd_set = np.delete(nd_set, i, 0)
             i = i - 1
             dominance_flag = 1
 
@@ -40,7 +51,6 @@ def nd_check(nd_set, y, x):
         nd_set = np.vstack(
             [nd_set, np.append(y, x)])  # Add the new solution to the end of ND_set (for later use and comparing!
 
-    print("h", nd_set)
     return nd_set, dominance_flag
 
 
@@ -142,3 +152,6 @@ def dsearchn(x,y):
         length = found_min_dist_ind.shape[0]
         IDX.append(np.array(range(length))[found_min_dist_ind][0])
     return np.array(IDX)
+
+
+
