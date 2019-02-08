@@ -25,7 +25,7 @@ def generate_array_testfiles():
         m_arr = generate_multi_array()
         path = os.path.abspath(os.path.dirname(__file__))
         folder = os.path.join(path,"pareto_tools/crowd_dist_test")
-        filename = f"test_file_{j:05d}"
+        filename = "test_file_%05d" % j
         testfile = os.path.join(folder,filename)
         np.savetxt(testfile,m_arr)
 
@@ -41,9 +41,9 @@ def generate_nd_check_array_testfiles():
         path = os.path.abspath(os.path.dirname(__file__))
         folder = os.path.join(path,"pareto_tools/nd_check_test")
 
-        np.savetxt(os.path.join(folder,f"test_{j:05d}_PF_set"), PF_set)
-        np.savetxt(os.path.join(folder, f"test_{j:05d}_stest"), stest)
-        np.savetxt(os.path.join(folder, f"test_{j:05d}_Jtest"), Jtest)
+        np.savetxt(os.path.join(folder, "test_%05d_PF_set" % j), PF_set)
+        np.savetxt(os.path.join(folder, "test_%05d_stest" % j), stest)
+        np.savetxt(os.path.join(folder, "test_%05d_Jtest" % j), Jtest)
 
 indicies = range(1, 1000)
 
@@ -54,15 +54,15 @@ class ParetoTestsContainer(unittest.TestCase):
     def test_nd_check_pytest_wrapper(self):
         for j in indicies:
             test_func = gen_nd_check_tests(j)
-            setattr(ParetoTestsContainer, 'test_nd_check_{0}'.format(j), test_func)
-            fn = getattr(ParetoTestsContainer, 'test_nd_check_{0}'.format(j))
+            setattr(ParetoTestsContainer, 'test_nd_check_%d' % j, test_func)
+            fn = getattr(ParetoTestsContainer, 'test_nd_check_%d' % j)
             fn.__call__(self)
 
     def test_crowd_dist_pytest_wrapper(self):
         for j in indicies:
             test_func = gen_nd_check_tests(j)
-            setattr(ParetoTestsContainer, 'test_crowd_dist_{0}'.format(j), test_func)
-            fn = getattr(ParetoTestsContainer, 'test_crowd_dist_{0}'.format(j))
+            setattr(ParetoTestsContainer, 'test_crowd_dist_%d' % j, test_func)
+            fn = getattr(ParetoTestsContainer, 'test_crowd_dist_%d' % j)
             fn.__call__(self)
 
 def gen_nd_check_tests(j):
@@ -70,12 +70,12 @@ def gen_nd_check_tests(j):
         path = os.path.abspath(os.path.dirname(__file__))
         folder = os.path.join(path, "pareto_tools/nd_check_test")
 
-        PF_set = np.loadtxt(os.path.join(folder, f"test_{j:05d}_PF_set"))
-        stest = np.loadtxt(os.path.join(folder, f"test_{j:05d}_stest"))
-        Jtest = np.loadtxt(os.path.join(folder, f"test_{j:05d}_Jtest"))
+        PF_set = np.loadtxt(os.path.join(folder, "test_%05d_PF_set" % j))
+        stest = np.loadtxt(os.path.join(folder, "test_%05d_stest" % j))
+        Jtest = np.loadtxt(os.path.join(folder, "test_%05d_Jtest" % j))
 
-        matlab_PF = np.loadtxt(os.path.join(folder, f"test_{j:05d}_result"), delimiter=",")
-        matlab_dom = np.loadtxt(os.path.join(folder, f"test_{j:05d}_dom"), delimiter=",")
+        matlab_PF = np.loadtxt(os.path.join(folder, "test_%05d_result" % j), delimiter=",")
+        matlab_dom = np.loadtxt(os.path.join(folder, "test_%05d_dom" % j), delimiter=",")
 
         PF_set, dom = nd_check(PF_set, Jtest, stest)
         diff = np.abs(matlab_PF - PF_set)
@@ -92,10 +92,10 @@ def gen_crowd_dist_tests(j):
         path = os.path.abspath(os.path.dirname(__file__))
         folder = os.path.join(path, self.pareto_folder)
 
-        filename = f"test_file_{j:05d}"
+        filename = "test_file_%05d" % j
         testfile = os.path.join(folder, filename)
 
-        resultfile = os.path.join(folder, f"test_file_{j:05d}_result")
+        resultfile = os.path.join(folder, "test_file_%05d_result" % j)
 
         m_arr = pd.read_table(testfile, header=None, sep='\s+').values
         matlab_result = np.loadtxt(resultfile)
@@ -110,10 +110,10 @@ def gen_crowd_dist_tests(j):
 if __name__ == '__main__':
     for j in indicies:
         test_func = gen_nd_check_tests(j)
-        setattr(ParetoTestsContainer, 'test_nd_check_{0}'.format(j), test_func)
+        setattr(ParetoTestsContainer, 'test_nd_check_%d' % j, test_func)
 
         test_cr_dist = gen_crowd_dist_tests(j)
-        setattr(ParetoTestsContainer, 'test_crowd_dist_{0}'.format(j), test_cr_dist)
+        setattr(ParetoTestsContainer, 'test_crowd_dist_%d' % j, test_cr_dist)
 
     indicies = range(0)
     unittest.main()
