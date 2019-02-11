@@ -263,8 +263,8 @@ class _algorithm(object):
         except AttributeError:  # Happens if no database was assigned
             pass
         print('End of sampling')
-        text = 'Best run at %i of %i (best like=%g) with parameter set:' % (
-            self.status.bestrep, self.status.repetitions, self.status.objectivefunction)
+        text = 'Best run at %i of %i (best like=%s) with parameter set:' % (
+            self.status.bestrep, self.status.repetitions, self.status.objectivefunction.__str__())
         print(text)
         print(self.status.params)
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'

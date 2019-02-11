@@ -1,15 +1,17 @@
 import numpy as np
+from copy import deepcopy
 
-def nd_check(nd_set, y, x):
+def nd_check(nd_set_input, y, x):
     """
     It is the Non Dominated Solution Check (ND Check)
-    :param nd_set: Pareto Fron
+    :param nd_set_input: Pareto Fron
     :param y: ojective values
     :param x: parameter set
     :return: a new pareto front and a value if it was dominated or not (0,1,-1)
     """
     # Algorithm from PADDS Matlab Code
 
+    nd_set = deepcopy(nd_set_input)
     dominance_flag = 0
 
     # These are simply reshaping problems if we want to loop over arrays but we have a single float given
@@ -24,7 +26,6 @@ def nd_check(nd_set, y, x):
         nd_set = nd_set.reshape(1,nd_set.shape[0])
         pareto_high = nd_set.shape[1]
 
-
     i = -1  # solution counter
     while i < nd_set.shape[0]-1:
         i += 1
@@ -37,7 +38,8 @@ def nd_check(nd_set, y, x):
             return (nd_set, dominance_flag)
         elif num_eql == num_objs:
             # Objective functions are the same for x and archived solution i
-            nd_set[0] = np.append(y, x)  # Replace solution i in ND_set with X
+            # TODO check if this line still works
+            nd_set[i] = np.append(y, x)  # Replace solution i in ND_set with X
             dominance_flag = 0  # X is non - dominated
             return nd_set, dominance_flag
         elif num_imp > 0 and num_deg == 0:  # X dominates ith solution in the ND_set
