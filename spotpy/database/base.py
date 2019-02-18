@@ -29,7 +29,7 @@ class database(object):
     """
 
     def __init__(self, dbname, parnames, like, randompar, simulations=None,
-                 chains=1, save_sim=True, db_precision=np.float16, **kwargs):
+                 chains=1, save_sim=True, db_precision=np.float32, **kwargs):
         # Just needed for the first line in the database
         self.chains = chains
         self.dbname = dbname
@@ -151,10 +151,13 @@ class custom(database):
     def __init__(self, *args, **kwargs):
         if 'setup' not in kwargs:
             raise ValueError("""
-                You must use either of ram, csv, sql or noData for your dbformat,
-                OR implement a `save` function in your spot_setup class.
+                You are using the 'custom' Datawriter. To use it, the
+                setup must be specified on creation, but it is missing
             """)
         self.setup = kwargs['setup']
+        if not hasattr(self.setup, 'save'):
+            raise AttributeError('Your setup needs a "save" method in order to use the "custom" dbformat')
+
         super(custom, self).__init__(*args, **kwargs)
 
     def save(self, objectivefunction, parameterlist, simulations, *args, **kwargs):

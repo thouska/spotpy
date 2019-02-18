@@ -41,10 +41,11 @@ class hdf5(database):
         # Position of likelihood columns
         like_pos = 0
         # Start position of parameter columns
-        param_pos = len(np.array(self.like))
+        param_pos = np.array(self.like).size
         # Start position of simulation columns
-        sim_pos = param_pos + len(self.randompar)
-        chain_pos = param_pos + len(self.randompar)
+        sim_pos = param_pos + np.array(self.randompar).size
+        chain_pos = sim_pos
+
         dtype = np.dtype(self.db_precision)
         columns = {
             self.header[i]: tables.Col.from_dtype(dtype, pos=i)
@@ -99,5 +100,5 @@ class hdf5(database):
         self.db.close()
 
     def getdata(self):
-        data = np.array(self.table[:])
-        return data
+        with tables.open_file(self.dbname + '.h5', 'a') as db:
+            return db.root[self.dbname][:]
