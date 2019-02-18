@@ -36,18 +36,10 @@ class csv(database):
                 self.dim_dict['par'](parameterlist) +
                 self.dim_dict['simulation'](simulations) +
                 [chains])
-        try:
-            # Apply rounding of floats
-            coll = map(self.db_precision, coll)
-            self.db.write(
-                ','.join(map(str, coll)) + '\n')
-        except IOError:
-            input("Please close the file " + self.dbname +
-                  " When done press Enter to continue...")
-            # Apply rounding of floats
-            coll = map(self.db_precision, coll)
-            self.db.write(
-                ','.join(map(str, coll)) + '\n')
+        # Apply rounding of floats
+        coll = map(self.db_precision, coll)
+        self.db.write(
+            ','.join(map(str, coll)) + '\n')
 
         acttime = time.time()
         # Force writing to disc at least every two seconds
