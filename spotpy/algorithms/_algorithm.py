@@ -48,8 +48,9 @@ class _RunStatistic(object):
         self.last_print = time.time()
         
         self.repetitions = None
-
-    def __call__(self, rep, objectivefunction, params):
+        self.stop = False
+        
+    def __call__(self, objectivefunction, params):
         self.curparmeterset = params
         self.rep+=1
         if type(objectivefunction) == type([]):
@@ -64,6 +65,8 @@ class _RunStatistic(object):
                 self.params = params
                 self.objectivefunction = objectivefunction
                 self.bestrep = self.rep
+        if self.rep == self.repetitions:
+            self.stop = True
         self.print_status()
 
     def print_status(self):
@@ -112,7 +115,7 @@ class _algorithm(object):
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
-    save_thresholde: float or list
+    save_threshold: float or list
         Compares the given value/list of values with return value/list of values from spot_setup.objectivefunction.
         If the objectivefunction value is higher, the results are saved in the database. If not they are ignored (saves storage).
     db_precision:np.float type
@@ -132,13 +135,14 @@ class _algorithm(object):
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
     """
 
+    _unaccepted_parameter_types = (parameter.List, )
+
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
                  breakpoint=None, backup_every_rep=100, save_threshold=-np.inf,
                  db_precision=np.float16, sim_timeout=None, random_state=None):
         # Initialize the user defined setup class
         self.setup = spot_setup
-        self.model = self.setup.simulation
         # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
         # as well as the parameters function. The new method get_parameters
         # can deal with a missing parameters function
@@ -146,12 +150,21 @@ class _algorithm(object):
         # For me (Philipp) it is totally unclear why all the samplers should call this function
         # again and again instead of
         # TODO: just storing a definite list of parameter objects here
+        param_info = parameter.get_parameters_array(self.setup, unaccepted_parameter_types=self._unaccepted_parameter_types)
+        self.all_params = param_info['random']
+        self.constant_positions = parameter.get_constant_indices(spot_setup)
+        if self.constant_positions:
+            self.non_constant_positions = []
+            for i, val in enumerate(self.all_params):
+                if self.all_params[i] not in self.constant_positions:
+                    self.non_constant_positions.append(i)
+        else: 
+            self.non_constant_positions = np.arange(0,len(self.all_params))
         self.parameter = self.get_parameters
-        self.parnames = self.parameter()['name']
+        self.parnames = param_info['name']
 
         # Create a type to hold the parameter values using a namedtuple
-        self.partype = parameter.get_namedtuple_from_paramnames(
-            self.setup, self.parnames)
+        self.partype = parameter.ParameterSet(param_info)
 
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
@@ -160,7 +173,7 @@ class _algorithm(object):
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
         self.dbname = dbname or 'customDb'
-        self.dbformat = dbformat or 'custom'
+        self.dbformat = dbformat or 'ram'
         self.db_precision = db_precision
         self.breakpoint = breakpoint
         self.backup_every_rep = backup_every_rep
@@ -171,9 +184,9 @@ class _algorithm(object):
         self.dbappend = dbappend
         
         # Set the random state
-        if random_state is None:
+        if random_state is None: #ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state)
+        np.random.seed(random_state) 
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
@@ -229,7 +242,8 @@ class _algorithm(object):
         """
         Returns the parameter array from the setup
         """
-        return parameter.get_parameters_array(self.setup)
+        pars = parameter.get_parameters_array(self.setup)
+        return pars[self.non_constant_positions]
 
     def set_repetiton(self, repetitions):
 
@@ -300,23 +314,31 @@ class _algorithm(object):
     def getdata(self):
         return self.datawriter.getdata()
 
-    def postprocessing(self, rep, randompar, simulation, chains=1, save=True, negativlike=False):
-        like = self.getfitness(simulation=simulation, params=randompar)
+    def update_params(self, params):
+        #Add potential Constant parameters
+        self.all_params[self.non_constant_positions] = params
+        return self.all_params
+            
+    
+    def postprocessing(self, rep, params, simulation, chains=1, save_run=True, negativlike=False): # TODO: rep not necessaray
+    
+        params = self.update_params(params)
+        if negativlike is True:
+            like = -self.getfitness(simulation=simulation, params=params)
+        else:
+            like = self.getfitness(simulation=simulation, params=params)
+
+        self.status(like, params)
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
-        if save is True:
-            if negativlike is True:
-                self.save(-like, randompar, simulations=simulation, chains=chains)              
-                self.status(rep, -like, randompar)
-            else:
-                self.save(like, randompar, simulations=simulation, chains=chains)
-                self.status(rep, like, randompar)
+        if save_run is True and simulation is not None:
+            self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]
         else:        
             return like
-    
+
     
     def getfitness(self, simulation, params):
         """
@@ -336,16 +358,18 @@ class _algorithm(object):
         can mix up the ordering of runs
         """
         id, params = id_params_tuple
+        self.all_params[self.non_constant_positions] = params #TODO: List parameters are not updated if not accepted for the algorithm, we may have to warn/error if list is given
+        all_params = self.all_params
 
         # we need a layer to fetch returned data from a threaded process into a queue.
-        def model_layer(q,params):
+        def model_layer(q,all_params):
             # Call self.model with a namedtuple instead of another sequence
-            q.put(self.model(self.partype(*params)))
+            q.put(self.setup.simulation(self.partype(*all_params)))
 
         # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
         # incompability which the main thread. Therefore only for older Python version a workaround follows
         que = Queue()
-        sim_thread = threading.Thread(target=model_layer, args=(que, params))
+        sim_thread = threading.Thread(target=model_layer, args=(que, all_params))
         sim_thread.daemon = True
         sim_thread.start()
 
@@ -355,8 +379,8 @@ class _algorithm(object):
         sim_thread.join(self.sim_timeout)
 
         # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
-        # '[nan]' otherwise get the result from the thread
-        model_result = [np.NAN]
+        # '[nan]' and will not be saved. Otherwise get the result from the thread
+        model_result = None
         if not que.empty():
             model_result = que.get()
         return id, params, model_result

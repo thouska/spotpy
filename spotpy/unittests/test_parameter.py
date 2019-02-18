@@ -65,11 +65,11 @@ class TestListParameterDistribution(unittest.TestCase):
 
     def test_astuple(self):
         _ = self.list_param()
-        v, name, step, optguess, minbound, maxbound = self.list_param.astuple()
+        v, name, step, optguess, minbound, maxbound, as_int = self.list_param.astuple()
         self.assertEqual(self.values[0], v)
         self.assertEqual("test", name)
 
-        # the values of step, optguess, minbound and maxbound don't matter
+        # the values of step, optguess, minbound, maxbound and as_int don't matter
 
 
 class TestUniformParameterDistribution(unittest.TestCase):
@@ -112,8 +112,23 @@ class TestConstantParameterDistribution(unittest.TestCase):
 
     def test_constant_gives_only_constants(self):
         nums = set([self.const() for _ in range(1000)])
-        self.assertEqual(len(nums), 1)
-        self.assertEqual(nums.pop(), 10)
+        self.assertEqual(len(nums), 1, 'All results must be the same')
+        self.assertEqual(nums.pop(), 10, 'All results must be 10')
+
+    def test_parameter_settings(self):
+        p = parameter.generate([self.const])[0]
+        self.assertEqual(p['random'], 10, 'Random value must always be 10')
+        self.assertEqual(p['optguess'], 10, 'Optguess value must always be 10')
+        self.assertEqual(p['maxbound'], 10, 'maxbound value must always be 10')
+        self.assertEqual(p['minbound'], 10, 'minbound value must always be 10')
+        self.assertEqual(p['step'], 0, 'step value must always be 0')
+
+    def test_find_constant_parameters(self):
+        flex = parameter.Uniform('flexible', 0, 1)
+        p = parameter.generate([flex, self.const])
+        constant_parameters = parameter.find_constant_parameters(p)
+        self.assertFalse(constant_parameters[0], 'Flexible parameter detected as constant')
+        self.assertTrue(constant_parameters[1], 'Constant parameter not detected')
 
 
 class TestNormalParameterDistribution(unittest.TestCase):
@@ -337,6 +352,17 @@ class TestParameterArguments(unittest.TestCase):
             self.assertTrue(p_with_name.step == 1,
                             'Step overridden by class (name={})'.format(repr(p_with_name.name)))
 
+    def test_minbound_zero(self):
+        param = spotpy.parameter.Normal(name="parname", mean=0.6, stddev=0.2, optguess=0.6, minbound=0, maxbound=1)
+        self.assertEqual(param.minbound, 0)
+
+    def test_maxbound_zero(self):
+        param = spotpy.parameter.Normal(name="parname", mean=-0.6, stddev=0.2, optguess=-0.6, minbound=-1, maxbound=0)
+        self.assertEqual(param.maxbound, 0)
+
+    def test_optguess_zero(self):
+        param = spotpy.parameter.Normal(name="parname", mean=0.1, stddev=0.2, optguess=0.0, minbound=-1, maxbound=1)
+        self.assertEqual(param.optguess, 0)
 
 def make_args(pcls):
     """

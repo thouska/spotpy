@@ -42,17 +42,22 @@ class spot_setup(object):
         if self.parallel == 'seq':
             call = ''              
         elif self.parallel == 'mpi':
+            #Running n parallel, care has to be taken when files are read or written
+            #Therefor we check the ID of the current computer core 
             call = str(int(os.environ['OMPI_COMM_WORLD_RANK'])+2)
+            #And generate a new folder with all underlying files
             copy_tree(self.hymod_path, self.hymod_path+call)        
         
         elif self.parallel == 'mpc':
+            #Running n parallel, care has to be taken when files are read or written
+            #Therefor we check the ID of the current computer core 
             call =str(os.getpid())
+            #And generate a new folder with all underlying files
             copy_tree(self.hymod_path, self.hymod_path+call)        
         else:
             raise 'No call variable was assigned'
 
         os.chdir(self.hymod_path+call)
-        
         try:
             if sys.version_info.major == 2:
                 params = file('Param.in', 'w')
@@ -79,11 +84,8 @@ class spot_setup(object):
                 SimRR.readline()
             for i in range(730):
                 val= SimRR.readline()
-                #print(i,val)
                 simulations.append(float(val)*self.Factor)
             SimRR.close()
-            #except:
-            #    SimRR = 795 * [0]
         except:
             'Model has failed'
             simulations=[np.nan]*795 #Assign bad values - model might have crashed
@@ -96,6 +98,5 @@ class spot_setup(object):
         return self.evals
     
     def objectivefunction(self,simulation,evaluation, params=None):
-        #like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)     # Works good
-        like = spotpy.objectivefunctions.nashsutcliffe(evaluation,simulation)     # Works good
+        like = spotpy.objectivefunctions.nashsutcliffe(evaluation,simulation)     # Works good for dream sampler
         return like

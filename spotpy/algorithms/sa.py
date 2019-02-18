@@ -78,44 +78,30 @@ class sa(_algorithm):
         """
         print('Starting the SA algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
-        # Tini=80#repetitions/100
-        # Ntemp=6
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
         stepsizes = self.parameter()['step']
-        #starttime = time.time()
-        #intervaltime = starttime
         Eopt = 999999
         Titer = Tini
-        #vmin,vmax = self.find_min_max()
         x = self.parameter()['optguess']
         Xopt = x
-        simulations = self.model(x)
-        #SimOpt = simulations
+        _, _, simulations = self.simulate((1, x))
         Enew = self.postprocessing(1, x, simulations)
         Eopt = Enew
-        #self.save(Eopt, Xopt, simulations=simulations)
-        # k=(vmax-vmin)/self.parameter()['step']
-        rep = 0
+        rep = 1 # Because the model has been started once already
         while (Titer > 0.001 * Tini and rep < repetitions):
             for counter in range(Ntemp):
 
-                if (Enew > Eopt):
-                    # print 'Better'
+                if (Enew > Eopt): # Run was better
                     Eopt = Enew
                     Xopt = x
-                    #SimOpt = simulations
                     Eopt = Enew
                     x = np.random.uniform(low=Xopt - stepsizes, high=Xopt + stepsizes)
 
                 else:
                     accepted = frandom(Enew, Eopt, Titer)
                     if accepted == True:
-                        # print Xopt
                         Xopt = x
-                        #SimOpt = self.model(x)
-                        #Eopt = self.objectivefunction(
-                        #    evaluation=self.evaluation, simulation=simulations)
                         x = np.random.uniform(low=Xopt - stepsizes, high=Xopt + stepsizes)
 
                     else:
@@ -123,33 +109,18 @@ class sa(_algorithm):
 
                 x = self.check_par_validity(x)
 
-                simulations = self.model(x)
+                _, _, simulations = self.simulate((rep+1, x))
                 Enew = self.postprocessing(rep+1, x, simulations)
-                #                self.objectivefunction(
-#                    evaluation=self.evaluation, simulation=simulations)
-#                
-#                self.save(Eopt, Xopt, simulations=SimOpt)
-#                self.status(rep, Enew, Xopt)
                 rep += 1
+                if self.status.stop:
+                    break
 
 
             Titer = alpha * Titer
         self.final_call()  
-#        text = '%i of %i (best like=%g)' % (
-#            rep, repetitions, self.status.objectivefunction)
-#        print(text)
-#        try:
-#            self.datawriter.finalize()
-#        except AttributeError:  # Happens if no database was assigned
-#            pass
-#        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-#        print(text)
-#        data = self.datawriter.getdata()
-#        return data
 
 
 def frandom(Enew, Eold, Titer):
-    # dE=Enew-Eold
     dE = Eold - Enew
     accepted = False
     if (dE > 0):
@@ -157,21 +128,7 @@ def frandom(Enew, Eold, Titer):
         rn = np.random.rand()
 
         if (rn <= P):   # New configuration accepted
-            # print 'accepted'
             accepted = True
     else:
-        # print 'else'
         accepted = True
     return accepted
-
-
-def fgener(param, vmin, vmax, k):         # random displacement
-    rv = np.random.rand()
-    k = 10
-    rd = 2.0 * (rv - 0.5) * param / float(k)
-    new = param + rd
-    if (new < vmin):
-        new = vmin
-    if (new > vmax):
-        new = vmax
-    return new

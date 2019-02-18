@@ -4,20 +4,13 @@ Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 '''
-
 from . import _algorithm
-import spotpy
-import numpy as np
-import time
-import random
-import itertools
-
-
-class list(_algorithm):
+from .. import analyser
+class list_sampler(_algorithm):
     """
     This class holds the List sampler, which samples from a given spotpy database
     """
-
+    _excluded_parameter_classes = ()
     def __init__(self, *args, **kwargs):
         """
         Input
@@ -51,19 +44,20 @@ class list(_algorithm):
             * False: Simulation results will not be saved
         """
 
-        super(list, self).__init__(*args, **kwargs)
-
+        super(list_sampler, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions=None):
         """
 
         Parameters
         ----------
+        Optional:
         repetitions: int
-            maximum number of function evaluations allowed during optimization
+            maximum number of function evaluations allowed during sampling
+            If not given number if iterations will be determined based on given list
         """
         
-        parameters = spotpy.analyser.load_csv_parameter_results(self.dbname)
+        parameters = analyser.load_csv_parameter_results(self.dbname)
         self.dbname=self.dbname+'list'
         if not repetitions:
             repetitions=len(parameters)
@@ -71,9 +65,9 @@ class list(_algorithm):
         
         # Initialization
         print('Starting the List sampler with '+str(repetitions)+ ' repetitions...')
-        param_generator = ((rep, parameters[rep])
+        param_generator = ((rep, list(parameters[rep]))
                            for rep in range(int(repetitions)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database 
-            self.postprocessing(rep, randompar, simulations)
+            self.postprocessing(rep, list(randompar), simulations)
         self.final_call()

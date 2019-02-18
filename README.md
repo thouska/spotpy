@@ -61,6 +61,7 @@ Some features you can use with the SPOTPY package are:
   * Fourier Amplitude Sensitivity Test (`FAST`)
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
+  * Dynamically Dimensioned Search algorithm (`DDS`)
 
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
@@ -77,7 +78,20 @@ Some features you can use with the SPOTPY package are:
   * Relative Root Mean Squared Error (`RRMSE`)
   * Agreement Index (`AI`)
   * Covariance, Decomposed MSE (`dMSE`)
-  * Kling-Gupta Efficiency (`KGE`).
+  * Kling-Gupta Efficiency (`KGE`)
+  * Non parametric Kling-Gupta Efficiency (`KGE_non_parametric`)
+
+* Wide range of hydrological signatures functions to validate the sampled results:
+
+  * Slope
+  * Flooding/Drought events
+  * Flood/Drought frequency
+  * Flood/Drought duration
+  * Flood/Drought variance
+  * Mean flow
+  * Median flow
+  * Skewness
+  * compare percentiles of discharge
 
 * Prebuild parameter distribution functions: 
 

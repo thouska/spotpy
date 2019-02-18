@@ -66,20 +66,6 @@ class rope(_algorithm):
                             dbformat=dbformat, parallel=parallel,
                             save_sim=save_sim, save_threshold=save_threshold,sim_timeout = sim_timeout)
 
-    def create_par(self, min_bound, max_bound):
-        return np.random.uniform(low=min_bound, high=max_bound)
-
-    def check_par_validity(self, par):
-        if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
-            for i in range(len(par)):
-                if par[i] < self.min_bound[i]:
-                    par[i] = self.min_bound[i]
-                if par[i] > self.max_bound[i]:
-                    par[i] = self.max_bound[i]
-        else:
-            print('ERROR: Bounds have not the same lenghts as Parameterarray')
-        return par
-
     def get_best_runs(self, likes, pars, runs, percentage):
         '''
         Returns the best xx% of the runs'''
@@ -114,7 +100,7 @@ class rope(_algorithm):
 
         if repetitions_first_run is None:
             #Take the first have of the repetitions as burn-in
-            first_run = int(repetitions / 2)
+            first_run = int(repetitions / 2.0)
 
         else:
             #Make user defined number of burn-in repetitions
@@ -124,44 +110,35 @@ class rope(_algorithm):
                                           / (subsets-1))
         # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
+            print('Warning: Burn-in samples and total number of repetions are not compatible.\n'
+                  'SPOTPY will automatically adjust the number of total repetitions.')
             repetitions_following_runs+=1
 
             
         if NDIR is None:
-            NDIR = int(repetitions_following_runs / 100)
+            NDIR = int(repetitions_following_runs / 100.0)
         self.NDIR = NDIR
 
         starttime = time.time()
         intervaltime = starttime
-        self.min_bound, self.max_bound = self.parameter(
-        )['minbound'], self.parameter()['maxbound']
-        #randompar = list(self.parameter()['optguess'])
-        #simulations = self.model(randompar)
-        #like = self.postprocessing(rep, randompar, simulations)
-
+        parset =self.parameter() 
+        self.min_bound, self.max_bound = parset['minbound'], parset['maxbound']
+        
         # Init ROPE with one subset
         likes = []
         pars = []
-        
-        
-        
-        
-        # Get the names of the parameters to analyse
-        names = self.parameter()['name']# distribution        
-        parmin, parmax = self.parameter()['minbound'], self.parameter()[
-            'maxbound']
-        segment = 1 / float(first_run)
+        segment = 1.0 / float(first_run)
         # Get the minimum and maximum value for each parameter from the
 
         # Create a matrix to store the parameter sets
-        matrix = np.empty((first_run, len(parmin)))
+        matrix = np.empty((first_run, len(self.min_bound)))
         # Create the LatinHypercube matrix as in McKay et al. (1979):
         for i in range(int(first_run)):
             segmentMin = i * segment
             pointInSegment = segmentMin + (random.random() * segment)
-            parset = pointInSegment * (parmax - parmin) + parmin
+            parset = pointInSegment * (self.max_bound - self.min_bound) + self.min_bound
             matrix[i] = parset
-        for i in range(len(names)):
+        for i in range(len(self.min_bound)):
             random.shuffle(matrix[:, i])
 
         # A generator that produces the parameters
@@ -175,13 +152,13 @@ class rope(_algorithm):
             # Progress bar
             acttime = time.time()
             # Refresh progressbar every second
+            if self.status.stop:
+                break
             if acttime - intervaltime >= 2:
                 text = '1 Subset: Run %i of %i (best like=%g)' % (
                     rep, first_run, self.status.objectivefunction)
                 print(text)
                 intervaltime = time.time()
-
-
 
         for subset in range(subsets - 1):
             if subset == 0:
@@ -200,7 +177,6 @@ class rope(_algorithm):
                     trials += 1
             pars = []
             likes = []
-            print(len(new_pars))
             if(int(repetitions_following_runs) > len(new_pars)):
                 repetitions_following_runs = len(new_pars)
             param_generator = (
@@ -210,6 +186,9 @@ class rope(_algorithm):
                 like = self.postprocessing(first_run + rep + repetitions_following_runs * subset, ropepar, simulations)
                 likes.append(like)
                 pars.append(ropepar)
+                if self.status.stop:
+                    print('Stopping samplig')
+                    break
 
                 # Progress bar
                 acttime = time.time()
@@ -223,6 +202,8 @@ class rope(_algorithm):
                             self.status.objectivefunction)
                         print(text)
                         intervaltime = time.time()
+            if self.status.stop:
+                break
 
         self.final_call()
         
@@ -255,7 +236,7 @@ class rope(_algorithm):
 
         CL = np.zeros(NP)
         TL = np.zeros(shape=(LLEN, NP))
-        #test=[np.zeros(NP)]
+
         while (IPOS < NPOSI):
             for IM in range(LLEN):   # LLEN=1000 Random Vectors of dim NP
                 for j in range(NP):
@@ -265,17 +246,10 @@ class rope(_algorithm):
             for L in range(LLEN):
                 ITRY = ITRY + 1
                 if LNDEP[L] >= 1:
-                    #test.append(TL[L, :])
                     CL = np.vstack((CL, TL[L, :]))
                     IPOS = IPOS + 1
             print((IPOS, ITRY))
-        #CL=np.array(test)
-        #print('##')
-        #print(type(CL[0]))
-        #print('###')
-        #print(type(np.array(test)[0]))
-        #print('####')
-        #CL=np.array(test)
+
         CL = np.delete(CL, 0, 0)
         CL = CL[:NPOSI]
         return CL

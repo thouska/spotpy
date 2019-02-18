@@ -37,6 +37,7 @@ We want to make this task as easy as possible. Some features you can use with th
   * Fourier Amplitude Sensitivity Test (`FAST`)
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
+  * Dynamically Dimensioned Search algorithm (`DDS`)
 
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
@@ -54,6 +55,7 @@ We want to make this task as easy as possible. Some features you can use with th
   * Agreement Index (`AI`)
   * Covariance, Decomposed MSE (`dMSE`)
   * Kling-Gupta Efficiency (`KGE`)
+  * Non parametric Kling-Gupta Efficiency (`KGE_non_parametric`)
 
 * Wide range of likelihood functions to validate the sampled results:
 

@@ -272,7 +272,7 @@ class dream(_algorithm):
         self.N = len(self.parameter()['random'])
         nrN=1
         newN = [True]*self.N
-        while self.iter <= self.repetitions - self.burnIn:
+        while self.iter < self.repetitions:
             param_generator = ((curChain,self.get_new_proposal_vector(curChain,newN,nrN)) for curChain in range(int(self.nChains)))                
             for cChain,par,sim in self.repeat(param_generator):
                 pCr = np.random.randint(0,nCr)
@@ -290,20 +290,9 @@ class dream(_algorithm):
                 if nrN == 0:
                     ids=[np.random.randint(0,self.N)]
                     nrN=1
-                #print(self.bestpar[cChain][self.nChainruns[cChain]-1])
                 like = self.postprocessing(self.iter, par, sim, chains=cChain)
-                #like = self.objectivefunction(
-                #    evaluation=self.evaluation, simulation=sim)
-                #self.status(self.iter, like, par)
-                
-#                logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like) #Fast convergence high uncertainty
-#                u = np.random.uniform(low=0.0, high=1)
-             
-#                logMetropHastRatio = like - self.bestlike[cChain] # Slow convergence, low uncertainty
-#                u = np.log(np.random.uniform(low=0.0, high=1))
 
                 # set a option which type of comparision should be choose:
-
                 metro_opt=acceptance_test_option
 
                 if metro_opt == 1:
@@ -334,33 +323,22 @@ class dream(_algorithm):
                     self.update_mcmc_status(par,like,sim,cChain)   
                     self.accepted[cChain] += 1  # monitor acceptance
                     
-                    #self.save(like, par, simulations=sim,chains=cChain)
                 else:
                     self.update_mcmc_status(self.bestpar[cChain][self.nChainruns[cChain]-1],self.bestlike[cChain],self.bestsim[cChain],cChain)   
-                    #self.save(self.bestlike[cChain], self.bestpar[cChain][self.nChainruns[cChain]], 
-                    #                     simulations=self.bestsim[cChain],chains=cChain)
-                # Progress bar
                 
-                #acttime = time.time()
+                if self.status.stop:
+                    self.iter = self.repetitions
+                    print('Stopping samplig')
+                    break
                 self.iter+=1
                 self.nChainruns[cChain] +=1
-                #if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
-                #    self.r_hats.append(self.get_r_hat(self.bestpar))                
-                #    #print(self.r_hats[-1])
-                #    text = '%i of %i (best like=%g)' % (
-                #        self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                
 
             r_hat = self.get_r_hat(self.bestpar)
-            #self.gammalevel+=.1
-            #print((r_hat < 1.2).all())
             self.r_hats.append(r_hat)
             # Refresh progressbar every two seconds
             acttime = time.time()
             if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
-                #self.r_hats.append(self.get_r_hat(self.bestpar))                
-                #text = '%i of %i (best like=%g)' % (
-                #    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
-                #print(text)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 text = "Convergence rates =" +str(np.around((r_hat),decimals=4)).strip('array([])')

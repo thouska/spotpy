@@ -13,11 +13,6 @@ from . import _algorithm
 import numpy as np
 
 
-
-class DEMCZError(Exception):
-    pass
-
-
 class demcz(_algorithm):
     """
     Implements the DE-MC_Z algorithm from ter Braak and Vrugt (2008).
@@ -120,9 +115,7 @@ class demcz(_algorithm):
         else:
             print('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
-    # def simulate(self):
-
-
+    
     def sample(self, repetitions, nChains=3, burnIn=100, thin=1, 
                convergenceCriteria=.8, variables_of_interest=None,
                DEpairs=2, adaptationRate='auto', eps=5e-2,
@@ -146,13 +139,8 @@ class demcz(_algorithm):
         Returns
         -------
             None : None
-                sample sets
-                self.history which contains the combined draws for all the chains
-                self.cur_iter which is the total number of iterations
-                self.acceptRatio which is the acceptance ratio
-                self.burnIn which is the number of burn in iterations done
-                self.R  which is the gelman rubin convergence diagnostic for each dimension
         """
+        
         print('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
 
@@ -166,7 +154,6 @@ class demcz(_algorithm):
 
         # minbound,maxbound=self.find_min_max()
         # select variables if necessary
-
         if variables_of_interest is not None:
             slices = []
             for var in variables_of_interest:
@@ -195,186 +182,145 @@ class demcz(_algorithm):
 
 
             for rep, vector, simulations in self.repeat(param_generator):
-
                 burnInpar[i][rep] = vector
-
-                likelist = self.postprocessing(i, list(vector), simulations, chains=rep)
-                #likelist = self.objectivefunction(
-                #evaluation=self.evaluation, simulation=simulations)
+                likelist = self.postprocessing(i, vector, simulations, chains=rep)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
-                old_like[rep] = likelist
-                
+                old_like[rep] = likelist                
                 burnInpar[i][rep] = vector
-                # Save everything in the database
-                #self.save(likelist, list(vector), simulations=simulations)
-                #self.status(rep, likelist, vector)
+                if self.status.stop:
+                    break
+        if not self.status.stop:
             history.record(burnInpar[i], self._logPs, 1)
 
-        gamma = None
-        self.accepts_ratio = 0.000001
-
-
-        # initilize the convergence diagnostic object
-        grConvergence = _GRConvergence()
-        covConvergence = _CovarianceConvergence()
-
-        # get the starting log objectivefunction and position for each of the
-        # chains
-
-        currentVectors = burnInpar[-1]
-
-        currentLogPs = self._logPs[-1]
-
-        # 2)now loop through and sample
-        cur_iter = 0
-        accepts_ratio_weighting = 1 - np.exp(-1.0 / 30)
-        lastRecalculation = 0
-        # continue sampling if:
-        # 1) we have not drawn enough samples to satisfy the minimum number of iterations
-        # 2) or any of the dimensions have not converged
-        # 3) and we have not done more than the maximum number of iterations
-
-        while cur_iter < maxChainDraws:
-            if cur_iter == burnIn:
-                history.start_sampling()
-
-            # every5th iteration allow a big jump
-            if np.random.randint(5) == 0.0:
-                gamma = np.array([1.0])
-            else:
-                gamma = np.array([2.38 / np.sqrt(2 * DEpairs * dimensions)])
-
-            if cur_iter >= burnIn:
-                proposalVectors = _dream_proposals(
-                    currentVectors, history, dimensions, nChains, DEpairs, gamma, .05, eps)
-                for i in range(len(proposalVectors)):
-                    proposalVectors[i] = self.check_par_validity(
-                        proposalVectors[i])
-                # print proposalVectors
-            else:
-                proposalVectors = []
-                for i in range(nChains):
-                    proposalVectors.append(self.parameter()['random'])
-                    proposalVectors[i] = self.check_par_validity(
-                        proposalVectors[i])
-
-           # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
-            proposalLogPs = []
-            old_simulationlist = simulationlist
-            old_likelist = self._logPs[-1]
-            new_simulationlist = []
-            new_likelist = []
-
-            param_generator = (
-                (rep, list(proposalVectors[rep])) for rep in range(int(nChains)))
-            for rep, vector, simulations in self.repeat(param_generator):
-                new_simulationlist.append(simulations)
-                like = self.postprocessing(cur_iter+nSeedIterations, list(vector), simulations, chains=rep)
-                
-                #like = self.objectivefunction(
-                #    evaluation=self.evaluation, simulation=simulations)
-                self._logPs.append(like)
-                new_likelist.append(like)
-                proposalLogPs.append(like)
-                #self.status(rep, like, vector)
-
-            # for i in range(nChains):
-            #     simulations=self.model(proposalVectors[i])#THIS WILL WORK ONLY FOR MULTIPLE CHAINS
-            #     new_simulationlist.append(simulations)
-            #     like=self.objectivefunction(self.evaluation, simulations)
-            #     new_likelist.append(like)
-            #     proposalLogPs.append(like)
-
-
-            # apply the metrop decision to decide whether to accept or reject
-            # each chain proposal
-            decisions, acceptance = self._metropolis_hastings(
-                currentLogPs, proposalLogPs, nChains)
-            try:
-                self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
-            except DEMCZError:
-                pass
-
-            # if mAccept and cur_iter % 20 == 0:
-            #     print self.accepts_ratio
-
-
-            # choose from list of possible choices if 1d_decision is True at
-            # specific index, else use default choice
-            # np.choose(1d_decision[:,None], (list of possible choices, default
-            # choice)
-            save_likes=[]
-            save_pars=[]
-            save_sims=[]
-            #print(len(self._logPs))
-
-            for curchain in range(nChains):
-                if decisions[curchain]:
-                   save_likes.append(float(new_likelist[curchain]))
-                   old_like[curchain]=float(new_likelist[curchain])
-                   save_pars.append(proposalVectors[curchain])
-                   save_sims.append(new_simulationlist[curchain])
+            gamma = None
+            self.accepts_ratio = 0.000001
+    
+            # initilize the convergence diagnostic object
+            grConvergence = _GRConvergence()
+            covConvergence = _CovarianceConvergence()
+    
+            # get the starting log objectivefunction and position for each of the
+            # chains
+            currentVectors = burnInpar[-1]
+            currentLogPs = self._logPs[-1]
+    
+            # 2)now loop through and sample
+            cur_iter = 0
+            accepts_ratio_weighting = 1 - np.exp(-1.0 / 30)
+            lastRecalculation = 0
+            # continue sampling if:
+            # 1) we have not drawn enough samples to satisfy the minimum number of iterations
+            # 2) or any of the dimensions have not converged
+            # 3) and we have not done more than the maximum number of iterations
+    
+            while cur_iter < maxChainDraws:
+                print(cur_iter, burnIn)
+                if cur_iter == burnIn:
+                    print('starting')
+                    history.start_sampling()
+    
+                # every5th iteration allow a big jump
+                if np.random.randint(5) == 0.0:
+                    gamma = np.array([1.0])
                 else:
-                   save_likes.append(old_like[curchain])
-                   save_pars.append(currentVectors[curchain])
-                   save_sims.append(old_simulationlist[curchain])
-                      
-            #print(len(save_pars)     )
-            currentVectors = np.choose(
-                decisions[:, np.newaxis], (currentVectors, proposalVectors))
-            currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
+                    gamma = np.array([2.38 / np.sqrt(2 * DEpairs * dimensions)])
+    
+                if cur_iter >= burnIn:
+                    proposalVectors = _dream_proposals(
+                        currentVectors, history, dimensions, nChains, DEpairs, gamma, .05, eps)
+                    for i in range(len(proposalVectors)):
+                        proposalVectors[i] = self.check_par_validity(
+                            proposalVectors[i])
+                    # print proposalVectors
+                else:
+                    proposalVectors = []
+                    for i in range(nChains):
+                        proposalVectors.append(self.parameter()['random'])
+                        proposalVectors[i] = self.check_par_validity(
+                            proposalVectors[i])
+    
+               # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
+                proposalLogPs = []
+                old_simulationlist = simulationlist
+                old_likelist = self._logPs[-1]
+                new_simulationlist = []
+                new_likelist = []
+    
+                param_generator = (
+                    (rep, list(proposalVectors[rep])) for rep in range(int(nChains)))
+                for rep, vector, simulations in self.repeat(param_generator):
+                    new_simulationlist.append(simulations)
+                    like = self.postprocessing(cur_iter+nSeedIterations, list(vector), simulations, chains=rep)
+                    self._logPs.append(like)
+                    new_likelist.append(like)
+                    proposalLogPs.append(like)
+                    if self.status.stop:
+                        cur_iter = maxChainDraws
+                        break
+    
+                if not self.status.stop:
+                    # apply the metrop decision to decide whether to accept or reject
+                    # each chain proposal
+                    decisions, acceptance = self._metropolis_hastings(
+                        currentLogPs, proposalLogPs, nChains)
+                    self._update_accepts_ratio(accepts_ratio_weighting, acceptance)        
+                    # choose from list of possible choices if 1d_decision is True at
+                    # specific index, else use default choice
+                    # np.choose(1d_decision[:,None], (list of possible choices, default
+                    # choice)
+                    save_likes=[]
+                    save_pars=[]
+                    save_sims=[]
 
-            simulationlist = [[new_simulationlist, old_simulationlist][
-                int(x)][ix] for ix, x in enumerate(decisions)]
+                    for curchain in range(nChains):
+                        if decisions[curchain]:
+                           save_likes.append(float(new_likelist[curchain]))
+                           old_like[curchain]=float(new_likelist[curchain])
+                           save_pars.append(proposalVectors[curchain])
+                           save_sims.append(new_simulationlist[curchain])
+                        else:
+                           save_likes.append(old_like[curchain])
+                           save_pars.append(currentVectors[curchain])
+                           save_sims.append(old_simulationlist[curchain])
+                              
+                    currentVectors = np.choose(
+                        decisions[:, np.newaxis], (currentVectors, proposalVectors))
+                    currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
+        
+                    simulationlist = [[new_simulationlist, old_simulationlist][
+                        int(x)][ix] for ix, x in enumerate(decisions)]
+        
+                    likelist = list(
+                        np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
+        
+                    # we only want to recalculate convergence criteria when we are past
+                    # the burn in period
+        
+                    if cur_iter % thin == 0:
+        
+                        historyStartMovementRate = adaptationRate
+                        # try to adapt more when the acceptance rate is low and less
+                        # when it is high
+                        if adaptationRate == 'auto':
+                            historyStartMovementRate = min(
+                                (.234 / self.accepts_ratio) * .5, .95)
+        
+                        history.record(
+                            currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
 
-            likelist = list(
-                np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
-
-            # we only want to recalculate convergence criteria when we are past
-            # the burn in period
-
-            if cur_iter % thin == 0:
-
-                historyStartMovementRate = adaptationRate
-                # try to adapt more when the acceptance rate is low and less
-                # when it is high
-                if adaptationRate == 'auto':
-                    historyStartMovementRate = min(
-                        (.234 / self.accepts_ratio) * .5, .95)
-
-                history.record(
-                    currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
-                #for chain in range(nChains):
-                #    if not any([x in simulationlist[chain] for x in [-np.Inf, np.Inf]]):
-                #        self.save(save_likes[chain],
-                #                             save_pars[chain],
-                #                             simulations=save_sims[chain],
-                #                             chains=chain)
-
-            if history.nsamples > 0 and cur_iter > lastRecalculation * 1.1 and history.nsequence_histories > dimensions:
-                lastRecalculation = cur_iter
-                grConvergence.update(history)
-                covConvergence.update(history, 'all')
-                covConvergence.update(history, 'interest')
-                if all(grConvergence.R < convergenceCriteria):
-                    cur_iter = maxChainDraws
-                    print(
-                        'All chains fullfil the convergence criteria. Sampling stopped.')
-            cur_iter += 1
-
-
-            # else:
-            #     print 'A proposal vector was ignored'
-
-            # Progress bar
-            #acttime = time.time()
-            ## Refresh progressbar every second
-            #if acttime - intervaltime >= 2:
-            #    text = str(cur_iter) + ' of ' + str(repetitions)
-            #    print(text)
-            #    intervaltime = time.time()
-
+    
+                if history.nsamples > 0 and cur_iter > lastRecalculation * 1.1 and history.nsequence_histories > dimensions:
+                    lastRecalculation = cur_iter
+                    grConvergence.update(history)
+                    covConvergence.update(history, 'all')
+                    covConvergence.update(history, 'interest')
+                    if all(grConvergence.R < convergenceCriteria):
+                        cur_iter = maxChainDraws
+                        print(
+                            'All chains fullfil the convergence criteria. Sampling stopped.')
+                cur_iter+=1
+                
         # 3) finalize
         # only make the second half of draws available because that's the only
         # part used by the convergence diagnostic
@@ -385,22 +331,9 @@ class demcz(_algorithm):
         self.R = grConvergence.R
         text = 'Gelman Rubin R=' + str(self.R)
         print(text)
+        self.status.rep = self.status.repetitions
         self.final_call()
         
-        #self.repeat.terminate()
-        #try:
-        #    self.datawriter.finalize()
-        #except AttributeError:  # Happens if no database was assigned
-        #    pass
-#
-#        print('End of sampling')
-#        text = '%i of %i (best like=%g)' % (
-#            self.status.rep, repetitions, self.status.objectivefunction)
-#        print(text)
-#        print('Best parameter set')
-#        print(self.status.params)
-#        text = 'Duration:' + str(round((acttime - starttime), 2)) + ' s'
-#        print(text)
 
     def _update_accepts_ratio(self, weighting, acceptances):
         self.accepts_ratio = weighting * \
@@ -492,8 +425,6 @@ class _SimulationHistory(object):
         return self.group_combined_history('all')
 
     def group_combined_history(self, name):
-        # print self._combined_history
-        # print self.relevantHistoryStart
         return self._combined_history[(int(np.ceil(self.relevantHistoryStart)) * self._nChains):(self.relevantHistoryEnd * self._nChains), self.group_indicies[name]]
 
     @property

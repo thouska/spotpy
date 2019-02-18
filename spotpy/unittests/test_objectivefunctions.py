@@ -176,6 +176,16 @@ class TestObjectiveFunctions(unittest.TestCase):
         for exp, actual in zip(expected, res):
             self.assertAlmostEqual(actual, exp, self.tolerance)
 
+    def test_kge_non_parametric(self):
+        res = of.kge_non_parametric(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -0.84274521306792427, self.tolerance)
+
+    def test_kge_non_parametric_return_all(self):
+        expected = (-0.8427452130679243, 0.030303030303030304, 0.970533493046538, -0.5666937901878675)
+        res = of.kge_non_parametric(self.evaluation, self.simulation, return_all=True)
+        for exp, actual in zip(expected, res):
+            self.assertAlmostEqual(actual, exp, self.tolerance)
+
     def test_rsr(self):
         res = of.rsr(self.evaluation, self.simulation)
         self.assertAlmostEqual(res, 2.2619034190253462, self.tolerance)

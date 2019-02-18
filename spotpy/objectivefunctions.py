@@ -225,7 +225,7 @@ def mse(evaluation, simulation):
 
     if len(evaluation) == len(simulation):
         obs, sim = np.array(evaluation), np.array(simulation)
-        mse = np.mean((obs - sim)**2)
+        mse = np.nanmean((obs - sim)**2)
         return mse
     else:
         logging.warning("evaluation and simulation lists does not have the same length.")
@@ -427,6 +427,67 @@ def kge(evaluation, simulation, return_all=False):
         logging.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
+def _spearmann_corr(x, y):
+    """Separmann correlation coefficient"""
+    col = [list(a) for a in zip(x, y)]
+    xy = sorted(col, key=lambda x: x[0], reverse=False)
+    # rang of x-value
+    for i, row in enumerate(xy):
+        row.append(i+1)
+
+    a = sorted(xy, key=lambda x: x[1], reverse=False)
+    # rang of y-value
+    for i, row in enumerate(a):
+        row.append(i+1)
+
+    MW_rank_x = np.nanmean(np.array(a)[:,2])
+    MW_rank_y = np.nanmean(np.array(a)[:,3])
+
+    numerator = np.nansum([float((a[j][2]-MW_rank_x)*(a[j][3]-MW_rank_y)) for j in range(len(a))])
+    denominator1 = np.sqrt(np.nansum([(a[j][2]-MW_rank_x)**2. for j in range(len(a))]))
+    denominator2 = np.sqrt(np.nansum([(a[j][3]-MW_rank_x)**2. for j in range(len(a))]))
+    return float(numerator/(denominator1*denominator2))
+
+def kge_non_parametric(evaluation, simulation, return_all=False):
+    """
+    Non parametric Kling-Gupta Efficiency
+
+    Corresponding paper:
+    Pool, Vis, and Seibert, 2018 Evaluating model performance: towards a non-parametric variant of the Kling-Gupta efficiency, Hydrological Sciences Journal.
+
+    output:
+        kge: Kling-Gupta Efficiency
+    
+    author: Nadine Maier and Tobias Houska
+    optional_output:
+        cc: correlation 
+        alpha: ratio of the standard deviation
+        beta: ratio of the mean
+    """
+    if len(evaluation) == len(simulation):
+        ## self-made formula 
+        cc = _spearmann_corr(evaluation, simulation)
+
+        ### scipy-Version
+        #cc = stm.spearmanr(evaluation, simulation, axis=0)[0]
+
+        ### pandas version 
+        #a  = pd.DataFrame({'eva': evaluation, 'sim': simulation})
+        #cc = a.ix[:,1].corr(a.ix[:,0], method = 'spearman')
+
+        fdc_sim = np.sort(simulation / (np.nanmean(simulation)*len(simulation)))
+        fdc_obs = np.sort(evaluation / (np.nanmean(evaluation)*len(evaluation)))
+        alpha = 1 - 0.5 * np.nanmean(np.abs(fdc_sim - fdc_obs))
+ 
+        beta = np.mean(simulation) / np.mean(evaluation)
+        kge = 1 - np.sqrt((cc - 1)**2 + (alpha - 1)**2 + (beta - 1)**2)
+        if return_all:
+            return kge, cc, alpha, beta
+        else:
+            return kge
+    else:
+        logging.warning("evaluation and simulation lists does not have the same length.")
+        return np.nan
 
 def rsr(evaluation, simulation):
     """
@@ -448,7 +509,7 @@ def rsr(evaluation, simulation):
 
 def volume_error(evaluation, simulation):
     """
-    Returns the Volumer Error (Ve).
+    Returns the Volume Error (Ve).
     It is an indicator of the agreement between the averages of the simulated
     and observed runoff (i.e. long-term water balance).
     used in this paper:
