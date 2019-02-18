@@ -107,7 +107,7 @@ class SingleStorage(object):
 
         """
 
-        self.dbname = 'cmf-singlestorage'
+        self.dbname = 'cmf_singlestorage'
 
         # Loads driver data
         self.data = DataProvider()
@@ -203,7 +203,10 @@ class SingleStorage(object):
         """
         Calculates the goodness of the simulation
         """
-        return spotpy.objectivefunctions.nashsutcliffe(evaluation, simulation)
+        return [
+            spotpy.objectivefunctions.nashsutcliffe(evaluation, simulation),
+            spotpy.objectivefunctions.pbias(evaluation, simulation)
+        ]
 
     def evaluation(self):
         """
