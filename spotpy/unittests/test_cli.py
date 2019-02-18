@@ -22,9 +22,8 @@ class TestCLI(unittest.TestCase):
     def test_cli_run(self):
         setup = spot_setup()
         runner = CliRunner()
-        result = runner.invoke(run, ['-n 10', '-s','lhs', '-p','seq'], obj=setup)
+        result = runner.invoke(run, ['-n 10', '-s', 'lhs', '-p', 'seq'], obj=setup)
         self.assertEqual(result.exit_code, 0)
-
 
     def test_config_file(self):
         config = dict(n='10', sampler='mc', parallel='seq')
