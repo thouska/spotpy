@@ -19,6 +19,7 @@ install:
   # Use docutils to generate html describe
   - pip install docutils
   - pip install numba
+  - pip install pytables
 
 
 script:
