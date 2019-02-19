@@ -9,9 +9,9 @@ def __dir__():
     """
     import pkgutil
     names = [
-        mod.name
-        for mod in pkgutil.iter_modules(__path__)
-        if not mod.ispkg and mod.name != 'base'
+        name for importer, name, ispkg
+        in pkgutil.iter_modules(__path__)
+        if not ispkg and name != 'base'
     ]
     return names + ['custom', 'noData']
 
