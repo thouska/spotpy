@@ -34,7 +34,7 @@ def bias(evaluation, simulation):
     """
     if len(evaluation) == len(simulation):
         obs, sim = np.array(evaluation), np.array(simulation)
-        bias = np.sum(obs - sim) / len(obs)
+        bias = np.nansum(obs - sim) / len(obs)
         return float(bias)
 
     else:
@@ -62,7 +62,7 @@ def pbias(evaluation, simulation):
     if len(evaluation) == len(simulation):
         sim = np.array(simulation)
         obs = np.array(evaluation)
-        return 100 * (float(np.sum(sim - obs)) / float(np.sum(obs)))
+        return 100 * (float(np.nansum(sim - obs)) / float(np.nansum(obs)))
 
     else:
         logging.warning("evaluation and simulation lists does not have the same length.")
@@ -90,10 +90,10 @@ def nashsutcliffe(evaluation, simulation):
     if len(evaluation) == len(simulation):
         s, e = np.array(simulation), np.array(evaluation)
         # s,e=simulation,evaluation
-        mean_observed = np.mean(e)
+        mean_observed = np.nanmean(e)
         # compute numerator and denominator
-        numerator = sum((e - s) ** 2)
-        denominator = sum((e - mean_observed)**2)
+        numerator = np.nansum((e - s) ** 2)
+        denominator = np.nansum((e - mean_observed)**2)
         # compute coefficient
         return 1 - (numerator / denominator)
 
