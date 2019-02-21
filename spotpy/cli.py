@@ -54,7 +54,7 @@ def cli():
 @click.pass_context
 @click.option('--sampler', '-s', type=make_type_from_module(algorithms), default='mc',
               help='Select the spotpy sampler')
-@click.option('--dbformat', type=make_type_from_module(database, 'Pick'), default='ram',
+@click.option('--dbformat', type=click.Choice(database.__dir__()), default='ram',
               help='The type of the database')
 @click.option('--dbname', type=click.STRING, help='The name of the database, leave open for ram')
 @click.option('--parallel', '-p', type=click.Choice(['seq', 'mpc', 'mpi']), default='seq',

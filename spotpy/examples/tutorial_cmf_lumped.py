@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # Create the sampler
     sampler = spotpy.algorithms.mc(model,
                                    parallel=parallel(),
-                                   dbname=model.dbname, dbformat='csv',
+                                   dbname=model.dbname, dbformat='hdf5',
                                    save_sim=True, sim_timeout=300)
 
     # Now we can sample with the implemented Monte Carlo algorithm:
