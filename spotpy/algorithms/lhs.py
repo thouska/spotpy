@@ -56,10 +56,13 @@ class lhs(_algorithm):
 
     def sample(self, repetitions):
         """
-        test
+        Parameters
+        ----------
+        repetitions: int
+            maximum number of function evaluations allowed during optimization
         """
-        print('Starting the LHS algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the LHS algotrithm with '+str(repetitions)+ ' repetitions...')
         print('Creating LatinHyperCube Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']

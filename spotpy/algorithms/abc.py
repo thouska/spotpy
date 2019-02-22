@@ -77,8 +77,8 @@ class abc(_algorithm):
         limit: int
             sets the limit
         """
-        print('Starting the ABC algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the ABC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Initialize ABC parameters:
         randompar = self.parameter()['random']
         self.nopt = randompar.size

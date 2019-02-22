@@ -99,8 +99,8 @@ class mcmc(_algorithm):
 
             
     def sample(self, repetitions,nChains=1):
-        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Prepare storing MCMC chain as array of arrays.
         self.nChains = int(nChains)
         #Ensure initialisation of chains and database

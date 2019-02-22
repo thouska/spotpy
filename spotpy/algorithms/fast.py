@@ -199,8 +199,8 @@ class fast(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
-        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
         print('Creating FAST Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']

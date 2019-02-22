@@ -59,10 +59,10 @@ class mc(_algorithm):
         Input
         ----------
         repetitions: int 
-            Maximum number of runs.  
+            Maximum number of runs.
         """
-        print('Starting the MC algorithm with {} repetitions...'.format(repetitions))
         self.set_repetiton(repetitions)
+        print('Starting the MC algorithm with {} repetitions...'.format(repetitions))
         # A generator that produces parametersets if called
         param_generator = ((rep, self.parameter()['random'])
                            for rep in range(int(repetitions)))

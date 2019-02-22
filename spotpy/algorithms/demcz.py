@@ -141,8 +141,8 @@ class demcz(_algorithm):
             None : None
         """
         
-        print('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
 
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']

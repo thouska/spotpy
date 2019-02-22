@@ -76,8 +76,8 @@ class sa(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
-        print('Starting the SA algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the SA algotrithm with '+str(repetitions)+ ' repetitions...')
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
         stepsizes = self.parameter()['step']

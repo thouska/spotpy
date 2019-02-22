@@ -91,8 +91,8 @@ class fscabc(_algorithm):
         backup_every_rep: int
             writes a breakpoint after every generation, if more at least the specified number of samples are carried out after writing the last breakpoint
         """
-        print('Starting the FSCABC algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the FSCABC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Initialize FSCABC parameters:
         parset = self.parameter()
         randompar = parset['random']

@@ -150,8 +150,8 @@ class sceua(_algorithm):
         peps: float
             Value of the normalized geometric range of the parameters in the population below which convergence is deemed achieved.
         """
-        print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
         # Initialize SCE parameters:
         self.ngs = ngs
         randompar = self.parameter()['random']

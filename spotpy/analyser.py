@@ -19,9 +19,7 @@ font = {'family' : 'calibri',
 
 def load_csv_results(filename, usecols=None):
     """
-    Get an array of your results in the given file, without the first and the
-    last column. The first line may have a different objectivefunction and the last
-    line may be incomplete, which would result in an error.
+    Get an array of your results in the given file.
 
     :filename: Expects an available filename, without the csv, in your working directory
     :type: str
@@ -33,6 +31,22 @@ def load_csv_results(filename, usecols=None):
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,invalid_raise=False)
     else:
         return np.genfromtxt(filename+'.csv',delimiter=',',names=True,skip_footer=1,invalid_raise=False,usecols=usecols)[1:]
+
+def load_hdf5_results(filename):
+    """
+    Get an array of your results in the given file. 
+    
+    :filename: Expects an available filename, without the .h5 ending, 
+    in your working directory
+    :type: str
+
+    :return: Result array, simulation is an ndarray, 
+    which is different to structured arrays return by the csv/sql/ram databases
+    :rtype: array
+    """
+    import h5py
+    with h5py.File(filename+'.h5', 'r') as f:
+        return f[filename][()]
 
 def load_csv_parameter_results(filename, usecols=None):
     """

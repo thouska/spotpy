@@ -271,6 +271,7 @@ class dds(_algorithm):
         debug_results = []
 
         self.set_repetiton(repetitions)
+        print('Starting the DDS algotrithm with '+str(repetitions)+ ' repetitions...')
 
         number_of_parameters = len(self.status.params)  # number_of_parameters is the amount of parameters
 

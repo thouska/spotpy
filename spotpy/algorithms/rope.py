@@ -91,8 +91,8 @@ class rope(_algorithm):
         next step after in all following subsets
         NDIR = The number of samples to draw
         """
-        # Repetitions_following_runs raus
-        # Braucht zu lang (npar >8)
+        #Reported behaviour:
+        # Takes ways´to long for npar >8
         # wenn mehr parameter produziert werden sollen als reingehen, rechnet er sich tot (ngen>n)
         #Subsets < 5 führt manchmal zu Absturz
         print('Starting the ROPE algotrithm with '+str(repetitions)+ ' repetitions...')

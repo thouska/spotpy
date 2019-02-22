@@ -220,8 +220,8 @@ class dream(_algorithm):
             return R_stat#[R_stat, MR_stat]
 
     def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
-        print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         if nChains <3:
             print('Please use at least n=3 chains!')
             return None
