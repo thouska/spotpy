@@ -50,7 +50,7 @@ class _RunStatistic(object):
         self.repetitions = None
         self.stop = False
         
-    def __call__(self, objectivefunction, params):
+    def __call__(self, objectivefunction, params, block_print=False):
         self.curparmeterset = params
         self.rep+=1
         if type(objectivefunction) == type([]):
@@ -67,7 +67,8 @@ class _RunStatistic(object):
                 self.bestrep = self.rep
         if self.rep == self.repetitions:
             self.stop = True
-        self.print_status()
+        if not block_print:
+            self.print_status()
 
     def print_status(self):
         # get str showing approximate timeleft to end of simulation in H, M, S
@@ -320,7 +321,7 @@ class _algorithm(object):
         return self.all_params
             
     
-    def postprocessing(self, rep, params, simulation, chains=1, save_run=True, negativlike=False): # TODO: rep not necessaray
+    def postprocessing(self, rep, params, simulation, chains=1, save_run=True, negativlike=False, block_print=False): # TODO: rep not necessaray
     
         params = self.update_params(params)
         if negativlike is True:
@@ -328,11 +329,13 @@ class _algorithm(object):
         else:
             like = self.getfitness(simulation=simulation, params=params)
 
-        self.status(like, params)
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
+        self.status(like,params,block_print=block_print)
+        
         if save_run is True and simulation is not None:
+            
             self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]

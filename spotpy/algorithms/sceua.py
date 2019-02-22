@@ -76,7 +76,7 @@ class sceua(_algorithm):
             return _algorithm.simulate(self, id_params_tuple)
 
         else:  # complex-evolution
-            igs, x, xf, icall, cx, cf, sce_vars = id_params_tuple
+            igs, x, xf, cx, cf, sce_vars = id_params_tuple
             self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status, self.stochastic_parameters = sce_vars
             # Partition the population into complexes (sub-populations);
             k1 = np.arange(self.npg, dtype=int)
@@ -107,7 +107,7 @@ class sceua(_algorithm):
                 s = cx[lcs, :]
                 sf = cf[lcs]
 
-                snew, fnew, icall, simulation = self._cceua(s, sf, icall)
+                snew, fnew, simulation = self._cceua(s, sf)
                 likes.append(fnew)
                 pars.append(snew)
                 sims.append(simulation)
@@ -188,7 +188,7 @@ class sceua(_algorithm):
                 # Calculate the objective function
                 like = self.postprocessing(icall, randompar, simulations,chains=0)              
                 xf[rep] = like
-                icall += 1
+                icall+=1
                 if self.status.stop:
                     print('Stopping samplig. Maximum number of repetitions reached already during burn-in')
                     proceed = False
@@ -206,19 +206,18 @@ class sceua(_algorithm):
 
         BESTF = bestf
         BESTX = bestx
-        ICALL = icall
 
         # Computes the normalized geometric range of the parameters
         gnrng = np.exp(
             np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
         # Check for convergency;
-        if icall >= repetitions:
+        if self.status.rep >= repetitions:
             print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
             print('ON THE MAXIMUM NUMBER OF TRIALS ')
             print(repetitions)
             print('HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:')
-            print(icall)
+            print(self.status.rep)
             print('OF THE INITIAL LOOP!')
 
         if gnrng < peps:
@@ -233,7 +232,6 @@ class sceua(_algorithm):
         criter_change_pcent = 1e+5
 
         self.repeat.setphase('ComplexEvo')
-
         print ('ComplexEvo started...')
         proceed = True
         while icall < repetitions and gnrng > peps and criter_change_pcent > pcento and proceed == True:
@@ -246,26 +244,26 @@ class sceua(_algorithm):
             if remaining_runs <= self.ngs:
                 self.ngs = remaining_runs-1
                 proceed = False
+            
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
                         self.nps, self.bl, self.bu, self.status, self.stochastic_parameters]
-            param_generator = ((rep, x, xf, icall, cx, cf, sce_vars)
+            param_generator = ((rep, x, xf, cx, cf, sce_vars)
                                for rep in range(int(self.ngs)))
             for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
-                icall += len(likes)
                 x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
                 for i in range(len(likes)):
                     if not self.status.stop:    
-                        like = self.postprocessing(icall+i, pars[i], sims[i], chains=i+1)
+                        like = self.postprocessing(i, pars[i], sims[i], chains=i+1)
                     else:
                         #Collect data from all slaves but do not save
                         proceed=False
-                        like = self.postprocessing(icall+i, pars[i], sims[i], chains=i+1, save_run=False)
+                        like = self.postprocessing(i, pars[i], sims[i], chains=i+1, save_run=False)
                         print('Skipping saving')
                 
                 if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
-                  and icall >= self.backup_every_rep:
-                    work = (icall, (x, xf), gnrng)
+                  and self.status.rep >= self.backup_every_rep:
+                    work = (self.status.rep, (x, xf), gnrng)
                     self.write_breakdata(self.dbname, work)
 
             # End of Loop on Complex Evolution;
@@ -282,7 +280,6 @@ class sceua(_algorithm):
             # appenden en op einde reshapen!!
             BESTX = np.append(BESTX, bestx, axis=0)
             BESTF = np.append(BESTF, bestf)
-            ICALL = np.append(ICALL, icall)
 
             # Computes the normalized geometric range of the parameters
             gnrng = np.exp(
@@ -291,7 +288,7 @@ class sceua(_algorithm):
             criter = np.append(criter, bestf)
             
             # Check for convergency;
-            if icall >= repetitions:
+            if self.status.rep >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
                 print('ON THE MAXIMUM NUMBER OF TRIALS ')
                 print(repetitions)
@@ -323,7 +320,7 @@ class sceua(_algorithm):
                 break        
             
         # End of the Outer Loops
-        text = 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % icall
+        text = 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % self.status.rep
         print(text)
         text = 'NORMALIZED GEOMETRIC RANGE = %f' % gnrng
         print(text)
@@ -336,7 +333,7 @@ class sceua(_algorithm):
         self.final_call()
         
 
-    def _cceua(self, s, sf, icall):
+    def _cceua(self, s, sf):
             #  This is the subroutine for generating a new point in a simplex
             #
             #   s(.,.) = the sorted simplex in order of increasing function values
@@ -383,38 +380,34 @@ class sceua(_algorithm):
             snew = self._sampleinputmatrix(1, self.nopt)[0]
 
         ##    fnew = functn(self.nopt,snew);
-        _, _, simulations = _algorithm.simulate(self, (icall, snew))
-        like = self.postprocessing(icall, snew, simulations, save_run=False)
+        _, _, simulations = _algorithm.simulate(self, (1, snew))
+        like = self.postprocessing(1, snew, simulations, save_run=False, block_print=True)
         fnew = like
-        icall += 1
         if self.status.stop:
             print('Stopping complex evolution')
-            return snew, fnew, icall, simulations
+            return snew, fnew, simulations
 
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
             snew = sw + beta * (ce - sw)
             snew[constant_parameters] = sw[constant_parameters]
 
-            _, _, simulations = _algorithm.simulate(self, (icall, snew))
-            like = self.postprocessing(icall, snew, simulations, save_run=False)
+            _, _, simulations = _algorithm.simulate(self, (2, snew))
+            like = self.postprocessing(2, snew, simulations, save_run=False, block_print=True)
             fnew = like
-            icall += 1
             if self.status.stop:
                 print('Stopping complex evolution')
-                return snew, fnew, icall, simulations
+                return snew, fnew, simulations
 
 
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
                 snew = self._sampleinputmatrix(1, self.nopt)[0]
-                _, _, simulations = _algorithm.simulate(self, (icall, snew))
-                like = self.postprocessing(icall, snew, simulations, save_run=False)
+                _, _, simulations = _algorithm.simulate(self, (3, snew))
+                like = self.postprocessing(3, snew, simulations, save_run=False, block_print=True)
                 fnew = like
-                icall += 1
-
         # END OF CCE
-        return snew, fnew, icall, simulations
+        return snew, fnew, simulations
 
     def _sampleinputmatrix(self, nrows, npars):
         '''
