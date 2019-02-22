@@ -15,6 +15,7 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
+import copy
 
 try:
     from queue import Queue
@@ -60,6 +61,12 @@ class _RunStatistic(object):
                 self.objectivefunction = objectivefunction[0]
                 self.params = params
                 self.bestrep = self.rep
+        elif type(objectivefunction) == type(np.array([])):
+            pass
+            #print("here")
+            #self.objectivefunction = copy.deepcopy(objectivefunction)
+            #self.params = params
+            #self.bestrep = self.rep
         else:
             if objectivefunction > self.objectivefunction:
                 self.params = params
@@ -297,6 +304,9 @@ class _algorithm(object):
                     self.datawriter.save(like, randompar, simulations, chains=chains)
             except TypeError:# float/list would result in an error, because it does not make sense
                 if like[0]>self.save_threshold: #Compares list/float
+                    self.datawriter.save(like, randompar, simulations, chains=chains)
+            except ValueError:
+                if (like > self.save_threshold).all:
                     self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):

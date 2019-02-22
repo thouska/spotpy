@@ -2,6 +2,7 @@ import unittest
 import sys
 import numpy as np
 
+from spotpy.examples.tut_padds import padds_spot_setup
 from spotpy.unittests.test_dds import FixedRandomizer
 
 try:
@@ -17,7 +18,7 @@ import json
 
 class TestPADDS(unittest.TestCase):
     def setUp(self):
-        self.spot_setup = spot_setup()
+        self.spot_setup = padds_spot_setup()
         self.rep = 1000
         self.timeout = 1  # Given in Seconds
         self.f_random = FixedRandomizer()
@@ -30,14 +31,28 @@ class TestPADDS(unittest.TestCase):
     def test_run_1(self):
         self.run_a_dds(1)
 
+    def test_run_2(self):
+        self.run_a_dds(2)
+
+    def test_run_3(self):
+        self.run_a_dds(3)
+
+    def assertArrayEqual(self, a, b, delta=None):
+        for j, elem in enumerate(a):
+            print(j, elem)
+            try:
+                self.assertAlmostEqual(elem, b[j], delta=delta)
+            except IndexError:
+                self.assertRaises("Index out of bound for array b at index = "+str(j))
+
 
     def run_a_dds(self, run):
         original_result = self.json_helper(run)
 
-        self.spot_setup._objfunc_switcher(original_result['objfunc'])
+        #self.spot_setup._objfunc_switcher(original_result['objfunc'])
 
-        sampler = spotpy.algorithms.dds(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
-                                        sim_timeout=self.timeout,r=original_result["r_val"])
+        sampler = spotpy.algorithms.padds(self.spot_setup, parallel="seq", dbname='test_PADDS', dbformat="csv",
+                                        sim_timeout=self.timeout,num_objs=2,r=original_result["r_val"])
         sampler._set_np_random(self.f_random)
 
         if original_result.get("s_initial") is not None:
@@ -48,39 +63,18 @@ class TestPADDS(unittest.TestCase):
             results = sampler.sample(original_result["evatrials"],
                                      original_result["trial_runs"])
 
+        print("-------")
+        print(results)
+        print("-------")
+
+
         for t in range(original_result["trial_runs"]):
-            print(results[t]["objfunc_val"], -1*original_result["results"][t]["objfunc_val"])
-            self.assertAlmostEqual(results[t]["objfunc_val"], -1*original_result["results"][t]["objfunc_val"],
-                                   delta=0.000001)
-            py_sbest = results[t]["sbest"]
-            matlb_sbest = original_result["results"][t]["sbest"]
-            for k in range(len(py_sbest)):
-                print(py_sbest[k], matlb_sbest[k])
-                self.assertAlmostEqual(py_sbest[k], matlb_sbest[k], delta=0.00001)
+            print("Trial",t)
+            print(results[t]["objfunc_val"])
+            print(original_result["results"][t]["objfunc_val"])
 
-            py_trial_initial = results[t]["trial_initial"]
-            matlb_trial_initial = original_result["results"][t]["trial_initial"]
-            for k in range(len(py_sbest)):
-                print(t, k, py_trial_initial[k], matlb_trial_initial[k])
-                self.assertAlmostEqual(py_trial_initial[k], matlb_trial_initial[k], delta=0.0001)
-
-    def test_own_initial_out_of_borders_ackley_1(self):
-        self.spot_setup._objfunc_switcher("ackley")
-        sampler = spotpy.algorithms.dds(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
-                                        sim_timeout=self.timeout)
-        self.assertRaises(ValueError,sampler.sample,1000, x_initial=np.random.uniform(-2, 2, 9) + [3])
-
-    def test_own_initial_too_lees(self):
-        self.spot_setup._objfunc_switcher("ackley")
-        sampler = spotpy.algorithms.dds(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
-                                        sim_timeout=self.timeout)
-        self.assertRaises(ValueError, sampler.sample, 1000, x_initial=np.random.uniform(-2, 2, 9))
-
-    def test_own_initial_too_much(self):
-        self.spot_setup._objfunc_switcher("ackley")
-        sampler = spotpy.algorithms.dds(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
-                                        sim_timeout=self.timeout)
-        self.assertRaises(ValueError, sampler.sample, 1000, x_initial=np.random.uniform(-2, 2, 11))
+            self.assertArrayEqual(original_result["results"][t]["objfunc_val"], results[t]["objfunc_val"], 1e-5)
+            self.assertArrayEqual(original_result["results"][t]["sbest"], results[t]["sbest"], 1e-5)
 
 
 if __name__ == '__main__':
