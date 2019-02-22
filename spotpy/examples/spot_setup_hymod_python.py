@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 import spotpy
 from spotpy.examples.hymod_python.hymod import hymod
 import os
+import numpy as np
 
 class spot_setup(object):
     cmax  = spotpy.parameter.Uniform(low=1.0 , high=500,  optguess=412.33)
@@ -63,8 +64,11 @@ class spot_setup(object):
         return self.trueObs[366:]
     
     def objectivefunction(self,simulation,evaluation, params=None):
-        if self._used_algorithm == 'sceua':
-            like = spotpy.objectivefunctions.rmse(evaluation,simulation)
-        else:
-            like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)    
-        return like
+        # print("simulation",simulation)
+        # print("evaluation",evaluation)
+        # exit(1)
+        return np.array([
+            spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation, simulation),
+            spotpy.objectivefunctions.rmse(evaluation, simulation),
+            spotpy.likelihoods.NashSutcliffeEfficiencyShapingFactor(evaluation, simulation)
+        ])

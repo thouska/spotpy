@@ -1,5 +1,11 @@
 import numpy as np
-import spotpy
+import sys
+try:
+    import spotpy
+except ModuleNotFoundError:
+    sys.path.append(".")
+    import spotpy
+
 
 from spotpy.unittests.test_dds import FixedRandomizer
 from spotpy.unittests.test_dds import FixedRandomizerEndOfDataException
@@ -17,10 +23,10 @@ def ZDT1(x):
         g = g + x[i]
     g = 1 + 9 * g / 29
     b = g * (1 - (x[0] / g) ** 0.5) # objective 2 value
-    return a,b
+    return np.array([a,b])
 
 
-class spot_setup(object):
+class padds_spot_setup(object):
     def __init__(self):
         self.params = []
         for i in range(30):
@@ -45,17 +51,20 @@ class spot_setup(object):
         observations = [0]
         return observations
 
-    def objectivefunction(self, simulation, evaluation):
-        # https://deap.readthedocs.io/en/master/api/benchmarks.html  # deap.benchmarks.zdt1
-        # ZDT1 function
-        if len(simulation) != 30:
-            raise Exception("simulation must have length 30")
-        return ZDT1(simulation)
+    def objectivefunction(self, simulation, evaluation, params):
 
-spot_setup = spot_setup()
+        print(simulation)
+        print(evaluation)
 
-sampler = spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv', alt_objfun=None)
+        para, names = params
+        if len(para) != 30:
+            raise Exception("params must have length 30")
+        return ZDT1(para)
+
+spot_setup = padds_spot_setup()
+
+sampler = spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', num_objs=2,dbformat='csv', alt_objfun=None)
 fr = FixedRandomizer()
 sampler._set_np_random(fr)
 res = sampler.sample(458,trials=1)
-print(res)
+#print(res)

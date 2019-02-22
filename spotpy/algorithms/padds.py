@@ -5,22 +5,7 @@ from . import _algorithm
 from spotpy.parameter import ParameterSet
 from spotpy.pareto_tools import crowd_dist
 from spotpy.pareto_tools import nd_check
-
-def ZDT1(x):
-    """
-    This test function is used by Deb et al. 2002 IEEE to test NSGAII
-    performance. There are 30 decision variables which are in [0,1].
-    :param x:
-    :return: Two Value Array
-    """
-    a = x[0] # objective 1 value
-    g = 0
-    for i in range(1,30):
-        g = g + x[i]
-    g = 1 + 9 * g / 29
-    b = g * (1 - (x[0] / g) ** 0.5) # objective 2 value
-    return np.array([a,b])
-
+import copy
 
 
 class padds(_algorithm):
@@ -68,6 +53,13 @@ class padds(_algorithm):
         except KeyError:
             self.r = 0.2  # default value
 
+        try:
+            self.num_objs = kwargs.pop("num_objs")
+        except KeyError:
+            raise AttributeError("Please specify the amount of objective values in `num_objs`")
+
+
+
         super(padds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
@@ -109,32 +101,19 @@ class padds(_algorithm):
                 self.Jbest = self.Jtest
                 self.sbest = self.stest
 
-
-            #print("sbest", self.sbest)
-            #print("Jbest", self.Jbest)
-            self.status.objectivefunction = self.Jbest
+            print("xcuur_gen",self.Jbest)
+            self.status.objectivefunction = copy.deepcopy(self.Jbest)
             self.status.params = self.sbest
             self.fix_status_params_format()
 
             yield rep, self.calculate_next_s_test(self.status.params, rep, self.generator_repetitions, self.r)
 
-    def sample(self, repetitions, trials=1, x_initial=np.array([])):
-
-        # every iteration a map of all relevant values is stored, only for debug purpose.
-        # Spotpy will not need this values.
-        debug_results = []
-
-        self.set_repetiton(repetitions)
-
-        # TODO set multiple objectives
-        self.num_objs = 2
-        self.number_of_parameters = len(self.status.params) # number_of_parameters is the amount of parameters
-
+    def init_params(self, repetitions, x_initial):
         # TODO set over setup
-        self.Jtest = np.array([0.0]*self.num_objs)
-        self.stest = np.array([0.0]*self.number_of_parameters)
+        self.Jtest = np.array([0.0] * self.num_objs)
+        self.stest = np.array([0.0] * self.number_of_parameters)
         self.parameter_range = self.status.params.maxbound - self.status.params.minbound
-        self.pareto_front = np.array([np.append([np.inf]*self.num_objs, [0]*self.number_of_parameters)])
+        self.pareto_front = np.array([np.append([np.inf] * self.num_objs, [0] * self.number_of_parameters)])
 
         if len(x_initial) == 0:
             initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
@@ -149,64 +128,62 @@ class padds(_algorithm):
             for i in range(x_initial.shape[0]):
                 if x_initial.shape[1] == self.num_objs + self.number_of_parameters:
 
-                    self.Jtest = x_initial[i,:self.num_objs]
-                    self.stest = x_initial[i,self.num_objs:]
+                    self.Jtest = x_initial[i, :self.num_objs]
+                    self.stest = x_initial[i, self.num_objs:]
                 else:
                     self.stest = x_initial[i]
-                    self.Jtest = self.sample_multi_objective(self.stest)
+                    self.Jtest = self.getfitness(simulation=[], params=self.stest)
 
                     # TODO Bad way to set the same value every loop!
                     initial_iterations = x_initial.shape[0]
 
-                if i == 0: # Initial value
+                if i == 0:  # Initial value
                     self.pareto_front = np.array([np.append(self.Jtest, self.stest)])
                     dominance_flag = 1
                 else:
                     self.pareto_front, dominance_flag = nd_check(self.pareto_front, self.Jtest, self.stest)
-                    if dominance_flag > -1:
-                        print("Parento Front has been changed")
                 self.dominance_flag = dominance_flag
 
-        self.status.params = self.stest
-        self.fix_status_params_format()
+        trial_best_value = copy.deepcopy(self.stest)
+        return initial_iterations, trial_best_value
+
+    def sample(self, repetitions, trials=1, x_initial=np.array([])):
+
+        # every iteration a map of all relevant values is stored, only for debug purpose.
+        # Spotpy will not need this values.
+        debug_results = []
+
+        self.set_repetiton(repetitions)
+        self.number_of_parameters = len(self.status.params) # number_of_parameters is the amount of parameters
+
+
+        #self.fix_status_params_format()
 
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
             #self.status.objectivefunction = [-1e308] * self.num_objs
             self.status.objectivefunction = 1e-308
-            # repitionno_best saves on which iteration the best parameter configuration has been found
-            repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
-            #repetions_left = self.calc_initial_para_configuration(initial_iterations, trial,repetitions, x_initial)
-            repetions_left =  repetitions - initial_iterations
 
+            repitionno_best, self.status.params = self.init_params(repetitions, x_initial)
             self.fix_status_params_format()
-            trial_best_value = self.status.params.copy()
+
+            # repitionno_best saves on which iteration the best parameter configuration has been found
+            #repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
+            #repetions_left = self.calc_initial_para_configuration(initial_iterations, trial,repetitions, x_initial)
+            repetions_left =  repetitions - repitionno_best
+
+
 
             # Main Loop of PA-DDS
             self.metric = self.calc_metric()
-
-            #print(self.status.params)
 
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
 
             for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
-                #print("OUTPUT", list(x_curr))
-
-                self.Jtest = self.sample_multi_objective(x_curr)
-
-                if rep +1 == 228:
-                    #print("dominance_flag", self.dominance_flag)
-                    #print(rep + 1, self.pareto_front)
-                    #print("________________")
-                    #print("x_curr",x_curr)
-                    #print("________________")
-                    #print("Jtest", self.Jtest)
-
-                    pass
-
+                self.Jtest = self.postprocessing(rep, x_curr, simulations)
                 num_imp = np.sum(self.Jtest <= self.Jbest)
                 num_deg = np.sum(self.Jtest > self.Jbest)
 
@@ -214,37 +191,22 @@ class padds(_algorithm):
                     self.dominance_flag = -1
                 else: # Do dominance check only if new solution is not diminated by its parent
                     self.pareto_front, self.dominance_flag = nd_check(self.pareto_front , self.Jtest, x_curr)
-                    #print("new pareto front", self.pareto_front)
                     if self.dominance_flag != -1:
                         self.metric = self.calc_metric()
 
                     # matlab code calls it stest
 
-                if rep + 1 == 228:
-                    #print("special______")
-                    #print(self.dominance_flag)
-                    #print(num_imp)
-                    #print(num_deg)
-                    #print("pareto_front", self.pareto_front)
-                    #exit(42)
-                    pass
-
                 # todo muss in postprocessing rein aber hat eine andere multifunctionale objective function
                 self.status.params = x_curr
                 self.stest = x_curr
-                #print("strange",self.status.params)
-                self.fix_status_params_format()
-                #print("strange 2", self.status.params)
-                #self.postprocessing(rep, x_curr, simulations, chains=trial)
-                #self.fix_status_params_format()
 
+                self.fix_status_params_format()
 
             print('Best solution found has obj function value of ' + str(self.status.objectivefunction) + ' at '
                   + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": self.status.params, "objfunc_val": self.status.objectivefunction})
+            debug_results.append({"sbest": self.status.params, "objfunc_val":self.status.objectivefunction})
+
         self.final_call()
-        print("pareto_fron", self.pareto_front)
-        print("sbest", self.stest)
         return debug_results
 
     def calc_metric(self):
@@ -263,7 +225,8 @@ class padds(_algorithm):
                 else:
                     self.stest[j] = self.status.params.minbound[j] + self.parameter_range[j] * self.np_random.rand()  # uniform random
 
-            self.Jtest = self.sample_multi_objective(self.stest)
+            id, params, model_simulations = self.simulate((range(len(self.stest)),self.stest))
+            self.Jtest = self.getfitness(simulation=model_simulations, params=self.stest)
             # First value will be used to initialize the values
             if i == 0:
                 self.pareto_front = np.vstack([self.pareto_front, np.append(self.Jtest, self.stest)])
@@ -276,12 +239,6 @@ class padds(_algorithm):
         start_params = ParameterSet(self.parameter())
         start_params.set_by_array([j for j in self.status.params])
         self.status.params = start_params
-
-
-    def sample_multi_objective(self, data):
-        # TODO but in setup and be sure that is is all in maximizing cause algorithm minimize unil now!
-        return ZDT1(data)
-        #return np.array([-1*np.mean(data), -1*np.var(data)])
 
 
     def calculate_next_s_test(self, previous_x_curr, rep, rep_limit, r):
