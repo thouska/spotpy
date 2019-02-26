@@ -9,7 +9,14 @@ import copy
 
 
 class padds(_algorithm):
+    """
+    Implements the Pareto Archived Dynamically Dimensioned Search (short PADDS algorithm) by
+    Tolson, B. A. and  Asadzadeh M. (2013)
+    https://www.researchgate.net/publication/259982925_Pareto_archived_dynamically_dimensioned_search_with_hypervolume-based_selection_for_multi-objective_optimization
 
+    PADDS using the DDS algorithm with a pareto front included. Two metrics are implemented,
+    which is the simple "one" metric and the "crowd distance" metric.
+    """
 
     def __init__(self, *args, **kwargs):
         """
@@ -56,7 +63,8 @@ class padds(_algorithm):
         try:
             self.num_objs = kwargs.pop("num_objs")
         except KeyError:
-            raise AttributeError("Please specify the amount of objective values in `num_objs`")
+            #raise AttributeError("Please specify the amount of objective values in `num_objs`")
+            self.num_objs = 1
 
         super(padds, self).__init__(*args, **kwargs)
 
@@ -99,6 +107,7 @@ class padds(_algorithm):
                 self.status.objectivefunction = self.obj_func_current
                 self.status.params = self.parameter_current
 
+            # This line is needed to get an array of data converted into a parameter object
             self.fix_status_params_format()
 
             yield rep, self.calculate_next_s_test(self.status.params, rep, self.generator_repetitions, self.r)
@@ -152,7 +161,6 @@ class padds(_algorithm):
         for trial in range(trials):
             self.status.objectivefunction = 1e-308
             repitionno_best, self.status.params = self.calculate_initial_parameterset(repetitions, x_initial)
-            self.fix_status_params_format()
 
             repetions_left =  repetitions - repitionno_best
 
