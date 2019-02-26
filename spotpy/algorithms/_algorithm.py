@@ -85,8 +85,8 @@ class _RunStatistic(object):
             avg_time_per_run = (acttime - self.starttime) / (self.rep + 1)
             timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (self.rep + 1)))))
                     
-            text = '%i of %i (best like=%g) est. time remaining: %s' % (self.rep, self.repetitions,
-                                                                        self.objectivefunction, timestr)
+            text = '%i of %i (best like=%s) est. time remaining: %s' % (self.rep, self.repetitions,
+                                                                        str(self.objectivefunction), timestr)
             print(text)
             self.last_print = time.time()
         

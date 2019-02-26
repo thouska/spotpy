@@ -39,17 +39,13 @@ class TestPADDS(unittest.TestCase):
 
     def assertArrayEqual(self, a, b, delta=None):
         for j, elem in enumerate(a):
-            print(j, elem)
             try:
                 self.assertAlmostEqual(elem, b[j], delta=delta)
             except IndexError:
                 self.assertRaises("Index out of bound for array b at index = "+str(j))
 
-
     def run_a_dds(self, run):
         original_result = self.json_helper(run)
-
-        #self.spot_setup._objfunc_switcher(original_result['objfunc'])
 
         sampler = spotpy.algorithms.padds(self.spot_setup, parallel="seq", dbname='test_PADDS', dbformat="csv",
                                         sim_timeout=self.timeout,num_objs=2,r=original_result["r_val"])
@@ -63,13 +59,7 @@ class TestPADDS(unittest.TestCase):
             results = sampler.sample(original_result["evatrials"],
                                      original_result["trial_runs"])
 
-        print("-------")
-        print(results)
-        print("-------")
-
-
         for t in range(original_result["trial_runs"]):
-            print("Trial",t)
             print(results[t]["objfunc_val"])
             print(original_result["results"][t]["objfunc_val"])
 

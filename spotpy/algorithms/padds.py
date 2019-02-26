@@ -58,8 +58,6 @@ class padds(_algorithm):
         except KeyError:
             raise AttributeError("Please specify the amount of objective values in `num_objs`")
 
-
-
         super(padds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
@@ -72,7 +70,9 @@ class padds(_algorithm):
         self.generator_repetitions = -1
         self.pareto_front = np.array([])
         self.dominance_flag = -2
-
+        self.obj_func_current = None
+        self.parameter_current = None
+        self.pareto_front = None
 
     def _set_np_random(self, f_rand):
         self.np_random = f_rand
@@ -91,27 +91,21 @@ class padds(_algorithm):
         """
         # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions):
-            #print("dominance_flag =", self.dominance_flag)
             if self.dominance_flag == -1:  # if the last generated solution was dominated
-                #print("metric",self.metric)
                 index = self.roulette_wheel(self.metric)
-                self.sbest = self.pareto_front[index, self.num_objs:]
-                self.Jbest = self.pareto_front[index,:self.num_objs]
+                self.status.params = self.pareto_front[index, self.num_objs:]
+                self.status.objectivefunction = self.pareto_front[index,:self.num_objs]
             else: # otherwise use the last generated solution
-                self.Jbest = self.Jtest
-                self.sbest = self.stest
+                self.status.objectivefunction = self.obj_func_current
+                self.status.params = self.parameter_current
 
-            print("xcuur_gen",self.Jbest)
-            self.status.objectivefunction = copy.deepcopy(self.Jbest)
-            self.status.params = self.sbest
             self.fix_status_params_format()
 
             yield rep, self.calculate_next_s_test(self.status.params, rep, self.generator_repetitions, self.r)
 
-    def init_params(self, repetitions, x_initial):
-        # TODO set over setup
-        self.Jtest = np.array([0.0] * self.num_objs)
-        self.stest = np.array([0.0] * self.number_of_parameters)
+    def calculate_initial_parameterset(self, repetitions, x_initial):
+        self.obj_func_current = np.array([0.0] * self.num_objs)
+        self.parameter_current = np.array([0.0] * self.number_of_parameters)
         self.parameter_range = self.status.params.maxbound - self.status.params.minbound
         self.pareto_front = np.array([np.append([np.inf] * self.num_objs, [0] * self.number_of_parameters)])
 
@@ -128,27 +122,25 @@ class padds(_algorithm):
             for i in range(x_initial.shape[0]):
                 if x_initial.shape[1] == self.num_objs + self.number_of_parameters:
 
-                    self.Jtest = x_initial[i, :self.num_objs]
-                    self.stest = x_initial[i, self.num_objs:]
+                    self.obj_func_current = x_initial[i, :self.num_objs]
+                    self.parameter_current = x_initial[i, self.num_objs:]
                 else:
-                    self.stest = x_initial[i]
-                    self.Jtest = self.getfitness(simulation=[], params=self.stest)
+                    self.parameter_current = x_initial[i]
+                    self.obj_func_current = self.getfitness(simulation=[], params=self.parameter_current)
 
                     # TODO Bad way to set the same value every loop!
                     initial_iterations = x_initial.shape[0]
 
                 if i == 0:  # Initial value
-                    self.pareto_front = np.array([np.append(self.Jtest, self.stest)])
+                    self.pareto_front = np.array([np.append(self.obj_func_current, self.parameter_current)])
                     dominance_flag = 1
                 else:
-                    self.pareto_front, dominance_flag = nd_check(self.pareto_front, self.Jtest, self.stest)
+                    self.pareto_front, dominance_flag = nd_check(self.pareto_front, self.obj_func_current, self.parameter_current)
                 self.dominance_flag = dominance_flag
 
-        trial_best_value = copy.deepcopy(self.stest)
-        return initial_iterations, trial_best_value
+        return initial_iterations, copy.deepcopy(self.parameter_current)
 
-    def sample(self, repetitions, trials=1, x_initial=np.array([])):
-
+    def sample(self, repetitions, trials=1, x_initial=np.array([]), metric="ones"):
         # every iteration a map of all relevant values is stored, only for debug purpose.
         # Spotpy will not need this values.
         debug_results = []
@@ -156,52 +148,35 @@ class padds(_algorithm):
         self.set_repetiton(repetitions)
         self.number_of_parameters = len(self.status.params) # number_of_parameters is the amount of parameters
 
-
-        #self.fix_status_params_format()
-
-
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
-            #self.status.objectivefunction = [-1e308] * self.num_objs
             self.status.objectivefunction = 1e-308
-
-            repitionno_best, self.status.params = self.init_params(repetitions, x_initial)
+            repitionno_best, self.status.params = self.calculate_initial_parameterset(repetitions, x_initial)
             self.fix_status_params_format()
 
-            # repitionno_best saves on which iteration the best parameter configuration has been found
-            #repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
-            #repetions_left = self.calc_initial_para_configuration(initial_iterations, trial,repetitions, x_initial)
             repetions_left =  repetitions - repitionno_best
 
-
-
             # Main Loop of PA-DDS
-            self.metric = self.calc_metric()
+            self.metric = self.calc_metric(metric)
 
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
 
             for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
-                self.Jtest = self.postprocessing(rep, x_curr, simulations)
-                num_imp = np.sum(self.Jtest <= self.Jbest)
-                num_deg = np.sum(self.Jtest > self.Jbest)
+                self.obj_func_current = self.postprocessing(rep, x_curr, simulations)
+                num_imp = np.sum(self.obj_func_current <= self.status.objectivefunction)
+                num_deg = np.sum(self.obj_func_current > self.status.objectivefunction)
 
                 if num_imp == 0 and num_deg > 0: # New solution is dominated by its parent
                     self.dominance_flag = -1
                 else: # Do dominance check only if new solution is not diminated by its parent
-                    self.pareto_front, self.dominance_flag = nd_check(self.pareto_front , self.Jtest, x_curr)
+                    self.pareto_front, self.dominance_flag = nd_check(self.pareto_front, self.obj_func_current, x_curr)
                     if self.dominance_flag != -1:
-                        self.metric = self.calc_metric()
+                        self.metric = self.calc_metric(metric)
+                self.parameter_current = x_curr
 
-                    # matlab code calls it stest
-
-                # todo muss in postprocessing rein aber hat eine andere multifunctionale objective function
-                self.status.params = x_curr
-                self.stest = x_curr
-
-                self.fix_status_params_format()
-
+            self.status.params = self.parameter_current
             print('Best solution found has obj function value of ' + str(self.status.objectivefunction) + ' at '
                   + str(repitionno_best) + '\n\n')
             debug_results.append({"sbest": self.status.params, "objfunc_val":self.status.objectivefunction})
@@ -209,29 +184,38 @@ class padds(_algorithm):
         self.final_call()
         return debug_results
 
-    def calc_metric(self):
-        # TODO check which metric was chosen
-        # TODO implement Crowded Distance
-        # TODO use crowded Dustance, already implemented
-        return np.array([1]*self.pareto_front.shape[0])
+    def calc_metric(self, metric):
+        """
+        calculate / returns metric field
+        :return: set of metric of choice
+        """
+        if metric == "ones":
+            return np.array([1] * self.pareto_front.shape[0])
+        elif metric == "crowd_distance":
+            return crowd_dist(self.pareto_front[:,0:self.num_objs])
+        else:
+            raise AttributeError("metric argument is invalid")
 
     def calc_initial_pareto_front(self, its):
+        """
+        calculate the initial pareto front
+        :param its: amount of initial parameters
+        """
         dominance_flag = -1
         for i in range(its):
-            # TODO Use vector calc
             for j in range(self.number_of_parameters):
                 if self.status.params.as_int[j]:
-                    self.stest[j] = self.np_random.randint(self.status.params.minbound[j], self.status.params.maxbound[j])
+                    self.parameter_current[j] = self.np_random.randint(self.status.params.minbound[j], self.status.params.maxbound[j])
                 else:
-                    self.stest[j] = self.status.params.minbound[j] + self.parameter_range[j] * self.np_random.rand()  # uniform random
+                    self.parameter_current[j] = self.status.params.minbound[j] + self.parameter_range[j] * self.np_random.rand()  # uniform random
 
-            id, params, model_simulations = self.simulate((range(len(self.stest)),self.stest))
-            self.Jtest = self.getfitness(simulation=model_simulations, params=self.stest)
+            id, params, model_simulations = self.simulate((range(len(self.parameter_current)), self.parameter_current))
+            self.obj_func_current = self.getfitness(simulation=model_simulations, params=self.parameter_current)
             # First value will be used to initialize the values
             if i == 0:
-                self.pareto_front = np.vstack([self.pareto_front, np.append(self.Jtest, self.stest)])
+                self.pareto_front = np.vstack([self.pareto_front, np.append(self.obj_func_current, self.parameter_current)])
             else:
-                (self.pareto_front, dominance_flag) = nd_check(self.pareto_front, self.Jtest, self.stest)
+                (self.pareto_front, dominance_flag) = nd_check(self.pareto_front, self.obj_func_current, self.parameter_current)
 
         self.dominance_flag = dominance_flag
 
@@ -260,7 +244,6 @@ class padds(_algorithm):
         :return: next parameter set
         """
         amount_params = len(previous_x_curr)
-        #print("INPUT", list(previous_x_curr))
         new_x_curr = previous_x_curr.copy()  # define new_x_curr initially as current (previous_x_curr for greedy)
 
         randompar = self.np_random.rand(amount_params)
