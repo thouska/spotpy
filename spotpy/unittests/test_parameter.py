@@ -10,8 +10,10 @@ import numpy as np
 
 # Import inspect to scan spotpy.parameter for all Parameter classes
 import inspect
-from testutils import repeat
-
+if sys.version_info[0] >= 3:
+    from .testutils import repeat
+else:
+    from testutils import repeat
 # https://docs.python.org/3/library/unittest.html
 
 

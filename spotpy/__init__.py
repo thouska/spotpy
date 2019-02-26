@@ -39,4 +39,5 @@ from . import examples            # Contains tutorials how to use SPOTPY
 from . import describe            # Contains some helper functions to describe smaplers and setups
 from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 from . import pareto_tools
+from . import unittests
 __version__ = '1.4.2'
