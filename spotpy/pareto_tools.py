@@ -149,7 +149,7 @@ def dsearchn(x,y):
     """
     IDX = []
     for line in range(y.shape[0]):
-        distances = np.sqrt(np.sum(np.power(x - y[line, :], 2), axis=1))
+        distances = np.sqrt(np.nansum(np.power(x - y[line, :], 2), axis=1))
         found_min_dist_ind = (np.min(distances, axis=0) == distances)
         length = found_min_dist_ind.shape[0]
         IDX.append(np.array(range(length))[found_min_dist_ind][0])
