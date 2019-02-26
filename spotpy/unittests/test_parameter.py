@@ -1,8 +1,8 @@
 import unittest
+import sys
 try:
     import spotpy
 except ImportError:
-    import sys
     sys.path.append(".")
     import spotpy
 from spotpy import parameter
