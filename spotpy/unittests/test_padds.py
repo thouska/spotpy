@@ -37,6 +37,9 @@ class TestPADDS(unittest.TestCase):
     def test_run_3(self):
         self.run_a_dds(3)
 
+    def test_run_4(self):
+        self.run_a_dds(4)
+
     def assertArrayEqual(self, a, b, delta=None):
         for j, elem in enumerate(a):
             try:
@@ -54,10 +57,10 @@ class TestPADDS(unittest.TestCase):
         if original_result.get("s_initial") is not None:
             # if a parameter initialisation is given, test this:
             results = sampler.sample(original_result["evatrials"],
-                                     original_result["trial_runs"], x_initial=original_result["s_initial"])
+                                     original_result["trial_runs"], x_initial=original_result["s_initial"], metric=original_result["metric"])
         else:
             results = sampler.sample(original_result["evatrials"],
-                                     original_result["trial_runs"])
+                                     original_result["trial_runs"],metric=original_result["metric"])
 
         for t in range(original_result["trial_runs"]):
             print(results[t]["objfunc_val"])

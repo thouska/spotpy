@@ -184,7 +184,6 @@ class padds(_algorithm):
                         self.metric = self.calc_metric(metric)
                 self.parameter_current = x_curr
 
-            self.status.params = self.parameter_current
             print('Best solution found has obj function value of ' + str(self.status.objectivefunction) + ' at '
                   + str(repitionno_best) + '\n\n')
             debug_results.append({"sbest": self.status.params, "objfunc_val":self.status.objectivefunction})
