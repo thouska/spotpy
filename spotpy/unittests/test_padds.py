@@ -2,7 +2,7 @@ import unittest
 import sys
 import numpy as np
 
-from spotpy.examples.tut_padds import padds_spot_setup
+from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.unittests.test_dds import FixedRandomizer
 
 try:
@@ -40,6 +40,9 @@ class TestPADDS(unittest.TestCase):
     def test_run_4(self):
         self.run_a_dds(4)
 
+    def test_run_5(self):
+        self.run_a_dds(5)
+
     def assertArrayEqual(self, a, b, delta=None):
         for j, elem in enumerate(a):
             try:
@@ -57,7 +60,7 @@ class TestPADDS(unittest.TestCase):
         if original_result.get("s_initial") is not None:
             # if a parameter initialisation is given, test this:
             results = sampler.sample(original_result["evatrials"],
-                                     original_result["trial_runs"], x_initial=original_result["s_initial"], metric=original_result["metric"])
+                                     original_result["trial_runs"], x_initial=np.array(original_result["s_initial"]), metric=original_result["metric"])
         else:
             results = sampler.sample(original_result["evatrials"],
                                      original_result["trial_runs"],metric=original_result["metric"])

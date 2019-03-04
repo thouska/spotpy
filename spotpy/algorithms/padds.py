@@ -121,24 +121,21 @@ class padds(_algorithm):
         if len(x_initial) == 0:
             initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
             self.calc_initial_pareto_front(initial_iterations)
-        elif len(x_initial) != self.number_of_parameters:
+        elif x_initial.shape[1] != self.number_of_parameters:
             raise ValueError("User specified 'x_initial' has not the same length as available parameters")
         else:
             if not (np.all(x_initial <= self.status.params.maxbound) and np.all(
                     x_initial >= self.status.params.minbound)):
                 raise ValueError("User specified 'x_initial' but the values are not within the parameter range")
-            initial_iterations = 0
+            initial_iterations = x_initial.shape[0]
+
             for i in range(x_initial.shape[0]):
                 if x_initial.shape[1] == self.num_objs + self.number_of_parameters:
-
                     self.obj_func_current = x_initial[i, :self.num_objs]
                     self.parameter_current = x_initial[i, self.num_objs:]
                 else:
                     self.parameter_current = x_initial[i]
                     self.obj_func_current = self.getfitness(simulation=[], params=self.parameter_current)
-
-                    # TODO Bad way to set the same value every loop!
-                    initial_iterations = x_initial.shape[0]
 
                 if i == 0:  # Initial value
                     self.pareto_front = np.array([np.append(self.obj_func_current, self.parameter_current)])

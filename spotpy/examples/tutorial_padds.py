@@ -53,8 +53,8 @@ class padds_spot_setup(object):
 
     def objectivefunction(self, simulation, evaluation, params):
 
-        print(simulation)
-        print(evaluation)
+        #print(simulation)
+        #print(evaluation)
 
         para, names = params
         if len(para) != 30:
