@@ -239,8 +239,8 @@ class fscabc(_algorithm):
 
             if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
                     and icall >= lastbackup+self.backup_every_rep:
-                work = (icall, work, gnrng, r)
-                self.write_breakdata(self.dbname, work)
+                savework = (icall, work, gnrng, r)
+                self.write_breakdata(self.dbname, savework)
                 lastbackup = icall
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
