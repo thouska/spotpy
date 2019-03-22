@@ -598,17 +598,15 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True):
     else:
         plt.plot(bestlike)
 
-def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=None,xticks=[0,2000,4000]):
+def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=None):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
     from matplotlib import colors
-    cnames=list(colors.cnames)
     font = {'family' : 'calibri',
         'weight' : 'normal',
         'size'   : 20}
     plt.rc('font', **font)
     fig=plt.figure(figsize=(17,5))
-    rep=len(results[0])
     subplots=len(results)
     rows=2
     for j in range(rows):
@@ -627,13 +625,11 @@ def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=No
                 ax.set_xlabel(algorithmnames[i-subplots])
 
             ax.plot(data,'b-')
-            ax.plot([1]*rep,'r--')
-            ax.set_xlim(0,rep)
             ax.set_ylim(-50,50)
-            ax.xaxis.set_ticks(xticks)
             if i==0 and j==0:
                 ax.set_ylabel('x')
                 ax.yaxis.set_ticks([-50,0,50])
+                rep = len(data)
             if i==0 and j==1:
                 ax.set_ylabel('y')
                 ax.yaxis.set_ticks([-50,0,50])
@@ -641,8 +637,10 @@ def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=No
                 ax.xaxis.set_ticks([])
             if i>0:
                 ax.yaxis.set_ticks([])
-
-    plt.tight_layout()
+            ax.plot([1]*rep,'r--')
+            ax.set_xlim(0,rep)
+            
+    #plt.tight_layout()
     fig.savefig('test2.png', bbox_inches='tight')
 
 
