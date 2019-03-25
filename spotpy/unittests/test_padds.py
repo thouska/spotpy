@@ -54,7 +54,7 @@ class TestPADDS(unittest.TestCase):
         original_result = self.json_helper(run)
 
         sampler = spotpy.algorithms.padds(self.spot_setup, parallel="seq", dbname='test_PADDS', dbformat="csv",
-                                        sim_timeout=self.timeout,num_objs=2,r=original_result["r_val"])
+                                        sim_timeout=self.timeout, r=original_result["r_val"])
         sampler._set_np_random(self.f_random)
 
         if original_result.get("s_initial") is not None:

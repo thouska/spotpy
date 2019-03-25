@@ -12,8 +12,31 @@ from spotpy.unittests.test_dds import FixedRandomizerEndOfDataException
 
 def ZDT1(x):
     """
-    This test function is used by Deb et al. 2002 IEEE to test NSGAII
-    performance. There are 30 decision variables which are in [0,1].
+    Zitzler–Deb–Thiele's function number 1. Is used to benchmark or test algorithms, see also
+    https://en.wikipedia.org/wiki/Test_functions_for_optimization and Deb et al. 2002 IEEE.
+
+
+    ## The schematic tradoff looks like this
+    # /\
+    #  |
+    #1 .
+    #  |
+    #  |
+    #  | .
+    #  |
+    #  |   .
+    #  |
+    #  |      .
+    #  |
+    #  |           .
+    #  |
+    #  |                 .
+    #  |                        .
+    #  |                                 .
+    #  |------------------------------------------.------>
+    #                                             1
+
+    ZDT1 needs 30 parameters, which are in [0,1].
     :param x:
     :return: Two Value Tuple
     """
@@ -63,8 +86,8 @@ class padds_spot_setup(object):
 
 spot_setup = padds_spot_setup()
 
-sampler = spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', num_objs=2,dbformat='csv', alt_objfun=None)
-fr = FixedRandomizer()
-sampler._set_np_random(fr)
-res = sampler.sample(458,trials=1)
+sampler = spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv', alt_objfun=None)
+#fr = FixedRandomizer()
+#sampler._set_np_random(fr)
+res = sampler.sample(1000,trials=1)
 #print(res)

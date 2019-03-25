@@ -1,10 +1,9 @@
 import numpy as np
+from copy import deepcopy
 
 from spotpy.algorithms.dds import DDSGenerator
 from . import _algorithm
 from spotpy.parameter import ParameterSet
-from spotpy.pareto_tools import crowd_dist
-from spotpy.pareto_tools import nd_check
 import copy
 
 
@@ -60,12 +59,6 @@ class padds(_algorithm):
         except KeyError:
             self.r = 0.2  # default value
 
-        try:
-            self.num_objs = kwargs.pop("num_objs")
-        except KeyError:
-            #raise AttributeError("Please specify the amount of objective values in `num_objs`")
-            self.num_objs = 1
-
         super(padds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
@@ -80,7 +73,6 @@ class padds(_algorithm):
         self.dominance_flag = -2
         self.obj_func_current = None
         self.parameter_current = None
-        self.pareto_front = None
 
     def _set_np_random(self, f_rand):
         self.np_random = f_rand
@@ -101,8 +93,8 @@ class padds(_algorithm):
         for rep in range(self.generator_repetitions):
             if self.dominance_flag == -1:  # if the last generated solution was dominated
                 index = self.roulette_wheel(self.metric)
-                self.status.params = self.pareto_front[index, self.num_objs:]
-                self.status.objectivefunction = self.pareto_front[index,:self.num_objs]
+                self.status.params = self.pareto_front[index, self.like_struct_len:]
+                self.status.objectivefunction = self.pareto_front[index,:self.like_struct_len]
             else: # otherwise use the last generated solution
                 self.status.objectivefunction = self.obj_func_current
                 self.status.params = self.parameter_current
@@ -113,10 +105,10 @@ class padds(_algorithm):
             yield rep, self.calculate_next_s_test(self.status.params, rep, self.generator_repetitions, self.r)
 
     def calculate_initial_parameterset(self, repetitions, x_initial):
-        self.obj_func_current = np.array([0.0] * self.num_objs)
+        self.obj_func_current = np.array([0.0] * self.like_struct_len)
         self.parameter_current = np.array([0.0] * self.number_of_parameters)
         self.parameter_range = self.status.params.maxbound - self.status.params.minbound
-        self.pareto_front = np.array([np.append([np.inf] * self.num_objs, [0] * self.number_of_parameters)])
+        self.pareto_front = np.array([np.append([np.inf] * self.like_struct_len, [0] * self.number_of_parameters)])
 
         if len(x_initial) == 0:
             initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
@@ -130,9 +122,9 @@ class padds(_algorithm):
             initial_iterations = x_initial.shape[0]
 
             for i in range(x_initial.shape[0]):
-                if x_initial.shape[1] == self.num_objs + self.number_of_parameters:
-                    self.obj_func_current = x_initial[i, :self.num_objs]
-                    self.parameter_current = x_initial[i, self.num_objs:]
+                if x_initial.shape[1] == self.like_struct_len + self.number_of_parameters:
+                    self.obj_func_current = x_initial[i, :self.like_struct_len]
+                    self.parameter_current = x_initial[i, self.like_struct_len:]
                 else:
                     self.parameter_current = x_initial[i]
                     self.obj_func_current = self.getfitness(simulation=[], params=self.parameter_current)
@@ -173,11 +165,11 @@ class padds(_algorithm):
                 num_imp = np.sum(self.obj_func_current <= self.status.objectivefunction)
                 num_deg = np.sum(self.obj_func_current > self.status.objectivefunction)
 
-                if num_imp == 0 and num_deg > 0: # New solution is dominated by its parent
-                    self.dominance_flag = -1
-                else: # Do dominance check only if new solution is not diminated by its parent
+                if num_imp == 0 and num_deg > 0:
+                    self.dominance_flag = -1 # New solution is dominated by its parents
+                else: # Do dominance check only if new solution is not dominated by its parent
                     self.pareto_front, self.dominance_flag = nd_check(self.pareto_front, self.obj_func_current, x_curr)
-                    if self.dominance_flag != -1:
+                    if self.dominance_flag != -1: # means, that new parameter set is a new non-dominated solution
                         self.metric = self.calc_metric(metric)
                 self.parameter_current = x_curr
 
@@ -196,7 +188,7 @@ class padds(_algorithm):
         if metric == "ones":
             return np.array([1] * self.pareto_front.shape[0])
         elif metric == "crowd_distance":
-            return crowd_dist(self.pareto_front[:,0:self.num_objs])
+            return crowd_dist(self.pareto_front[:,0:self.like_struct_len])
         else:
             raise AttributeError("metric argument is invalid")
 
@@ -217,7 +209,8 @@ class padds(_algorithm):
             self.obj_func_current = self.getfitness(simulation=model_simulations, params=self.parameter_current)
             # First value will be used to initialize the values
             if i == 0:
-                self.pareto_front = np.vstack([self.pareto_front, np.append(self.obj_func_current, self.parameter_current)])
+                print(self.pareto_front[0], np.append(self.obj_func_current, self.parameter_current))
+                self.pareto_front = np.vstack([self.pareto_front[0], np.append(self.obj_func_current, self.parameter_current)])
             else:
                 (self.pareto_front, dominance_flag) = nd_check(self.pareto_front, self.obj_func_current, self.parameter_current)
 
@@ -268,3 +261,169 @@ class padds(_algorithm):
             new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test
 
         return new_x_curr
+
+
+
+def nd_check(nd_set_input, objective_values, parameter_set):
+    """
+    It is the Non Dominated Solution Check (ND Check)
+
+    Meaning of dominance_flag
+    dominance_flag = -1: parameter_set is dominated by pareto front
+    dominance_flag =  0: parameter_set is a new non-dominated solution but not dominating
+    dominance_flag =  1: parameter_set is a new non-dominated solution and dominating
+
+
+    :param nd_set_input: Pareto Front
+    :param objective_values: objective values
+    :param parameter_set: parameter set
+    :return: a new pareto front and a value if it was dominated or not (0,1,-1)
+    """
+    # Algorithm from PADDS Matlab Code
+
+    nd_set = deepcopy(nd_set_input)
+    dominance_flag = 0
+
+    # These are simply reshaping problems if we want to loop over arrays but we have a single float given
+    try:
+        like_struct_len = objective_values.shape[0]
+    except IndexError:
+        objective_values = objective_values.reshape((1,))
+        like_struct_len = objective_values.shape[0]
+    try:
+        pareto_high = nd_set.shape[1]
+    except IndexError:
+        nd_set = nd_set.reshape(1,nd_set.shape[0])
+        pareto_high = nd_set.shape[1]
+
+    i = -1  # solution counter
+    while i < nd_set.shape[0]-1:
+        i += 1
+        num_eql = np.sum(objective_values == nd_set[i, :like_struct_len])
+        num_imp = np.sum(objective_values < nd_set[i, :like_struct_len])
+        num_deg = np.sum(objective_values > nd_set[i, :like_struct_len])
+
+        if num_imp == 0 and num_deg > 0:  # parameter_set is dominated
+            dominance_flag = -1
+            return (nd_set, dominance_flag)
+        elif num_eql == like_struct_len:
+            # Objective functions are the same for parameter_set and archived solution i
+            # TODO check if this line still works
+            nd_set[i] = np.append(objective_values, parameter_set)  # Replace solution i in ND_set with X
+            dominance_flag = 0  # X is non - dominated
+            return nd_set, dominance_flag
+        elif num_imp > 0 and num_deg == 0:  # X dominates ith solution in the ND_set
+            nd_set = np.delete(nd_set, i, 0)
+            i = i - 1
+            dominance_flag = 1
+
+    if nd_set.size == 0:  # that means the array is completely empty
+        nd_set = np.array([np.append(objective_values, parameter_set)])  # Set solution i in ND_set with X
+    else:  # If X dominated a portion of solutions in ND_set
+        nd_set = np.vstack(
+            [nd_set, np.append(objective_values, parameter_set)])  # Add the new solution to the end of ND_set (for later use and comparing!
+
+    return nd_set, dominance_flag
+
+
+def crowd_dist(points):
+    """
+    This function calculates the Normalized Crowding Distance for each member
+    or "points". Deb book p236
+     The structure of PF_set is as follows:
+     PF_set = [obj_1, obj_2, ... obj_m, DV_1, DV_2, ..., DV_n]
+
+     e.g. v = np.array([[1,10], [2,9.8], [3,5], [4,4], [8,2], [10,1]]); CDInd = crowd_dist(v)
+
+    :param points: mainly is this a pareto front, but could be any set of data which a crowd distance should be calculated from
+    :return: the crowd distance distance
+    """
+
+    # Normalize Objective Function Space
+    try: # Python / Numpy interprets arrays sometimes with wrong shape, this is a fix
+        length_x = points.shape[1]
+    except IndexError:
+        points = points.reshape((1, points.shape[0]))
+        length_x = points.shape[1]
+
+
+    max_f = np.max(points,0)
+    min_f = np.min(points,0)
+    levels = (max_f == min_f)
+    length_y = points.shape[0]
+
+
+    indicies = np.array(range(length_x))[levels]
+    max_f[indicies] += 1
+
+
+    MAX_f = np.transpose(max_f.repeat(length_y).reshape((length_x,length_y)))
+    MIN_f = np.transpose(min_f.repeat(length_y).reshape((length_x,length_y)))
+
+
+    points = np.divide(points - MIN_f,MAX_f - MIN_f)
+
+    # resave Length
+    length_x = points.shape[1]
+    length_y = points.shape[0]
+
+    # Initialization
+    zero_column = np.array([[0] * length_y]).reshape((length_y, 1))
+    index_column = np.array(range(length_y)).reshape((length_y,1))
+    temp = np.concatenate((points, zero_column, index_column), 1)
+    ij = temp.shape[1] - 2
+    endpointIndx = np.array([0]*2*length_x)
+
+    # Main Calculation
+    if length_y <= length_x + 1:  # Less than or equal # obj + 1 solutions are non-dominated
+        temp[:, ij] = 1   # The crowding distance is 1 for all archived solutions
+        return temp[:, ij]
+    else: # More than 2 solutions are non - dominated
+        for i in range(length_x):
+            #  https://stackoverflow.com/a/22699957/5885054
+            temp = temp[temp[:,i].argsort()]
+            temp[0, ij] = temp[0, ij] + 2 * (temp[1, i] - temp[0, i])
+            temp[length_y-1, ij] = temp[length_y-1,ij] + 2*(temp[length_y-1,i] - temp[length_y-2,i])
+
+            for j in range(1, length_y-1):
+                temp[j, ij] = temp[j, ij] + (temp[j + 1, i] - temp[j - 1, i])
+
+            endpointIndx[2 * (i - 1) + 0] = temp[0, -1]
+            endpointIndx[2 * (i - 1) + 1] = temp[-1, -1]
+
+    #  Endpoints of Pareto Front
+    temp = temp[temp[:,temp.shape[1]-1].argsort()]   # Sort points based on the last column to restore the original order of points in the archive
+    endpointIndx = np.unique(endpointIndx)
+
+
+    non_endpointIndx = np.array(range(length_y)).reshape((length_y,1))
+    non_endpointIndx=np.delete(non_endpointIndx, endpointIndx, 0)
+
+    non_endpointIndx = non_endpointIndx.reshape((non_endpointIndx.shape[0]))
+
+    Y = points[endpointIndx, :]
+    X = points[non_endpointIndx, :]
+    IDX = dsearchn(X,Y)   # Identify the closest point in the objective space to each endpoint (dsearchn in Matlab)
+    if IDX.size > 0:
+        for i in range(endpointIndx.shape[0]):
+            temp[endpointIndx[i], ij] = np.max([temp[endpointIndx[i], ij],temp[non_endpointIndx[IDX[i]], ij]])   # IF the closest point to the endpoint has a higher CD value, assign that to the endpoint; otherwise leave the CD value of the endpoint unchanged
+
+    return temp[:, ij]
+
+def dsearchn(x,y):
+    """
+    Implement Octave / Matlab dsearchn without triangulation
+    :param x: Search Points in
+    :param y: Were points are stored
+    :return: indices of points of x which have minimal distance to points of y
+    """
+    IDX = []
+    for line in range(y.shape[0]):
+        distances = np.sqrt(np.nansum(np.power(x - y[line, :], 2), axis=1))
+        found_min_dist_ind = (np.min(distances, axis=0) == distances)
+        length = found_min_dist_ind.shape[0]
+        IDX.append(np.array(range(length))[found_min_dist_ind][0])
+    return np.array(IDX)
+
+
+

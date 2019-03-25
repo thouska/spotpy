@@ -35,16 +35,15 @@ if __name__ == "__main__":
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.padds(spot_setup, dbname='DDS_hymod', dbformat='csv', num_objs=3, alt_objfun=None)
+    sampler=spotpy.algorithms.dds(spot_setup, dbname='DDS_hymod', dbformat='csv', alt_objfun=None)
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
-    results = sampler.sample(rep)
-    
+    sampler.sample(rep)
+    results = sampler.getdata()
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     #results = spotpy.analyser.load_csv_results('DDS_hymod')
 
     print(results)
-    exit(7)
     fig= plt.figure(1,figsize=(9,5))
     plt.plot(results['like1'])
     plt.show()

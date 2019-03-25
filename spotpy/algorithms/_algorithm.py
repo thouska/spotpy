@@ -15,7 +15,7 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
-import copy
+from inspect import signature
 
 try:
     from queue import Queue
@@ -237,6 +237,28 @@ class _algorithm(object):
 
         self.status = _RunStatistic()
 
+        # make a dummy run of objective function to see, what is the structure, is needed for datawriter and algorithms,
+        # i.e. PADDS
+
+        objfunc_signature = signature(self.objectivefunction)
+        objfunc_dynamic_arguments = {}
+        for osp in (objfunc_signature.parameters):
+            if osp == "params":
+                val = (self.partype, self.parnames)
+            else:
+                val = np.random.rand(1)
+            objfunc_dynamic_arguments[osp] = val
+
+        #sample_like_result = self.objectivefunction(np.random.rand(1), np.random.rand(1), (self.partype, self.parnames))
+        sample_like_result = self.objectivefunction(**objfunc_dynamic_arguments)
+
+        self.like_struct_typ = type(sample_like_result)
+
+        if self.like_struct_typ == list or self.like_struct_typ == type(np.array([])):
+            self.like_struct_len = len(sample_like_result)
+        else:
+            self.like_struct_len = 1
+
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
@@ -289,25 +311,29 @@ class _algorithm(object):
 
             self.dbinit = False
 
+
+    def __is_list_type(self, data):
+        if type(data) == type:
+            return data == list or data == type(np.array([]))
+        else:
+            return type(data) == list or type(data) == type(np.array([]))
+
     def save(self, like, randompar, simulations, chains=1):
         # Initialize the database if no run was performed so far
         self._init_database(like, randompar, simulations)
 
-        #try if like is a list of values compare it with save threshold setting
-        try:
+        if self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold):
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
                 self.datawriter.save(like, randompar, simulations, chains=chains)
-        #If like value is not a iterable, it is assumed to be a float
-        except TypeError: # This is also used if not threshold was set
-            try:
-                if like>self.save_threshold: #Compares float/float
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
-            except TypeError:# float/list would result in an error, because it does not make sense
-                if like[0]>self.save_threshold: #Compares list/float
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
-            except ValueError:
-                if (like > self.save_threshold).all:
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
+        if not self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+            if like>self.save_threshold: #Compares float/float
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        if self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+            if like[0]>self.save_threshold: #Compares list/float
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        if not self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold): #Compares float/list
+            if (like > self.save_threshold).all:
+                self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
