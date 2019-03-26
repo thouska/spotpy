@@ -54,7 +54,7 @@ class padds_spot_setup(object):
     def __init__(self):
         self.params = []
         for i in range(30):
-            self.params.append(spotpy.parameter.Uniform(0, 1, 0, 0, 0, 1,doc="param no " + str(i+1)))
+            self.params.append(spotpy.parameter.Uniform(str(i+1), 0, 1, 0, 0, 0, 1,doc="param no " + str(i+1)))
 
     def parameters(self):
 

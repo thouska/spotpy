@@ -8,10 +8,16 @@ This file holds the example code from the Rosenbrock tutorial web-documention.
 '''
 
 import unittest
-import spotpy
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append(".")
+    import spotpy
+
 import numpy as np
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
-from spotpy.examples.spot_setup_hymod_python_pareto import spot_setup as padds_setup
+from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.describe import describe
 import os
 
@@ -117,7 +123,7 @@ class TestAlgorithms(unittest.TestCase):
         self.assertEqual(len(results), self.rep) #Si values should be returned
 
     def test_padds(self):
-        sampler=spotpy.algorithms.padds(padds_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results)+5, self.rep) #Si values should be returned
@@ -127,7 +133,7 @@ class TestAlgorithms(unittest.TestCase):
         try:
             os.remove("Rosen.csv")
             os.remove("TestAlgorithms.csv")
-        except IOError:
+        except (IOError, OSError):
             pass
 
 if __name__ == '__main__':
