@@ -10,6 +10,7 @@ __pycache__/
 *.out
 *.in
 *.png
+*.csv
 site/*
 mkdocs.yml
 

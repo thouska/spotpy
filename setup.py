@@ -5,7 +5,7 @@ import os
 
 setup(
   name = 'spotpy',
-  version = '1.4.5',
+  version = '1.4.6',
   description = 'A Statistical Parameter Optimization Tool',
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),
@@ -14,7 +14,8 @@ setup(
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
   license = 'MIT',
   packages = ["spotpy", "spotpy.examples", "spotpy.examples.hymod_python", "spotpy.examples.hymod_exe", 
-  "spotpy.examples.cmf_data", "spotpy.algorithms", "spotpy.parallel", "spotpy.gui", "spotpy.hydrology"],
+  "spotpy.examples.cmf_data", "spotpy.algorithms", "spotpy.parallel", "spotpy.gui", "spotpy.hydrology",
+  "spotpy.database"],
   package_data={
    'spotpy.examples.hymod_exe': ['*'],
    'spotpy.examples.hymod_python': ['*'],
