@@ -16,7 +16,7 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-from spotpy.examples.spot_setup_hymod_python import spot_setup
+from spotpy.examples.spot_setup_hymod_python_pareto import spot_setup
 import pylab as plt
 
 
@@ -30,12 +30,12 @@ if __name__ == "__main__":
     spot_setup=spot_setup()
     
     #Select number of maximum allowed repetitions
-    rep=1000
+    rep=3000
         
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv', num_objs=3, alt_objfun=None)
+    sampler=spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv', alt_objfun=None)
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
     print(sampler.sample(rep, metric="crowd_distance"))
@@ -45,8 +45,11 @@ if __name__ == "__main__":
 
 
     results = sampler.getdata()
+    from pprint import pprint
+    #pprint(results)
+    pprint(results['chain'])
 
-    for likno in range(1,4):
+    for likno in range(1,5):
         fig_like1 = plt.figure(1,figsize=(9,5))
         plt.plot(results['like'+str(likno)])
         plt.show()
@@ -101,6 +104,7 @@ if __name__ == "__main__":
     
     plt.subplot(5,2,5)
     x = results['paralpha']
+    print(x)
     for i in range(int(max(results['chain'])-1)):
         index=np.where(results['chain']==i+1)
         plt.plot(x[index],'.')

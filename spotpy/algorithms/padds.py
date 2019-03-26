@@ -142,7 +142,7 @@ class padds(_algorithm):
         # every iteration a map of all relevant values is stored, only for debug purpose.
         # Spotpy will not need this values.
         debug_results = []
-
+        print('Starting the PADDS algotrithm with ' + str(repetitions) + ' repetitions...')
         self.set_repetiton(repetitions)
         self.number_of_parameters = len(self.status.params) # number_of_parameters is the amount of parameters
 
@@ -209,7 +209,6 @@ class padds(_algorithm):
             self.obj_func_current = self.getfitness(simulation=model_simulations, params=self.parameter_current)
             # First value will be used to initialize the values
             if i == 0:
-                print(self.pareto_front[0], np.append(self.obj_func_current, self.parameter_current))
                 self.pareto_front = np.vstack([self.pareto_front[0], np.append(self.obj_func_current, self.parameter_current)])
             else:
                 (self.pareto_front, dominance_flag) = nd_check(self.pareto_front, self.obj_func_current, self.parameter_current)

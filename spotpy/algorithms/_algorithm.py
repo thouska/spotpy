@@ -244,8 +244,6 @@ class _algorithm(object):
         else:
             raise ImportError("Unsupported Python version")
 
-        print(objfunc_signature)
-
         objfunc_dynamic_arguments = {}
         for osp in (objfunc_signature):
             if osp == "self":
