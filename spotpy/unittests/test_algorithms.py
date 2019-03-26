@@ -80,6 +80,11 @@ class TestAlgorithms(unittest.TestCase):
         results = sampler.getdata()
         self.assertLessEqual(len(results), self.rep) #Sceua save per definition not all sampled runs
 
+        # We simply use a very low threshold to force a optimization search termination
+        sampler = spotpy.algorithms.sceua(self.spot_setup, parallel=self.parallel, dbname='Rosen',
+                                          dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler.sample(self.rep,ngs=10, kstop=3, peps=0.1, pcento=0.1)
+
     def test_abc(self):
         sampler=spotpy.algorithms.abc(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
