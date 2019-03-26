@@ -14,8 +14,10 @@ except ImportError:
     import sys
     sys.path.append(".")
     import spotpy
+
 import numpy as np
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
+from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.describe import describe
 import os
 
@@ -68,6 +70,9 @@ class TestAlgorithms(unittest.TestCase):
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
+        sampler.check_par_validity_bound(np.random.rand(10))
+        sampler.check_par_validity_bound(sampler.status.params)
+        sampler.check_par_validity_bound([-100,100,0])
 
     def test_sceua(self):
         sampler=spotpy.algorithms.sceua(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
@@ -117,12 +122,18 @@ class TestAlgorithms(unittest.TestCase):
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep) #Si values should be returned
 
+    def test_padds(self):
+        sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
+        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
+
     @classmethod
     def tearDownClass(cls):
         try:
             os.remove("Rosen.csv")
-
-        except FileNotFoundError:
+            os.remove("TestAlgorithms.csv")
+        except (IOError, OSError):
             pass
 
 if __name__ == '__main__':

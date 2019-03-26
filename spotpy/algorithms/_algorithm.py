@@ -15,6 +15,8 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
+import inspect
+import sys
 
 try:
     from queue import Queue
@@ -60,6 +62,8 @@ class _RunStatistic(object):
                 self.objectivefunction = objectivefunction[0]
                 self.params = params
                 self.bestrep = self.rep
+        elif type(objectivefunction) == type(np.array([])):
+            pass
         else:
             if objectivefunction > self.objectivefunction:
                 self.params = params
@@ -78,8 +82,8 @@ class _RunStatistic(object):
             avg_time_per_run = (acttime - self.starttime) / (self.rep + 1)
             timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (self.rep + 1)))))
                     
-            text = '%i of %i (best like=%g) est. time remaining: %s' % (self.rep, self.repetitions,
-                                                                        self.objectivefunction, timestr)
+            text = '%i of %i (best like=%s) est. time remaining: %s' % (self.rep, self.repetitions,
+                                                                        str(self.objectivefunction), timestr)
             print(text)
             self.last_print = time.time()
         
@@ -230,6 +234,40 @@ class _algorithm(object):
 
         self.status = _RunStatistic()
 
+        # make a dummy run of objective function to see, what is the structure, is needed for datawriter and algorithms,
+        # i.e. PADDS
+        if sys.version_info.major == 3:
+            objfunc_signature = inspect.getfullargspec(self.objectivefunction).args
+        elif sys.version_info.major == 2:
+            objfunc_signature = inspect.getargspec(self.objectivefunction).args
+        else:
+            raise ImportError("Unsupported Python version")
+
+        objfunc_dynamic_arguments = {}
+        for osp in (objfunc_signature):
+            if osp == "self":
+                continue
+            if osp == "params":
+                val = (self.partype, self.parnames)
+            else:
+                val = np.random.rand(1)
+            objfunc_dynamic_arguments[osp] = val
+
+        sample_like_result = self.objectivefunction(**objfunc_dynamic_arguments)
+
+        self.like_struct_typ = type(sample_like_result)
+
+        if self.like_struct_typ == list:
+            self.like_struct_len = len(sample_like_result)
+
+            users_obj_func = getattr(objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
+
+            self.objectivefunction = lambda **kwargs: np.array(users_obj_func (**kwargs))
+        elif self.like_struct_typ == type(np.array([])):
+            self.like_struct_len = len(sample_like_result)
+        else:
+            self.like_struct_len = 1
+
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
@@ -263,8 +301,8 @@ class _algorithm(object):
         except AttributeError:  # Happens if no database was assigned
             pass
         print('End of sampling')
-        text = 'Best run at %i of %i (best like=%g) with parameter set:' % (
-            self.status.bestrep, self.status.repetitions, self.status.objectivefunction)
+        text = 'Best run at %i of %i (best like=%s) with parameter set:' % (
+            self.status.bestrep, self.status.repetitions, self.status.objectivefunction.__str__())
         print(text)
         print(self.status.params)
         text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
@@ -282,22 +320,29 @@ class _algorithm(object):
 
             self.dbinit = False
 
+
+    def __is_list_type(self, data):
+        if type(data) == type:
+            return data == list or data == type(np.array([]))
+        else:
+            return type(data) == list or type(data) == type(np.array([]))
+
     def save(self, like, randompar, simulations, chains=1):
         # Initialize the database if no run was performed so far
         self._init_database(like, randompar, simulations)
 
-        #try if like is a list of values compare it with save threshold setting
-        try:
+        if self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold):
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
                 self.datawriter.save(like, randompar, simulations, chains=chains)
-        #If like value is not a iterable, it is assumed to be a float
-        except TypeError: # This is also used if not threshold was set
-            try:
-                if like>self.save_threshold: #Compares float/float
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
-            except TypeError:# float/list would result in an error, because it does not make sense
-                if like[0]>self.save_threshold: #Compares list/float
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
+        if not self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+            if like>self.save_threshold: #Compares float/float
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        if self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+            if like[0]>self.save_threshold: #Compares list/float
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        if not self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold): #Compares float/list
+            if (like > self.save_threshold).all:
+                self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
