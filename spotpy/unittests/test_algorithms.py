@@ -68,7 +68,7 @@ class TestAlgorithms(unittest.TestCase):
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
-        sampler.check_par_validity_bound(np.random.random(10))
+        sampler.check_par_validity_bound(sampler.status.params)
 
     def test_sceua(self):
         sampler=spotpy.algorithms.sceua(self.spot_setup,parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
