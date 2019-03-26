@@ -119,6 +119,7 @@ class TestAlgorithms(unittest.TestCase):
     def tearDownClass(cls):
         try:
             os.remove("Rosen.csv")
+            os.remove("TestAlgorithms.csv")
 
         except FileNotFoundError:
             pass
