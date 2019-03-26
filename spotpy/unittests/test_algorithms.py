@@ -117,7 +117,7 @@ class TestAlgorithms(unittest.TestCase):
         self.assertEqual(len(results), self.rep) #Si values should be returned
 
     def test_padds(self):
-        sampler=spotpy.algorithms.padds(padds_setup(),parallel=self.parallel, dbname='RosenPADDS', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.padds(padds_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results)+5, self.rep) #Si values should be returned
@@ -127,9 +127,7 @@ class TestAlgorithms(unittest.TestCase):
         try:
             os.remove("Rosen.csv")
             os.remove("TestAlgorithms.csv")
-            os.remove("RosenPADDS.csv")
-
-        except FileNotFoundError:
+        except IOError:
             pass
 
 if __name__ == '__main__':
