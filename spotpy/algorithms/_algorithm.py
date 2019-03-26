@@ -15,7 +15,8 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
-from inspect import signature
+import inspect
+import sys
 
 try:
     from queue import Queue
@@ -63,10 +64,6 @@ class _RunStatistic(object):
                 self.bestrep = self.rep
         elif type(objectivefunction) == type(np.array([])):
             pass
-            #print("here")
-            #self.objectivefunction = copy.deepcopy(objectivefunction)
-            #self.params = params
-            #self.bestrep = self.rep
         else:
             if objectivefunction > self.objectivefunction:
                 self.params = params
@@ -240,9 +237,19 @@ class _algorithm(object):
         # make a dummy run of objective function to see, what is the structure, is needed for datawriter and algorithms,
         # i.e. PADDS
 
-        objfunc_signature = signature(self.objectivefunction)
+        if sys.version_info.major == 3:
+            objfunc_signature = inspect.getfullargspec(self.objectivefunction).args
+        elif sys.version_info.major == 2:
+            objfunc_signature = inspect.getargspec(self.objectivefunction).args
+        else:
+            raise ImportError("Unsupported Python version")
+
+        print(objfunc_signature)
+
         objfunc_dynamic_arguments = {}
-        for osp in (objfunc_signature.parameters):
+        for osp in (objfunc_signature):
+            if osp == "self":
+                continue
             if osp == "params":
                 val = (self.partype, self.parnames)
             else:
@@ -254,7 +261,13 @@ class _algorithm(object):
 
         self.like_struct_typ = type(sample_like_result)
 
-        if self.like_struct_typ == list or self.like_struct_typ == type(np.array([])):
+        if self.like_struct_typ == list:
+            self.like_struct_len = len(sample_like_result)
+
+            users_obj_func = getattr(objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
+
+            self.objectivefunction = lambda **kwargs: np.array(users_obj_func (**kwargs))
+        elif self.like_struct_typ == type(np.array([])):
             self.like_struct_len = len(sample_like_result)
         else:
             self.like_struct_len = 1
