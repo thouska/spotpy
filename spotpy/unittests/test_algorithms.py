@@ -8,12 +8,7 @@ This file holds the example code from the Rosenbrock tutorial web-documention.
 '''
 
 import unittest
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append(".")
-    import spotpy
+import spotpy
 import numpy as np
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.describe import describe
