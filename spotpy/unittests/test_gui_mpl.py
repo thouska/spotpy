@@ -15,7 +15,7 @@ if sys.version_info >= (3, 5) and matplotlib.__version__ >= '2.1':
         import spotpy
 
     from spotpy.gui.mpl import GUI
-    from test_setup_parameters import SpotSetupMixedParameterFunction as Setup
+    from .test_setup_parameters import SpotSetupMixedParameterFunction as Setup
 
 
     class TestGuiMpl(unittest.TestCase):
