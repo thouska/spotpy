@@ -24,18 +24,21 @@ if __name__ == "__main__":
     spot_setup=spot_setup(_used_algorithm='sceua')
     
     #Select number of maximum allowed repetitions
-    rep=10000
-        
+    rep=1000
+    filename = 'SCEUA_hymod'
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.sceua(spot_setup, dbname='SCEUA_hymod', dbformat='csv', alt_objfun=None)
+    sampler=spotpy.algorithms.sa(spot_setup, dbname='SCEUA_hymod', dbformat='csv')
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
-    sampler.sample(rep,ngs=10, kstop=50, peps=0.1, pcento=0.1) 
+    sampler.sample(rep)#,ngs=10, kstop=50, peps=0.1, pcento=0.1) 
     
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     results = spotpy.analyser.load_csv_results('SCEUA_hymod')
+    
+
+    print(len(results), 'runs were saved.')
     
     fig= plt.figure(1,figsize=(9,5))
     plt.plot(results['like1'])

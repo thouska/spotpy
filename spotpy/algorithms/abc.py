@@ -54,7 +54,7 @@ class abc(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        kwargs['optimization_direction'] = 'maximize'
         super(abc, self).__init__(*args, **kwargs)
 
 
@@ -196,7 +196,7 @@ class abc(_algorithm):
                     if self.status.stop:
                         print('Stopping samplig')
                         break
-            gnrng = -self.status.objectivefunction
+            gnrng = -self.status.objectivefunction_max
             if icall >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
                 print('ON THE MAXIMUM NUMBER OF TRIALS ')

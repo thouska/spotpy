@@ -10,11 +10,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from spotpy import database, objectivefunctions
+from spotpy import database
 from spotpy import parameter
 import numpy as np
 import time
 import threading
+
 
 try:
     from queue import Queue
@@ -36,37 +37,63 @@ class _RunStatistic(object):
     Usage:
     status = _RunStatistic()
     status(rep,like,params)
-
     """
 
-    def __init__(self):
+    def __init__(self, optimization_direction, parnames):
+        self.optimization_direction = optimization_direction #grid, mazimize, 
+        
+        if optimization_direction == 'minimize':
+            self.compare = self.minimizer
+        if optimization_direction == 'maximize':
+            self.compare = self.maximizer
+        if optimization_direction == 'grid':
+            self.compare = self.grid    
+                        
         self.rep = 0
-        self.params = None
-        self.objectivefunction = -1e308
-        self.bestrep = 0
+        self.parnames = parnames
+        self.parameters= len(parnames)
+        self.params_min = np.empty(self.parameters)
+        self.params_max = np.empty(self.parameters)
+        self.objectivefunction_min = 1e308
+        self.objectivefunction_max = -1e308
         self.starttime = time.time()
         self.last_print = time.time()
         
         self.repetitions = None
         self.stop = False
-        
+
+    def minimizer(self, objval, params):
+        if objval < self.objectivefunction_min:
+            self.objectivefunction_min = objval
+            for i in range(self.parameters):
+                self.params_min[i] = params[i]
+
+    def maximizer(self, objval, params):
+        if objval > self.objectivefunction_max:
+            self.objectivefunction_max = objval
+            for i in range(self.parameters):
+                self.params_max[i] = params[i]
+
+    def grid(self, objval, params):
+        if objval < self.objectivefunction_min:
+            self.objectivefunction_min = objval
+            for i in range(self.parameters):
+                self.params_min[i] = params[i]
+        if objval > self.objectivefunction_max:
+            self.objectivefunction_max = objval
+            for i in range(self.parameters):
+                self.params_max[i] = params[i]
+
+
     def __call__(self, objectivefunction, params, block_print=False):
-        self.curparmeterset = params
         self.rep+=1
         if type(objectivefunction) == type([]):
-            if objectivefunction[0] > self.objectivefunction:
-                # Show only the first best objectivefunction when working with
-                # more than one objectivefunction
-                self.objectivefunction = objectivefunction[0]
-                self.params = params
-                self.bestrep = self.rep
-        else:
-            if objectivefunction > self.objectivefunction:
-                self.params = params
-                self.objectivefunction = objectivefunction
-                self.bestrep = self.rep
+            objectivefunction = objectivefunction[0]
+
+        self.compare(objectivefunction, params)
         if self.rep == self.repetitions:
             self.stop = True
+            
         if not block_print:
             self.print_status()
 
@@ -77,14 +104,59 @@ class _RunStatistic(object):
         if acttime - self.last_print >= 2:
             avg_time_per_run = (acttime - self.starttime) / (self.rep + 1)
             timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (self.rep + 1)))))
-                    
-            text = '%i of %i (best like=%g) est. time remaining: %s' % (self.rep, self.repetitions,
-                                                                        self.objectivefunction, timestr)
+            if self.optimization_direction == 'minimize':
+                text = '%i of %i, minimal objective function=%g, time remaining: %s' % (
+                        self.rep, self.repetitions, self.objectivefunction_min, timestr)           
+                
+            if self.optimization_direction == 'maximize':
+                text = '%i of %i, maximal objective function=%g, time remaining: %s' % (
+                        self.rep, self.repetitions, self.objectivefunction_max, timestr)  
+                
+            if self.optimization_direction == 'grid':
+                text = '%i of %i, min objf=%g, max objf=%g, time remaining: %s' % (
+                        self.rep, self.repetitions, self.objectivefunction_min, self.objectivefunction_max, timestr)
+            
             print(text)
             self.last_print = time.time()
+    
+    def print_status_final(self):
+        print('\n*** Final SPOTPY summary ***')
+        print('Total Duration: ' + str(round((time.time() - self.starttime), 2)) + ' seconds')
+        print('Total Repetitions:', self.rep)
+
+        if self.optimization_direction == 'minimize':    
+            print('Minimal objective value: %g' % (self.objectivefunction_min))
+            print('Corresponding parameter setting:')
+            for i in range(self.parameters):
+                text = '%s: %g' % (self.parnames[i], self.params_min[i])
+                print(text)
+            
+        if self.optimization_direction == 'maximize':
+            print('Maximal objective value: %g' % (self.objectivefunction_max))
+            print('Corresponding parameter setting:')
+            for i in range(self.parameters):
+                text = '%s: %g' % (self.parnames[i], self.params_max[i])
+                print(text)
+    
+        if self.optimization_direction == 'grid':
+            print('Minimal objective value: %g' % (self.objectivefunction_min))
+            print('Corresponding parameter setting:')
+            for i in range(self.parameters):
+                text = '%s: %g' % (self.parnames[i], self.params_min[i])
+                print(text)
+
+            print('Maximal objective value: %g' % (self.objectivefunction_max))
+            print('Corresponding parameter setting:')
+            for i in range(self.parameters):
+                text = '%s: %g' % (self.parnames[i], self.params_max[i])
+                print(text)
+         
+        print('******************************\n')
+        
         
     def __repr__(self):
-        return 'Best objectivefunction: %g' % self.objectivefunction
+        return 'Min objectivefunction: %g \n Max objectivefunction: %g' % (
+                self.objectivefunction_min, self.objectivefunction_max)
 
 
 class _algorithm(object):
@@ -122,12 +194,6 @@ class _algorithm(object):
     db_precision:np.float type
         set np.float16, np.float32 or np.float64 for rounding of floats in the output database
         Default is np.float16
-    alt_objfun: str or None, default: 'rmse'
-        alternative objectivefunction to be used for algorithm
-        * None: the objfun defined in spot_setup.objectivefunction is used
-        * any str: if str is found in spotpy.objectivefunctions, 
-            this objectivefunction is used, else falls back to None 
-            e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
     sim_timeout: float, int or None, default: None
         the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
         sim_timeout is not None.
@@ -139,9 +205,11 @@ class _algorithm(object):
     _unaccepted_parameter_types = (parameter.List, )
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 dbappend=False, parallel='seq', save_sim=True, alt_objfun=None,
-                 breakpoint=None, backup_every_rep=100, save_threshold=-np.inf,
-                 db_precision=np.float16, sim_timeout=None, random_state=None):
+                 dbappend=False, parallel='seq', save_sim=True, breakpoint=None, 
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16, 
+                 sim_timeout=None, random_state=None, optimization_direction='grid'):
+        
+        print(optimization_direction)
         # Initialize the user defined setup class
         self.setup = spot_setup
         # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
@@ -169,8 +237,7 @@ class _algorithm(object):
 
         # use alt_objfun if alt_objfun is defined in objectivefunctions,
         # else self.setup.objectivefunction
-        self.objectivefunction = getattr(
-            objectivefunctions, alt_objfun or '', None) or self.setup.objectivefunction
+        
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
         self.dbname = dbname or 'customDb'
@@ -228,7 +295,7 @@ class _algorithm(object):
         # the normal work on the chains
         self.repeat = ForEach(self.simulate)
 
-        self.status = _RunStatistic()
+        self.status = _RunStatistic(optimization_direction, self.parnames)
 
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
@@ -262,13 +329,8 @@ class _algorithm(object):
             self.datawriter.finalize()
         except AttributeError:  # Happens if no database was assigned
             pass
-        print('End of sampling')
-        text = 'Best run at %i of %i (best like=%g) with parameter set:' % (
-            self.status.bestrep, self.status.repetitions, self.status.objectivefunction)
-        print(text)
-        print(self.status.params)
-        text = 'Duration:' + str(round((time.time() - self.status.starttime), 2)) + ' s'
-        print(text)
+        self.status.print_status_final()
+
 
     def _init_database(self, like, randompar, simulations):
         if self.dbinit:
@@ -332,10 +394,10 @@ class _algorithm(object):
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
+        
         self.status(like,params,block_print=block_print)
         
         if save_run is True and simulation is not None:
-            
             self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]
@@ -349,11 +411,11 @@ class _algorithm(object):
         """
         try:
             #print('Using parameters in fitness function')
-            return self.objectivefunction(evaluation=self.evaluation, simulation=simulation, params = (params,self.parnames))
+            return self.setup.objectivefunction(evaluation=self.evaluation, simulation=simulation, params = (params,self.parnames))
 
         except TypeError: # Happens if the user does not allow to pass parameter in the spot_setup.objectivefunction
             #print('Not using parameters in fitness function')            
-            return self.objectivefunction(evaluation=self.evaluation, simulation=simulation)
+            return self.setup.objectivefunction(evaluation=self.evaluation, simulation=simulation)
     
     def simulate(self, id_params_tuple):
         """This is a simple wrapper of the model, returning the result together with

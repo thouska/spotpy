@@ -93,16 +93,8 @@ class demcz(_algorithm):
         save_sim: boolean
             * True:  Simulation results will be saved
             * False: Simulationt results will not be saved
-    
-        alt_objfun: str or None, default: 'log_p'
-            alternative objectivefunction to be used for algorithm
-            * None: the objfun defined in spot_setup.objectivefunction is used
-            * any str: if str is found in spotpy.objectivefunctions,
-                this objectivefunction is used, else falls back to None
-                e.g.: 'log_p', 'rmse', 'bias', 'kge' etc.
          """
-        if 'alt_objfun' not in kwargs:
-            kwargs['alt_objfun'] = 'log_p'
+        kwargs['optimization_direction'] = 'maximize'
         super(demcz, self).__init__(*args, **kwargs)
 
     def check_par_validity(self, par):

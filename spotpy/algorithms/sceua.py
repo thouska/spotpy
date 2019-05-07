@@ -60,10 +60,9 @@ class sceua(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
-        if 'alt_objfun' not in kwargs:
-            kwargs['alt_objfun'] = 'rmse'
+        kwargs['optimization_direction'] = 'minimize'
         super(sceua, self).__init__(*args, **kwargs)
+        
 
     def simulate(self, id_params_tuple):
         """This overwrites the simple wrapper function of _algorithms.py
@@ -152,6 +151,7 @@ class sceua(_algorithm):
         """
         self.set_repetiton(repetitions)
         print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
+        print('The objective function will be minimized')
         # Initialize SCE parameters:
         self.ngs = ngs
         randompar = self.parameter()['random']
@@ -161,6 +161,7 @@ class sceua(_algorithm):
         self.nspl = self.npg
         npt = self.npg * self.ngs
         self.iseed = 1
+        self.discarded_runs = 0
         self.bl, self.bu = self.parameter()['minbound'], self.parameter()[
             'maxbound']
         bound = self.bu - self.bl  # np.array
@@ -180,7 +181,7 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
-            print ('burn-in sampling started...')
+            print ('Starting burn-in sampling...')
 
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
@@ -224,7 +225,7 @@ class sceua(_algorithm):
             print(
                 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
-        print ('burn-in sampling completed...')
+        print ('Burn-in sampling completed...')
 
         # Begin evolution loops:
         nloop = 0
@@ -232,7 +233,7 @@ class sceua(_algorithm):
         criter_change_pcent = 1e+5
 
         self.repeat.setphase('ComplexEvo')
-        print ('ComplexEvo started...')
+        print ('Starting Complex Evolution...')
         proceed = True
         while icall < repetitions and gnrng > peps and criter_change_pcent > pcento and proceed == True:
             nloop += 1
@@ -259,6 +260,7 @@ class sceua(_algorithm):
                         #Collect data from all slaves but do not save
                         proceed=False
                         like = self.postprocessing(i, pars[i], sims[i], chains=i+1, save_run=False)
+                        self.discarded_runs+=1
                         print('Skipping saving')
                 
                 if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
@@ -300,19 +302,18 @@ class sceua(_algorithm):
 
 
             elif nloop >= kstop:  # necessary so that the area of high posterior density is visited as much as possible
-                print ('objective function convergence criteria is now being updated and assessed...')
+                print ('Objective function convergence criteria is now being updated and assessed...')
                 absolute_change = np.abs(
-                    criter[nloop - 1] - criter[nloop - kstop])
+                    criter[nloop - 1] - criter[nloop - kstop])*100
                 denominator = np.mean(np.abs(criter[(nloop - kstop):nloop]))
                 if denominator == 0.0:
                     criter_change_pcent = 0.0
                 else:
-                    criter_change_pcent = absolute_change / denominator * 100
-                print ('updated convergence criteria: %f' % criter_change_pcent)
+                    criter_change_pcent = absolute_change / denominator
+                print ('Updated convergence criteria: %f' % criter_change_pcent)
                 if criter_change_pcent <= pcento:
-                    text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f' % (
-                        kstop, pcento)
-                    print(text)
+                    print('THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f' % (
+                        kstop, pcento))
                     print(
                         'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
             elif self.status.stop:
@@ -320,16 +321,14 @@ class sceua(_algorithm):
                 break        
             
         # End of the Outer Loops
-        text = 'SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % self.status.rep
-        print(text)
-        text = 'NORMALIZED GEOMETRIC RANGE = %f' % gnrng
-        print(text)
-        text = 'THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT' % (
-            kstop, criter_change_pcent)
-        print(text)
+        print('SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % self.status.rep)
+        print('NUMBER OF DISCARDED TRIALS: %d' % self.discarded_runs)
+        print('NORMALIZED GEOMETRIC RANGE = %f' % gnrng)
+        print('THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT' % (
+            kstop, criter_change_pcent))
 
         # reshape BESTX
-        BESTX = BESTX.reshape(BESTX.size // self.nopt, self.nopt)
+        #BESTX = BESTX.reshape(BESTX.size // self.nopt, self.nopt)
         self.final_call()
         
 
@@ -382,6 +381,8 @@ class sceua(_algorithm):
         ##    fnew = functn(self.nopt,snew);
         _, _, simulations = _algorithm.simulate(self, (1, snew))
         like = self.postprocessing(1, snew, simulations, save_run=False, block_print=True)
+        self.discarded_runs+=1
+            
         fnew = like
         if self.status.stop:
             print('Stopping complex evolution')
@@ -394,6 +395,7 @@ class sceua(_algorithm):
 
             _, _, simulations = _algorithm.simulate(self, (2, snew))
             like = self.postprocessing(2, snew, simulations, save_run=False, block_print=True)
+            self.discarded_runs+=1
             fnew = like
             if self.status.stop:
                 print('Stopping complex evolution')
@@ -405,7 +407,8 @@ class sceua(_algorithm):
                 snew = self._sampleinputmatrix(1, self.nopt)[0]
                 _, _, simulations = _algorithm.simulate(self, (3, snew))
                 like = self.postprocessing(3, snew, simulations, save_run=False, block_print=True)
-                fnew = like
+                self.discarded_runs+=1
+            fnew = like
         # END OF CCE
         return snew, fnew, simulations
 

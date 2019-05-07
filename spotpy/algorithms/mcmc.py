@@ -53,8 +53,7 @@ class mcmc(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-        if 'alt_objfun' not in kwargs:
-            kwargs['alt_objfun'] = 'log_p'
+        kwargs['optimization_direction'] = 'maximize'
         super(mcmc, self).__init__(*args, **kwargs)
 
     def check_par_validity(self, par):
@@ -144,7 +143,7 @@ class mcmc(_algorithm):
             #Refresh MCMC progressbar every two second
             if acttime - intervaltime >= 2 and self.iter >=2:
                 text = '%i of %i (best like=%g)' % (
-                    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                    self.iter + self.burnIn, repetitions, self.status.objectivefunction_max)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 intervaltime = time.time()

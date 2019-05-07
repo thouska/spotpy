@@ -45,8 +45,9 @@ class mle(_algorithm):
     
         save_sim: boolean
             * True:  Simulation results will be saved
-            * False: Simulationt results will not be saved
+            * False: Simulation results will not be saved
          '''
+        kwargs['optimization_direction'] = 'maximize'
         super(mle, self).__init__(*args, **kwargs)
 
 

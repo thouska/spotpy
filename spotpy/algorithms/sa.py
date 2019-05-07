@@ -53,7 +53,7 @@ class sa(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        kwargs['optimization_direction'] = 'maximize'
         super(sa, self).__init__(*args, **kwargs)
         
     def check_par_validity(self, par):

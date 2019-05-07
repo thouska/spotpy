@@ -55,9 +55,7 @@ class dream(_algorithm):
             * False: Simulation results will not be saved
         """
 
-
-        if 'alt_objfun' not in kwargs:
-            kwargs['alt_objfun'] = 'log_p'
+        kwargs['optimization_direction'] = 'maximize'
         super(dream, self).__init__(*args, **kwargs)
 
     def check_par_validity_bound(self, par):

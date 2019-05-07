@@ -207,7 +207,7 @@ class dds(_algorithm):
             self.r = kwargs.pop("r")
         except KeyError:
             self.r = 0.2  # default value
-
+        kwargs['optimization_direction'] = 'maximize'
         super(dds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random

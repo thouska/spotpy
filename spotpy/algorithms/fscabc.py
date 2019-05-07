@@ -60,7 +60,7 @@ class fscabc(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        kwargs['optimization_direction'] = 'maximize'
         super(fscabc, self).__init__(*args, **kwargs)
 
     def mutate(self, r):
@@ -235,7 +235,7 @@ class fscabc(_algorithm):
                     if self.status.stop:
                         print('Stopping samplig')
                         break
-            gnrng = -self.status.objectivefunction
+            gnrng = -self.status.objectivefunction_max
 
             if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
                     and icall >= lastbackup+self.backup_every_rep:

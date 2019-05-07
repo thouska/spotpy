@@ -61,12 +61,9 @@ class fast(_algorithm):
     
         save_sim: boolean
             *True:  Simulation results will be saved
-            *False: Simulationt results will not be saved
+            *False: Simulation results will not be saved
         '''
         super(fast, self).__init__(*args, **kwargs)
-#        _algorithm.__init__(self, spot_setup, dbname=dbname,
-#                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
-#                           save_threshold=save_threshold)
 
     def scale_samples(self, params, bounds):
         '''
