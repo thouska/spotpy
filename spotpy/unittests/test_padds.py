@@ -14,7 +14,7 @@ except ImportError:
 import os
 from spotpy.examples.spot_setup_dds import spot_setup
 import json
-
+from spotpy.algorithms.padds import chc
 
 class TestPADDS(unittest.TestCase):
     def setUp(self):
@@ -42,6 +42,16 @@ class TestPADDS(unittest.TestCase):
 
     def test_run_5(self):
         self.run_a_dds(5)
+
+    def test_run_6(self):
+        self.run_a_dds(6)
+
+    def test_run_7(self):
+        self.run_a_dds(7)
+
+    def test_chc(self):
+        self.assertArrayEqual([0.01851852, 0. , 0.01851852, 0.01851852, 0.,0.01851852],
+                                chc([[1,10], [2,9.8],[3,5] ,[4, 4], [8,2], [10,1]]))
 
     def assertArrayEqual(self, a, b, delta=None):
         for j, elem in enumerate(a):
