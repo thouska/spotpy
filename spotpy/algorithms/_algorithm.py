@@ -52,8 +52,8 @@ class _RunStatistic(object):
         self.rep = 0
         self.parnames = parnames
         self.parameters= len(parnames)
-        self.params_min = np.empty(self.parameters)
-        self.params_max = np.empty(self.parameters)
+        self.params_min = None
+        self.params_max = None
         self.objectivefunction_min = 1e308
         self.objectivefunction_max = -1e308
         self.starttime = time.time()
@@ -65,32 +65,31 @@ class _RunStatistic(object):
     def minimizer(self, objval, params):
         if objval < self.objectivefunction_min:
             self.objectivefunction_min = objval
-            for i in range(self.parameters):
-                self.params_min[i] = params[i]
-
+            self.params_min = params.copy()
+        
     def maximizer(self, objval, params):
         if objval > self.objectivefunction_max:
             self.objectivefunction_max = objval
-            for i in range(self.parameters):
-                self.params_max[i] = params[i]
+            self.params_max = params.copy()
 
     def grid(self, objval, params):
         if objval < self.objectivefunction_min:
             self.objectivefunction_min = objval
-            for i in range(self.parameters):
-                self.params_min[i] = params[i]
+            self.params_min = params.copy()
         if objval > self.objectivefunction_max:
             self.objectivefunction_max = objval
-            for i in range(self.parameters):
-                self.params_max[i] = params[i]
+            self.params_max = params.copy()
 
 
     def __call__(self, objectivefunction, params, block_print=False):
         self.rep+=1
         if type(objectivefunction) == type([]):
-            objectivefunction = objectivefunction[0]
+            self.compare(objectivefunction[0], params)
 
-        self.compare(objectivefunction, params)
+        else:
+            self.compare(objectivefunction, params)
+
+        
         if self.rep == self.repetitions:
             self.stop = True
             
