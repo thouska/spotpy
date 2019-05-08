@@ -212,7 +212,7 @@ class dds(_algorithm):
 
         self.np_random = np.random
 
-        self.status.params = ParameterSet(self.parameter())
+        self.status.params_max = ParameterSet(self.parameter())
 
         # self.generator_repetitions will be set in `sample` and is needed to generate a
         # generator which sends back actual parameter s_test
@@ -230,7 +230,7 @@ class dds(_algorithm):
         """
         # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions):
-            yield rep, self.calculate_next_s_test(self.status.params, rep, self.generator_repetitions, self.r)
+            yield rep, self.calculate_next_s_test(self.status.params_max, rep, self.generator_repetitions, self.r)
 
     def sample(self, repetitions, trials=1, x_initial=np.array([])):
         """
@@ -273,7 +273,7 @@ class dds(_algorithm):
         self.set_repetiton(repetitions)
         print('Starting the DDS algotrithm with '+str(repetitions)+ ' repetitions...')
 
-        number_of_parameters = len(self.status.params)  # number_of_parameters is the amount of parameters
+        number_of_parameters = len(self.status.params_max)  # number_of_parameters is the amount of parameters
 
         if len(x_initial) == 0:
             initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
@@ -282,19 +282,18 @@ class dds(_algorithm):
         else:
             initial_iterations = 1
             x_initial = np.array(x_initial)
-            if not (np.all(x_initial <= self.status.params.maxbound) and np.all(
-                    x_initial >= self.status.params.minbound)):
+            if not (np.all(x_initial <= self.status.params_max.maxbound) and np.all(
+                    x_initial >= self.status.params_max.minbound)):
                 raise ValueError("User specified 'x_initial' but the values are not within the parameter range")
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
-            self.status.objectivefunction = -1e308
             # repitionno_best saves on which iteration the best parameter configuration has been found
             repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
             repetions_left = self.calc_initial_para_configuration(initial_iterations, trial,
                                                                                     repetitions, x_initial)
             self.fix_status_params_format()
-            trial_best_value = self.status.params.copy()
+            trial_best_value = self.status.params_max.copy()
 
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
@@ -304,22 +303,22 @@ class dds(_algorithm):
                 self.postprocessing(rep, x_curr, simulations, chains=trial)
                 self.fix_status_params_format()
 
-            print('Best solution found has obj function value of ' + str(self.status.objectivefunction) + ' at '
+            print('Best solution found has obj function value of ' + str(self.status.objectivefunction_max) + ' at '
                   + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": self.status.params, "trial_initial": trial_best_value,"objfunc_val": self.status.objectivefunction})
+            debug_results.append({"sbest": self.status.params_max, "trial_initial": trial_best_value,"objfunc_val": self.status.objectivefunction_max})
         self.final_call()
         return debug_results
 
     def fix_status_params_format(self):
         start_params = ParameterSet(self.parameter())
-        start_params.set_by_array([j for j in self.status.params])
-        self.status.params = start_params
+        start_params.set_by_array([j for j in self.status.params_max])
+        self.status.params_max = start_params
 
     def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, x_initial):
-        max_bound, min_bound = self.status.params.maxbound, self.status.params.minbound
+        max_bound, min_bound = self.status.params_max.maxbound, self.status.params_max.minbound
         parameter_bound_range = max_bound - min_bound
         number_of_parameters = len(parameter_bound_range)
-        discrete_flag = self.status.params.as_int
+        discrete_flag = self.status.params_max.as_int
         # Calculate the initial Solution, if `initial_iterations` > 1 otherwise the user defined a own one.
         # If we need to find an initial solution we iterating initial_iterations times to warm um the algorithm
         # by trying which randomized generated input matches best

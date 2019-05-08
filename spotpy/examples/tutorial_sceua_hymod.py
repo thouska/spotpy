@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.sa(spot_setup, dbname='SCEUA_hymod', dbformat='csv')
+    sampler=spotpy.algorithms.sceua(spot_setup, dbname='SCEUA_hymod', dbformat='csv')
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
     sampler.sample(rep)#,ngs=10, kstop=50, peps=0.1, pcento=0.1) 
