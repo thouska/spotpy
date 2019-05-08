@@ -271,6 +271,8 @@ class dds(_algorithm):
         debug_results = []
 
         self.set_repetiton(repetitions)
+        self.min_bound, self.max_bound = self.parameter(
+        )['minbound'], self.parameter()['maxbound']
         print('Starting the DDS algotrithm with '+str(repetitions)+ ' repetitions...')
 
         number_of_parameters = len(self.status.params_max)  # number_of_parameters is the amount of parameters
@@ -282,12 +284,13 @@ class dds(_algorithm):
         else:
             initial_iterations = 1
             x_initial = np.array(x_initial)
-            if not (np.all(x_initial <= self.status.params_max.maxbound) and np.all(
-                    x_initial >= self.status.params_max.minbound)):
+            if not (np.all(x_initial <= self.max_bound) and np.all(
+                    x_initial >= self.min_bound)):
                 raise ValueError("User specified 'x_initial' but the values are not within the parameter range")
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
+            self.status.objectivefunction_max = -1e308
             # repitionno_best saves on which iteration the best parameter configuration has been found
             repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
             repetions_left = self.calc_initial_para_configuration(initial_iterations, trial,
@@ -315,8 +318,8 @@ class dds(_algorithm):
         self.status.params_max = start_params
 
     def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, x_initial):
-        max_bound, min_bound = self.status.params_max.maxbound, self.status.params_max.minbound
-        parameter_bound_range = max_bound - min_bound
+        #max_bound, min_bound = self.status.params_max.maxbound, self.status.params_max.minbound
+        parameter_bound_range = self.max_bound - self.min_bound
         number_of_parameters = len(parameter_bound_range)
         discrete_flag = self.status.params_max.as_int
         # Calculate the initial Solution, if `initial_iterations` > 1 otherwise the user defined a own one.
@@ -331,8 +334,8 @@ class dds(_algorithm):
                 raise ValueError('# Initialization samples >= Max # function evaluations.')
 
             starting_generator = (
-                (rep, [self.np_random.randint(np.int(min_bound[j]), np.int(max_bound[j]) + 1) if
-                       discrete_flag[j] else min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
+                (rep, [self.np_random.randint(np.int(self.min_bound[j]), np.int(self.max_bound[j]) + 1) if
+                       discrete_flag[j] else self.min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
                        for j in
                        range(number_of_parameters)]) for rep in range(int(initial_iterations)))
 
