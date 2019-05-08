@@ -473,7 +473,7 @@ def chc(points):
     points = (points - MIN_f) / (MAX_f - MIN_f)
 
     if p_xlen <= p_ylen + 1:
-        np.array([1] * p_xlen)
+        return np.array([1] * p_xlen)
 
     hull = ConvexHull(points)
 
