@@ -441,7 +441,7 @@ def chc(points):
     This code calls the qhull by SciPy (see also http://www.qhull.org/)
 
     This function calculates Convex Hull Contribution CHC. See:
-    Asadzadeh, M., B. A. Tolson, and D. H. Burn (2014), A new selection metric for multiobjective hydrologic model calibration, Water Resour. Res., 50, 7082�7099, doi:10.1002/2013WR014970.
+    Asadzadeh, M., B. A. Tolson, and D. H. Burn (2014), A new selection metric for multiobjective hydrologic model calibration, doi:10.1002/2013WR014970.
     There are four mutually exclusive sets of points in CH:
     i. Points inside the convex hull
     ii. Vertices of top facet only
