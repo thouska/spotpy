@@ -279,7 +279,7 @@ def get_posterior(results,percentage=10, maximize=True):
         index = np.where(results['like1']>=np.percentile(results['like1'],100.0-percentage))
     return results[index]
 
-def plot_parameter_uncertainty(posterior_results,evaluation):
+def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posteriot_parameter_uncertainty.png'):
     import pylab as plt
 
     simulation_fields = get_simulation_fields(posterior_results)
@@ -354,9 +354,10 @@ def get_min_max(spotpy_setup):
     :return: Possible minimal and maximal values of all parameters in the parameters function of the spotpy_setup class
     :rtype: Two arrays
     """
-    randompar = spotpy_setup.parameters()['random']
+    parameter_obj = spotpy.parameter.generate(spotpy.parameter.get_parameters_from_setup(spotpy_setup))
+    randompar = parameter_obj['random']
     for i in range(1000):
-        randompar = np.column_stack((randompar, spotpy_setup.parameters()['random']))
+        randompar = np.column_stack((randompar, parameter_obj['random']))
     return np.amin(randompar, axis=1), np.amax(randompar, axis=1)
 
 def get_parbounds(spotpy_setup):
@@ -429,7 +430,7 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
                   (parnames[i], Si['S1'][i], Si['ST'][i]))
     return Si
 
-def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10):
+def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_name='FAST_sensitivity.png'):
     """
     Example, how to plot the sensitivity for every parameter of your result array, created with the FAST algorithm
 
@@ -507,11 +508,9 @@ def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10):
     fig.savefig('FAST_sensitivity.png',dpi=300)
     
 
-def plot_heatmap_griewank(results,algorithms):
+def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
 
     from matplotlib import ticker
     from matplotlib import cm
@@ -555,10 +554,10 @@ def plot_heatmap_griewank(results,algorithms):
 
         ax.set_title(algorithms[i])
 
-    fig.savefig('test.png', bbox_inches='tight')  # <------ this
+    fig.savefig(fig_name, bbox_inches='tight')
 
 
-def plot_objectivefunction(results,evaluation,limit=None,sort=True):
+def plot_objectivefunction(results,evaluation,limit=None,sort=True, fig_name = 'objective_function.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
     from matplotlib import colors
@@ -597,11 +596,11 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True):
         #plt.ylim(ymin=-1,ymax=1.39)
     else:
         plt.plot(bestlike)
+    plt.savefig(fig_name)
 
-def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=None):
+def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=None, fig_name='parametertrace_algorithms.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
-    from matplotlib import colors
     font = {'family' : 'calibri',
         'weight' : 'normal',
         'size'   : 20}
@@ -641,10 +640,10 @@ def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=No
             ax.set_xlim(0,rep)
             
     #plt.tight_layout()
-    fig.savefig('test2.png', bbox_inches='tight')
+    fig.savefig(fig_name, bbox_inches='tight')
 
 
-def plot_parametertrace(results,parameternames=None):
+def plot_parametertrace(results,parameternames=None,fig_name='Parameter_trace.png'):
     """
     Get a plot with all values of a given parameter in your result array.
     The plot will be saved as a .png file.
@@ -659,8 +658,6 @@ def plot_parametertrace(results,parameternames=None):
     :rtype: figure
     """
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     if not parameternames:
         parameternames=get_parameternames(results)
@@ -677,11 +674,11 @@ def plot_parametertrace(results,parameternames=None):
             ax.set_title('Parametertrace')
         ax.legend()
         i+=1
-    fig.savefig(names+'_trace.png')
-    text='The figure as been saved as "'+names+'trace.png"'
+    fig.savefig(fig_name)
+    text='The figure as been saved as "'+fig_name
     print(text)
 
-def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1):
+def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1, fig_name='Posterior_parametertrace.png'):
     """
     Get a plot with all values of a given parameter in your result array.
     The plot will be saved as a .png file.
@@ -696,8 +693,6 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1):
     :rtype: figure
     """
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
 
     results=sort_like(results)
@@ -716,11 +711,11 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1):
             ax.set_title('Parametertrace')
         ax.legend()
         i+=1
-    fig.savefig(names+'_trace.png')
+    fig.savefig(fig_name)
     text='The figure as been saved as "'+names+'trace.png"'
     print(text)
 
-def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True,sort=True, bestperc=0.1):
+def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True,sort=True, bestperc=0.1, fig_name='bestmodelrun.png'):
     """
     Get a plot with the maximum objectivefunction of your simulations in your result
     array.
@@ -752,10 +747,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
 
     """
     import matplotlib.pyplot as plt
-    from matplotlib import colors
     import random
-
-    cnames=list(colors.cnames)
 
 
     plt.rc('font', **font)
@@ -810,8 +802,8 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
     plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
-    fig.savefig('bestmodelrun.png')
-    text='The figure as been saved as "bestmodelrun.png"'
+    fig.savefig(fig_name)
+    text='The figure as been saved as '+fig_name
     print(text)
 
 
@@ -849,7 +841,7 @@ def plot_bestmodelrun(results,evaluation):
 
 
 
-def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True):
+def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True,fig_name='bestmodelrun.png'):
     """
     Get a plot with the maximum objectivefunction of your simulations in your result
     array.
@@ -881,9 +873,6 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
 
     """
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
-
 
     plt.rc('font', **font)
     fig=plt.figure(figsize=(17,8))
@@ -923,11 +912,11 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
         plt.xlabel(xlabel)
         plt.ylim(15,50) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
 
-        fig.savefig('bestmodelrun.png')
+        fig.savefig(fig_name)
         text='The figure as been saved as "bestmodelrun.png"'
         print(text)
 
-def plot_objectivefunctiontraces(results,evaluation,algorithms,filename='Like_trace'):
+def plot_objectivefunctiontraces(results,evaluation,algorithms,fig_name='Like_trace.png'):
     import matplotlib.pyplot as plt
     from matplotlib import colors
     cnames=list(colors.cnames)
@@ -953,13 +942,11 @@ def plot_objectivefunctiontraces(results,evaluation,algorithms,filename='Like_tr
             ax.yaxis.set_ticks([])
 
     plt.tight_layout()
-    fig.savefig(str(filename)+'.png')
+    fig.savefig(fig_name)
 
 
-def plot_regression(results,evaluation):
+def plot_regression(results,evaluation,fig_name='regressionanalysis.png'):
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     simulations=get_modelruns(results)
     for sim in simulations:
@@ -967,33 +954,29 @@ def plot_regression(results,evaluation):
     plt.ylabel('simulation')
     plt.xlabel('evaluation')
     plt.title('Regression between simulations and evaluation data')
-    fig.savefig('regressionanalysis.png')
+    fig.savefig(fig_name)
     text='The figure as been saved as "regressionanalysis.png"'
     print(text)
 
 
-def plot_parameterInteraction(results):
+def plot_parameterInteraction(results, fig_name ='ParameterInteraction.png'):
     '''Input:  List with values of parameters and list of strings with parameter names
        Output: Dotty plot of parameter distribution and gaussian kde distribution'''
     import matplotlib.pyplot as plt
-    from matplotlib import colors
     import pandas as pd
-    cnames=list(colors.cnames)
     parameterdistribtion=get_parameters(results)
     parameternames=get_parameternames(results)
     df = pd.DataFrame(np.asarray(parameterdistribtion).T.tolist(), columns=parameternames)
 
     pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(12, 12), diagonal='kde')
-    plt.savefig('ParameterInteraction',dpi=300)
+    plt.savefig(fig_name,dpi=300)
 
 
-def plot_allmodelruns(modelruns,observations,dates=None):
+def plot_allmodelruns(modelruns,observations,dates=None, fig_name='bestmodel.png'):
     '''Input:  Array of modelruns and list of Observations
        Output: Plot with all modelruns as a line and dots with the Observations
     '''
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     ax = plt.subplot(1,1,1)
     if dates is not None:
@@ -1014,36 +997,30 @@ def plot_allmodelruns(modelruns,observations,dates=None):
     ax.set_xlabel = 'Best model simulation'
     ax.set_ylabel = 'Evaluation points'
     ax.set_title  = 'Maximum objectivefunction of Simulations'
-    fig.savefig('bestmodel.png')
-    text='The figure as been saved as "Modelruns.png"'
+    fig.savefig(fig_name)
+    text='The figure as been saved as '+fig_name
     print(text)
 
 
-def plot_autocorellation(parameterdistribution,parametername):
+def plot_autocorellation(parameterdistribution,parametername,fig_name='Autocorrelation.png'):
     '''Input:  List of sampled values for one Parameter
        Output: Parameter Trace, Histogramm and Autocorrelation Plot'''
     import matplotlib.pyplot as plt
-    from matplotlib import colors
     import pandas as pd
-    cnames=list(colors.cnames)
-    fig=plt.figure(figsize=(16,9))
-    ax = plt.subplot(1,1,1)
     pd.plotting.autocorrelation_plot(parameterdistribution)
-    plt.savefig('Autocorellation'+str(parametername),dpi=300)
+    plt.savefig(fig_name,dpi=300)
 
 
-def plot_gelman_rubin(r_hat_values):
+def plot_gelman_rubin(r_hat_values,fig_name='gelman_rub.png'):
     '''Input:  List of R_hat values of chains (see Gelman & Rubin 1992)
        Output: Plot as seen for e.g. in (Sadegh and Vrugt 2014)'''
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
     fig=plt.figure(figsize=(16,9))
     ax = plt.subplot(1,1,1)
     ax.plot(r_hat_values)
     ax.plot([1.2]*len(r_hat_values),'k--')
     ax.set_xlabel='r_hat'
-
+    plt.savefig(fig_name,dpi=300)
 
 def gelman_rubin(x):
     '''NOT USED YET'''
