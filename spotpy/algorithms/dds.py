@@ -223,13 +223,13 @@ class dds(_algorithm):
         self.np_random = f_rand
         self.dds_generator.np_random = f_rand
 
-    def get_next_x_curr(self,params_max):
+    def get_next_x_curr(self):
         """
         Fake a generator to run self.repeat to use multiprocessing
         """
         # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions):
-            yield rep, self.calculate_next_s_test(params_max, rep, self.generator_repetitions, self.r)
+            yield rep, self.calculate_next_s_test(self.params_max, rep, self.generator_repetitions, self.r)
 
     def sample(self, repetitions, trials=1, x_initial=np.array([])):
         """
@@ -293,7 +293,7 @@ class dds(_algorithm):
             params_max = x_initial
             # repitionno_best saves on which iteration the best parameter configuration has been found
             repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
-            repetions_left, objectivefunction_max = self.calc_initial_para_configuration(initial_iterations, trial,
+            params_max, repetions_left, objectivefunction_max = self.calc_initial_para_configuration(initial_iterations, trial,
                                                                                     repetitions, x_initial)
             params_max = self.fix_status_params_format(params_max)
             trial_best_value = params_max.copy()#self.status.params_max.copy()
@@ -301,16 +301,18 @@ class dds(_algorithm):
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
+            self.params_max = params_max
+            for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
 
-            for rep, x_curr, simulations in self.repeat(self.get_next_x_curr(params_max)):
                 like = self.postprocessing(rep, x_curr, simulations, chains=trial)
                 if like > objectivefunction_max:
                     objectivefunction_max = like
-                    params_max = list(x_curr)
-                    
+                    self.params_max = list(x_curr)
+                    self.params_max = self.fix_status_params_format(self.params_max)
+
             print('Best solution found has obj function value of ' + str(objectivefunction_max) + ' at '
                   + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": params_max, "trial_initial": trial_best_value,"objfunc_val": objectivefunction_max})
+            debug_results.append({"sbest": self.params_max, "trial_initial": trial_best_value,"objfunc_val": objectivefunction_max})
         self.final_call()
         return debug_results
 
@@ -359,7 +361,7 @@ class dds(_algorithm):
                     objectivefunction_max = like
                     params_max = x_test_param.copy()
                     params_max = self.fix_status_params_format(params_max)
-        return repetions_left, objectivefunction_max
+        return params_max, repetions_left, objectivefunction_max
 
     def calculate_next_s_test(self, previous_x_curr, rep, rep_limit, r):
         """
