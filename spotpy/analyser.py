@@ -913,7 +913,7 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
         plt.ylim(15,50) #DELETE WHEN NOT USED WITH SOIL MOISTUR RESULTS
 
         fig.savefig(fig_name)
-        text='The figure as been saved as "bestmodelrun.png"'
+        text='The figure as been saved as '+fig_name
         print(text)
 
 def plot_objectivefunctiontraces(results,evaluation,algorithms,fig_name='Like_trace.png'):
@@ -955,7 +955,7 @@ def plot_regression(results,evaluation,fig_name='regressionanalysis.png'):
     plt.xlabel('evaluation')
     plt.title('Regression between simulations and evaluation data')
     fig.savefig(fig_name)
-    text='The figure as been saved as "regressionanalysis.png"'
+    text='The figure as been saved as '+fig_name
     print(text)
 
 

@@ -364,7 +364,7 @@ class TestAnalyser(unittest.TestCase):
     def tearDownClass(cls):
         try:
             os.remove('test_output.png')
-        except FileNotFoundError or IOError:
+        except (FileNotFoundError, IOError):
             pass
 
 

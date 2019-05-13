@@ -52,8 +52,8 @@ class _RunStatistic(object):
         self.rep = 0
         self.parnames = parnames
         self.parameters= len(parnames)
-        self.params_min = None
-        self.params_max = None
+        self.params_min = [np.nan]*self.parameters
+        self.params_max = [np.nan]*self.parameters
         self.objectivefunction_min = 1e308
         self.objectivefunction_max = -1e308
         self.starttime = time.time()
@@ -208,7 +208,6 @@ class _algorithm(object):
                  backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16, 
                  sim_timeout=None, random_state=None, optimization_direction='grid'):
         
-        print(optimization_direction)
         # Initialize the user defined setup class
         self.setup = spot_setup
         # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
