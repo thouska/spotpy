@@ -28,14 +28,13 @@ import numpy as np
 import spotpy.analyser
 import os
 import sys
-from spotpy.examples.spot_setup_rosenbrock import spot_setup
+from spotpy.examples.spot_setup_rosenbrock import spot_setup as rosenbrock_setup
 from spotpy.examples.spot_setup_griewank import spot_setup as griewank_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as hymod_setup
 
 
 class TestAnalyser(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestAnalyser, self).__init__(*args, **kwargs)
+    def setUp(self):
         np.random.seed(42)
         self.rep = 100
         self.parallel = "seq"
@@ -43,7 +42,7 @@ class TestAnalyser(unittest.TestCase):
         self.timeout = 5
         self.fig_name = 'test_output.png'
 
-        sampler = spotpy.algorithms.mc(spot_setup(), 
+        sampler = spotpy.algorithms.mc(rosenbrock_setup(), 
                                        sim_timeout=self.timeout)
         sampler.sample(self.rep)
         self.results = sampler.getdata()
@@ -53,7 +52,7 @@ class TestAnalyser(unittest.TestCase):
         sampler.sample(self.rep)
         self.griewank_results = sampler.getdata()
         
-        sampler = spotpy.algorithms.fast(spot_setup(), 
+        sampler = spotpy.algorithms.fast(rosenbrock_setup(), 
                                            sim_timeout=self.timeout)
         sampler.sample(self.rep)
         self.sens_results = sampler.getdata()
@@ -131,12 +130,12 @@ class TestAnalyser(unittest.TestCase):
         self.assertEqual(type(get_header), type(()))
 
     def test_get_min_max(self):
-        get_min_max = spotpy.analyser.get_min_max(spotpy_setup=spot_setup())
+        get_min_max = spotpy.analyser.get_min_max(spotpy_setup=rosenbrock_setup())
         self.assertEqual(len(get_min_max[0]), 3)
         self.assertEqual(type(get_min_max), type(()))
 
     def test_get_parbounds(self):
-        get_parbounds = spotpy.analyser.get_parbounds(spotpy_setup=spot_setup())
+        get_parbounds = spotpy.analyser.get_parbounds(spotpy_setup=rosenbrock_setup())
         self.assertEqual(len(get_parbounds[0]), 2)
         self.assertEqual(len(get_parbounds), 3)
         self.assertEqual(type(get_parbounds), type([]))
@@ -233,7 +232,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_objectivefunction(self):
         spotpy.analyser.plot_objectivefunction(self.results,
-                                               spot_setup().evaluation(),
+                                               rosenbrock_setup().evaluation(),
                                                fig_name=self.fig_name)
         
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
@@ -270,7 +269,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_posterior(self):
         spotpy.analyser.plot_posterior(self.results
-                                       , spot_setup.evaluation(self),fig_name=self.fig_name)
+                                       , rosenbrock_setup.evaluation(self),fig_name=self.fig_name)
         
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
@@ -300,7 +299,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_objectivefunctiontraces(self):
         spotpy.analyser.plot_objectivefunctiontraces([self.results], 
-                                                     [spot_setup().evaluation()],
+                                                     [rosenbrock_setup().evaluation()],
                                                      ["test"],fig_name=self.fig_name)
 
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
@@ -309,7 +308,7 @@ class TestAnalyser(unittest.TestCase):
         self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
 
     def test_plot_regression(self):
-        spotpy.analyser.plot_regression(self.results, spot_setup().evaluation(),
+        spotpy.analyser.plot_regression(self.results, rosenbrock_setup().evaluation(),
                                         fig_name=self.fig_name)
 
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
