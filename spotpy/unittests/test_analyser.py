@@ -101,7 +101,7 @@ class TestAnalyser(unittest.TestCase):
     def test_calc_like(self):
         calc_like = spotpy.analyser.calc_like(
             self.results,
-            spot_setup().evaluation(),spotpy.objectivefunctions.rmse)
+            rosenbrock_setup().evaluation(),spotpy.objectivefunctions.rmse)
         self.assertEqual(len(calc_like), len(self.results))
         self.assertEqual(type(calc_like), type([]))
 
@@ -186,7 +186,7 @@ class TestAnalyser(unittest.TestCase):
     def test_compare_different_objectivefunctions(self):
 
 
-        sampler = spotpy.algorithms.lhs(spot_setup(),
+        sampler = spotpy.algorithms.lhs(rosenbrock_setup(),
                                           sim_timeout=self.timeout)
 
         sampler.sample(self.rep)
@@ -363,12 +363,8 @@ class TestAnalyser(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         try:
-            os.remove("RosenMC.csv")
-            os.remove("setup_griewank_pickle")
-            os.remove("test_plot_autocorellation.csv")
-            os.remove("test_analyser_MC_results")
             os.remove('test_output.png')
-        except FileNotFoundError:
+        except FileNotFoundError or IOError:
             pass
 
 

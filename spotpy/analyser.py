@@ -279,7 +279,7 @@ def get_posterior(results,percentage=10, maximize=True):
         index = np.where(results['like1']>=np.percentile(results['like1'],100.0-percentage))
     return results[index]
 
-def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posteriot_parameter_uncertainty.png'):
+def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posterior_parameter_uncertainty.png'):
     import pylab as plt
 
     simulation_fields = get_simulation_fields(posterior_results)
@@ -303,7 +303,7 @@ def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posteriot
     plt.xlabel('Number of Observation Points')
     plt.ylabel ('Simulated value')
     plt.legend(loc='upper right')
-    fig.savefig('Posteriot_parameter_uncertainty.png',dpi=300)
+    fig.savefig(fig_name,dpi=300)
     text='A plot of the parameter uncertainty has been saved as "Posteriot_parameter_uncertainty.png"'
     print(text)
 
@@ -505,7 +505,7 @@ def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_na
     ax.set_xticklabels(['0']+parnames)
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
-    fig.savefig('FAST_sensitivity.png',dpi=300)
+    fig.savefig(fig_name,dpi=300)
     
 
 def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
