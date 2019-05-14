@@ -52,23 +52,23 @@ class TestAnalyser(unittest.TestCase):
                                        sim_timeout=self.timeout) 
         sampler.sample(self.rep)
         self.griewank_results = sampler.getdata()
-        if sys.version_info[0] >= 3: # FAST is only fully operational under
+        if sys.version_info >= (3, 6): # FAST is only fully operational under
             #Python 3
             sampler = spotpy.algorithms.fast(rosenbrock_setup(), 
                                                sim_timeout=self.timeout)
             sampler.sample(self.rep)
             self.sens_results = sampler.getdata()
-
-        sampler = spotpy.algorithms.dream(hymod_setup(_used_algorithm='dream'), 
-                                           sim_timeout=self.timeout)
-        self.r_hat = sampler.sample(self.rep)
-        self.hymod_results = sampler.getdata()
-            
+            #Hymod resuts are empty with Python <3.6
+            sampler = spotpy.algorithms.dream(hymod_setup(_used_algorithm='dream'), 
+                                               sim_timeout=self.timeout)
+            self.r_hat = sampler.sample(self.rep)
+            self.hymod_results = sampler.getdata()
+                
     def test_setUp(self):
         self.assertEqual(len(self.results), self.rep)
         self.assertEqual(len(self.griewank_results), self.rep)
-        self.assertEqual(len(self.hymod_results), self.rep)
-        if sys.version_info[0] >= 3:
+        if sys.version_info >= (3, 6):
+            self.assertEqual(len(self.hymod_results), self.rep)
             self.assertEqual(len(self.sens_results), self.rep)
         
     def test_get_parameters(self):
@@ -180,7 +180,7 @@ class TestAnalyser(unittest.TestCase):
 
 
     def test_get_sensitivity_of_fast(self):
-        if sys.version_info[0] >= 3:
+        if sys.version_info >= (3, 6):
             get_sensitivity_of_fast = spotpy.analyser.get_sensitivity_of_fast(self.sens_results)
             self.assertEqual(len(get_sensitivity_of_fast), 2)
             self.assertEqual(len(get_sensitivity_of_fast["S1"]), 3)
@@ -206,22 +206,23 @@ class TestAnalyser(unittest.TestCase):
         self.assertEqual(type(compare_different_objectivefunctions[1]),type(np.array([0.5])[0]))
 
     def test_plot_parameter_uncertainty(self):
-        posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
-        self.assertAlmostEqual(len(posterior), self.rep*0.1, 1)
-        self.assertEqual(type(posterior), type(np.array([])))
-        spotpy.analyser.plot_parameter_uncertainty(posterior,
-                                                   hymod_setup().evaluation(),
-                                                   fig_name=self.fig_name)
-
-        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-        # we expecting a plot with some content without testing the structure of the plot, just
-        # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        if sys.version_info >= (3, 6):
+            posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
+            self.assertAlmostEqual(len(posterior), self.rep*0.1, 1)
+            self.assertEqual(type(posterior), type(np.array([])))
+            spotpy.analyser.plot_parameter_uncertainty(posterior,
+                                                       hymod_setup().evaluation(),
+                                                       fig_name=self.fig_name)
+    
+            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+            # we expecting a plot with some content without testing the structure of the plot, just
+            # the size
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
 
 
     def test_plot_fast_sensitivity(self):
 
-        if sys.version_info[0] >= 3:
+        if sys.version_info >= (3, 6):
             spotpy.analyser.plot_fast_sensitivity(self.sens_results,fig_name=self.fig_name)
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
@@ -276,13 +277,14 @@ class TestAnalyser(unittest.TestCase):
 
 
     def test_plot_posterior(self):
-        spotpy.analyser.plot_posterior(self.hymod_results
-                                       , hymod_setup().evaluation(),fig_name=self.fig_name)
-        
-        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-        # we expecting a plot with some content without testing the structure of the plot, just
-        # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        if sys.version_info >= (3, 6):
+            spotpy.analyser.plot_posterior(self.hymod_results
+                                           , hymod_setup().evaluation(),fig_name=self.fig_name)
+            
+            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+            # we expecting a plot with some content without testing the structure of the plot, just
+            # the size
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
         
     def test_plot_bestmodelrun(self):
         spotpy.analyser.plot_bestmodelrun(self.griewank_results, 
@@ -295,15 +297,16 @@ class TestAnalyser(unittest.TestCase):
         os.remove(self.fig_name)
 
     def test_plot_bestmodelruns(self):
-        spotpy.analyser.plot_bestmodelruns(
-            [self.hymod_results[0:10],self.hymod_results[10:20]], hymod_setup().evaluation(),
-            dates=range(1, 1+len(hymod_setup().evaluation())), algorithms=["test", "test2"],
-            fig_name=self.fig_name)
+        if sys.version_info >= (3, 6):
+            spotpy.analyser.plot_bestmodelruns(
+                [self.hymod_results[0:10],self.hymod_results[10:20]], hymod_setup().evaluation(),
+                dates=range(1, 1+len(hymod_setup().evaluation())), algorithms=["test", "test2"],
+                fig_name=self.fig_name)
 
-        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-        # we expecting a plot with some content without testing the structure of the plot, just
-        # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+            # we expecting a plot with some content without testing the structure of the plot, just
+            # the size
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
 
     def test_plot_objectivefunctiontraces(self):
         spotpy.analyser.plot_objectivefunctiontraces([self.results], 
@@ -337,21 +340,22 @@ class TestAnalyser(unittest.TestCase):
 
     
     def test_plot_allmodelruns(self):
-        modelruns = []
-        for run in self.hymod_results:
-            on_run = []
-            for i in run:
-                on_run.append(i)
-            on_run = np.array(on_run)[:-7]
-            modelruns.append(on_run.tolist())
-        spotpy.analyser.plot_allmodelruns(modelruns, hymod_setup().evaluation(),
-                                          dates=range(1, len(hymod_setup().evaluation()) + 1),
-                                          fig_name=self.fig_name)
-
-        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-        # we expecting a plot with some content without testing the structure of the plot, just
-        # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        if sys.version_info >= (3, 6):
+            modelruns = []
+            for run in self.hymod_results:
+                on_run = []
+                for i in run:
+                    on_run.append(i)
+                on_run = np.array(on_run)[:-7]
+                modelruns.append(on_run.tolist())
+            spotpy.analyser.plot_allmodelruns(modelruns, hymod_setup().evaluation(),
+                                              dates=range(1, len(hymod_setup().evaluation()) + 1),
+                                              fig_name=self.fig_name)
+    
+            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+            # we expecting a plot with some content without testing the structure of the plot, just
+            # the size
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
 
 
     def test_plot_autocorellation(self):
