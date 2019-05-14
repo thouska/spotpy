@@ -24,7 +24,7 @@ if __name__ == "__main__":
     spot_setup=spot_setup(_used_algorithm='sceua')
     
     #Select number of maximum allowed repetitions
-    rep=1000
+    rep=5000
     filename = 'SCEUA_hymod'
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is

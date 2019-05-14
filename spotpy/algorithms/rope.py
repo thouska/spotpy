@@ -62,6 +62,7 @@ class rope(_algorithm):
             *False: Simulation results will not be saved
         '''
         kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'RObust Parameter Estimation (ROPE) algorithm'
         super(rope, self).__init__(*args, **kwargs)
 
     def get_best_runs(self, likes, pars, runs, percentage):

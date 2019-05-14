@@ -63,6 +63,7 @@ class fast(_algorithm):
             *True:  Simulation results will be saved
             *False: Simulation results will not be saved
         '''
+        kwargs['algorithm_name'] = 'Fourier Amplitude Sensitivity Test (FAST)'
         super(fast, self).__init__(*args, **kwargs)
 
     def scale_samples(self, params, bounds):

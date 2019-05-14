@@ -39,16 +39,18 @@ class _RunStatistic(object):
     status(rep,like,params)
     """
 
-    def __init__(self, optimization_direction, parnames):
-        self.optimization_direction = optimization_direction #grid, mazimize, 
-        
+    def __init__(self, repetitions, algorithm_name, optimization_direction, parnames):
+        self.optimization_direction = optimization_direction #grid, mazimize, minimize
+        print('Initializing the ',algorithm_name,' with ',repetitions,' repetitions')
         if optimization_direction == 'minimize':
             self.compare = self.minimizer
+            print('The objective function will be minimized')
         if optimization_direction == 'maximize':
             self.compare = self.maximizer
+            print('The objective function will be minimized')
         if optimization_direction == 'grid':
             self.compare = self.grid    
-                        
+
         self.rep = 0
         self.parnames = parnames
         self.parameters= len(parnames)
@@ -59,7 +61,7 @@ class _RunStatistic(object):
         self.starttime = time.time()
         self.last_print = time.time()
         
-        self.repetitions = None
+        self.repetitions = repetitions
         self.stop = False
 
     def minimizer(self, objval, params):
@@ -206,17 +208,10 @@ class _algorithm(object):
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, breakpoint=None, 
                  backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16, 
-                 sim_timeout=None, random_state=None, optimization_direction='grid'):
+                 sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name=''):
         
         # Initialize the user defined setup class
         self.setup = spot_setup
-        # Philipp: Changed from Tobi's version, now we are using both new class defined parameters
-        # as well as the parameters function. The new method get_parameters
-        # can deal with a missing parameters function
-        #
-        # For me (Philipp) it is totally unclear why all the samplers should call this function
-        # again and again instead of
-        # TODO: just storing a definite list of parameter objects here
         param_info = parameter.get_parameters_array(self.setup, unaccepted_parameter_types=self._unaccepted_parameter_types)
         self.all_params = param_info['random']
         self.constant_positions = parameter.get_constant_indices(spot_setup)
@@ -229,15 +224,13 @@ class _algorithm(object):
             self.non_constant_positions = np.arange(0,len(self.all_params))
         self.parameter = self.get_parameters
         self.parnames = param_info['name']
-
+        self.algorithm_name = algorithm_name
         # Create a type to hold the parameter values using a namedtuple
         self.partype = parameter.ParameterSet(param_info)
 
-        # use alt_objfun if alt_objfun is defined in objectivefunctions,
-        # else self.setup.objectivefunction
-        
         self.evaluation = self.setup.evaluation()
         self.save_sim = save_sim
+        self.optimization_direction = optimization_direction
         self.dbname = dbname or 'customDb'
         self.dbformat = dbformat or 'ram'
         self.db_precision = db_precision
@@ -293,7 +286,6 @@ class _algorithm(object):
         # the normal work on the chains
         self.repeat = ForEach(self.simulate)
 
-        self.status = _RunStatistic(optimization_direction, self.parnames)
 
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
@@ -312,9 +304,8 @@ class _algorithm(object):
         return pars[self.non_constant_positions]
 
     def set_repetiton(self, repetitions):
-
-        self.status.repetitions = repetitions
-
+        self.status = _RunStatistic(repetitions, self.algorithm_name, 
+                                    self.optimization_direction, self.parnames)
         # In MPI, this command will do nothing on the master process
         # but the worker processes are going to wait for jobs.
         # Hence the workers will only receive parameters for the

@@ -61,6 +61,7 @@ class sceua(_algorithm):
             * False: Simulation results will not be saved
         """
         kwargs['optimization_direction'] = 'minimize'
+        kwargs['algorithm_name'] = 'Shuffled Complex Evolution (SCE-UA) algorithm'
         super(sceua, self).__init__(*args, **kwargs)
         
 
@@ -150,8 +151,6 @@ class sceua(_algorithm):
             Value of the normalized geometric range of the parameters in the population below which convergence is deemed achieved.
         """
         self.set_repetiton(repetitions)
-        print('Starting the SCE-UA algorithm with '+str(repetitions)+ ' repetitions...')
-        print('The objective function will be minimized')
         # Initialize SCE parameters:
         self.ngs = ngs
         randompar = self.parameter()['random']

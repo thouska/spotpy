@@ -56,6 +56,7 @@ class dream(_algorithm):
         """
 
         kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'DiffeRential Evolution Adaptive Metropolis (DREAM) algorithm'
         super(dream, self).__init__(*args, **kwargs)
 
     def check_par_validity_bound(self, par):

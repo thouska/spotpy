@@ -16,7 +16,7 @@ import random
 
 class abc(_algorithm):
     """
-    This class holds the Artificial Bee Colony(ABC) algorithm, based on Karaboga (2007).
+    This class holds the Artificial Bee Colony (ABC) algorithm, based on Karaboga (2007).
     D. Karaboga, AN IDEA BASED ON HONEY BEE SWARM FOR NUMERICAL OPTIMIZATION,TECHNICAL REPORT-TR06, Erciyes University, Engineering Faculty, Computer Engineering Department 2005.
     D. Karaboga, B. Basturk, A powerful and Efficient Algorithm for Numerical Function Optimization: Artificial Bee Colony (ABC) Algorithm, Journal of Global Optimization, Volume:39, Issue:3,pp:459-171, November 2007,ISSN:0925-5001 , doi: 10.1007/s10898-007-9149-x
 
@@ -55,6 +55,7 @@ class abc(_algorithm):
             * False: Simulation results will not be saved
         """
         kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'Artificial Bee Colony (ABC) algorithm'
         super(abc, self).__init__(*args, **kwargs)
 
 

@@ -16,7 +16,7 @@ import random
 
 class fscabc(_algorithm):
     """
-    This class holds the Fitness Scaled Chaotic Artificial Bee Colony(FSCABC) algorithm, 
+    This class holds the Fitness Scaled Chaotic Artificial Bee Colony (FSCABC) algorithm, 
     based on:
     
     Yudong Zhang, Lenan Wu, and Shuihua Wang (2011). Magnetic Resonance Brain Image 
@@ -61,6 +61,7 @@ class fscabc(_algorithm):
             * False: Simulation results will not be saved
         """
         kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'Fitness Scaled Chaotic Artificial Bee Colony (FSCABC) algorithm'
         super(fscabc, self).__init__(*args, **kwargs)
 
     def mutate(self, r):

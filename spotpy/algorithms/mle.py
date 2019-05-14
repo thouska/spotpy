@@ -48,6 +48,7 @@ class mle(_algorithm):
             * False: Simulation results will not be saved
          '''
         kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'Maximum Likelihood Estimation (MLE) algorithm'
         super(mle, self).__init__(*args, **kwargs)
 
 

@@ -51,7 +51,7 @@ class lhs(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        kwargs['algorithm_name'] = 'Latin Hypercube Sampling (LHS)'
         super(lhs, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions):

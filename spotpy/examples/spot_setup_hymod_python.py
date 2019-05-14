@@ -65,7 +65,7 @@ class spot_setup(object):
     def objectivefunction(self,simulation,evaluation, params=None):
         if self._used_algorithm == 'sceua':
             like = spotpy.objectivefunctions.rmse(evaluation,simulation)
-        if self._used_algorithm == 'dream':
+        elif self._used_algorithm == 'dream':
             like = spotpy.objectivefunctions.log_p(evaluation,simulation)
         elif self._used_algorithm == 'default':
             like = spotpy.objectivefunctions.nashsutcliffe(evaluation,simulation)
