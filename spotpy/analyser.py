@@ -713,7 +713,7 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1, fig
     text='The figure as been saved as '+fig_name
     print(text)
 
-def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True,sort=True, bestperc=0.1, fig_name='bestmodelrun.png'):
+def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',bestperc=0.1, fig_name='bestmodelrun.png'):
     """
     Get a plot with the maximum objectivefunction of your simulations in your result
     array.
@@ -740,34 +740,12 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     Returns:
         figure. Plot of the simulation with the maximum objectivefunction value in the result array as a blue line and dots for the evaluation data.
 
-    A really great idea. A way you might use me is
-    >>> bcf.analyser.plot_bestmodelrun(results,evaluation, ylabel='Best model simulation')
-
     """
     import matplotlib.pyplot as plt
-    import random
-    from matplotlib import colors
-    cnames=list(colors.cnames)
-    plt.rc('font', **font)
-    if sort:
-        results=sort_like(results)
-    if calculatelike:
-        likes=calc_like(results, evaluation,spotpy.objectivefunctions.rmse)
-        maximum=max(likes)
-        par=get_parameters(results)
-        sim=get_modelruns(results)
-        index=likes.index(maximum)
-        bestmodelrun=list(sim[index])
-        bestparameterset=list(par[index])
-
-    else:
-        if objectivefunctionmax==True:
-            index,maximum=get_maxlikeindex(results)
-        else:
-            index,maximum=get_minlikeindex(results)
-        sim=get_modelruns(results)
-        bestmodelrun=list(sim[index][0])#Transform values into list to ensure plotting
-        bestparameterset=list(get_parameters(results)[index][0])
+    index,maximum=get_maxlikeindex(results)
+    sim=get_modelruns(results)
+    bestmodelrun=list(sim[index][0])#Transform values into list to ensure plotting
+    bestparameterset=list(get_parameters(results)[index][0])
 
     parameternames=list(get_parameternames(results)    )
     bestparameterstring=''
@@ -777,24 +755,8 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
             bestparameterstring+='\n'
         bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
     fig=plt.figure(figsize=(16,8))
-    if dates is not None:
-        colors=list(cnames)
-        random.shuffle(colors)
-
-        for s in sim[5000:]:
-            plt.plot(dates,list(s),'c-',alpha=0.05)
-        plt.plot(dates,bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
-        plt.plot(dates,evaluation,'ro',label='Evaluation')
-    else:
-        pl_i = 1
-        for s in sim:
-            # why we plotting dates again is we in case that it is none, this will cause an error??
-            #plt.plot(dates, list(s), 'c-', alpha=0.05)
-            plt.plot(pl_i, list(s), 'c-', alpha=0.05)
-            pl_i+=1
-
-        plt.plot(bestmodelrun,'b-',label='Simulations: '+objectivefunction+'='+str(round(maxNSE,4)))
-        plt.plot(evaluation,'ro',label='Evaluation')
+    plt.plot(bestmodelrun,'b-',label='Simulation='+str(round(maxNSE,4)))
+    plt.plot(evaluation,'ro',label='Evaluation')
     plt.legend()
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)

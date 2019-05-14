@@ -59,7 +59,7 @@ class TestAnalyser(unittest.TestCase):
             sampler.sample(self.rep)
             self.sens_results = sampler.getdata()
 
-        sampler = spotpy.algorithms.dream(hymod_setup(), 
+        sampler = spotpy.algorithms.dream(hymod_setup(_used_algorithm='dream'), 
                                            sim_timeout=self.timeout)
         self.r_hat = sampler.sample(self.rep)
         self.hymod_results = sampler.getdata()
@@ -276,8 +276,8 @@ class TestAnalyser(unittest.TestCase):
 
 
     def test_plot_posterior(self):
-        spotpy.analyser.plot_posterior(self.results
-                                       , rosenbrock_setup.evaluation(self),fig_name=self.fig_name)
+        spotpy.analyser.plot_posterior(self.hymod_results
+                                       , hymod_setup().evaluation(),fig_name=self.fig_name)
         
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just

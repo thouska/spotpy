@@ -296,7 +296,7 @@ class dds(_algorithm):
             params_max, repetions_left, objectivefunction_max = self.calc_initial_para_configuration(initial_iterations, trial,
                                                                                     repetitions, x_initial)
             params_max = self.fix_status_params_format(params_max)
-            trial_best_value = params_max.copy()#self.status.params_max.copy()
+            trial_best_value = list(params_max)#self.status.params_max.copy()
             
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
@@ -350,7 +350,7 @@ class dds(_algorithm):
                 # status setting update
                 if like > objectivefunction_max:
                     objectivefunction_max = like
-                    params_max = x_curr.copy()         
+                    params_max = list(x_curr)         
                     params_max = self.fix_status_params_format(params_max)
 
         else:  # now initial_iterations=1, using a user supplied initial solution.  Calculate obj func value.
@@ -359,7 +359,7 @@ class dds(_algorithm):
             like = self.postprocessing(rep, x_test_param, simulations)
             if like > objectivefunction_max:
                     objectivefunction_max = like
-                    params_max = x_test_param.copy()
+                    params_max = list(x_test_param)
                     params_max = self.fix_status_params_format(params_max)
         return params_max, repetions_left, objectivefunction_max
 

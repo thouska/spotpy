@@ -64,26 +64,26 @@ class _RunStatistic(object):
 
     def minimizer(self, objval, params):
         if objval < self.objectivefunction_min:
-            self.objectivefunction_min = objval
-            self.params_min = params.copy()
+            self.objectivefunction_min = objval 
+            self.params_min = list(params)
         
     def maximizer(self, objval, params):
         if objval > self.objectivefunction_max:
             self.objectivefunction_max = objval
-            self.params_max = params.copy()
+            self.params_max = list(params)
 
     def grid(self, objval, params):
         if objval < self.objectivefunction_min:
             self.objectivefunction_min = objval
-            self.params_min = params.copy()
+            self.params_min = list(params)
         if objval > self.objectivefunction_max:
             self.objectivefunction_max = objval
-            self.params_max = params.copy()
+            self.params_max = list(params)
 
 
     def __call__(self, objectivefunction, params, block_print=False):
         self.rep+=1
-        if type(objectivefunction) == type([]):
+        if type(objectivefunction) == type([]): #TODO: change to iterable
             self.compare(objectivefunction[0], params)
 
         else:
