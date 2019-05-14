@@ -304,7 +304,7 @@ def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posterior
     plt.ylabel ('Simulated value')
     plt.legend(loc='upper right')
     fig.savefig(fig_name,dpi=300)
-    text='A plot of the parameter uncertainty has been saved as "Posteriot_parameter_uncertainty.png"'
+    text='A plot of the parameter uncertainty has been saved as '+fig_name
     print(text)
 
 
@@ -560,9 +560,7 @@ def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
 def plot_objectivefunction(results,evaluation,limit=None,sort=True, fig_name = 'objective_function.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
-    from matplotlib import colors
     likes=calc_like(results,evaluation,spotpy.objectivefunctions.rmse)
-    cnames=list(colors.cnames)
     data=likes
     #Calc confidence Interval
     mean = np.average(data)
@@ -712,7 +710,7 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1, fig
         ax.legend()
         i+=1
     fig.savefig(fig_name)
-    text='The figure as been saved as "'+names+'trace.png"'
+    text='The figure as been saved as '+fig_name
     print(text)
 
 def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',objectivefunction='NSE',objectivefunctionmax=True,calculatelike=True,sort=True, bestperc=0.1, fig_name='bestmodelrun.png'):
@@ -748,8 +746,8 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     """
     import matplotlib.pyplot as plt
     import random
-
-
+    from matplotlib import colors
+    cnames=list(colors.cnames)
     plt.rc('font', **font)
     if sort:
         results=sort_like(results)
@@ -780,7 +778,6 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
         bestparameterstring+=parameternames[i]+'='+str(round(bestparameterset[i],4))+','
     fig=plt.figure(figsize=(16,8))
     if dates is not None:
-        chains=int(max(results['chain']))
         colors=list(cnames)
         random.shuffle(colors)
 
@@ -807,7 +804,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     print(text)
 
 
-def plot_bestmodelrun(results,evaluation):
+def plot_bestmodelrun(results,evaluation,fig_name ='Best_model_run.png'):
     """
     Get a plot with the maximum objectivefunction of your simulations in your result
     array.
@@ -835,10 +832,10 @@ def plot_bestmodelrun(results,evaluation):
     plt.xlabel('Number of Observation Points')
     plt.ylabel ('Simulated value')
     plt.legend(loc='upper right')
-    text='A plot of the best model run has been saved as "Best_model_run.png"'
+    fig.savefig(fig_name,dpi=300)
+    text='A plot of the best model run has been saved as '+fig_name
     print(text)
-    fig.savefig('Best_model_run.png',dpi=300)
-
+    
 
 
 def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True,fig_name='bestmodelrun.png'):
@@ -1051,8 +1048,7 @@ def plot_Geweke(parameterdistribution,parametername):
     '''Input:  Takes a list of sampled values for a parameter and his name as a string
        Output: Plot as seen for e.g. in BUGS or PyMC'''
     import matplotlib.pyplot as plt
-    from matplotlib import colors
-    cnames=list(colors.cnames)
+
     # perform the Geweke test
     Geweke_values = _Geweke(parameterdistribution)
 

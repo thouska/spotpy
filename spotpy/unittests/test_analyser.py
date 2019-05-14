@@ -34,9 +34,10 @@ from spotpy.examples.spot_setup_hymod_python import spot_setup as hymod_setup
 
 
 class TestAnalyser(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         np.random.seed(42)
-        self.rep = 100
+        self.rep = 300
         self.parallel = "seq"
         self.dbformat = "ram"
         self.timeout = 5
@@ -63,6 +64,13 @@ class TestAnalyser(unittest.TestCase):
         self.r_hat = sampler.sample(self.rep)
         self.hymod_results = sampler.getdata()
             
+    def test_setUp(self):
+        self.assertEqual(len(self.results), self.rep)
+        self.assertEqual(len(self.griewank_results), self.rep)
+        self.assertEqual(len(self.hymod_results), self.rep)
+        if sys.version_info[0] >= 3:
+            self.assertEqual(len(self.sens_results), self.rep)
+        
     def test_get_parameters(self):
 
         self.assertEqual(len(spotpy.analyser.get_parameters(
@@ -277,19 +285,19 @@ class TestAnalyser(unittest.TestCase):
         self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
         
     def test_plot_bestmodelrun(self):
-        spotpy.analyser.plot_bestmodelrun(self.griewank_results, griewank_setup().evaluation())
-        fig_name="Best_model_run.png"
+        spotpy.analyser.plot_bestmodelrun(self.griewank_results, 
+                                          griewank_setup().evaluation(), fig_name=self.fig_name)
 
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
-        os.remove(fig_name)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        os.remove(self.fig_name)
 
     def test_plot_bestmodelruns(self):
         spotpy.analyser.plot_bestmodelruns(
-            [self.hymod_results], hymod_setup().evaluation(),
-            dates=range(1, 1+len(hymod_setup().evaluation())), algorithms=["test"],
+            [self.hymod_results[0:10],self.hymod_results[10:20]], hymod_setup().evaluation(),
+            dates=range(1, 1+len(hymod_setup().evaluation())), algorithms=["test", "test2"],
             fig_name=self.fig_name)
 
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
@@ -319,14 +327,13 @@ class TestAnalyser(unittest.TestCase):
     def test_plot_parameterInteraction(self):
         # Test only untder Python 3.6 as lower versions results in a strange ValueError
         if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_parameterInteraction(self.results)
-            fig_name = "ParameterInteraction.png"
-    
+            spotpy.analyser.plot_parameterInteraction(self.results, 
+                                                      fig_name = self.fig_name)
+            
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(fig_name), 8855)
-            os.remove(fig_name)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
 
     
     def test_plot_allmodelruns(self):
@@ -361,7 +368,7 @@ class TestAnalyser(unittest.TestCase):
 
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(self):
         try:
             os.remove('test_output.png')
         except (FileNotFoundError, IOError):
