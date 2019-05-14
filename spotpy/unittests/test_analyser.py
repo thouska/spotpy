@@ -51,11 +51,12 @@ class TestAnalyser(unittest.TestCase):
                                        sim_timeout=self.timeout) 
         sampler.sample(self.rep)
         self.griewank_results = sampler.getdata()
-        
-        sampler = spotpy.algorithms.fast(rosenbrock_setup(), 
-                                           sim_timeout=self.timeout)
-        sampler.sample(self.rep)
-        self.sens_results = sampler.getdata()
+        if sys.version_info[0] >= 3: # FAST is only fully operational under
+            #Python 3
+            sampler = spotpy.algorithms.fast(rosenbrock_setup(), 
+                                               sim_timeout=self.timeout)
+            sampler.sample(self.rep)
+            self.sens_results = sampler.getdata()
 
         sampler = spotpy.algorithms.dream(hymod_setup(), 
                                            sim_timeout=self.timeout)
@@ -171,12 +172,12 @@ class TestAnalyser(unittest.TestCase):
 
 
     def test_get_sensitivity_of_fast(self):
-
-        get_sensitivity_of_fast = spotpy.analyser.get_sensitivity_of_fast(self.sens_results)
-        self.assertEqual(len(get_sensitivity_of_fast), 2)
-        self.assertEqual(len(get_sensitivity_of_fast["S1"]), 3)
-        self.assertEqual(len(get_sensitivity_of_fast["ST"]), 3)
-        self.assertEqual(type(get_sensitivity_of_fast), type({}))
+        if sys.version_info[0] >= 3:
+            get_sensitivity_of_fast = spotpy.analyser.get_sensitivity_of_fast(self.sens_results)
+            self.assertEqual(len(get_sensitivity_of_fast), 2)
+            self.assertEqual(len(get_sensitivity_of_fast["S1"]), 3)
+            self.assertEqual(len(get_sensitivity_of_fast["ST"]), 3)
+            self.assertEqual(type(get_sensitivity_of_fast), type({}))
 
     def test_get_simulation_fields(self):
         get_simulation_fields = spotpy.analyser.get_simulation_fields(
@@ -198,7 +199,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_parameter_uncertainty(self):
         posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
-        self.assertAlmostEqual(len(posterior)/100, self.rep/1000, 1)
+        self.assertAlmostEqual(len(posterior), self.rep*0.1, 1)
         self.assertEqual(type(posterior), type(np.array([])))
         spotpy.analyser.plot_parameter_uncertainty(posterior,
                                                    hymod_setup().evaluation(),
@@ -212,13 +213,12 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_fast_sensitivity(self):
 
-
-        spotpy.analyser.plot_fast_sensitivity(self.sens_results,fig_name=self.fig_name)
-
-        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-        # we expecting a plot with some content without testing the structure of the plot, just
-        # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        if sys.version_info[0] >= 3:
+            spotpy.analyser.plot_fast_sensitivity(self.sens_results,fig_name=self.fig_name)
+            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+            # we expecting a plot with some content without testing the structure of the plot, just
+            # the size
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
         
     def test_plot_heatmap_griewank(self):
         spotpy.analyser.plot_heatmap_griewank([self.griewank_results],["test"],
