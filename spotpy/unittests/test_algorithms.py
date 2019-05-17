@@ -64,7 +64,7 @@ class TestAlgorithms(unittest.TestCase):
 
     def test_dream(self):
         sampler=spotpy.algorithms.dream(spot_setup(used_algorithm='dream'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        sampler.sample(self.rep)
+        sampler.sample(self.rep, convergence_limit=0.9, runs_after_convergence=500)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
 
