@@ -208,7 +208,7 @@ class TestAnalyser(unittest.TestCase):
     def test_plot_parameter_uncertainty(self):
         if sys.version_info >= (3, 6):
             posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
-            self.assertAlmostEqual(len(posterior), self.rep*0.1, 1)
+            self.assertAlmostEqual(len(posterior), self.rep*0.1, 2)
             self.assertEqual(type(posterior), type(np.array([])))
             spotpy.analyser.plot_parameter_uncertainty(posterior,
                                                        hymod_setup().evaluation(),
@@ -251,7 +251,8 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_parametertrace_algorithms(self):
         spotpy.analyser.plot_parametertrace_algorithms([self.griewank_results],
-                                                       ["test_plot_parametertrace_algorithms"],
+                                                       ["test_plot_parametertrace_algorithms"], 
+                                                       spot_setup=griewank_setup(),
                                                        fig_name=self.fig_name)
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just

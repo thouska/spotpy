@@ -35,10 +35,10 @@ class spot_setup(object):
         return observations
     
     def objectivefunction(self, simulation, evaluation):
-        if self.used_algorithm == 'sceua':
+        if self.used_algorithm == 'sceua' or self.used_algorithm == 'abc' or self.used_algorithm == 'fscabc':
             objectivefunction = rmse(evaluation=evaluation, simulation=simulation)
         elif self.used_algorithm == 'dream' or self.used_algorithm == 'demcz' or self.used_algorithm == 'mcmc':
             objectivefunction = log_p(evaluation=evaluation, simulation=simulation)
-        elif self.used_algorithm == 'default':
+        else:
             objectivefunction = - rmse(evaluation=evaluation, simulation=simulation)
         return objectivefunction
