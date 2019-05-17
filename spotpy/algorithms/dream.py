@@ -123,9 +123,9 @@ class dream(_algorithm):
         random_chain1,random_chain2 = self.get_other_random_chains(cur_chain)
         new_parameterset=[]        
         #position = self.chain_samples-1#self.nChains*self.chain_samples+self.chain_samples+cur_chain-1
-        cur_par_set = self.bestpar[cur_chain][self.nChainruns[cur_chain]-1]
-        random_par_set1 = self.bestpar[random_chain1][self.nChainruns[random_chain1]-1]
-        random_par_set2 = self.bestpar[random_chain2][self.nChainruns[random_chain2]-1]
+        cur_par_set = list(self.bestpar[cur_chain][self.nChainruns[cur_chain]-1])
+        random_par_set1 = list(self.bestpar[random_chain1][self.nChainruns[random_chain1]-1])
+        random_par_set2 = list(self.bestpar[random_chain2][self.nChainruns[random_chain2]-1])
                 
         for i in range(self.N):#Go through parameters
             
@@ -143,9 +143,9 @@ class dream(_algorithm):
 #        return new_par
 
     def update_mcmc_status(self,par,like,sim,cur_chain):  
-        self.bestpar[cur_chain][self.nChainruns[cur_chain]]=par
+        self.bestpar[cur_chain][self.nChainruns[cur_chain]]=list(par)
         self.bestlike[cur_chain]=like
-        self.bestsim[cur_chain]=sim
+        self.bestsim[cur_chain]=list(sim)
 
     def get_r_hat(self, parameter_array):
         """
