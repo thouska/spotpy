@@ -596,7 +596,8 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True, fig_name = '
         plt.plot(bestlike)
     plt.savefig(fig_name)
 
-def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=None, fig_name='parametertrace_algorithms.png'):
+def plot_parametertrace_algorithms(result_lists, algorithmnames, spot_setup, 
+                                   fig_name='parametertrace_algorithms.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
     font = {'family' : 'calibri',
@@ -604,38 +605,26 @@ def plot_parametertrace_algorithms(results,algorithmnames=None,parameternames=No
         'size'   : 20}
     plt.rc('font', **font)
     fig=plt.figure(figsize=(17,5))
-    subplots=len(results)
-    rows=2
+    subplots=len(result_lists)
+    parameter = spotpy.parameter.get_parameters_array(spot_setup)
+    rows=len(parameter['name'])
     for j in range(rows):
         for i in range(subplots):
             ax  = plt.subplot(rows,subplots,i+1+j*subplots)
-            if j==0:
-                if parameternames:
-                    data=results[i]['par'+parameternames[0]]
-                else:
-                    data=results[i]['par0']
-            if j==1:
-                if parameternames:
-                    data=results[i]['par'+parameternames[1]]
-                else:
-                    data=results[i]['par1']
-                ax.set_xlabel(algorithmnames[i-subplots])
-
+            data=result_lists[i]['par'+parameter['name'][j]]
             ax.plot(data,'b-')
-            ax.set_ylim(-50,50)
-            if i==0 and j==0:
-                ax.set_ylabel('x')
-                ax.yaxis.set_ticks([-50,0,50])
+            if i==0:
+                ax.set_ylabel(parameter['name'][j])
                 rep = len(data)
-            if i==0 and j==1:
-                ax.set_ylabel('y')
-                ax.yaxis.set_ticks([-50,0,50])
-            if j==0:
-                ax.xaxis.set_ticks([])
             if i>0:
                 ax.yaxis.set_ticks([])
+            if j==rows-1:
+                ax.set_xlabel(algorithmnames[i-subplots])
+            else:
+                ax.xaxis.set_ticks([])
             ax.plot([1]*rep,'r--')
             ax.set_xlim(0,rep)
+            ax.set_ylim(parameter['minbound'][j],parameter['maxbound'][j])
             
     #plt.tight_layout()
     fig.savefig(fig_name, bbox_inches='tight')
