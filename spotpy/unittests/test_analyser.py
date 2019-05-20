@@ -16,13 +16,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append(".")
-    import spotpy
-
+import spotpy
 import unittest
 import numpy as np
 import spotpy.analyser
@@ -375,11 +369,7 @@ class TestAnalyser(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        try:
-            os.remove('test_output.png')
-        except (FileNotFoundError, IOError):
-            pass
-
+        os.remove('test_output.png')
 
 
 if __name__ == '__main__':

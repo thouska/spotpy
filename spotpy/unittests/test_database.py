@@ -1,15 +1,13 @@
+# -*- coding: utf-8 -*-
+'''
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska
+'''
 import unittest
 import os
 import glob
-
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append("../../")
-    sys.path.append("../../spotpy")
-    sys.path.append(".")
-    import spotpy
+import spotpy
 import spotpy.database as db
 import numpy as np
 
@@ -24,8 +22,8 @@ class MockSetup:
 
 
 class TestDatabase(unittest.TestCase):
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.parnames = ['x1', 'x2', 'x3', 'x4', 'x5']
         self.like = 0.213
         self.randompar = [175.21733934706367, 0.41669126598819262, 0.25265012080652388, 0.049706767415682945, 0.69674090782836173]
@@ -36,9 +34,8 @@ class TestDatabase(unittest.TestCase):
 
         self.simulations = np.random.uniform(0, 1, 5)
 
-        #print(self.simulations)
-
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
         for filename in glob.glob("UnitTest_tmp*"):
             os.remove(filename)
 
