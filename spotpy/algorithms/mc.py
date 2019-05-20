@@ -49,7 +49,7 @@ class mc(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        kwargs['algorithm_name'] = 'Monte Carlo (MC) sampler'
         super(mc, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions):

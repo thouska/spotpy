@@ -1,3 +1,4 @@
+a
 # -*- coding: utf-8 -*-
 '''
 Copyright (c) 2018 by Tobias Houska
@@ -107,5 +108,5 @@ print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
 evaluation = spot_setup.evaluation()
 
 # Example how to plot the data
-#algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc', 'demcz', 'dream']
-#spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y'])
+algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc', 'demcz', 'dream']
+spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y'])

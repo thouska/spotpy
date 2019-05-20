@@ -43,7 +43,7 @@ class list_sampler(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        kwargs['algorithm_name'] = 'List Sampler'
         super(list_sampler, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions=None):

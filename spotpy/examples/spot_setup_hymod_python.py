@@ -20,7 +20,7 @@ class spot_setup(object):
     cmax  = spotpy.parameter.Uniform(low=1.0 , high=500,  optguess=412.33)
     bexp  = spotpy.parameter.Uniform(low=0.1 , high=2.0,  optguess=0.1725)
     alpha = spotpy.parameter.Uniform(low=0.1 , high=0.99, optguess=0.8127)
-    Ks    = spotpy.parameter.Uniform(low=0.0 , high=0.10, optguess=0.0404)
+    Ks    = spotpy.parameter.Uniform(low=0.001 , high=0.10, optguess=0.0404)
     Kq    = spotpy.parameter.Uniform(low=0.1 , high=0.99, optguess=0.5592)
     #fake1 =spotpy.parameter.Uniform(low=0.1 , high=10, optguess=0.5592)
     #fake2 =spotpy.parameter.Uniform(low=0.1 , high=10, optguess=0.5592)
@@ -65,6 +65,10 @@ class spot_setup(object):
     def objectivefunction(self,simulation,evaluation, params=None):
         if self._used_algorithm == 'sceua':
             like = spotpy.objectivefunctions.rmse(evaluation,simulation)
+        elif self._used_algorithm == 'dream':
+            like = spotpy.objectivefunctions.log_p(evaluation,simulation)
+        elif self._used_algorithm == 'default':
+            like = spotpy.objectivefunctions.nashsutcliffe(evaluation,simulation)
         else:
             like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)    
         return like

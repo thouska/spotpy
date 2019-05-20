@@ -21,8 +21,7 @@ class rope(_algorithm):
     Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
     '''
 
-    def __init__(self, spot_setup, dbname=None, dbformat=None,
-                 parallel='seq', save_sim=True, save_threshold=-np.inf,sim_timeout = None):
+    def __init__(self,  *args, **kwargs):
             
         '''
         Input
@@ -60,11 +59,11 @@ class rope(_algorithm):
     
         :param save_sim: boolean
             *True:  Simulation results will be saved
-            *False: Simulationt results will not be saved
+            *False: Simulation results will not be saved
         '''
-        _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel,
-                            save_sim=save_sim, save_threshold=save_threshold,sim_timeout = sim_timeout)
+        kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'RObust Parameter Estimation (ROPE) algorithm'
+        super(rope, self).__init__(*args, **kwargs)
 
     def get_best_runs(self, likes, pars, runs, percentage):
         '''
@@ -156,7 +155,7 @@ class rope(_algorithm):
                 break
             if acttime - intervaltime >= 2:
                 text = '1 Subset: Run %i of %i (best like=%g)' % (
-                    rep, first_run, self.status.objectivefunction)
+                    rep, first_run, self.status.objectivefunction_max)
                 print(text)
                 intervaltime = time.time()
 
@@ -199,7 +198,7 @@ class rope(_algorithm):
                             subset + 2,
                             rep,
                             repetitions_following_runs,
-                            self.status.objectivefunction)
+                            self.status.objectivefunction_max)
                         print(text)
                         intervaltime = time.time()
             if self.status.stop:
