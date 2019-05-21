@@ -1,4 +1,3 @@
-a
 # -*- coding: utf-8 -*-
 '''
 Copyright (c) 2018 by Tobias Houska
@@ -109,4 +108,4 @@ evaluation = spot_setup.evaluation()
 
 # Example how to plot the data
 algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc', 'demcz', 'dream']
-spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y'])
+spotpy.analyser.plot_parametertrace_algorithms(results, algorithms, spot_setup)
