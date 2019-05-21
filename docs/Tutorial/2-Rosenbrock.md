@@ -84,45 +84,68 @@ We start directly with all algorithms. First we have to create a new file:
 Now we create samplers for every algorithm and sample 5,000 parameter combinations for every algorithm:
 
 	results=[]
-	spotpy_setup=spotpy_setup()
-	rep=5000
+	spot_setup=spot_setup()
+	rep=1000
+	timeout=10 #Given in Seconds
 
-	sampler=spotpy.algorithms.mc(spotpy_setup,    dbname='RosenMC',    dbformat='csv')
-	results.append(sampler.sample(rep))
+	parallel = "seq"
+	dbformat = "csv"
 
-	sampler=spotpy.algorithms.lhs(spotpy_setup,   dbname='RosenLHS',   dbformat='csv')
-	results.append(sampler.sample(rep))
+	sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel, dbname='RosenMC', dbformat=dbformat, sim_timeout=timeout)
+	print(describe(sampler))
+	sampler.sample(rep)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.mle(spotpy_setup,   dbname='RosenMLE',   dbformat='csv')
-	results.append(sampler.sample(rep))
+	sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel, dbname='RosenLHS', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.mcmc(spotpy_setup,  dbname='RosenMCMC',  dbformat='csv')
-	results.append(sampler.sample(rep))
+	sampler=spotpy.algorithms.mle(spot_setup, parallel=parallel, dbname='RosenMLE', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.sceua(spotpy_setup, dbname='RosenSCEUA', dbformat='csv')
-	results.append(sampler.sample(rep,ngs=4))
+	sampler=spotpy.algorithms.mcmc(spot_setup, parallel=parallel, dbname='RosenMCMC', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.sa(spotpy_setup,    dbname='RosenSA',    dbformat='csv')
-	results.append(sampler.sample(rep))
+	sampler=spotpy.algorithms.sceua(spot_setup, parallel=parallel, dbname='RosenSCEUA', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep,ngs=4)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.demcz(spotpy_setup, dbname='RosenDEMCz', dbformat='csv')
-	results.append(sampler.sample(rep,nChains=4))
+	sampler=spotpy.algorithms.sa(spot_setup, parallel=parallel, dbname='RosenSA', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.rope(spotpy_setup,  dbname='RosenROPE',  dbformat='csv')
-	results.append(sampler.sample(rep))
-	
-	sampler=spotpy.algorithms.abc(spotpy_setup, dbname='RosenDEMCz', dbformat='csv')
-	results.append(sampler.sample(rep))
+	sampler=spotpy.algorithms.demcz(spot_setup,parallel=parallel, dbname='RosenDEMCz', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep,nChains=4)
+	results.append(sampler.getdata())
 
-	sampler=spotpy.algorithms.fscabd(spotpy_setup,  dbname='RosenROPE',  dbformat='csv')
-	results.append(sampler.sample(rep))
+	sampler=spotpy.algorithms.rope(spot_setup, parallel=parallel, dbname='RosenROPE',  dbformat=dbformat,sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
+
+	sampler=spotpy.algorithms.abc(spot_setup, parallel=parallel,   dbname='RosenABC',     dbformat=dbformat,sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
+
+	sampler=spotpy.algorithms.fscabc(spot_setup, parallel=parallel, dbname='RosenFSABC', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
+
+	sampler=spotpy.algorithms.demcz(spot_setup, parallel=parallel, dbname='RosenDEMCZ', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
+
+	sampler=spotpy.algorithms.dream(spot_setup, parallel=parallel, dbname='RosenDREAM', dbformat=dbformat, sim_timeout=timeout)
+	sampler.sample(rep)
+	results.append(sampler.getdata())
 
 ## Plotting
 
 To see the all results of your sampling, just type something like this:
 
-	algorithms=['MC','LHS','MLE','MCMC','SCEUA','SA','DEMCz','ROPE','ABC','FSCABC']
-	spotpy.analyser.plot_parametertrace_algorithms(results,algorithmnames=algorithms,parameternames=['x','y']) 
+	algorithms = ['mc','lhs','mle','mcmc','sceua','sa','demcz','rope','abc','fscabc', 'demcz', 'dream']
+	spotpy.analyser.plot_parametertrace_algorithms(results, algorithms, spot_setup)
 
 This should give you an nice overview about, how the parameter settings evolve during the sampling of each algorithm: 
 
