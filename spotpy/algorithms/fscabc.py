@@ -69,7 +69,7 @@ class fscabc(_algorithm):
         return x
 
 
-    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=5, ownlimit=False, limit=24):
+    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, kpow=4, limit=None):
         """
         Parameters
         ----------
@@ -83,14 +83,8 @@ class fscabc(_algorithm):
             convergence criterion    
         kpow: float
             exponent for power scaling method
-        ownlimit: boolean
-            determines if an userdefined limit is set or not
         limit: int
             sets the limit for scout bee phase
-        breakpoint: None, 'write', 'read' or 'readandwrite'
-            None does nothing, 'write' writes a breakpoint for restart as specified in backup_every_rep, 'read' reads a breakpoint file with dbname + '.break', 'readandwrite' does both
-        backup_every_rep: int
-            writes a breakpoint after every generation, if more at least the specified number of samples are carried out after writing the last breakpoint
         """
         self.set_repetiton(repetitions)
         print('Starting the FSCABC algotrithm with '+str(repetitions)+ ' repetitions...')
@@ -101,10 +95,8 @@ class fscabc(_algorithm):
         self.nopt = randompar.size
         random.seed()
         lastbackup=0
-        if ownlimit == True:
-            self.limit = limit
-        else:
-            self.limit = eb
+        if limit == None:
+            self.limit = int(eb/2)
         # Generate chaos
         r = 0.25
         while r == 0.25 or r == 0.5 or r == 0.75:
