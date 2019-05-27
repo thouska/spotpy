@@ -97,6 +97,8 @@ class fscabc(_algorithm):
         lastbackup=0
         if limit == None:
             self.limit = int(eb/2)
+        else:
+            self.limit = int(limit)
         # Generate chaos
         r = 0.25
         while r == 0.25 or r == 0.5 or r == 0.75:
