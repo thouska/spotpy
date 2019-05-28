@@ -253,8 +253,11 @@ class _algorithm(object):
 
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             print('Reading backupfile')
+            try:
+                open(self.dbname+'.break')
+            except FileNotFoundError:
+                print('Backupfile not found')
             self.dbappend = True
-            self.breakdata = self.read_breakdata(self.dbname)
 
         # Now a repeater (ForEach-object) is loaded
         # A repeater is a convinent wrapper to repeat tasks
@@ -355,11 +358,17 @@ class _algorithm(object):
             Reason: In case of incomplete optimizations, old data can be restored. '''
         import pickle
         with open(dbname+'.break', 'rb') as breakfile:
-            return pickle.load(breakfile)
+            work,backuptime,repos,obmin,obmax=pickle.load(breakfile)
+            self.status.starttime=self.status.starttime-backuptime
+            self.status.rep=repos
+            self.status.objectivefunction_min=obmin
+            self.status.objectivefunction_max=obmax
+            return work
 
     def write_breakdata(self, dbname, work):
         ''' Write data to a pickle file if a breakpoint has been set.'''
         import pickle
+        work=(work,self.status.last_print-self.status.starttime,self.status.rep,self.status.objectivefunction_min,self.status.objectivefunction_max)
         with open(str(dbname)+'.break', 'wb') as breakfile:
             pickle.dump(work, breakfile)
 
