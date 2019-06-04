@@ -15,6 +15,8 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
+import inspect
+import sys
 
 
 try:
@@ -49,7 +51,7 @@ class _RunStatistic(object):
             self.compare = self.maximizer
             print('The objective function will be minimized')
         if optimization_direction == 'grid':
-            self.compare = self.grid    
+            self.compare = self.grid
 
         self.rep = 0
         self.parnames = parnames
@@ -66,9 +68,9 @@ class _RunStatistic(object):
 
     def minimizer(self, objval, params):
         if objval < self.objectivefunction_min:
-            self.objectivefunction_min = objval 
+            self.objectivefunction_min = objval
             self.params_min = list(params)
-        
+
     def maximizer(self, objval, params):
         if objval > self.objectivefunction_max:
             self.objectivefunction_max = objval
@@ -87,14 +89,15 @@ class _RunStatistic(object):
         self.rep+=1
         if type(objectivefunction) == type([]): #TODO: change to iterable
             self.compare(objectivefunction[0], params)
-
+        elif type(objectivefunction) == type(np.array([])):
+            pass
         else:
             self.compare(objectivefunction, params)
 
-        
+
         if self.rep == self.repetitions:
             self.stop = True
-            
+
         if not block_print:
             self.print_status()
 
@@ -107,38 +110,38 @@ class _RunStatistic(object):
             timestr = time.strftime("%H:%M:%S", time.gmtime(round(avg_time_per_run * (self.repetitions - (self.rep + 1)))))
             if self.optimization_direction == 'minimize':
                 text = '%i of %i, minimal objective function=%g, time remaining: %s' % (
-                        self.rep, self.repetitions, self.objectivefunction_min, timestr)           
-                
+                        self.rep, self.repetitions, self.objectivefunction_min, timestr)
+
             if self.optimization_direction == 'maximize':
                 text = '%i of %i, maximal objective function=%g, time remaining: %s' % (
-                        self.rep, self.repetitions, self.objectivefunction_max, timestr)  
-                
+                        self.rep, self.repetitions, self.objectivefunction_max, timestr)
+
             if self.optimization_direction == 'grid':
                 text = '%i of %i, min objf=%g, max objf=%g, time remaining: %s' % (
                         self.rep, self.repetitions, self.objectivefunction_min, self.objectivefunction_max, timestr)
-            
+
             print(text)
             self.last_print = time.time()
-    
+
     def print_status_final(self):
         print('\n*** Final SPOTPY summary ***')
         print('Total Duration: ' + str(round((time.time() - self.starttime), 2)) + ' seconds')
         print('Total Repetitions:', self.rep)
 
-        if self.optimization_direction == 'minimize':    
+        if self.optimization_direction == 'minimize':
             print('Minimal objective value: %g' % (self.objectivefunction_min))
             print('Corresponding parameter setting:')
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_min[i])
                 print(text)
-            
+
         if self.optimization_direction == 'maximize':
             print('Maximal objective value: %g' % (self.objectivefunction_max))
             print('Corresponding parameter setting:')
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_max[i])
                 print(text)
-    
+
         if self.optimization_direction == 'grid':
             print('Minimal objective value: %g' % (self.objectivefunction_min))
             print('Corresponding parameter setting:')
@@ -151,10 +154,10 @@ class _RunStatistic(object):
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_max[i])
                 print(text)
-         
+
         print('******************************\n')
-        
-        
+
+
     def __repr__(self):
         return 'Min objectivefunction: %g \n Max objectivefunction: %g' % (
                 self.objectivefunction_min, self.objectivefunction_max)
@@ -206,10 +209,10 @@ class _algorithm(object):
     _unaccepted_parameter_types = (parameter.List, )
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 dbappend=False, parallel='seq', save_sim=True, breakpoint=None, 
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16, 
+                 dbappend=False, parallel='seq', save_sim=True, breakpoint=None,
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,
                  sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name=''):
-        
+
         # Initialize the user defined setup class
         self.setup = spot_setup
         param_info = parameter.get_parameters_array(self.setup, unaccepted_parameter_types=self._unaccepted_parameter_types)
@@ -290,6 +293,12 @@ class _algorithm(object):
         self.repeat = ForEach(self.simulate)
 
 
+        # method "save" needs to know whether objective function result is list or float, default is float
+        self.like_struct_typ = type(1.1)
+
+
+
+
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
@@ -307,7 +316,7 @@ class _algorithm(object):
         return pars[self.non_constant_positions]
 
     def set_repetiton(self, repetitions):
-        self.status = _RunStatistic(repetitions, self.algorithm_name, 
+        self.status = _RunStatistic(repetitions, self.algorithm_name,
                                     self.optimization_direction, self.parnames)
         # In MPI, this command will do nothing on the master process
         # but the worker processes are going to wait for jobs.
@@ -336,22 +345,29 @@ class _algorithm(object):
 
             self.dbinit = False
 
+
+    def __is_list_type(self, data):
+        if type(data) == type:
+            return data == list or data == type(np.array([]))
+        else:
+            return type(data) == list or type(data) == type(np.array([]))
+
     def save(self, like, randompar, simulations, chains=1):
         # Initialize the database if no run was performed so far
         self._init_database(like, randompar, simulations)
 
-        #try if like is a list of values compare it with save threshold setting
-        try:
+        if self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold):
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
                 self.datawriter.save(like, randompar, simulations, chains=chains)
-        #If like value is not a iterable, it is assumed to be a float
-        except TypeError: # This is also used if not threshold was set
-            try:
-                if like>self.save_threshold: #Compares float/float
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
-            except TypeError:# float/list would result in an error, because it does not make sense
-                if like[0]>self.save_threshold: #Compares list/float
-                    self.datawriter.save(like, randompar, simulations, chains=chains)
+        if not self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+            if like>self.save_threshold: #Compares float/float
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        if self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+            if like[0]>self.save_threshold: #Compares list/float
+                self.datawriter.save(like, randompar, simulations, chains=chains)
+        if not self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold): #Compares float/list
+            if (like > self.save_threshold).all:
+                self.datawriter.save(like, randompar, simulations, chains=chains)
 
     def read_breakdata(self, dbname):
         ''' Read data from a pickle file if a breakpoint is set.
@@ -392,7 +408,7 @@ class _algorithm(object):
         # Save everything in the database, if save is True
         # This is needed as some algorithms just want to know the fitness,
         # before they actually save the run in a database (e.g. sce-ua)
-        
+
         self.status(like,params,block_print=block_print)
         
         if save_run is True and simulation is not None:
