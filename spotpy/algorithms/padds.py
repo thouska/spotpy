@@ -187,7 +187,6 @@ class padds(_algorithm):
         self.number_of_parameters = len(self.best_value.parameters) # number_of_parameters is the amount of parameters
 
         if metric == "hvc":
-            from hypervolume.hvc import Hypervolume
             self.hvc = HVC(np_random=self.np_random)
 
         self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
@@ -486,8 +485,13 @@ class HVC():
         self.fakerandom =  ('fakerandom' in kwargs and kwargs['fakerandom']) or ('np_random' in kwargs)
         self.has_random_class = ('np_random' in kwargs)
         self.random_class = (self.has_random_class and kwargs['np_random'])
-        from hypervolume.hvc import Hypervolume
-        self.h_vol_c = Hypervolume()
+        from deap.tools._hypervolume import hv
+        self.hv = hv.hypervolume
+        self.h_vol_c = self.hv_wrapper
+
+    def hv_wrapper(self, points):
+        ref = np.max(points, axis=0)
+        return self.hv(points, ref)
 
     def _set_np_random(self,f_rand):
         self.random_class = f_rand
