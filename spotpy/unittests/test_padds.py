@@ -49,10 +49,10 @@ class TestPADDS(unittest.TestCase):
     def test_run_7(self):
         self.run_a_dds(7)
 
-    def no_run_8(self):
+    def test_run_8(self):
         self.run_a_dds(8)
 
-    def no_run_9(self):
+    def test_run_9(self):
         self.run_a_dds(9)
 
     def test_chc(self):
@@ -63,7 +63,7 @@ class TestPADDS(unittest.TestCase):
             for i, test_data in enumerate(data):
                 self.assertArrayEqual(chc(np.array(test_data["p"])),test_data["res"],delta=1e-6)
 
-    def no_hvc(self):
+    def test_hvc(self):
         with open(os.path.dirname(__file__) + "/padds_tests/HVC_testdata.json") as f:
             data = json.load(f)
             hvc = HVC(fakerandom=True)
