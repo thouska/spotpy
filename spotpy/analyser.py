@@ -391,9 +391,10 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
     """
     import math
     likes=results['like'+str(like_index)]
-    print(likes.size)
+    print('Number of model runs:', likes.size)
     parnames = get_parameternames(results)
     parnumber=len(parnames)
+    print('Number of parameters:', parnumber)
     if likes.size % (parnumber) == 0:
         N = int(likes.size / parnumber)
     else:
@@ -404,16 +405,17 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
         return np.nan
 
     # Recreate the vector omega used in the sampling
-    omega = np.empty([parnumber])
+    omega = np.zeros([parnumber])
     omega[0] = math.floor((N - 1) / (2 * M))
     m = math.floor(omega[0] / (2 * M))
-    print(m)
+
+    print('m =', m)
     if m >= (parnumber - 1):
         omega[1:] = np.floor(np.linspace(1, m, parnumber - 1))
     else:
         omega[1:] = np.arange(parnumber - 1) % m + 1
 
-    print(omega)
+    print('Omega =', omega)
     # Calculate and Output the First and Total Order Values
     if print_to_console:
         print("Parameter First Total")
@@ -476,7 +478,7 @@ def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_na
 
     for j in range(len(list(Si.values())[1])):
         if list(Si.values())[1][j]>=threshold:
-            names.append(parnames[j])
+            names.append(j)
             values.append(list(Si.values())[1][j])
             index.append(j)
             if first_sens_call:
@@ -487,7 +489,7 @@ def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_na
             
 
         else:
-            no_names.append(parnames[j])
+            #names.append('')
             no_values.append(list(Si.values())[1][j])
             no_index.append(j)
             if first_insens_call:
@@ -501,10 +503,17 @@ def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_na
     ax.set_xlabel('Model Paramters')
     ax.set_ylabel('Total Sensititivity Index')
     ax.legend()
-    #ax.set_xticklabels(names[1:])
-    ax.set_xticklabels(['0']+parnames)
+    ax.set_xticks(np.arange(0,len(parnames)))
+    xtickNames = ax.set_xticklabels(parnames, color='grey')
+    
+    plt.setp(xtickNames, rotation=90)
+    for name_id in names:
+        ax.get_xticklabels()[name_id].set_color("black")
+    
+    #ax.set_xticklabels(['0']+parnames)
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
+    plt.tight_layout()
     fig.savefig(fig_name,dpi=300)
     
 
@@ -1017,17 +1026,14 @@ def plot_Geweke(parameterdistribution,parametername):
     plt.plot( [-2]*len(Geweke_values), 'r-.')
 
 def _compute_first_order(outputs, N, M, omega):
-    '''Needed for FAST sensitivity'''
     f = np.fft.fft(outputs)
-    Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
+    Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
     V = 2 * np.sum(Sp)
     D1 = 2 * np.sum(Sp[np.arange(1, M + 1) * int(omega) - 1])
     return D1 / V
 
 def _compute_total_order(outputs, N, omega):
-    '''Needed for FAST sensitivity'''
     f = np.fft.fft(outputs)
-    #print(f)
     Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
     V = 2 * np.sum(Sp)
     Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
