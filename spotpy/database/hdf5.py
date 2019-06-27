@@ -16,7 +16,12 @@ from __future__ import unicode_literals
 
 import numpy as np
 from .base import database
-import tables
+try:
+    import tables
+except ImportError:
+    print('ImportError: Pytables is not correctly installed. Please also make sure you',
+          'installed the hdf5 extension (https://www.hdfgroup.org/downloads/hdf5/)')
+    raise
 import sys
 if sys.version_info[0] >= 3:
     unicode = str

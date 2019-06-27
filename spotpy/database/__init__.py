@@ -20,7 +20,10 @@ def __getattr__(name):
     names = __dir__()
     print(names)
     if name in names:
-        db_module = import_module('.' + name, __name__)
+        try:
+            db_module = import_module('.' + name, __name__)
+        except ImportError:
+            db_module = import_module('.base', __name__)
         return getattr(db_module, name)
     else:
         raise AttributeError('{} is not a member of spotpy.database')
