@@ -395,14 +395,15 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
     parnames = get_parameternames(results)
     parnumber=len(parnames)
     print('Number of parameters:', parnumber)
-    if likes.size % (parnumber) == 0:
-        N = int(likes.size / parnumber)
-    else:
-        print("""
-            Error: Number of samples in model output file must be a multiple of D,
+    
+    rest = likes.size % (parnumber)
+    if rest != 0:
+        print(""""
+            Number of samples in model output file must be a multiple of D,
             where D is the number of parameters in your parameter file.
-          """)
-        return np.nan
+          We handle this by ignoring the last """, rest, """runs.""")
+        likes = likes[:-rest ]
+    N = int(likes.size / parnumber)
 
     # Recreate the vector omega used in the sampling
     omega = np.zeros([parnumber])
@@ -432,7 +433,7 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
                   (parnames[i], Si['S1'][i], Si['ST'][i]))
     return Si
 
-def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_name='FAST_sensitivity.png'):
+def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_name='FAST_sensitivity.png'):
     """
     Example, how to plot the sensitivity for every parameter of your result array, created with the FAST algorithm
 
@@ -455,7 +456,7 @@ def plot_fast_sensitivity(results,like='like1',number_of_sensitiv_pars=10,fig_na
     fig=plt.figure(figsize=(16,6))
 
     ax  = plt.subplot(1,1,1)
-    Si  = get_sensitivity_of_fast(results)
+    Si  = get_sensitivity_of_fast(results, like_index=like_index)
 
     names = []
     values = []
