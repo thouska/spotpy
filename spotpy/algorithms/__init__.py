@@ -32,3 +32,4 @@ from .fscabc import fscabc   # Fitness Scaling Artificial Bee Colony
 from .dream import dream     # DiffeRential Evolution Adaptive Metropolis
 from .list_sampler import list_sampler  # Samples from  given spotpy database
 from .dds import dds         # Dynamically Dimensioned Search algorithm by Bryan Tolson.
+from .padds import padds
