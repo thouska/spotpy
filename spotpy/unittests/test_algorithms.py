@@ -16,6 +16,7 @@ except ImportError:
     import spotpy
 import numpy as np
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
+from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.describe import describe
 import os
 
@@ -113,6 +114,12 @@ class TestAlgorithms(unittest.TestCase):
         sampler.sample(self.rep, M=5)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep) #Si values should be returned
+
+    def test_padds(self):
+        sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
+        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
 
     @classmethod
     def tearDownClass(cls):
