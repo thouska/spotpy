@@ -16,7 +16,7 @@ install:
   - pip install click
   - pip install deap
   # Need to force pytest-cov to v2.6 as current version (2.6.1) is deprecated
-  - pip install pytest==4.6.2 pytest-pep8 pytest-cov==2.6
+  - pip install pytest==3.10.1 pytest-pep8 pytest-cov==2.6
   # Use docutils to generate html describe
   - pip install docutils
   - pip install numba
