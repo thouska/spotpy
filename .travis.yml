@@ -1,11 +1,18 @@
 language: python
 python:
-  - "2.7"
-  - "3.5"
+  #- "2.7"
+  #- "3.5"
   - "3.6"
+  - "3.7"
 
-  # command to install dependencies
+# this ubuntu distribution has sure the libopenmpi-dev packages available
+dist: bionic
+
+# command to install dependencies
 install:
+  - sudo apt-get update
+  - sudo apt install libopenmpi-dev openmpi-bin
+  - pip install mpi4py
   - python setup.py install
   - pip install coveralls
   - pip install pathos
@@ -14,17 +21,18 @@ install:
   - pip install pandas
   - pip install scipy
   - pip install click
-  # Need to force pytest-cov to v2.6 as current version (2.6.1) is deprecated
-  - pip install pytest pytest-pep8 pytest-cov==2.6
+  # Need to force pytest-cov to v2.6 as current version (2.6.1) is deprecated and pytest:3.10.1
+  - pip install pytest==3.10.1 pytest-pep8 pytest-cov==2.6
   # Use docutils to generate html describe
   - pip install docutils
   - pip install numba
   - pip install tables
 
 
+
 script:
   - pip uninstall spotpy -y
   - py.test  spotpy/unittests/test_* --cov spotpy --cov-report term-missing -v
-
+  - mpirun -c 2 python spotpy/examples/dds/dds_parallel.py 10
 after_success:
   - coveralls
