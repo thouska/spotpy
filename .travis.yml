@@ -34,7 +34,7 @@ install:
 script:
   - pip uninstall spotpy -y
   - py.test  spotpy/unittests/test_* --cov spotpy --cov-report term-missing -v
-  - mpirun -c 3 python spotpy/unittests/test_algorithms.py 'mpi'
+  - mpirun -c 3 python spotpy/unittests/test_algorithms.py mpi
 
 after_success:
   - coveralls

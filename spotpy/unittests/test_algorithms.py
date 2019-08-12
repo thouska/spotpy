@@ -28,7 +28,7 @@ class TestAlgorithms(unittest.TestCase):
         self.rep = 987
         self.timeout = 10 #Given in Seconds
         try:
-            self.parallel = sys.argv[1]
+            self.parallel = str(sys.argv[1])
         except:
             self.parallel = 'seq'
         self.dbformat = "ram"
@@ -125,7 +125,7 @@ class TestAlgorithms(unittest.TestCase):
         sampler=spotpy.algorithms.dds(spot_setup(),parallel=self.parallel, dbname='RosenDDS', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
-        self.assertEqual(len(results)+5, self.rep)
+        self.assertEqual(len(results), self.rep)
  
     @classmethod
     def tearDownClass(cls):
