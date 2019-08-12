@@ -3,8 +3,6 @@
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
-
-This file holds the example code from the Rosenbrock tutorial web-documention.
 '''
 
 import unittest
@@ -29,8 +27,10 @@ class TestAlgorithms(unittest.TestCase):
         #Create samplers for every algorithm:
         self.rep = 987
         self.timeout = 10 #Given in Seconds
-
-        self.parallel = os.environ.get('SPOTPY_PARALLEL', 'seq')
+        try:
+            self.parallel = sys.argv[1]
+        else:
+            self.parallel = 'seq'
         self.dbformat = "ram"
 
     def test_mc(self):
@@ -119,8 +119,14 @@ class TestAlgorithms(unittest.TestCase):
         sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='RosenPADDS', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
-        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
+        self.assertEqual(len(results)+5, self.rep)
 
+    def test_dds(self):
+        sampler=spotpy.algorithms.dds(spot_setup(),parallel=self.parallel, dbname='RosenDDS', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler.sample(self.rep)
+        results = sampler.getdata()
+        self.assertEqual(len(results)+5, self.rep)
+ 
     @classmethod
     def tearDownClass(cls):
         try:
