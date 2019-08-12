@@ -16,7 +16,7 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-from spotpy.examples.spot_setup_hymod_python import spot_setup
+from spotpy.examples.spot_setup_hymod_python_pareto import spot_setup
 import pylab as plt
 
 
@@ -30,23 +30,35 @@ if __name__ == "__main__":
     spot_setup=spot_setup()
     
     #Select number of maximum allowed repetitions
-    rep=1000
+    rep=3000
         
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.dds(spot_setup, dbname='DDS_hymod', dbformat='csv', alt_objfun=None)
+    sampler=spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv', alt_objfun=None)
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
-    sampler.sample(rep)
+    print(sampler.sample(rep, metric="crowd_distance"))
+    
+    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
+    #results = spotpy.analyser.load_csv_results('DDS_hymod')
+
+
     results = sampler.getdata()
-    print(results)
-    fig= plt.figure(1,figsize=(9,5))
-    plt.plot(results['like1'])
-    plt.show()
+    from pprint import pprint
+    #pprint(results)
+    pprint(results['chain'])
+
+    for likno in range(1,5):
+        fig_like1 = plt.figure(1,figsize=(9,5))
+        plt.plot(results['like'+str(likno)])
+        plt.show()
+        fig_like1.savefig('hymod_padds_objectivefunction_' + str(likno) + '.png', dpi=300)
+
+
     plt.ylabel('RMSE')
     plt.xlabel('Iteration')
-    fig.savefig('hymod_objectivefunction.png',dpi=300)
+
     
     # Example plot to show the parameter distribution ###### 
     fig= plt.figure(2,figsize=(9,9))
@@ -92,6 +104,7 @@ if __name__ == "__main__":
     
     plt.subplot(5,2,5)
     x = results['paralpha']
+    print(x)
     for i in range(int(max(results['chain'])-1)):
         index=np.where(results['chain']==i+1)
         plt.plot(x[index],'.')
