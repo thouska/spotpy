@@ -38,7 +38,7 @@ dds_elapsed = time.time() - start
 print(dds_elapsed)
 
 benchmarks_duration["dds_duration"].append(dds_elapsed)
-benchmarks_duration["dds_like"].append(dds_sampler.status.objectivefunction)
+benchmarks_duration["dds_like"].append(dds_sampler.status.objectivefunction_max)
 benchmarks_duration["rep"].append(rep)
 
 print(benchmarks_duration)
