@@ -555,30 +555,6 @@ def _dream_proposals(currentVectors, history, dimensions, nChains, DEpairs, gamm
     return proposalVectors
 
 
-def _dream2_proposals(currentVectors, history, dimensions, nChains, DEpairs,
-
-                      gamma, jitter, eps):
-    """
-    generates and returns proposal vectors given the current states
-    NOT USED ATM
-    """
-
-    sampleRange = history.ncombined_history
-    currentIndex = np.arange(sampleRange - nChains, sampleRange)[:, np.newaxis]
-    combined_history = history.combined_history
-
-    # choose some chains without replacement to combine
-    chains = _random_no_replace(1, sampleRange - 1, nChains)
-
-    # makes sure we have already selected the current chain so it is not replaced
-    # this ensures that the the two chosen chains cannot be the same as the
-    # chain for which the jump is
-    chains += (chains >= currentIndex)
-
-    proposalVectors = combined_history[chains[:, 0], :]
-    return proposalVectors
-
-
 class _GRConvergence:
     """
     Gelman Rubin convergence diagnostic calculator class. It currently only calculates the naive
