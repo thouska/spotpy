@@ -33,13 +33,13 @@ if __name__ == "__main__":
     spot_setup=spot_setup(parallel=parallel)
     
     # Initialize a sampler that is suited for parallel computing (all except MLE, MCMC and SA)
-    sampler=spotpy.algorithms.mc(spot_setup, dbname='DREAM_hymod', dbformat='csv',
+    sampler=spotpy.algorithms.mc(spot_setup, dbname='Parallel_hymod', dbformat='csv',
                                  parallel=parallel) 
     # Sample in parlallel
     sampler.sample(rep)
     
     # Load results from file
-    results = spotpy.analyser.load_csv_results('DREAM_hymod')
+    results = spotpy.analyser.load_csv_results('Parallel_hymod')
     
     # Plot best model run
     spotpy.analyser.plot_bestmodelrun(results,spot_setup.evaluation())
