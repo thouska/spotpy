@@ -29,7 +29,7 @@ class TestAlgorithms(unittest.TestCase):
         self.timeout = 10 #Given in Seconds
         try:
             self.parallel = sys.argv[1]
-        else:
+        except:
             self.parallel = 'seq'
         self.dbformat = "ram"
 
