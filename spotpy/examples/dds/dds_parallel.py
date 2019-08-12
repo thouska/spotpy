@@ -12,8 +12,6 @@ import time
 try:
     import spotpy
 except ImportError:
-    import sys
-
     sys.path.append(".")
     import spotpy
 

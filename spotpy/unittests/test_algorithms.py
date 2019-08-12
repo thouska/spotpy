@@ -6,17 +6,18 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
+import sys
+import os
 try:
     import spotpy
 except ImportError:
-    import sys
     sys.path.append(".")
     import spotpy
 import numpy as np
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.describe import describe
-import os
+
 
 #https://docs.python.org/3/library/unittest.html
 
