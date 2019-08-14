@@ -28,7 +28,7 @@ class spot_setup(object):
                        spotpy.parameter.Uniform('Kq',low=0.1 , high=0.99, optguess=0.5592)]
                        
         self.curdir = os.getcwd()
-        self.owd = os.path.realpath(__file__)+os.sep+'..'
+        self.owd = os.path.dirname(os.path.realpath(__file__))
         self.hymod_path = self.owd+os.sep+'hymod_exe'
         self.evals = list(np.genfromtxt(self.hymod_path+os.sep+'bound.txt',skip_header=65)[:,3])[:730]
         self.Factor = 1944 * (1000 * 1000 ) / (1000 * 60 * 60 * 24)
@@ -70,7 +70,7 @@ class spot_setup(object):
                 else:
                     params.write(str(round(x[i],5))+' ')
             params.close()
-            os.system('HYMODsilent.exe')
+            os.system('./hymod')
             
             #try: 
             if sys.version_info.major == 2:
