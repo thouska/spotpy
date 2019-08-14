@@ -24,7 +24,7 @@ if __name__ == "__main__":
     spot_setup = spot_setup()
     
     #Select number of maximum repetitions
-    rep = 5
+    rep = 20
     
     #Start a sensitivity analysis
     sampler = spotpy.algorithms.fast(spot_setup, dbname='FAST_hymod', dbformat='csv')
