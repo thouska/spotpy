@@ -84,3 +84,29 @@ def excess(x_loss,cmax,bexp,Pval,PETval):
     xn = max(xn - evap, 0)  # update state
 
     return ER1,ER2,xn
+
+
+if __name__ == '__main__':
+    import sys, os, pandas as pd, numpy as np, re
+    if len(sys.argv) != 6:
+        print("Hymod reads in from file called 'Param.in'")
+        with open("Param.in", "r") as param_in:
+            param_line = param_in.readline()
+            x = [np.float(i) for i in re.split("\s+", param_line) if len(i) > 0]
+    else:
+        print("Hymod reads in from stdin")
+        x = sys.argv
+        x.pop(0)
+
+    owd = os.path.dirname(os.path.realpath(__file__))
+
+    #  pyinstaller --onefile -c --add-data hymod_input.csv:hymod_input.csv  hymod.py
+    hymod_path = owd + os.sep + 'hymod_input.csv'
+    #print(hymod_path)
+
+    hymod_data = pd.read_csv(hymod_path, delimiter=r";")
+    Precip = hymod_data.values[:,1]
+    PET = hymod_data.values[:,2]
+    x = [np.float(i) for i in x]
+    result = hymod(Precip,PET, x[0], x[1], x[2], x[3], x[4])
+    np.savetxt("Q.out", result, delimiter=";")
