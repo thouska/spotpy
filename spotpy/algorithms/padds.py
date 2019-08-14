@@ -217,6 +217,8 @@ class padds(_algorithm):
                     if self.dominance_flag != -1:  # means, that new parameter set is a new non-dominated solution
                         self.metric = self.calc_metric(metric)
                 self.parameter_current = x_curr
+                # update the new status structure
+                self.status.params_max, self.status.params_min = self.parameter_current, self.parameter_current
 
             print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')
