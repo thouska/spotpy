@@ -8,7 +8,12 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This class holds example code how to use the dream algorithm
 '''
 
-import spotpy
+try:
+    import spotpy
+except ImportError:
+    import sys
+    sys.path.append(".")
+    import spotpy
 from spotpy.examples.spot_setup_hymod_exe import spot_setup
 #from spotpy.examples.spot_setup_hymod_python import spot_setup
 
