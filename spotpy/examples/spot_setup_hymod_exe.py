@@ -70,8 +70,9 @@ class spot_setup(object):
                 else:
                     params.write(str(round(x[i],5))+' ')
             params.close()
-            os.system('./hymod')
-            
+
+            os.system('./hymod_%s.%s' % (sys.version_info.major, sys.version_info.minor))
+
             #try: 
             if sys.version_info.major == 2:
                 SimRR = file('Q.out', 'r')
