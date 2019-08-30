@@ -34,6 +34,7 @@ Maximum Likelihood Estimation (`MLE`), Latin-Hypercube Sampling (`LHS`),
 Simulated Annealing (`SA`), Shuffled Complex Evolution Algorithm (`SCE-UA`), 
 Differential Evolution Adaptive Metropolis Algorithm (`DE-MCz`), 
 RObust Parameter Estimation (`ROPE`), Artificial Bee Colony (`ABC`),
+Dynamicallly Dimensioned Search algorithm (`DDS`), Pareto Archived Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
 Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`) and Fourier Amplitude Sensitivity Test (`FAST`).
 
 * Wide range of objective functions, likelihood functions and hydroligcal signatures to validate the sampled results. 

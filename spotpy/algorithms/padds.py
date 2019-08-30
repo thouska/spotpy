@@ -1,12 +1,11 @@
 import numpy as np
 from copy import deepcopy
 
-from scipy.spatial.qhull import ConvexHull, QhullError
-
 from spotpy.algorithms.dds import DDSGenerator
 from . import _algorithm
 from spotpy.parameter import ParameterSet
 import copy
+from scipy.spatial.qhull import ConvexHull, QhullError
 
 class BestValue(object):
     """
@@ -188,7 +187,7 @@ class padds(_algorithm):
 
         if metric == "hvc":
             self.hvc = HVC(np_random=self.np_random)
-
+        
         self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
@@ -217,6 +216,8 @@ class padds(_algorithm):
                     if self.dominance_flag != -1:  # means, that new parameter set is a new non-dominated solution
                         self.metric = self.calc_metric(metric)
                 self.parameter_current = x_curr
+                # update the new status structure
+                self.status.params_max, self.status.params_min = self.parameter_current, self.parameter_current
 
             print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')

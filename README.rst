@@ -38,7 +38,8 @@ We want to make this task as easy as possible. Some features you can use with th
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
   * Dynamically Dimensioned Search algorithm (`DDS`)
-
+  * Pareto Archived Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
+  
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
   * Bias

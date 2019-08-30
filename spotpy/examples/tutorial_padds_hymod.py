@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv', alt_objfun=None)
+    sampler=spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv')
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
     print(sampler.sample(rep, metric="crowd_distance"))
