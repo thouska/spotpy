@@ -1,8 +1,6 @@
 import numpy as np
 from copy import deepcopy
 
-from scipy.spatial.qhull import ConvexHull, QhullError
-
 from spotpy.algorithms.dds import DDSGenerator
 from . import _algorithm
 from spotpy.parameter import ParameterSet
@@ -188,7 +186,10 @@ class padds(_algorithm):
 
         if metric == "hvc":
             self.hvc = HVC(np_random=self.np_random)
-
+        
+        elif metric == "chc":
+            from scipy.spatial.qhull import ConvexHull, QhullError
+    
         self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
