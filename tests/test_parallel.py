@@ -18,7 +18,7 @@ class TestParallel(unittest.TestCase):
         # How many digits to match in case of floating point answers
         self.tolerance = 7
         #Create samplers for every algorithm:
-        self.rep = 987
+        self.rep = 21
         self.timeout = 10 #Given in Seconds
 
         self.dbformat = "ram"

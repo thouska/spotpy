@@ -110,7 +110,7 @@ class TestParameterSet(unittest.TestCase):
     def test_assign(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEquals(list(self.ps), values)
+        self.assertEqual(list(self.ps), values)
         # Test if wrong number of parameters raises
         with self.assertRaises(ValueError):
             self.ps(*values[:-1])
@@ -119,13 +119,13 @@ class TestParameterSet(unittest.TestCase):
         values = [1] * len(self.ps)
         self.ps(*values)
         ps_values = list(self.ps)
-        self.assertEquals(values, ps_values)
+        self.assertEqual(values, ps_values)
 
     def test_getitem(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEquals(self.ps['a'], 1.0)
-        self.assertEquals(self.ps[0], 1.0)
+        self.assertEqual(self.ps['a'], 1.0)
+        self.assertEqual(self.ps[0], 1.0)
 
     def test_getattr(self):
         values = [1] * len(self.ps)
@@ -134,15 +134,15 @@ class TestParameterSet(unittest.TestCase):
         with self.assertRaises(AttributeError):
             _ = self.ps.__x
 
-        self.assertEquals(self.ps.a, 1.0)
-        self.assertEquals(list(self.ps.random), list(self.ps), 'Access to random variable does not equal list of names')
+        self.assertEqual(self.ps.a, 1.0)
+        self.assertEqual(list(self.ps.random), list(self.ps), 'Access to random variable does not equal list of names')
 
         with self.assertRaises(AttributeError):
             _ = self.ps.x
 
     def test_setattr(self):
         self.ps.a = 2
-        self.assertEquals(self.ps[0], 2)
+        self.assertEqual(self.ps[0], 2)
 
     def test_dir(self):
         values = [1] * len(self.ps)
@@ -157,12 +157,12 @@ class TestParameterSet(unittest.TestCase):
     def test_str(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEquals(str(self.ps), 'parameters(a=1, b=1, c=1, d=1)')
+        self.assertEqual(str(self.ps), 'parameters(a=1, b=1, c=1, d=1)')
 
     def test_repr(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEquals(repr(self.ps), 'spotpy.parameter.ParameterSet()')
+        self.assertEqual(repr(self.ps), 'spotpy.parameter.ParameterSet()')
 
 
 class TestSetupVariants(unittest.TestCase):
