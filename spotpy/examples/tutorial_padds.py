@@ -8,9 +8,6 @@ except ModuleNotFoundError:
     import spotpy
 
 
-from spotpy.unittests.test_dds import FixedRandomizer
-from spotpy.unittests.test_dds import FixedRandomizerEndOfDataException
-
 def ZDT1(x):
     """
     Zitzler–Deb–Thiele's function number 1. Is used to benchmark or test algorithms, see also
