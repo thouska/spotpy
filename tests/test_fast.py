@@ -14,7 +14,6 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 
 # Test only untder Python 3 as lower versions results in a strange fft error

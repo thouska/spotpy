@@ -1,6 +1,6 @@
 from numba import jit
 
-@jit
+
 def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     """
     See https://www.proc-iahs.net/368/180/2015/piahs-368-180-2015.pdf for a scientific paper.
@@ -22,7 +22,6 @@ def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     # Initialize state(s) of quick tank(s)
     x_quick = [0,0,0]
     t = 0
-    outflow = []
     output = []
     # START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
 
@@ -49,7 +48,6 @@ def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
         # Compute total flow for timestep
         output.append(QS + outflow)
         t = t+1
-
 
     return output
 

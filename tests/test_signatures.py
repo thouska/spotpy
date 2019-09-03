@@ -14,8 +14,6 @@ except ImportError:
     import spotpy
 
 from spotpy.hydrology.signatures import SignatureMethod
-
-
 import spotpy.hydrology as sig
 
 class TestSignatures(unittest.TestCase):
