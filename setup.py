@@ -1,6 +1,6 @@
 # Copyright (c) 2015, Tobias Houska
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 setup(
@@ -13,9 +13,7 @@ setup(
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
   url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
   license = 'MIT',
-  packages = ["spotpy", "spotpy.examples", "spotpy.examples.hymod_python", "spotpy.examples.hymod_exe", 
-  "spotpy.examples.cmf_data", "spotpy.algorithms", "spotpy.parallel", "spotpy.gui", "spotpy.hydrology",
-  "spotpy.database"],
+  packages=find_packages(exclude=["tests*", "docs*"]),
   package_data={
    'spotpy.examples.hymod_exe': ['*'],
    'spotpy.examples.hymod_python': ['*'],
