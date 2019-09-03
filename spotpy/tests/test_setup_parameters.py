@@ -1,9 +1,11 @@
-"""
-Tests the various possibilities to create and use parameters
+'''
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska, Philipp Kraft
 
+Tests the various possibilities to create and use parameters
 Focus especially the usage of parameters as class attributes
-:author: philippkraft
-"""
+'''
 import sys
 import unittest
 try:

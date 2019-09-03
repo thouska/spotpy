@@ -1,4 +1,10 @@
-"""Utility functions for unit test execution"""
+'''
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska, Benjamin Manns
+
+Utility functions for unit test execution
+'''
 
 def repeat(times):
     """Repeats a single test the given number of times

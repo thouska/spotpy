@@ -1,3 +1,9 @@
+'''
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska, Philipp Kraft
+'''
+
 import unittest
 import sys
 try:
