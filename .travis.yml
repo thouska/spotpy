@@ -31,9 +31,8 @@ install:
 
 
 script:
-  - pip uninstall spotpy -y
   - py.test  tests/test_* --cov spotpy --cov-report term-missing -v
-  - mpirun -c 4 python spotpy/examples/dds/dds_parallel.py 100
-
+#  - mpirun -c 4 python spotpy/examples/tutorial_parallel_computing_hymod.py 100
+  - pip uninstall spotpy -y
 after_success:
   - coveralls
