@@ -9,7 +9,6 @@ This class holds example code how to use the dream algorithm
 '''
 
 import spotpy
-from spotpy.examples.spot_setup_hymod_exe import spot_setup
 #from spotpy.examples.spot_setup_hymod_python import spot_setup
 import sys
 
@@ -20,11 +19,15 @@ if __name__ == "__main__":
     #If you are working on a windows computer, this will be True
     if 'win' in sys.platform:
         parallel ='mpc'
+        from spotpy.examples.spot_setup_hymod_exe import spot_setup
+
    
    # If not you probably have a Mac or Unix system. Then save this file and start it
-   # from your terminal with "mpirun -c 20 your_script.py"
+   # from your terminal with "mpirun -c 20 python your_script.py"
     else:
         parallel = 'mpi'
+        from spotpy.examples.spot_setup_hymod_unix import spot_setup
+
     # Initialize the Hymod example (this runs on Windows systems only)
     # Checkout the spot_setup_hymod_exe.py to see how you need to adopt
     # your spot_setup class to run in parallel
@@ -39,7 +42,7 @@ if __name__ == "__main__":
     sampler.sample(rep)
     
     # Load results from file
-    results = spotpy.analyser.load_csv_results('Parallel_hymod')
+    #results = spotpy.analyser.load_csv_results('Parallel_hymod')
     
     # Plot best model run
-    spotpy.analyser.plot_bestmodelrun(results,spot_setup.evaluation())
+    #spotpy.analyser.plot_bestmodelrun(results,spot_setup.evaluation())
