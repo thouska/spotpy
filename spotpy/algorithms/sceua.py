@@ -77,7 +77,7 @@ class sceua(_algorithm):
 
         else:  # complex-evolution
             igs, x, xf, cx, cf, sce_vars = id_params_tuple
-            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.status, self.stochastic_parameters = sce_vars
+            self.npg, self.nopt, self.ngs, self.nspl, self.nps, self.bl, self.bu, self.stochastic_parameters, discarded_runs = sce_vars
             # Partition the population into complexes (sub-populations);
             k1 = np.arange(self.npg, dtype=int)
             k2 = k1 * self.ngs + igs
@@ -107,7 +107,7 @@ class sceua(_algorithm):
                 s = cx[lcs, :]
                 sf = cf[lcs]
 
-                snew, fnew, simulation = self._cceua(s, sf)
+                snew, fnew, simulation, discarded_runs = self._cceua(s, sf, discarded_runs)
                 likes.append(fnew)
                 pars.append(snew)
                 sims.append(simulation)
@@ -125,11 +125,8 @@ class sceua(_algorithm):
                 cf = np.sort(cf)
                 cx = cx[idx, :]
                 
-                if self.status.stop:
-                    print('Stopping simulation mode')
-                    return igs, likes, pars, sims, cx, cf, k1, k2
             # Replace the complex back into the population;
-            return igs, likes, pars, sims, cx, cf, k1, k2
+            return igs, likes, pars, sims, cx, cf, k1, k2, discarded_runs
 
     def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001):
         """
@@ -246,12 +243,13 @@ class sceua(_algorithm):
                 proceed = False
             
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
-                        self.nps, self.bl, self.bu, self.status, self.stochastic_parameters]
+                        self.nps, self.bl, self.bu, self.stochastic_parameters, self.discarded_runs]
             param_generator = ((rep, x, xf, cx, cf, sce_vars)
                                for rep in range(int(self.ngs)))
-            for igs, likes, pars, sims, cx, cf, k1, k2 in self.repeat(param_generator):
+            for igs, likes, pars, sims, cx, cf, k1, k2, discarded_runs in self.repeat(param_generator):
                 x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
+                self.discard_runs = discarded_runs
                 for i in range(len(likes)):
                     if not self.status.stop:    
                         like = self.postprocessing(i, pars[i], sims[i], chains=i+1)
@@ -331,7 +329,7 @@ class sceua(_algorithm):
         self.final_call()
         
 
-    def _cceua(self, s, sf):
+    def _cceua(self, s, sf, discarded_runs):
             #  This is the subroutine for generating a new point in a simplex
             #
             #   s(.,.) = the sorted simplex in order of increasing function values
@@ -380,12 +378,9 @@ class sceua(_algorithm):
         ##    fnew = functn(self.nopt,snew);
         _, _, simulations = _algorithm.simulate(self, (1, snew))
         like = self.postprocessing(1, snew, simulations, save_run=False, block_print=True)
-        self.discarded_runs+=1
+        discarded_runs+=1
             
         fnew = like
-        if self.status.stop:
-            print('Stopping complex evolution')
-            return snew, fnew, simulations
 
         # Reflection failed; now attempt a contraction point:
         if fnew > fw:
@@ -394,22 +389,18 @@ class sceua(_algorithm):
 
             _, _, simulations = _algorithm.simulate(self, (2, snew))
             like = self.postprocessing(2, snew, simulations, save_run=False, block_print=True)
-            self.discarded_runs+=1
+            discarded_runs+=1
             fnew = like
-            if self.status.stop:
-                print('Stopping complex evolution')
-                return snew, fnew, simulations
-
 
         # Both reflection and contraction have failed, attempt a random point;
             if fnew > fw:
                 snew = self._sampleinputmatrix(1, self.nopt)[0]
                 _, _, simulations = _algorithm.simulate(self, (3, snew))
                 like = self.postprocessing(3, snew, simulations, save_run=False, block_print=True)
-                self.discarded_runs+=1
+                discarded_runs+=1
             fnew = like
         # END OF CCE
-        return snew, fnew, simulations
+        return snew, fnew, simulations, discarded_runs
 
     def _sampleinputmatrix(self, nrows, npars):
         '''

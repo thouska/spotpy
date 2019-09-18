@@ -30,12 +30,10 @@ install:
   - pip install tables
 
 
-
 script:
   - pip uninstall spotpy -y
-  - py.test  spotpy/unittests/test_* --cov spotpy --cov-report term-missing -v
-  - python spotpy/examples/tutorial_fast_hymod.py
-  #- cd spotpy/examples/hymod_exe/ && ./hymod
-  - mpirun -c 2 python spotpy/examples/dds/dds_parallel.py 10
+  - py.test  tests/test_* --cov spotpy --cov-report term-missing -v
+  - mpirun -c 4 python spotpy/examples/dds/dds_parallel.py 100
+  
 after_success:
   - coveralls

@@ -62,14 +62,14 @@ Some features you can use with the SPOTPY package are:
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
   * Dynamically Dimensioned Search algorithm (`DDS`)
-  * Pareto Archived Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
+  * Pareto Archived - Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
 
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
   * Bias
   * PBias
-  * Nash-Sutcliff (`NSE`)
-  * logarithmic Nash-Sutcliff (`logNSE`)
+  * Nash-Sutcliffe (`NSE`)
+  * logarithmic Nash-Sutcliffe (`logNSE`)
   * logarithmic probability (`logp`)
   * Correlation Coefficient (`r`)
   * Coefficient of Determination (`r^2`)

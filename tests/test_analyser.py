@@ -3,8 +3,6 @@
 Copyright (c) 2018 by Benjamin Manns
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Tobias Houska, Benjamin Manns
-
-
 '''
 
 from __future__ import absolute_import

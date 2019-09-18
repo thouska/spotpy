@@ -1,9 +1,15 @@
+'''
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska, Benjamin Manns
+'''
+
 import unittest
 import sys
 import numpy as np
 
 from spotpy.examples.tutorial_padds import padds_spot_setup
-from spotpy.unittests.test_dds import FixedRandomizer
+from tests.test_dds import FixedRandomizer
 
 try:
     import spotpy

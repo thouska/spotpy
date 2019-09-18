@@ -3,8 +3,6 @@
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
-
-This file holds the example code from the Rosenbrock tutorial web-documention.
 '''
 
 import unittest

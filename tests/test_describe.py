@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Tests the describe module
+'''
+Copyright (c) 2018 by Tobias Houska
+This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
+:author: Tobias Houska, Philipp Kraft
+'''
 
-:author: philippkraft
-"""
 from __future__ import unicode_literals, absolute_import, division, print_function
 import sys
 import unittest
@@ -17,7 +18,7 @@ import inspect
 
 class SpotSetup(object):
     """
-    Just a fun setup using non ASCIÎ letters to chällenge describe in Python 2
+    Just a fun setup using non ASCIÎ letters to challenge describe in Python 2
     """
     a = Uniform(-1, 1, doc='α parameter')
     beta = Uniform(-1, 1, doc='β parameter')

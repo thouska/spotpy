@@ -99,5 +99,6 @@ class spot_setup(object):
         return self.evals
     
     def objectivefunction(self,simulation,evaluation, params=None):
-        like = spotpy.objectivefunctions.nashsutcliffe(evaluation,simulation)     # Works good for dream sampler
+        like = spotpy.objectivefunctions.nashsutcliffe(evaluation,simulation)     # Just an example, please choose an appropriate objective function depending on the used algorithm
         return like
+

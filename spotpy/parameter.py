@@ -282,8 +282,8 @@ class List(Base):
     A specialization to sample from a list (or other iterable) of parameter sets.
 
     Usage:
-    >>>list_param = List([1,2,3,4], repeat=True)
-    >>>list_param()
+    list_param = List([1,2,3,4], repeat=True)
+    list_param()
     1
     """
     __rndargs__ = ('values', )
@@ -528,23 +528,23 @@ class ParameterSet(object):
     An instance of ParameterSet is sent to the users setup.simulate method.
 
     Usage:
-    >>> ps = ParameterSet(...)
+     ps = ParameterSet(...)
 
     Update values by arguments or keyword arguments
 
-    >>> ps(0, 1, 2)
-    >>> ps(a=1, c=2)
+     ps(0, 1, 2)
+     ps(a=1, c=2)
 
     Assess parameter values of this parameter set
 
-    >>> ps[0] == ps['a'] == ps.a
+     ps[0] == ps['a'] == ps.a
 
     A parameter set is a sequence:
 
-    >>> list(ps)
+     list(ps)
 
     Assess the parameter set properties as arrays
-    >>> [ps.maxbound, ps.minbound, ps.optguess, ps.step, ps.random]
+     [ps.maxbound, ps.minbound, ps.optguess, ps.step, ps.random]
 
 
     """
@@ -552,12 +552,12 @@ class ParameterSet(object):
         """
         Creates a set of parameters from a parameter info array.
         To create the parameter set from a setup use either:
-        >>> setup = ...
-        >>> ps = ParameterSet(get_parameters_array(setup))
+         setup = ...
+         ps = ParameterSet(get_parameters_array(setup))
 
         or you can just use a function for this:
 
-        >>> ps = create_set(setup)
+         ps = create_set(setup)
 
         :param param_info: A record array containing the properties of the parameters
                of this set.
@@ -594,7 +594,7 @@ class ParameterSet(object):
     def __getitem__(self, item):
         """
         Provides item access
-        >>> ps[0] == ps['a']
+         ps[0] == ps['a']
 
         :raises: KeyError, IndexError and TypeError
         """
@@ -605,8 +605,8 @@ class ParameterSet(object):
     def __setitem__(self, key, value):
         """
         Provides setting of item
-        >>> ps[0] = 1
-        >>> ps['a'] = 2
+         ps[0] = 1
+         ps['a'] = 2
         """
         if key in self.__lookup:
             key = self.__lookup[key]
@@ -615,7 +615,7 @@ class ParameterSet(object):
     def __getattr__(self, item):
         """
         Provides the attribute access like
-        >>> print(ps.a)
+         print(ps.a)
         """
         if item.startswith('_'):
             raise AttributeError('{} is not a member of this parameter set'.format(item))
@@ -629,7 +629,7 @@ class ParameterSet(object):
     def __setattr__(self, key, value):
         """
         Provides setting of attributes
-        >>> ps.a = 2
+         ps.a = 2
         """
         # Allow normal usage
         if key.startswith('_') or key not in self.__lookup:
@@ -741,11 +741,11 @@ def create_set(setup, valuetype='random', **kwargs):
     This function is typically used to test models, before they are used in a sampling
 
     Usage:
-    >>> import spotpy
-    >>> from spotpy.examples.spot_setup_rosenbrock import spot_setup
-    >>> model = spot_setup()
-    >>> param_set = spotpy.parameter.create_set(model, x=2)
-    >>> result = model.simulation(param_set)
+     import spotpy
+     from spotpy.examples.spot_setup_rosenbrock import spot_setup
+     model = spot_setup()
+     param_set = spotpy.parameter.create_set(model, x=2)
+     result = model.simulation(param_set)
 
     :param setup: A spotpy compatible Model object
     :param valuetype: Select between 'optguess' (defaul), 'random', 'minbound' and 'maxbound'.
@@ -771,15 +771,14 @@ def get_constant_indices(setup, unaccepted_parameter_types=(Constant,)):
     one can omit the parameters function of the setup.
     
     Usage:
+     from spotpy import parameter
+     class SpotpySetup:
+         # Add parameters p1 & p2 to the setup. 
+         p1 = parameter.Uniform(20, 100)
+         p2 = parameter.Gamma(2.3)
     
-    >>> from spotpy import parameter
-    >>> class SpotpySetup:
-    >>>     # Add parameters p1 & p2 to the setup. 
-    >>>     p1 = parameter.Uniform(20, 100)
-    >>>     p2 = parameter.Gamma(2.3)
-    >>>
-    >>> setup = SpotpySetup()
-    >>> parameters = parameter.get_parameters_from_setup(setup)
+    setup = SpotpySetup()
+    parameters = parameter.get_parameters_from_setup(setup)
     """
 
     # Get all class variables
@@ -811,14 +810,14 @@ def get_parameters_from_setup(setup):
     
     Usage:
     
-    >>> from spotpy import parameter
-    >>> class SpotpySetup:
-    >>>     # Add parameters p1 & p2 to the setup. 
-    >>>     p1 = parameter.Uniform(20, 100)
-    >>>     p2 = parameter.Gamma(2.3)
-    >>>
-    >>> setup = SpotpySetup()
-    >>> parameters = parameter.get_parameters_from_setup(setup)
+     from spotpy import parameter
+     class SpotpySetup:
+         # Add parameters p1 & p2 to the setup. 
+         p1 = parameter.Uniform(20, 100)
+         p2 = parameter.Gamma(2.3)
+    
+     setup = SpotpySetup()
+     parameters = parameter.get_parameters_from_setup(setup)
     """
 
     # Get all class variables
@@ -855,19 +854,3 @@ def get_parameters_from_setup(setup):
         parameters.extend(setup.parameters)
 
     return parameters
-
-
-if __name__ == '__main__':
-    class TestSetup:
-        a = Uniform(0, 1)
-        b = Triangular(0, 1, right=10, doc='A Triangular parameter')
-
-        def __init__(self):
-            self.parameters = [Uniform('c', 0, 1), Uniform('d', 0, 2)]
-
-    params = get_parameters_from_setup(TestSetup)
-    assert len(params) == 4, 'Expected 2 Parameters in the test setup, got {}'.format(len(params))
-    assert params[0] is TestSetup.a, 'Expected parameter a to be first in params'
-    assert params[1] is TestSetup.b
-    print('\n'.join(str(p) for p in params))
-
