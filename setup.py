@@ -17,6 +17,7 @@ setup(
   package_data={
    'spotpy.examples.hymod_exe': ['*'],
    'spotpy.examples.hymod_python': ['*'],
+   'spotpy.examples.hymod_unix': ['*'],
    },
   #include_package_data = True,
   use_2to3 = True,
