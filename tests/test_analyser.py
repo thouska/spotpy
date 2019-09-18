@@ -200,7 +200,8 @@ class TestAnalyser(unittest.TestCase):
     def test_plot_parameter_uncertainty(self):
         if sys.version_info >= (3, 6):
             posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
-            self.assertAlmostEqual(len(posterior), self.rep*0.1, 2)
+            #assertAlmostEqual tests on after comma accuracy, therefor we divide both by 100
+            self.assertAlmostEqual(len(posterior)/100, self.rep*0.100, 1)
             self.assertEqual(type(posterior), type(np.array([])))
             spotpy.analyser.plot_parameter_uncertainty(posterior,
                                                        hymod_setup().evaluation(),
