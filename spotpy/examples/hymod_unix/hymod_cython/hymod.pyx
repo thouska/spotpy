@@ -89,7 +89,7 @@ def excess(x_loss,cmax,bexp,Pval,PETval):
     return ER1,ER2,xn
 
 
-cdef public void hymod_run():
+cdef public void hymod_run(owd):
     if not hasattr(sys, 'argv'):
         sys.argv  = ['']
     if len(sys.argv) != 6:
@@ -102,7 +102,9 @@ cdef public void hymod_run():
         x = sys.argv
         x.pop(0)
 
-    owd = os.path.dirname(os.path.realpath(__file__))
+    # try to use path provided from cpp
+    # owd = os.path.dirname(os.path.realpath(__file__))
+
     hymod_path = owd + os.sep + 'hymod_input.csv'
     Precip, PET = [], []
 
