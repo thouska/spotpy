@@ -16,10 +16,10 @@ setup(
   packages=find_packages(exclude=["tests*", "docs*"]),
   package_data={
    'spotpy.examples.hymod_exe': ['*'],
-   'spotpy.examples.hymod_python': ['*'],
    'spotpy.examples.hymod_unix': ['*'],
+   'spotpy.examples.hymod_python': ['*']
    },
-  #include_package_data = True,
+  include_package_data = True,
   use_2to3 = True,
   keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, DDS, PA-DDS, Uncertainty, Calibration, Model, Signatures',
   classifiers = [
