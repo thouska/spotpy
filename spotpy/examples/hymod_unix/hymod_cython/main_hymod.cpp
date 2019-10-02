@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Python.h"
 #include "hymod.h"
+#include <unistd.h>
 
 int main(int argc, char *argv[])
 {
@@ -27,9 +28,22 @@ int main(int argc, char *argv[])
         Py_Finalize();
         return -1; //error
     }
-    
-    hymod_run();
 
+    /*const std::filesystem::path owd;
+    std::filesystem::current_path(&owd);
+    
+    getcwd(cwd, sizeof(cwd))*/
+
+    char cwd[256];
+    if (getcwd(cwd, sizeof(cwd)) == NULL) 
+    {
+        std::cout << "Error in getcwd" << std::endl;
+        Py_Finalize();
+        return -2; //error
+    }
+
+    PyObject *py_cwd = Py_BuildValue("s", cwd);
+    hymod_run(py_cwd);
 
     Py_Finalize(); //Needed!
 
