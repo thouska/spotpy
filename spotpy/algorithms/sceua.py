@@ -249,7 +249,7 @@ class sceua(_algorithm):
             for igs, likes, pars, sims, cx, cf, k1, k2, discarded_runs in self.repeat(param_generator):
                 x[k2, :] = cx[k1, :]
                 xf[k2] = cf[k1]
-                self.discard_runs = discarded_runs
+                self.discarded_runs = discarded_runs
                 for i in range(len(likes)):
                     if not self.status.stop:    
                         like = self.postprocessing(i, pars[i], sims[i], chains=i+1)
