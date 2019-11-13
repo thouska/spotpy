@@ -5,18 +5,15 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 This file holds the standards for every algorithm.
 '''
-
-
-
-
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 from spotpy import database
 from spotpy import parameter
 import numpy as np
 import time
 import threading
-import inspect
-import sys
 
 
 try:
@@ -27,8 +24,7 @@ except ImportError:
     # finished and the main process can not access it and put it as garbage away (Garbage collectors cause)
     # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
     # workaround
-    from queue import Queue
-
+    from Queue import Queue
 
 
 class _RunStatistic(object):
@@ -292,7 +288,9 @@ class _algorithm(object):
         # the normal work on the chains
         self.repeat = ForEach(self.simulate)
 
-
+        # method "save" needs to know whether objective function result is list or float, default is float
+        self.like_struct_typ = type(1.1)
+        
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
