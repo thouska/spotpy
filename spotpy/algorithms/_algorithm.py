@@ -5,7 +5,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 This file holds the standards for every algorithm.
 '''
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -15,8 +14,6 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
-import inspect
-import sys
 
 
 try:
@@ -28,7 +25,6 @@ except ImportError:
     # However this slows down the whole simulation process and is a boring bug. Python3.x does not need this
     # workaround
     from Queue import Queue
-
 
 
 class _RunStatistic(object):
@@ -292,13 +288,9 @@ class _algorithm(object):
         # the normal work on the chains
         self.repeat = ForEach(self.simulate)
 
-
         # method "save" needs to know whether objective function result is list or float, default is float
         self.like_struct_typ = type(1.1)
-
-
-
-
+        
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
@@ -355,17 +347,17 @@ class _algorithm(object):
     def save(self, like, randompar, simulations, chains=1):
         # Initialize the database if no run was performed so far
         self._init_database(like, randompar, simulations)
-
-        if self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold):
+        # Test if like and the save threshold are float/list and compare accordingly
+        if self.__is_list_type(like) and self.__is_list_type(self.save_threshold):
             if all(i > j for i, j in zip(like, self.save_threshold)): #Compares list/list
                 self.datawriter.save(like, randompar, simulations, chains=chains)
-        if not self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+        if (not self.__is_list_type(like)) and (not self.__is_list_type(self.save_threshold)):
             if like>self.save_threshold: #Compares float/float
                 self.datawriter.save(like, randompar, simulations, chains=chains)
-        if self.__is_list_type(self.like_struct_typ) and not self.__is_list_type(self.save_threshold):
+        if self.__is_list_type(like) and (not self.__is_list_type(self.save_threshold)):
             if like[0]>self.save_threshold: #Compares list/float
                 self.datawriter.save(like, randompar, simulations, chains=chains)
-        if not self.__is_list_type(self.like_struct_typ) and self.__is_list_type(self.save_threshold): #Compares float/list
+        if (not self.__is_list_type(like)) and self.__is_list_type(self.save_threshold): #Compares float/list
             if (like > self.save_threshold).all:
                 self.datawriter.save(like, randompar, simulations, chains=chains)
 
