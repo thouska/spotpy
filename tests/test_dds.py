@@ -126,6 +126,24 @@ class TestDDS(unittest.TestCase):
     def test_run_own_initial_2(self):
         self.run_a_dds("own_input_2")
 
+    def outside_bound(self, x_curr, min_bound, max_bound):
+        out_left = min_bound > x_curr  # [x<x_curr self.min_bound, self.max_bound
+        out_right = max_bound < x_curr
+
+        self.assertNotIn(True, out_right)
+        self.assertNotIn(True, out_left)
+
+    def test_bounds(self):
+        self.spot_setup._objfunc_switcher("cmf_style")
+        sampler = spotpy.algorithms.dds(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
+                                        sim_timeout=self.timeout)
+        sampler._set_np_random(self.f_random)
+
+        results = sampler.sample(1000,1)
+        print("results",results[0]['sbest'])
+        print(sampler.min_bound, sampler.max_bound)
+        self.outside_bound(results[0]['sbest'], sampler.min_bound, sampler.max_bound)
+
     def run_a_dds(self, run):
         original_result = self.json_helper(run)
 

@@ -53,6 +53,21 @@ class spot_setup(object):
                            for j in range(2)] + [Uniform('c' + str(j), -500, 700, 1.5, 3.0, -500, 700,
                                                          doc=str(j) + 'continuous parameter within a boundary')
                                                  for j in range(8)]
+        elif name == "cmf_style":
+            self.objfunc = ackley10
+            self.params = [Uniform(.5, 5., optguess=1.5, doc='saturated depth at beginning'),
+                           Uniform(.001, .8, optguess=.1, doc='porosity of matrix [m3 Pores / m3 Soil]'),
+                           Uniform(1., 240., optguess=10.,
+                                   doc='ssaturated conductivity of macropores [m/day]'),
+                           Uniform(.0001, .5, optguess=.05, doc='macropore fraction [m3/m3]'),
+                           Uniform(.005, 1., optguess=.05,
+                                   doc='mean distance between the macropores [m]'),
+                           Uniform(0., 1., optguess=0.,
+                                   doc='water content when matric potential pointing towards -infinity'),
+                           Uniform(.5, 1., optguess=.99,
+                                   doc='wetness above which the parabolic extrapolation is used instead of VGM'),
+                           Uniform(0., 50, optguess=.1,
+                                   doc='exchange rate [1/day] for macropore-matrix-exchange')]
 
     def parameters(self):
         if self.params is None:
