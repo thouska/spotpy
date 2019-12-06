@@ -48,7 +48,7 @@ IMPLEMENTATION OF TWO COMPLEMENTING VARIANCE-BASED ALGORITHMS, 2012] (https://ww
 
 $$N = (1+4M^2(1+(k-2)d))k$$ 
 
-with N = needed parameter iterations, M= inference factor (SPOTPY default M=4) and d= frequenzy step (SPOTPY default d=2) and k as the number of parameters of your model.
+with N = needed parameter iterations, M= inference factor (SPOTPY default M=4) and d= frequency step (SPOTPY default d=2) and k as the number of parameters of your model.
 
 You can start the simulation with
 
@@ -99,9 +99,9 @@ Just note that this works not for 'MLE', 'MCMC', 'SCE-UA', 'SA', 'DE-MCz' and 'R
 
 ## Sampling from a given parameter list
 
-SPOTPY enables you to sample directly from a given parameter list. This can be useful if you want to check specific parameter combinations or if you want to resample
+SPOTPY enables you to sample directly from a given parameter list. This can be useful if you want to check specific parameter combinations or if you want to re-sample
 calibrated parameter set, in order to test different model setups or to save further model outputs. To use this functionality you just have to rewrite your paramters function
-in your spotpy setup. We will show you a example how to test parameters of the rosenbrock tutorial. Just give the values you want to test as a list into the spotpy.parameter.List function:
+in your spotpy setup. We will show you a example how to test parameters of the Rosenbrock tutorial. Just give the values you want to test as a list into the spotpy.parameter.List function:
 
     def __init__(self):
         self.params = [spotpy.parameter.List('x',[1,2,3,4,6,7,8,9,0]), #Give possible x values as a List
@@ -128,13 +128,13 @@ After that you will be able to sample the parameter combinations with the normal
 	sampler=spotpy.algorithms.mc(spot_setup(),dbname='Iterator_example',  dbformat='csv') #Parameter lists can be sampled with MC
 	sampler.sample(10) #Choose equaly (or less) repetitions as you have parameters in your List
 	
-This will also run with MPI parallelzation.
+This will also run with MPI parallelization.
 
 ## Create a own database
 
-SPOTPY enables you to save results of the sampling in a own database. Users may request different sorts of databases like SQL, hdf5 files, tab separated txt files, xls timeseries.
+SPOTPY enables you to save results of the sampling in a own database. Users may request different sorts of databases like SQL, hdf5 files, tab separated txt files, xls time-series.
 SPOTPY does not provide all these databases yet, BUT any sort of database can be connected to SPOTPY. Therefore one just has to write his one interface. We provide a simple example how this can be done:
-We use the above created example and add a selfmade txt database into a new save function:
+We use the above created example and add a self-made txt database into a new save function:
 
 	class spot_setup(object):
 		slow = 1000
@@ -172,10 +172,10 @@ out the keywords 'dbname' and 'dbformat' when you initialize the algorithm:
 	spot_setup=spot_setup()
 	'Leave out dbformat and dbname and spotpy will return results in spot_setup.save function'
 	sampler=spotpy.algorithms.mc(spot_setup) 
-	sampler.sample(10) #Choose equaly or less repetitions as you have parameters in your List
+	sampler.sample(10) #Choose equally or less repetitions as you have parameters in your List
 	spot_setup.database.close() # Close the created txt file
 	
-Apart from that, some users might be interested not to save there simulation results and only the objective functions and the paramter values,
+Apart from that, some users might be interested not to save there simulation results and only the objective functions and the parameter values,
 e.g. to save memory space. This is supported during the initialization of the algorithm, by setting save_sim to False (default=True):
 
 	sampler = spotpy.algorithms.mc(spotpy_setup() dbname='no_simulations', dbformat='csv', save_sim=False)
