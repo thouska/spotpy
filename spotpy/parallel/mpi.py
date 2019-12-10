@@ -88,7 +88,9 @@ class ForEach(object):
         self.rank = self.comm.Get_rank()
         self.process = process
         self.phase = None
-        self.on_worker_terminate = None
+        self.on_worker_terminate = kwargs.get('on_worker_terminate', None)
+        if not callable(self.on_worker_terminate) and self.on_worker_terminate is not None:
+            raise TypeError('on_worker_terminate must be a callable of None')
         if self.rank == 0:
             # The slots are a place for the master to remember which worker is doing something
             # Idle slots contain None
