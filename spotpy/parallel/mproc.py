@@ -27,7 +27,7 @@ class ForEach(object):
     We using the pathos multiprocessing module and the orderd map function where results are saved until results in
     the given order are caluculated. We yielding back the result so a generator object is created.
     """
-    def __init__(self, process):
+    def __init__(self, process, **kwargs):
         self.size = process_count or mp.cpu_count()
         self.process = process
         self.phase=None

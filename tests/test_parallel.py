@@ -41,5 +41,45 @@ class TestParallel(unittest.TestCase):
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
 
+    def test_mpi(self):
+        """Forgiving test case for the MPI repeater object.
+
+        Usage:
+            mpirun -np N python -m unittest test_parallel.TestParallel.test_mpi
+        """
+        from warnings import warn
+
+        try:
+            from mpi4py import MPI
+        except ImportError:
+            warn('You must install mpi4py in order to run test_mpi()')
+            return True
+
+        comm = MPI.COMM_WORLD
+        rank = comm.rank
+        size = comm.size
+
+        if size < 2:
+            warn('You must run test_mpi() with at least two processes')
+            return True
+
+        sampler = spotpy.algorithms.mc(spot_setup(), parallel='mpi', dbname='Rosen', dbformat=self.dbformat,
+                                       sim_timeout=self.timeout,
+                                       parallel_kwargs=dict(mpicomm=comm))
+
+        if rank == 0:
+            # no special treatment for spotpy master
+            sampler.sample(self.rep)
+        else:
+            # spotpy workers are terminated with an `exit()` call
+            # so we have to catch this right here
+            with self.assertRaises(SystemExit):
+                sampler.sample(self.rep)
+
+        if rank == 0:
+            results = sampler.getdata()
+            self.assertEqual(len(results), self.rep)
+
+
 if __name__ == '__main__':
     unittest.main(exit=False)
