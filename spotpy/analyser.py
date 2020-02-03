@@ -232,7 +232,7 @@ def calc_like(results,evaluation,objectivefunction):
     likes=[]
     sim=get_modelruns(results)
     for s in sim:
-        likes.append(objectivefunction(list(s),evaluation))
+        likes.append(objectivefunction(evaluation,list(s)))
     return likes
 
 def compare_different_objectivefunctions(like1,like2):
