@@ -14,8 +14,8 @@ theme:
 
 nav:
     - Home: index.md
-    - Getting Started: getting_started.md
     - Tutorial:
+        - Getting Started: getting_started.md
         - 1-Introduction: Tutorial\1-Introduction.md
         - 2-Rosenbrock: Tutorial\2-Rosenbrock.md
         - 3-Griewank: Tutorial\3-Griewank.md
