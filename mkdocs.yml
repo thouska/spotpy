@@ -15,15 +15,15 @@ theme:
 nav:
     - Home: index.md
     - Tutorial:
-        - Getting Started: getting_started.md
-        - 1-Introduction: Tutorial\1-Introduction.md
-        - 2-Rosenbrock: Tutorial\2-Rosenbrock.md
-        - 3-Griewank: Tutorial\3-Griewank.md
-        - 4-Ackley: Tutorial\4-Ackley.md
-        - 5-Hydrological_model: Tutorial\5-Hydrological_model.md
-        - 6-Working with DREAM and Hymod: Tutorial\6-Working with DREAM and Hymod.md
-        - 7-Advanced_hints: Tutorial\7-Advanced_hints.md
-        - 8-Algorithm_guide: Tutorial\8-Algorithm_guide.md
+        - 1-Introduction: Introduction.md
+        - 2-Getting Started: getting_started.md
+        - 3-Rosenbrock: Rosenbrock.md
+        - 4-Griewank: Griewank.md
+        - 5-Ackley: Ackley.md
+        - 6-Hydrological_model: Hydrological_model.md
+        - 7-Working with DREAM and Hymod: Working with DREAM and Hymod.md
+        - 8-Advanced_hints: Advanced_hints.md
+        - 9-Algorithm_guide: Algorithm_guide.md
 
     - License: license.md
 
