@@ -22,7 +22,7 @@ sampling and an analyser class for the plotting of results by the sampling.
                - sqlite3 (optional) (https://pypi.python.org/pypi/sqlite3/)
 
                :help: For specific questions, try to use the documentation website at:
-                http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
+                https://spotpy.readthedocs.io/en/latest/
 
 For general things about parameter optimization techniques have a look at:
 https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
@@ -39,4 +39,4 @@ from . import examples            # Contains tutorials how to use SPOTPY
 from . import describe            # Contains some helper functions to describe samplers and set-ups
 from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 
-__version__ = '1.5.8'
+__version__ = '1.5.9'
