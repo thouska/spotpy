@@ -10,12 +10,15 @@ Holds functions to analyse results out of the database.
 Note: This part of SPOTPY is in alpha status and not yet ready for production use.
 '''
 
+from spotpylogging import get_logger
 import numpy as np
 import spotpy
 
 font = {'family' : 'calibri',
     'weight' : 'normal',
     'size'   : 18}
+
+logger = get_logger('analyser')
 
 def load_csv_results(filename, usecols=None):
     """
@@ -34,13 +37,13 @@ def load_csv_results(filename, usecols=None):
 
 def load_hdf5_results(filename):
     """
-    Get an array of your results in the given file. 
-    
-    :filename: Expects an available filename, without the .h5 ending, 
+    Get an array of your results in the given file.
+
+    :filename: Expects an available filename, without the .h5 ending,
     in your working directory
     :type: str
 
-    :return: Result array, simulation is an ndarray, 
+    :return: Result array, simulation is an ndarray,
     which is different to structured arrays return by the csv/sql/ram databases
     :rtype: array
     """
@@ -64,14 +67,14 @@ def load_csv_parameter_results(filename, usecols=None):
     line = ofile.readline()
     header=line.split(',')
     ofile.close()
-    
+
     words=[]
     index =[]
-    for i,word in enumerate(header): 
+    for i,word in enumerate(header):
         if word.startswith('par'):
            words.append(word)
            index.append(i)
-    return np.genfromtxt(filename+'.csv', delimiter=',', names=words, 
+    return np.genfromtxt(filename+'.csv', delimiter=',', names=words,
                          usecols=index, invalid_raise=False, skip_header=1)
 
 def get_header(results):
@@ -161,7 +164,7 @@ def get_maxlikeindex(results,verbose=True):
     text2=str(' has the highest objectivefunction with: ')
     textv=text+str(index[0][0])+text2+value
     if verbose:
-        print(textv)
+        logger.info(textv)
     return index, maximum
 
 def get_minlikeindex(results):
@@ -185,7 +188,7 @@ def get_minlikeindex(results):
     index=np.where(likes==minimum)
     text2=str(' has the lowest objectivefunction with: ')
     textv=text+str(index[0][0])+text2+value
-    print(textv)
+    logger.info(textv)
 
     return index, minimum
 
@@ -222,7 +225,7 @@ def calc_like(results,evaluation,objectivefunction):
 
     :evaluation: Expects values, which correspond to your simulations
     :type: list
-    
+
     :objectivefunction: Takes evaluation and simulation data and returns a objectivefunction, e.g. spotpy.objectvefunction.rmse
     :type: function
 
@@ -250,11 +253,11 @@ def compare_different_objectivefunctions(like1,like2):
     """
     from scipy import stats
     out = stats.ttest_ind(like1, like2, equal_var=False)
-    print(out)
+    logger.info(out)
     if out[1]>0.05:
-        print('like1 is NOT signifikant different to like2: p>0.05')
+        logger.info('like1 is NOT signifikant different to like2: p>0.05')
     else:
-        print('like1 is signifikant different to like2: p<0.05' )
+        logger.info('like1 is signifikant different to like2: p<0.05' )
     return out
 
 def get_posterior(results,percentage=10, maximize=True):
@@ -266,7 +269,7 @@ def get_posterior(results,percentage=10, maximize=True):
 
     :percentag: Optional, ratio of values that will be deleted.
     :type: float
-    
+
     :maximize: If True (default), higher "like1" column values are assumed to be better.
                If False, lower "like1" column values are assumed to be better.
 
@@ -305,7 +308,7 @@ def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posterior
     plt.legend(loc='upper right')
     fig.savefig(fig_name,dpi=300)
     text='A plot of the parameter uncertainty has been saved as '+fig_name
-    print(text)
+    logger.info(text)
 
 
 
@@ -341,7 +344,7 @@ def get_best_parameterset(results,maximize=True):
     text=''
     for i in range(len(parameter_names)):
         text+=parameter_names[i]+'='+str(best_parameter_set[i])+', '
-    print('Best parameter set:\n'+text[:-2])
+    logger.info('Best parameter set:\n'+text[:-2])
     return get_parameters(results[index])
 
 def get_min_max(spotpy_setup):
@@ -391,14 +394,14 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
     """
     import math
     likes=results['like'+str(like_index)]
-    print('Number of model runs:', likes.size)
+    logger.info('Number of model runs: %s', likes.size)
     parnames = get_parameternames(results)
     parnumber=len(parnames)
-    print('Number of parameters:', parnumber)
-    
+    logger.info('Number of parameters: %s', parnumber)
+
     rest = likes.size % (parnumber)
     if rest != 0:
-        print(""""
+        logger.info(""""
             Number of samples in model output file must be a multiple of D,
             where D is the number of parameters in your parameter file.
           We handle this by ignoring the last """, rest, """runs.""")
@@ -410,26 +413,26 @@ def get_sensitivity_of_fast(results,like_index=1,M=4, print_to_console=True):
     omega[0] = math.floor((N - 1) / (2 * M))
     m = math.floor(omega[0] / (2 * M))
 
-    print('m =', m)
+    logger.info('m = %s', m)
     if m >= (parnumber - 1):
         omega[1:] = np.floor(np.linspace(1, m, parnumber - 1))
     else:
         omega[1:] = np.arange(parnumber - 1) % m + 1
 
-    print('Omega =', omega)
+    logger.info('Omega = %s', omega)
     # Calculate and Output the First and Total Order Values
     if print_to_console:
-        print("Parameter First Total")
+        logger.info("Parameter First Total")
     Si = dict((k, [None] * parnumber) for k in ['S1', 'ST'])
-    print(Si)
+    logger.info(Si)
     for i in range(parnumber):
         l = np.arange(i * N, (i + 1) * N)
-        print(l)
+        logger.info(l)
         Si['S1'][i] = _compute_first_order(likes[l], N, M, omega[0])
         Si['ST'][i] = _compute_total_order(likes[l], N, omega[0])
-        print(Si)
+        logger.info(Si)
         if print_to_console:
-            print("%s %f %f" %
+            logger.info("%s %f %f" %
                   (parnames[i], Si['S1'][i], Si['ST'][i]))
     return Si
 
@@ -464,12 +467,12 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
     no_values = []
     index=[]
     no_index=[]
-    
+
     try:
-        threshold = np.sort(list(Si.values())[1])[-number_of_sensitiv_pars]    
+        threshold = np.sort(list(Si.values())[1])[-number_of_sensitiv_pars]
     except IndexError:
         threshold = 0
-    
+
     first_sens_call=True
     first_insens_call=True
     try:
@@ -487,7 +490,7 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
             else:
                 ax.bar(j, list(Si.values())[1][j], color='blue')
             first_sens_call=False
-            
+
 
         else:
             #names.append('')
@@ -506,17 +509,17 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
     ax.legend()
     ax.set_xticks(np.arange(0,len(parnames)))
     xtickNames = ax.set_xticklabels(parnames, color='grey')
-    
+
     plt.setp(xtickNames, rotation=90)
     for name_id in names:
         ax.get_xticklabels()[name_id].set_color("black")
-    
+
     #ax.set_xticklabels(['0']+parnames)
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
     plt.tight_layout()
     fig.savefig(fig_name,dpi=300)
-    
+
 
 def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
@@ -583,9 +586,9 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True, fig_name = '
     # sum mean to the confidence interval
     ci = [mean + critval * stddev / np.sqrt(len(data)) for critval in t_bounds]
     value="Mean: %f" % mean
-    print(value)
+    logger.info(value)
     value="Confidence Interval 95%%: %f, %f" % (ci[0], ci[1])
-    print(value)
+    logger.info(value)
     threshold=ci[1]
     happend=None
     bestlike=[data[0]]
@@ -606,7 +609,7 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True, fig_name = '
         plt.plot(bestlike)
     plt.savefig(fig_name)
 
-def plot_parametertrace_algorithms(result_lists, algorithmnames, spot_setup, 
+def plot_parametertrace_algorithms(result_lists, algorithmnames, spot_setup,
                                    fig_name='parametertrace_algorithms.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
@@ -635,7 +638,7 @@ def plot_parametertrace_algorithms(result_lists, algorithmnames, spot_setup,
             ax.plot([1]*rep,'r--')
             ax.set_xlim(0,rep)
             ax.set_ylim(parameter['minbound'][j],parameter['maxbound'][j])
-            
+
     #plt.tight_layout()
     fig.savefig(fig_name, bbox_inches='tight')
 
@@ -673,7 +676,7 @@ def plot_parametertrace(results,parameternames=None,fig_name='Parameter_trace.pn
         i+=1
     fig.savefig(fig_name)
     text='The figure as been saved as "'+fig_name
-    print(text)
+    logger.info(text)
 
 def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1, fig_name='Posterior_parametertrace.png'):
     """
@@ -710,7 +713,7 @@ def plot_posterior_parametertrace(results,parameternames=None,threshold=0.1, fig
         i+=1
     fig.savefig(fig_name)
     text='The figure as been saved as '+fig_name
-    print(text)
+    logger.info(text)
 
 def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulation',xlabel='Time',bestperc=0.1, fig_name='bestmodelrun.png'):
     """
@@ -762,7 +765,7 @@ def plot_posterior(results,evaluation,dates=None,ylabel='Posterior model simulat
     plt.title('Maximum objectivefunction of Simulations with '+bestparameterstring[0:-2])
     fig.savefig(fig_name)
     text='The figure as been saved as '+fig_name
-    print(text)
+    logger.info(text)
 
 
 def plot_bestmodelrun(results,evaluation,fig_name ='Best_model_run.png'):
@@ -795,8 +798,8 @@ def plot_bestmodelrun(results,evaluation,fig_name ='Best_model_run.png'):
     plt.legend(loc='upper right')
     fig.savefig(fig_name,dpi=300)
     text='A plot of the best model run has been saved as '+fig_name
-    print(text)
-    
+    logger.info(text)
+
 
 
 def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Best model simulation',xlabel='Date',objectivefunctionmax=True,calculatelike=True,fig_name='bestmodelrun.png'):
@@ -848,7 +851,7 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
             index=likes.index(maximum)
             bestmodelrun=list(sim[index])
             bestparameterset=list(par[index])
-            print(bestparameterset)
+            logger.info(bestparameterset)
 
         else:
             if objectivefunctionmax==True:
@@ -872,7 +875,7 @@ def plot_bestmodelruns(results,evaluation,algorithms=None,dates=None,ylabel='Bes
 
         fig.savefig(fig_name)
         text='The figure as been saved as '+fig_name
-        print(text)
+        logger.info(text)
 
 def plot_objectivefunctiontraces(results,evaluation,algorithms,fig_name='Like_trace.png'):
     import matplotlib.pyplot as plt
@@ -914,7 +917,7 @@ def plot_regression(results,evaluation,fig_name='regressionanalysis.png'):
     plt.title('Regression between simulations and evaluation data')
     fig.savefig(fig_name)
     text='The figure as been saved as '+fig_name
-    print(text)
+    logger.info(text)
 
 
 def plot_parameterInteraction(results, fig_name ='ParameterInteraction.png'):
@@ -957,7 +960,7 @@ def plot_allmodelruns(modelruns,observations,dates=None, fig_name='bestmodel.png
     ax.set_title  = 'Maximum objectivefunction of Simulations'
     fig.savefig(fig_name)
     text='The figure as been saved as '+fig_name
-    print(text)
+    logger.info(text)
 
 
 def plot_autocorellation(parameterdistribution,parametername,fig_name='Autocorrelation.png'):

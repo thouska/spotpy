@@ -134,19 +134,19 @@ class fast(_algorithm):
     def analyze(self, problem, Y, D, parnames, M=4, print_to_console=False):
         if len(Y.shape) > 1:
             Y = Y.flatten()
-        print(Y.size)
+        self.logger.info(Y.size)
 
         if Y.size % (D) == 0:
             N = int(Y.size / D)
         elif Y.size > D:
             N = int(Y.size / D)
             rest = Y.size - N*D
-            print("""
+            self.logger.info("""
                 We can not use """ + str(rest) + """ samples which was generated
                 of totaly """ + str(Y.size) + """ 
                 """)
         else:
-            print("""
+            self.logger.info("""
                 Error: Number of samples in model output file must be a multiple of D, 
                 where D is the number of parameters in your parameter file.
               """)
@@ -164,14 +164,14 @@ class fast(_algorithm):
 
         # Calculate and Output the First and Total Order Values
         if print_to_console:
-            print("Parameter First Total")
+            self.logger.info("Parameter First Total")
         Si = dict((k, [None] * D) for k in ['S1', 'ST'])
         for i in range(D):
             l = np.arange(i * N, (i + 1) * N)
             Si['S1'][i] = self.compute_first_order(Y[l], N, M, omega[0])
             Si['ST'][i] = self.compute_total_order(Y[l], N, omega[0])
             if print_to_console:
-                print("%s %f %f" %
+                self.logger.info("%s %f %f" %
                       (parnames[i], Si['S1'][i], Si['ST'][i]))
         return Si
 
@@ -199,8 +199,8 @@ class fast(_algorithm):
             Maximum number of runs.  
         """
         self.set_repetiton(repetitions)
-        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
-        print('Creating FAST Matrix')
+        self.logger.info('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info('Creating FAST Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']
         # Get the minimum and maximum value for each parameter from the

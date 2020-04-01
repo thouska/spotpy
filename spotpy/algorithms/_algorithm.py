@@ -11,6 +11,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from spotpy import database
 from spotpy import parameter
+from spotpy import spotpylogging
 import numpy as np
 import time
 import threading
@@ -29,7 +30,7 @@ except ImportError:
 
 class _RunStatistic(object):
     """
-    this class checks for each run if the objectivefunction got better and holds the 
+    this class checks for each run if the objectivefunction got better and holds the
     best parameter set.
     Every _algorithm has an object of this class as status.
     Usage:
@@ -39,13 +40,16 @@ class _RunStatistic(object):
 
     def __init__(self, repetitions, algorithm_name, optimization_direction, parnames):
         self.optimization_direction = optimization_direction #grid, mazimize, minimize
-        print('Initializing the ',algorithm_name,' with ',repetitions,' repetitions')
+
+        self.logger = spotpylogging.get_logger("RunStatistic(%s)" % algorithm_name )
+
+        self.logger.info('Initializing the %s with %s repetitions', algorithm_name, repetitions)
         if optimization_direction == 'minimize':
             self.compare = self.minimizer
-            print('The objective function will be minimized')
+            self.logger.info('The objective function will be minimized')
         if optimization_direction == 'maximize':
             self.compare = self.maximizer
-            print('The objective function will be minimized')
+            self.logger.info('The objective function will be minimized')
         if optimization_direction == 'grid':
             self.compare = self.grid
 
@@ -58,7 +62,7 @@ class _RunStatistic(object):
         self.objectivefunction_max = -1e308
         self.starttime = time.time()
         self.last_print = time.time()
-        
+
         self.repetitions = repetitions
         self.stop = False
 
@@ -116,42 +120,42 @@ class _RunStatistic(object):
                 text = '%i of %i, min objf=%g, max objf=%g, time remaining: %s' % (
                         self.rep, self.repetitions, self.objectivefunction_min, self.objectivefunction_max, timestr)
 
-            print(text)
+            self.logger.info(text)
             self.last_print = time.time()
 
     def print_status_final(self):
-        print('\n*** Final SPOTPY summary ***')
-        print('Total Duration: ' + str(round((time.time() - self.starttime), 2)) + ' seconds')
-        print('Total Repetitions:', self.rep)
+        self.logger.info('\n*** Final SPOTPY summary ***')
+        self.logger.info('Total Duration: %s seconds' % str(round((time.time() - self.starttime), 2)))
+        self.logger.info('Total Repetitions: %s', self.rep)
 
         if self.optimization_direction == 'minimize':
-            print('Minimal objective value: %g' % (self.objectivefunction_min))
-            print('Corresponding parameter setting:')
+            self.logger.info('Minimal objective value: %g' % (self.objectivefunction_min))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_min[i])
-                print(text)
+                self.logger.info(text)
 
         if self.optimization_direction == 'maximize':
-            print('Maximal objective value: %g' % (self.objectivefunction_max))
-            print('Corresponding parameter setting:')
+            self.logger.info('Maximal objective value: %g' % (self.objectivefunction_max))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_max[i])
-                print(text)
+                self.logger.info(text)
 
         if self.optimization_direction == 'grid':
-            print('Minimal objective value: %g' % (self.objectivefunction_min))
-            print('Corresponding parameter setting:')
+            self.logger.info('Minimal objective value: %g' % (self.objectivefunction_min))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_min[i])
-                print(text)
+                self.logger.info(text)
 
-            print('Maximal objective value: %g' % (self.objectivefunction_max))
-            print('Corresponding parameter setting:')
+            self.logger.info('Maximal objective value: %g' % (self.objectivefunction_max))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
                 text = '%s: %g' % (self.parnames[i], self.params_max[i])
-                print(text)
+                self.logger.info(text)
 
-        print('******************************\n')
+        self.logger.info('******************************\n')
 
 
     def __repr__(self):
@@ -166,24 +170,24 @@ class _algorithm(object):
     Input
     ----------
     spot_setup: class
-        model: function 
-            Should be callable with a parameter combination of the parameter-function 
+        model: function
+            Should be callable with a parameter combination of the parameter-function
             and return an list of simulation results (as long as evaluation list)
         parameter: function
-            When called, it should return a random parameter combination. Which can 
+            When called, it should return a random parameter combination. Which can
             be e.g. uniform or Gaussian
-        objectivefunction: function 
-            Should return the objectivefunction for a given list of a model simulation and 
+        objectivefunction: function
+            Should return the objectivefunction for a given list of a model simulation and
             observation.
         evaluation: function
             Should return the true values as return by the model.
 
     dbname: str
-        Name of the database where parameter, objectivefunction value and simulation 
+        Name of the database where parameter, objectivefunction value and simulation
         results will be saved.
     dbformat: str
          ram: fast suited for short sampling time. no file will be created and results are saved in an array.
-        csv: A csv file will be created, which you can import afterwards.        
+        csv: A csv file will be created, which you can import afterwards.
     parallel: str
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
         mpc: Multi processing: Iterations on all available cores on your (single) pc
@@ -209,6 +213,9 @@ class _algorithm(object):
                  backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,
                  sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name=''):
 
+        # Instatiate logging
+        self.logger = spotpylogging.get_logger(self.__class__.__name__)
+
         # Initialize the user defined setup class
         self.setup = spot_setup
         param_info = parameter.get_parameters_array(self.setup, unaccepted_parameter_types=self._unaccepted_parameter_types)
@@ -219,7 +226,7 @@ class _algorithm(object):
             for i, val in enumerate(self.all_params):
                 if self.all_params[i] not in self.constant_positions:
                     self.non_constant_positions.append(i)
-        else: 
+        else:
             self.non_constant_positions = np.arange(0,len(self.all_params))
         self.parameter = self.get_parameters
         self.parnames = param_info['name']
@@ -240,22 +247,22 @@ class _algorithm(object):
         # 'dbappend' used to append to the existing data base, after restart
         self.dbinit = dbinit
         self.dbappend = dbappend
-        
+
         # Set the random state
         if random_state is None: #ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state) 
+        np.random.seed(random_state)
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
         self.save_threshold = save_threshold
 
         if breakpoint == 'read' or breakpoint == 'readandwrite':
-            print('Reading backupfile')
+            self.logger.info('Reading backupfile')
             try:
                 open(self.dbname+'.break')
             except FileNotFoundError:
-                print('Backupfile not found')
+                self.logger.info('Backupfile not found')
             self.dbappend = True
 
         # Now a repeater (ForEach-object) is loaded
@@ -290,7 +297,7 @@ class _algorithm(object):
 
         # method "save" needs to know whether objective function result is list or float, default is float
         self.like_struct_typ = type(1.1)
-        
+
     def __str__(self):
         return '{type}({mtype}())->{dbname}'.format(
             type=type(self).__name__,
@@ -327,7 +334,7 @@ class _algorithm(object):
 
     def _init_database(self, like, randompar, simulations):
         if self.dbinit:
-            print('Initialize database...')
+            self.logger.info('Initialize database...')
 
             self.datawriter = database.get_datawriter(self.dbformat,
                 self.dbname, self.parnames, like, randompar, simulations,
@@ -387,10 +394,10 @@ class _algorithm(object):
         #Add potential Constant parameters
         self.all_params[self.non_constant_positions] = params
         return self.all_params
-            
-    
+
+
     def postprocessing(self, rep, params, simulation, chains=1, save_run=True, negativlike=False, block_print=False): # TODO: rep not necessaray
-    
+
         params = self.update_params(params)
         if negativlike is True:
             like = -self.getfitness(simulation=simulation, params=params)
@@ -402,27 +409,27 @@ class _algorithm(object):
         # before they actually save the run in a database (e.g. sce-ua)
 
         self.status(like,params,block_print=block_print)
-        
+
         if save_run is True and simulation is not None:
             self.save(like, params, simulations=simulation, chains=chains)
         if type(like)==type([]):
             return like[0]
-        else:        
+        else:
             return like
 
-    
+
     def getfitness(self, simulation, params):
         """
         Calls the user defined spot_setup objectivefunction
         """
         try:
-            #print('Using parameters in fitness function')
+            #self.logger.info('Using parameters in fitness function')
             return self.setup.objectivefunction(evaluation=self.evaluation, simulation=simulation, params = (params,self.parnames))
 
         except TypeError: # Happens if the user does not allow to pass parameter in the spot_setup.objectivefunction
-            #print('Not using parameters in fitness function')            
+            #self.logger.info('Not using parameters in fitness function')
             return self.setup.objectivefunction(evaluation=self.evaluation, simulation=simulation)
-    
+
     def simulate(self, id_params_tuple):
         """This is a simple wrapper of the model, returning the result together with
         the run id and the parameters. This is needed, because some parallel things

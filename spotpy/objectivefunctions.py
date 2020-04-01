@@ -9,14 +9,15 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This tool holds functions for statistic analysis. It takes Python-lists and
 returns the objective function value of interest.
 '''
-
+from spotpy import spotpylogging
 import numpy as np
-import logging
-logging.basicConfig(format='%(levelname)s: %(module)s.%(funcName)s(): %(message)s')
+#logger.basicConfig(format='%(levelname)s: %(module)s.%(funcName)s(): %(message)s')
+
+logger = spotpylogging.get_logger('objective_function')
 
 def bias(evaluation, simulation):
     """
-    Bias as shown in Gupta in Sorooshian (1998), Toward improved calibration of hydrologic models: 
+    Bias as shown in Gupta in Sorooshian (1998), Toward improved calibration of hydrologic models:
     Multiple  and noncommensurable measures of information, Water Resources Research
 
         .. math::
@@ -38,7 +39,7 @@ def bias(evaluation, simulation):
         return float(bias)
 
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -65,7 +66,7 @@ def pbias(evaluation, simulation):
         return 100 * (float(np.nansum(sim - obs)) / float(np.nansum(obs)))
 
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -75,7 +76,7 @@ def nashsutcliffe(evaluation, simulation):
 
         .. math::
 
-         NSE = 1-\\frac{\\sum_{i=1}^{N}(e_{i}-s_{i})^2}{\\sum_{i=1}^{N}(e_{i}-\\bar{e})^2} 
+         NSE = 1-\\frac{\\sum_{i=1}^{N}(e_{i}-s_{i})^2}{\\sum_{i=1}^{N}(e_{i}-\\bar{e})^2}
 
     :evaluation: Observed data to compared with simulation data.
     :type: list
@@ -98,7 +99,7 @@ def nashsutcliffe(evaluation, simulation):
         return 1 - (numerator / denominator)
 
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -118,7 +119,7 @@ def lognashsutcliffe(evaluation, simulation, epsilon=0):
 
     :epsilon: Value which is added to simulation and evaluation data to errors when simulation or evaluation data has zero values
     :type: float or list
-    
+
     :return: log Nash-Sutcliffe model efficiency
     :rtype: float
 
@@ -127,7 +128,7 @@ def lognashsutcliffe(evaluation, simulation, epsilon=0):
         s, e = np.array(simulation)+epsilon, np.array(evaluation)+epsilon
         return float(1 - sum((np.log(s) - np.log(e))**2) / sum((np.log(e) - np.mean(np.log(e)))**2))
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -152,7 +153,7 @@ def log_p(evaluation, simulation):
         normpdf = -y**2 / 2 - np.log(np.sqrt(2 * np.pi))
         return np.mean(normpdf)
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -177,7 +178,7 @@ def correlationcoefficient(evaluation, simulation):
         correlation_coefficient = np.corrcoef(evaluation, simulation)[0, 1]
         return correlation_coefficient
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -201,7 +202,7 @@ def rsquared(evaluation, simulation):
     if len(evaluation) == len(simulation):
         return correlationcoefficient(evaluation, simulation)**2
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -228,7 +229,7 @@ def mse(evaluation, simulation):
         mse = np.nanmean((obs - sim)**2)
         return mse
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -252,7 +253,7 @@ def rmse(evaluation, simulation):
     if len(evaluation) == len(simulation) > 0:
         return np.sqrt(mse(evaluation, simulation))
     else:
-        logging.warning("evaluation and simulation lists do not have the same length.")
+        logger.warning("evaluation and simulation lists do not have the same length.")
         return np.nan
 
 
@@ -278,7 +279,7 @@ def mae(evaluation, simulation):
         mae = np.mean(np.abs(sim - obs))
         return mae
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -286,7 +287,7 @@ def rrmse(evaluation, simulation):
     """
     Relative Root Mean Squared Error
 
-        .. math::   
+        .. math::
 
          RRMSE=\\frac{\\sqrt{\\frac{1}{N}\\sum_{i=1}^{N}(e_{i}-s_{i})^2}}{\\bar{e}}
 
@@ -304,7 +305,7 @@ def rrmse(evaluation, simulation):
         rrmse = rmse(evaluation, simulation) / np.mean(evaluation)
         return rrmse
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -312,9 +313,9 @@ def agreementindex(evaluation, simulation):
     """
     Agreement Index (d) developed by Willmott (1981)
 
-        .. math::   
+        .. math::
 
-         d = 1 - \\frac{\\sum_{i=1}^{N}(e_{i} - s_{i})^2}{\\sum_{i=1}^{N}(\\left | s_{i} - \\bar{e} \\right | + \\left | e_{i} - \\bar{e} \\right |)^2}  
+         d = 1 - \\frac{\\sum_{i=1}^{N}(e_{i} - s_{i})^2}{\\sum_{i=1}^{N}(\\left | s_{i} - \\bar{e} \\right | + \\left | e_{i} - \\bar{e} \\right |)^2}
 
 
     :evaluation: Observed data to compared with simulation data.
@@ -332,7 +333,7 @@ def agreementindex(evaluation, simulation):
             (np.abs(simulation - np.mean(evaluation)) + np.abs(evaluation - np.mean(evaluation)))**2))
         return Agreement_index
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -359,7 +360,7 @@ def covariance(evaluation, simulation):
         covariance = np.mean((obs - obs_mean)*(sim - sim_mean))
         return covariance
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -396,7 +397,7 @@ def decomposed_mse(evaluation, simulation):
 
         return decomposed_mse
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -404,13 +405,13 @@ def kge(evaluation, simulation, return_all=False):
     """
     Kling-Gupta Efficiency
 
-    Corresponding paper: 
+    Corresponding paper:
     Gupta, Kling, Yilmaz, Martinez, 2009, Decomposition of the mean squared error and NSE performance criteria: Implications for improving hydrological modelling
 
     output:
         kge: Kling-Gupta Efficiency
     optional_output:
-        cc: correlation 
+        cc: correlation
         alpha: ratio of the standard deviation
         beta: ratio of the mean
     """
@@ -424,7 +425,7 @@ def kge(evaluation, simulation, return_all=False):
         else:
             return kge
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 def _spearmann_corr(x, y):
@@ -457,28 +458,28 @@ def kge_non_parametric(evaluation, simulation, return_all=False):
 
     output:
         kge: Kling-Gupta Efficiency
-    
+
     author: Nadine Maier and Tobias Houska
     optional_output:
-        cc: correlation 
+        cc: correlation
         alpha: ratio of the standard deviation
         beta: ratio of the mean
     """
     if len(evaluation) == len(simulation):
-        ## self-made formula 
+        ## self-made formula
         cc = _spearmann_corr(evaluation, simulation)
 
         ### scipy-Version
         #cc = stm.spearmanr(evaluation, simulation, axis=0)[0]
 
-        ### pandas version 
+        ### pandas version
         #a  = pd.DataFrame({'eva': evaluation, 'sim': simulation})
         #cc = a.ix[:,1].corr(a.ix[:,0], method = 'spearman')
 
         fdc_sim = np.sort(simulation / (np.nanmean(simulation)*len(simulation)))
         fdc_obs = np.sort(evaluation / (np.nanmean(evaluation)*len(evaluation)))
         alpha = 1 - 0.5 * np.nanmean(np.abs(fdc_sim - fdc_obs))
- 
+
         beta = np.mean(simulation) / np.mean(evaluation)
         kge = 1 - np.sqrt((cc - 1)**2 + (alpha - 1)**2 + (beta - 1)**2)
         if return_all:
@@ -486,24 +487,24 @@ def kge_non_parametric(evaluation, simulation, return_all=False):
         else:
             return kge
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 def rsr(evaluation, simulation):
     """
-    RMSE-observations standard deviation ratio 
+    RMSE-observations standard deviation ratio
 
-    Corresponding paper: 
+    Corresponding paper:
     Moriasi, Arnold, Van Liew, Bingner, Harmel, Veith, 2007, Model Evaluation Guidelines for Systematic Quantification of Accuracy in Watershed Simulations
 
     output:
-        rsr: RMSE-observations standard deviation ratio 
+        rsr: RMSE-observations standard deviation ratio
     """
     if len(evaluation) == len(simulation):
         rsr = rmse(evaluation, simulation) / np.std(evaluation)
         return rsr
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 
@@ -514,8 +515,8 @@ def volume_error(evaluation, simulation):
     and observed runoff (i.e. long-term water balance).
     used in this paper:
     Reynolds, J.E., S. Halldin, C.Y. Xu, J. Seibert, and A. Kauffeldt. 2017.
-    “Sub-Daily Runoff Predictions Using Parameters Calibrated on the Basis of Data with a 
-    Daily Temporal Resolution.” Journal of Hydrology 550 (July):399–411. 
+    “Sub-Daily Runoff Predictions Using Parameters Calibrated on the Basis of Data with a
+    Daily Temporal Resolution.” Journal of Hydrology 550 (July):399–411.
     https://doi.org/10.1016/j.jhydrol.2017.05.012.
 
         .. math::
@@ -534,7 +535,7 @@ def volume_error(evaluation, simulation):
         ve = np.sum(simulation - evaluation) / np.sum(evaluation)
         return float(ve)
     else:
-        logging.warning("evaluation and simulation lists does not have the same length.")
+        logger.warning("evaluation and simulation lists does not have the same length.")
         return np.nan
 
 

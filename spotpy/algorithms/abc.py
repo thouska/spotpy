@@ -79,7 +79,7 @@ class abc(_algorithm):
             sets the limit
         """
         self.set_repetiton(repetitions)
-        print('Starting the ABC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info('Starting the ABC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Initialize ABC parameters:
         randompar = self.parameter()['random']
         self.nopt = randompar.size
@@ -104,7 +104,7 @@ class abc(_algorithm):
             work.append([like, randompar, like, randompar, c, p])
             icall +=1
             if self.status.stop:
-                print('Stopping sampling')
+                self.logger.info('Stopping sampling')
                 break
 
         while icall < repetitions and gnrng > peps:
@@ -133,10 +133,10 @@ class abc(_algorithm):
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
-                    work[rep][4] = work[rep][4] + 1                
+                    work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
+                    self.logger.info('Stopping samplig')
                     break            # Probability distribution for roulette wheel selection
             bn = []
             for i, val in enumerate(work):
@@ -179,10 +179,10 @@ class abc(_algorithm):
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
-                    work[rep][4] = work[rep][4] + 1                
+                    work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
+                    self.logger.info('Stopping samplig')
                     break
         # Scout bee phase
             for i, val in enumerate(work):
@@ -195,17 +195,17 @@ class abc(_algorithm):
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:
-                        print('Stopping samplig')
+                        self.logger.info('Stopping samplig')
                         break
             gnrng = -self.status.objectivefunction_max
             if icall >= repetitions:
-                print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
-                print('ON THE MAXIMUM NUMBER OF TRIALS ')
-                print(repetitions)
-                print('HAS BEEN EXCEEDED.')
+                self.logger.info('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
+                self.logger.info('ON THE MAXIMUM NUMBER OF TRIALS ')
+                self.logger.info(repetitions)
+                self.logger.info('HAS BEEN EXCEEDED.')
 
             if gnrng < peps:
-                print(
+                self.logger.info(
                     'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE AT RUN')
-                print(icall)
+                self.logger.info(icall)
         self.final_call()

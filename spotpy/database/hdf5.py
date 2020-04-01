@@ -19,7 +19,7 @@ from .base import database
 try:
     import tables
 except ImportError:
-    print('ImportError: Pytables is not correctly installed. Please also make sure you',
+    self.logger.info('ImportError: Pytables is not correctly installed. Please also make sure you',
           'installed the hdf5 extension (https://www.hdfgroup.org/downloads/hdf5/)')
     raise
 import sys

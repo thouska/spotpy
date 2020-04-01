@@ -87,7 +87,7 @@ class fscabc(_algorithm):
             sets the limit for scout bee phase
         """
         self.set_repetiton(repetitions)
-        print('Starting the FSCABC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info('Starting the FSCABC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Initialize FSCABC parameters:
         parset = self.parameter()
         randompar = parset['random']
@@ -130,7 +130,7 @@ class fscabc(_algorithm):
                 icall +=1
                 if self.status.stop:
                     #icall = repetitions
-                    print('Stopping samplig')
+                    self.logger.info('Stopping samplig')
                     break
 
         #Bee Phases
@@ -167,7 +167,7 @@ class fscabc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
+                    self.logger.info('Stopping samplig')
                     break
                 
             # Fitness scaling
@@ -213,7 +213,7 @@ class fscabc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
+                    self.logger.info('Stopping samplig')
                     break
         # Scout bee phase
             for i, val in enumerate(work):
@@ -228,7 +228,7 @@ class fscabc(_algorithm):
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:
-                        print('Stopping samplig')
+                        self.logger.info('Stopping samplig')
                         break
             gnrng = -self.status.objectivefunction_max
 
@@ -238,12 +238,12 @@ class fscabc(_algorithm):
                 self.write_breakdata(self.dbname, savework)
                 lastbackup = icall
             if icall >= repetitions:
-                print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
-                print('ON THE MAXIMUM NUMBER OF TRIALS ')
-                print(repetitions)
-                print('HAS BEEN EXCEEDED.')
+                self.logger.info('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
+                self.logger.info('ON THE MAXIMUM NUMBER OF TRIALS ')
+                self.logger.info(repetitions)
+                self.logger.info('HAS BEEN EXCEEDED.')
 
             if gnrng < peps:
-                print(
+                self.logger.info(
                     'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
         self.final_call()

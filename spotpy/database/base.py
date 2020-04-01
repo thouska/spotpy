@@ -13,6 +13,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from spotpy import spotpylogging
 import numpy as np
 import time
 from itertools import product
@@ -31,6 +32,9 @@ class database(object):
     def __init__(self, dbname, parnames, like, randompar, simulations=None,
                  chains=1, save_sim=True, db_precision=np.float32, **kwargs):
         # Just needed for the first line in the database
+
+        self.logger = spotpylogging.get_logger(self.__class__.__name__)
+
         self.chains = chains
         self.dbname = dbname
         self.like = like
@@ -76,15 +80,15 @@ class database(object):
         return []
 
     def _scalar_to_list(self, obj):
-        # print('scalar')
+        # self.logger.info('scalar')
         return [obj]
 
     def _iterable_to_list(self, obj):
-        # print('iterable')
+        # self.logger.info('iterable')
         return list(obj)
 
     def _array_to_list(self, obj):
-        # print('array')
+        # self.logger.info('array')
         values = []
         for val in obj:
             values.append(val)
@@ -92,13 +96,13 @@ class database(object):
         # return obj.flatten().tolist()
 
     def _nestediterable_to_list(self, obj):
-        # print('nested')
+        # self.logger.info('nested')
         values = []
         for nestedlist in obj:
-            # print(len(nestedlist))
+            # self.logger.info(len(nestedlist))
             for val in nestedlist:
                 values.append(val)
-        # print(len(values))
+        # self.logger.info(len(values))
         return values
         # return np.array(obj).flatten().tolist()
 
@@ -107,8 +111,8 @@ class database(object):
         self.header.extend(['like' + '_'.join(map(str, x))
                             for x in product(*self._tuple_2_xrange(self.singular_data_lens[0]))])
         self.header.extend(['par{0}'.format(x) for x in parnames])
-        # print(self.singular_data_lens[2])
-        # print(type(self.singular_data_lens[2]))
+        # self.logger.info(self.singular_data_lens[2])
+        # self.logger.info(type(self.singular_data_lens[2]))
         if self.save_sim:
             for i in range(len(simulations)):
                 if isinstance(simulations[0], list) or type(simulations[0]) == type(np.array([])):
@@ -168,6 +172,3 @@ class custom(database):
 
     def getdata(self):
         pass
-
-
-

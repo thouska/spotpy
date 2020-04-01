@@ -60,12 +60,12 @@ class mle(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print('ERROR Bounds have not the same lenghts as Parameterarray')
+            self.logger.info('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
 
     def sample(self, repetitions):
         self.set_repetiton(repetitions)
-        print('Starting the MLE algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info('Starting the MLE algotrithm with '+str(repetitions)+ ' repetitions...')
         # Define stepsize of MLE
         stepsizes = self.parameter()['step']  # array of stepsizes
         accepted = 0.0
@@ -76,7 +76,7 @@ class mle(_algorithm):
         likes = []
         pars = []
         sims = []
-        print('burnIn...')
+        self.logger.info('burnIn...')
         for i in range(burnIn):
             randompar = self.parameter()['random']
             pars.append(randompar)
@@ -88,7 +88,7 @@ class mle(_algorithm):
 
         old_like = max(likes)
         old_par = pars[likes.index(old_like)]
-        print('Beginn Random Walk')
+        self.logger.info('Beginn Random Walk')
         for rep in range(repetitions - burnIn):
             # Suggest new candidate from Gaussian proposal distribution.
             # Use stepsize provided for every dimension.

@@ -77,19 +77,19 @@ class demcz(_algorithm):
                 observation.
             evaluation: function
                 Should return the true values as return by the model.
-    
+
         dbname: str
             * Name of the database where parameter, objectivefunction value and simulation results will be saved.
-    
+
         dbformat: str
             * ram: fast suited for short sampling time. no file will be created and results are saved in an array.
             * csv: A csv file will be created, which you can import afterwards.
-    
+
         parallel: str
             * seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
             * mpc: Multi processing: Iterations on all available cores on your cpu (recommended for windows os).
             * mpi: Message Passing Interface: Parallel computing on cluster pcs (recommended for unix os).
-    
+
         save_sim: boolean
             * True:  Simulation results will be saved
             * False: Simulationt results will not be saved
@@ -106,10 +106,10 @@ class demcz(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print('ERROR Bounds have not the same lenghts as Parameterarray')
+            self.logger.info('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
-    
-    def sample(self, repetitions, nChains=3, burnIn=100, thin=1, 
+
+    def sample(self, repetitions, nChains=3, burnIn=100, thin=1,
                convergenceCriteria=.8, variables_of_interest=None,
                DEpairs=2, adaptationRate='auto', eps=5e-2,
                mConvergence=True, mAccept=True):
@@ -119,7 +119,7 @@ class demcz(_algorithm):
         Parameters
         ----------
         repetitions : int
-            number of draws from the sample distribution to be returned 
+            number of draws from the sample distribution to be returned
         nChains : int
             number of different chains to employ
         burnInSize : int
@@ -133,9 +133,9 @@ class demcz(_algorithm):
         -------
             None : None
         """
-        
+
         self.set_repetiton(repetitions)
-        print('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info('Starting the DEMCz algotrithm with '+str(repetitions)+ ' repetitions...')
 
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
@@ -179,7 +179,7 @@ class demcz(_algorithm):
                 likelist = self.postprocessing(i, vector, simulations, chains=rep)
                 simulationlist.append(simulations)
                 self._logPs.append(likelist)
-                old_like[rep] = likelist                
+                old_like[rep] = likelist
                 burnInpar[i][rep] = vector
                 if self.status.stop:
                     break
@@ -188,16 +188,16 @@ class demcz(_algorithm):
 
             gamma = None
             self.accepts_ratio = 0.000001
-    
+
             # initilize the convergence diagnostic object
             grConvergence = _GRConvergence()
             covConvergence = _CovarianceConvergence()
-    
+
             # get the starting log objectivefunction and position for each of the
             # chains
             currentVectors = burnInpar[-1]
             currentLogPs = self._logPs[-1]
-    
+
             # 2)now loop through and sample
             cur_iter = 0
             accepts_ratio_weighting = 1 - np.exp(-1.0 / 30)
@@ -206,19 +206,19 @@ class demcz(_algorithm):
             # 1) we have not drawn enough samples to satisfy the minimum number of iterations
             # 2) or any of the dimensions have not converged
             # 3) and we have not done more than the maximum number of iterations
-    
+
             while cur_iter < maxChainDraws:
-                print(cur_iter, burnIn)
+                self.logger.info("%s, %s", cur_iter, burnIn)
                 if cur_iter == burnIn:
-                    print('starting')
+                    self.logger.info('starting')
                     history.start_sampling()
-    
+
                 # every5th iteration allow a big jump
                 if np.random.randint(5) == 0.0:
                     gamma = np.array([1.0])
                 else:
                     gamma = np.array([2.38 / np.sqrt(2 * DEpairs * dimensions)])
-    
+
                 if cur_iter >= burnIn:
                     proposalVectors = _dream_proposals(
                         currentVectors, history, dimensions, nChains, DEpairs, gamma, .05, eps)
@@ -232,14 +232,14 @@ class demcz(_algorithm):
                         proposalVectors.append(self.parameter()['random'])
                         proposalVectors[i] = self.check_par_validity(
                             proposalVectors[i])
-    
+
                # if self.bounds_ok(minbound,maxbound,proposalVectors,nChains):
                 proposalLogPs = []
                 old_simulationlist = simulationlist
                 old_likelist = self._logPs[-1]
                 new_simulationlist = []
                 new_likelist = []
-    
+
                 param_generator = (
                     (rep, list(proposalVectors[rep])) for rep in range(int(nChains)))
                 for rep, vector, simulations in self.repeat(param_generator):
@@ -251,13 +251,13 @@ class demcz(_algorithm):
                     if self.status.stop:
                         cur_iter = maxChainDraws
                         break
-    
+
                 if not self.status.stop:
                     # apply the metrop decision to decide whether to accept or reject
                     # each chain proposal
                     decisions, acceptance = self._metropolis_hastings(
                         currentLogPs, proposalLogPs, nChains)
-                    self._update_accepts_ratio(accepts_ratio_weighting, acceptance)        
+                    self._update_accepts_ratio(accepts_ratio_weighting, acceptance)
                     # choose from list of possible choices if 1d_decision is True at
                     # specific index, else use default choice
                     # np.choose(1d_decision[:,None], (list of possible choices, default
@@ -276,33 +276,33 @@ class demcz(_algorithm):
                            save_likes.append(old_like[curchain])
                            save_pars.append(currentVectors[curchain])
                            save_sims.append(old_simulationlist[curchain])
-                              
+
                     currentVectors = np.choose(
                         decisions[:, np.newaxis], (currentVectors, proposalVectors))
                     currentLogPs = np.choose(decisions, (currentLogPs, proposalLogPs))
-        
+
                     simulationlist = [[new_simulationlist, old_simulationlist][
                         int(x)][ix] for ix, x in enumerate(decisions)]
-        
+
                     likelist = list(
                         np.choose(decisions[:, np.newaxis], (new_likelist,       old_likelist)))
-        
+
                     # we only want to recalculate convergence criteria when we are past
                     # the burn in period
-        
+
                     if cur_iter % thin == 0:
-        
+
                         historyStartMovementRate = adaptationRate
                         # try to adapt more when the acceptance rate is low and less
                         # when it is high
                         if adaptationRate == 'auto':
                             historyStartMovementRate = min(
                                 (.234 / self.accepts_ratio) * .5, .95)
-        
+
                         history.record(
                             currentVectors, currentLogPs, historyStartMovementRate, grConvergence=grConvergence.R)
 
-    
+
                 if history.nsamples > 0 and cur_iter > lastRecalculation * 1.1 and history.nsequence_histories > dimensions:
                     lastRecalculation = cur_iter
                     grConvergence.update(history)
@@ -310,10 +310,10 @@ class demcz(_algorithm):
                     covConvergence.update(history, 'interest')
                     if all(grConvergence.R < convergenceCriteria):
                         cur_iter = maxChainDraws
-                        print(
+                        self.logger.info(
                             'All chains fullfil the convergence criteria. Sampling stopped.')
                 cur_iter+=1
-                
+
         # 3) finalize
         # only make the second half of draws available because that's the only
         # part used by the convergence diagnostic
@@ -323,10 +323,10 @@ class demcz(_algorithm):
         self.burnIn = burnIn
         self.R = grConvergence.R
         text = 'Gelman Rubin R=' + str(self.R)
-        print(text)
+        self.logger.info(text)
         self.status.rep = self.status.repetitions
         self.final_call()
-        
+
 
     def _update_accepts_ratio(self, weighting, acceptances):
         self.accepts_ratio = weighting * \
@@ -503,7 +503,7 @@ class _CovarianceConvergence:
             projection = np.dot(np.linalg.inv(basis1), basis2)
         except np.linalg.linalg.LinAlgError:
             projection = (np.array(basis1) * np.nan)
-            print('Exception happend!')
+            self.logger.info('Exception happend!')
 
         # find the releative size in each of the basis1 directions
         return np.log(np.sum(projection**2, axis=0)**.5)

@@ -13,11 +13,11 @@ from . import _algorithm
 import numpy as np
 import time
 
-    
+
 class mcmc(_algorithm):
     """
     This class holds the MarkovChainMonteCarlo (MCMC) algorithm, based on:
-    Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H. and Teller, E. (1953) 
+    Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H. and Teller, E. (1953)
     Equation of state calculations by fast computing machines, J. Chem. Phys.
     """
 
@@ -65,7 +65,7 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.info('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
     def check_par_validity_reflect(self, par):
@@ -83,29 +83,29 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.info('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
-        
+
     def get_new_proposal_vector(self,old_par):
         new_par = np.random.normal(loc=old_par, scale=self.stepsizes)
         #new_par = self.check_par_validity(new_par)
         new_par = self.check_par_validity_reflect(new_par)
         return new_par
 
-    def update_mcmc_status(self,par,like,sim,cur_chain):  
+    def update_mcmc_status(self,par,like,sim,cur_chain):
         self.bestpar[cur_chain]=par
         self.bestlike[cur_chain]=like
         self.bestsim[cur_chain]=sim
 
-            
+
     def sample(self, repetitions,nChains=1):
         self.set_repetiton(repetitions)
-        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Prepare storing MCMC chain as array of arrays.
         self.nChains = int(nChains)
         #Ensure initialisation of chains and database
         self.burnIn = self.nChains
-        # define stepsize of MCMC.        
+        # define stepsize of MCMC.
         self.stepsizes = self.parameter()['step']  # array of stepsizes
 
         # Metropolis-Hastings iterations.
@@ -116,29 +116,29 @@ class mcmc(_algorithm):
         self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        print('Initialize ', self.nChains, ' chain(s)...')
+        self.logger.info('Initialize %s chain(s)...', self.nChains)
         self.iter=0
-        param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
+        param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))
         for curChain,randompar,simulations in self.repeat(param_generator):
-            # A function that calculates the fitness of the run and the manages the database 
+            # A function that calculates the fitness of the run and the manages the database
             like = self.postprocessing(self.iter, randompar, simulations, chains=curChain)
             self.update_mcmc_status(randompar, like, simulations, curChain)
             self.iter+=1
 
         intervaltime = time.time()
-        print('Beginn of Random Walk')
+        self.logger.info('Beginn of Random Walk')
         # Walk through chains
         while self.iter <= repetitions - self.burnIn:
-            param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in range(int(self.nChains)))                
+            param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in range(int(self.nChains)))
             for cChain,randompar,simulations in self.repeat(param_generator):
-                # A function that calculates the fitness of the run and the manages the database                 
+                # A function that calculates the fitness of the run and the manages the database
                 like = self.postprocessing(self.iter, randompar, simulations, chains=cChain)
                 logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like)
                 u = np.random.uniform(low=0.3, high=1)
                 if logMetropHastRatio>1.0 or logMetropHastRatio>u:
-                    self.update_mcmc_status(randompar,like,simulations,cChain)   
+                    self.update_mcmc_status(randompar,like,simulations,cChain)
                     self.accepted[cChain] += 1  # monitor acceptance
-                self.iter+=1                             
+                self.iter+=1
                 # Progress bar
                 acttime = time.time()
             #Refresh MCMC progressbar every two second
@@ -146,7 +146,6 @@ class mcmc(_algorithm):
                 text = '%i of %i (best like=%g)' % (
                     self.iter + self.burnIn, repetitions, self.status.objectivefunction_max)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
-                print(text)
+                self.logger.info(text)
                 intervaltime = time.time()
-        self.final_call()       
-
+        self.final_call()

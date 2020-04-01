@@ -181,7 +181,7 @@ class padds(_algorithm):
         # every iteration a map of all relevant values is stored, only for debug purpose.
         # Spotpy will not need this values.
         debug_results = []
-        print('Starting the PADDS algotrithm with ' + str(repetitions) + ' repetitions...')
+        self.logger.info('Starting the PADDS algotrithm with ' + str(repetitions) + ' repetitions...')
         self.set_repetiton(repetitions)
         self.number_of_parameters = len(self.best_value.parameters) # number_of_parameters is the amount of parameters
 
@@ -219,7 +219,7 @@ class padds(_algorithm):
                 # update the new status structure
                 self.status.params_max, self.status.params_min = self.parameter_current, self.parameter_current
 
-            print('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
+            self.logger.info('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')
             debug_results.append({"sbest": self.best_value.parameters , "objfunc_val": self.best_value.best_obj_val})
 
