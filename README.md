@@ -147,7 +147,7 @@ Or, after downloading the [source code](https://pypi.python.org/pypi/spotpy "sou
 Support
 =================
 
-* Documentation: http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy
+* Documentation: https://spotpy.readthedocs.io/en/latest/
 
 * Feel free to contact the authors of this tool for any support questions.
 
@@ -160,7 +160,7 @@ Support
 
 Getting started
 =================
-Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and https://spotpy.readthedocs.io/en/latest/getting_started/
 
 
 Contributing

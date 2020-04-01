@@ -130,7 +130,7 @@ We want to make this task as easy as possible. Some features you can use with th
 Documentation
 -------------
 
-Documentation is available at `<http://fb09-pasig.umwelt.uni-giessen.de/spotpy>`__
+Documentation is available at `<https://spotpy.readthedocs.io/en/latest>`__
 
 
 Install
@@ -178,4 +178,4 @@ Patches/enhancements/new algorithms and any other contributions to this package 
 Getting started
 ---------------
 
-Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and https://spotpy.readthedocs.io/en/latest/getting_started/
