@@ -231,10 +231,10 @@ class padds(_algorithm):
         # every iteration a map of all relevant values is stored, only for debug purpose.
         # Spotpy will not need this values.
         debug_results = []
-        print(
+        self.logger.info(
             "Starting the PADDS algotrithm with " + str(repetitions) + " repetitions..."
         )
-        print(
+        self.logger.info(
             "WARNING: THE PADDS algorithm as implemented in SPOTPY is in an beta stage and not ready for production use!"
         )
         self.set_repetiton(repetitions)
@@ -292,7 +292,7 @@ class padds(_algorithm):
                     self.parameter_current,
                 )
 
-            print(
+            self.logger.info(
                 "Best solution found has obj function value of "
                 + str(self.best_value.best_obj_val)
                 + " at "

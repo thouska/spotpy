@@ -61,10 +61,10 @@ class lhs(_algorithm):
             maximum number of function evaluations allowed during optimization
         """
         self.set_repetiton(repetitions)
-        print(
+        self.logger.info(
             "Starting the LHS algotrithm with " + str(repetitions) + " repetitions..."
         )
-        print("Creating LatinHyperCube Matrix")
+        self.logger.info("Creating LatinHyperCube Matrix")
         # Get the names of the parameters to analyse
         names = self.parameter()["name"]
         # Define the jump size between the parameter

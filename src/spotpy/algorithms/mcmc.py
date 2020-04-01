@@ -63,7 +63,7 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print("ERROR: Bounds have not the same lenghts as Parameterarray")
+            self.logger.info("ERROR: Bounds have not the same lenghts as Parameterarray")
         return par
 
     def check_par_validity_reflect(self, par):
@@ -81,7 +81,7 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print("ERROR: Bounds have not the same lenghts as Parameterarray")
+            self.logger.info("ERROR: Bounds have not the same lenghts as Parameterarray")
         return par
 
     def get_new_proposal_vector(self, old_par):
@@ -97,7 +97,7 @@ class mcmc(_algorithm):
 
     def sample(self, repetitions, nChains=1):
         self.set_repetiton(repetitions)
-        print(
+        self.logger.info(
             "Starting the MCMC algotrithm with " + str(repetitions) + " repetitions..."
         )
         # Prepare storing MCMC chain as array of arrays.
@@ -117,7 +117,7 @@ class mcmc(_algorithm):
             self.parameter()["minbound"],
             self.parameter()["maxbound"],
         )
-        print("Initialize ", self.nChains, " chain(s)...")
+        self.logger.info("Initialize ", self.nChains, " chain(s)...")
         self.iter = 0
         param_generator = (
             (curChain, self.parameter()["random"])
@@ -132,7 +132,7 @@ class mcmc(_algorithm):
             self.iter += 1
 
         intervaltime = time.time()
-        print("Beginn of Random Walk")
+        self.logger.info("Beginn of Random Walk")
         # Walk through chains
         while self.iter <= repetitions - self.burnIn:
             param_generator = (
@@ -167,6 +167,6 @@ class mcmc(_algorithm):
                     )
                     * 100
                 ).strip("array([])")
-                print(text)
+                self.logger.info(text)
                 intervaltime = time.time()
         self.final_call()

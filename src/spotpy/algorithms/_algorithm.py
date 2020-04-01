@@ -12,6 +12,7 @@ import time
 import numpy as np
 
 from spotpy import database, parameter
+from spotpy import spotpylogging
 
 try:
     from queue import Queue
@@ -35,17 +36,18 @@ class _RunStatistic(object):
     """
 
     def __init__(self, repetitions, algorithm_name, optimization_direction, parnames):
-        self.optimization_direction = optimization_direction  # grid, mazimize, minimize
-        print(
-            "Initializing the ", algorithm_name, " with ", repetitions, " repetitions"
-        )
-        if optimization_direction == "minimize":
+        self.optimization_direction = optimization_direction #grid, mazimize, minimize
+
+        self.logger = spotpylogging.get_logger("RunStatistic(%s)" % algorithm_name )
+
+        self.logger.info('Initializing the %s with %s repetitions', algorithm_name, repetitions)
+        if optimization_direction == 'minimize':
             self.compare = self.minimizer
-            print("The objective function will be minimized")
-        if optimization_direction == "maximize":
+            self.logger.info('The objective function will be minimized')
+        if optimization_direction == 'maximize':
             self.compare = self.maximizer
-            print("The objective function will be maximized")
-        if optimization_direction == "grid":
+            self.logger.info('The objective function will be maxiimized')
+        if optimization_direction == 'grid':
             self.compare = self.grid
 
         self.rep = 0
@@ -131,46 +133,43 @@ class _RunStatistic(object):
                     timestr,
                 )
 
-            print(text)
+            self.logger.info(text)
             self.last_print = time.time()
 
     def print_status_final(self):
-        print("\n*** Final SPOTPY summary ***")
-        print(
-            "Total Duration: "
-            + str(round((time.time() - self.starttime), 2))
-            + " seconds"
-        )
-        print("Total Repetitions:", self.rep)
+        self.logger.info('\n*** Final SPOTPY summary ***')
+        self.logger.info('Total Duration: %s seconds' % str(round((time.time() - self.starttime), 2)))
+        self.logger.info('Total Repetitions: %s', self.rep)
 
-        if self.optimization_direction == "minimize":
-            print("Minimal objective value: %g" % (self.objectivefunction_min))
-            print("Corresponding parameter setting:")
+        if self.optimization_direction == 'minimize':
+            self.logger.info('Minimal objective value: %g' % (self.objectivefunction_min))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
-                text = "%s: %g" % (self.parnames[i], self.params_min[i])
-                print(text)
+                text = '%s: %g' % (self.parnames[i], self.params_min[i])
+                self.logger.info(text)
 
-        if self.optimization_direction == "maximize":
-            print("Maximal objective value: %g" % (self.objectivefunction_max))
-            print("Corresponding parameter setting:")
+        if self.optimization_direction == 'maximize':
+            self.logger.info('Maximal objective value: %g' % (self.objectivefunction_max))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
-                text = "%s: %g" % (self.parnames[i], self.params_max[i])
-                print(text)
+                text = '%s: %g' % (self.parnames[i], self.params_max[i])
+                self.logger.info(text)
 
-        if self.optimization_direction == "grid":
-            print("Minimal objective value: %g" % (self.objectivefunction_min))
-            print("Corresponding parameter setting:")
+        if self.optimization_direction == 'grid':
+            self.logger.info('Minimal objective value: %g' % (self.objectivefunction_min))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
-                text = "%s: %g" % (self.parnames[i], self.params_min[i])
-                print(text)
+                text = '%s: %g' % (self.parnames[i], self.params_min[i])
+                self.logger.info(text)
 
-            print("Maximal objective value: %g" % (self.objectivefunction_max))
-            print("Corresponding parameter setting:")
+            self.logger.info('Maximal objective value: %g' % (self.objectivefunction_max))
+            self.logger.info('Corresponding parameter setting:')
             for i in range(self.parameters):
-                text = "%s: %g" % (self.parnames[i], self.params_max[i])
-                print(text)
+                text = '%s: %g' % (self.parnames[i], self.params_max[i])
+                self.logger.info(text)
 
-        print("******************************\n")
+        self.logger.info('******************************\n')
+
 
     def __repr__(self):
         return "Min objectivefunction: %g \n Max objectivefunction: %g" % (
@@ -243,6 +242,9 @@ class _algorithm(object):
         algorithm_name="",
     ):
 
+        # Instatiate logging
+        self.logger = spotpylogging.get_logger(self.__class__.__name__)
+
         # Initialize the user defined setup class
         self.setup = spot_setup
         param_info = parameter.get_parameters_array(
@@ -292,11 +294,11 @@ class _algorithm(object):
         self._return_all_likes = False  # allows multi-objective calibration if set to True, is set by the algorithm
 
         if breakpoint == "read" or breakpoint == "readandwrite":
-            print("Reading backupfile")
+            self.logger.info('Reading backupfile')
             try:
                 open(self.dbname + ".break")
             except FileNotFoundError:
-                print("Backupfile not found")
+                self.logger.info('Backupfile not found')
             self.dbappend = True
 
         # Now a repeater (ForEach-object) is loaded
@@ -370,7 +372,7 @@ class _algorithm(object):
 
     def _init_database(self, like, randompar, simulations):
         if self.dbinit:
-            print("Initialize database...")
+            self.logger.info('Initialize database...')
 
             self.datawriter = database.get_datawriter(
                 self.dbformat,
@@ -494,7 +496,7 @@ class _algorithm(object):
         Calls the user defined spot_setup objectivefunction
         """
         try:
-            # print('Using parameters in fitness function')
+            # self.logger.info('Using parameters in fitness function')
             return self.setup.objectivefunction(
                 evaluation=self.evaluation,
                 simulation=simulation,
@@ -502,7 +504,7 @@ class _algorithm(object):
             )
 
         except TypeError:  # Happens if the user does not allow to pass parameter in the spot_setup.objectivefunction
-            # print('Not using parameters in fitness function')
+            # self.logger.info('Not using parameters in fitness function')
             return self.setup.objectivefunction(
                 evaluation=self.evaluation, simulation=simulation
             )

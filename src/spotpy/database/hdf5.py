@@ -14,10 +14,12 @@ import numpy as np
 
 from .base import database
 
+from spotpy import spotpylogging
+
 try:
     import tables
 except ImportError:
-    print(
+    spotpylogging.get_logger("hdf5").info(
         "ImportError: Pytables is not correctly installed. Please also make sure you",
         "installed the hdf5 extension (https://www.hdfgroup.org/downloads/hdf5/)",
     )

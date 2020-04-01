@@ -206,7 +206,7 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
-            print("Starting burn-in sampling...")
+            self.logger.info('Starting burn-in sampling...')
 
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
@@ -216,9 +216,7 @@ class sceua(_algorithm):
                 xf[rep] = like
                 icall += 1
                 if self.status.stop:
-                    print(
-                        "Stopping samplig. Maximum number of repetitions reached already during burn-in"
-                    )
+                    self.logger.info('Stopping sampling. Maximum number of repetitions reached already during burn-in')
                     proceed = False
                     break
             # Sort the population in order of increasing function values;
@@ -258,17 +256,16 @@ class sceua(_algorithm):
 
         # Check for convergency;
         if self.status.rep >= repetitions:
-            print("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
-            print("ON THE MAXIMUM NUMBER OF TRIALS ")
-            print(repetitions)
-            print("HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:")
-            print(self.status.rep)
-            print("OF THE INITIAL LOOP!")
+            self.logger.info('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
+            self.logger.info('ON THE MAXIMUM NUMBER OF TRIALS ')
+            self.logger.info(repetitions)
+            self.logger.info('HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:')
+            self.logger.info(self.status.rep)
+            self.logger.info('OF THE INITIAL LOOP!')
 
         if gnrng < peps:
-            print(
-                "THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE"
-            )
+            self.logger.info(
+                'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
         # Begin evolution loops:
         nloop = 0
@@ -297,7 +294,7 @@ class sceua(_algorithm):
             and proceed == True
         ):
             nloop += 1
-            print("ComplexEvo loop #%d in progress..." % nloop)
+            self.logger.info('ComplexEvo loop #%d in progress...' % nloop)
             # Loop on complexes (sub-populations);
             cx = np.zeros((self.npg, self.nopt))
             cf = np.zeros((self.npg))
@@ -336,7 +333,7 @@ class sceua(_algorithm):
                             i, pars[i], sims[i], chains=i + 1, save_run=False
                         )
                         self.discarded_runs += 1
-                        print("Skipping saving")
+                        self.logger.info("Skipping saving")
 
             if (
                 self.breakpoint == "write"
@@ -378,20 +375,20 @@ class sceua(_algorithm):
 
             # Check for convergency;
             if self.status.rep >= repetitions:
-                print("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
-                print("ON THE MAXIMUM NUMBER OF TRIALS ")
-                print(repetitions)
-                print("HAS BEEN EXCEEDED.")
+                self.logger.info("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
+                self.logger.info("ON THE MAXIMUM NUMBER OF TRIALS ")
+                self.logger.info(repetitions)
+                self.logger.info("HAS BEEN EXCEEDED.")
 
             elif gnrng < peps:
-                print(
+                self.logger.info(
                     "THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE"
                 )
 
             elif (
                 nloop >= kstop
             ):  # necessary so that the area of high posterior density is visited as much as possible
-                print(
+                self.logger.info(
                     "Objective function convergence criteria is now being updated and assessed..."
                 )
                 absolute_change = (
@@ -402,13 +399,13 @@ class sceua(_algorithm):
                     criter_change_pcent = 0.0
                 else:
                     criter_change_pcent = absolute_change / denominator
-                print("Updated convergence criteria: %f" % criter_change_pcent)
+                self.logger.info("Updated convergence criteria: %f" % criter_change_pcent)
                 if criter_change_pcent <= pcento:
-                    print(
+                    self.logger.info(
                         "THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f"
                         % (kstop, pcento)
                     )
-                    print(
+                    self.logger.info(
                         "CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!"
                     )
             elif self.status.stop:
@@ -418,14 +415,14 @@ class sceua(_algorithm):
             # stop, if max number of loop iteration was reached
             elif max_loop_inc and nloop >= max_loop_inc:
                 proceed = False
-                print("THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED")
+                self.logger.info("THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED")
                 break
 
         # End of the Outer Loops
-        print("SEARCH WAS STOPPED AT TRIAL NUMBER: %d" % self.status.rep)
-        print("NUMBER OF DISCARDED TRIALS: %d" % self.discarded_runs)
-        print("NORMALIZED GEOMETRIC RANGE = %f" % gnrng)
-        print(
+        self.logger.info("SEARCH WAS STOPPED AT TRIAL NUMBER: %d" % self.status.rep)
+        self.logger.info("NUMBER OF DISCARDED TRIALS: %d" % self.discarded_runs)
+        self.logger.info("NORMALIZED GEOMETRIC RANGE = %f" % gnrng)
+        self.logger.info(
             "THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT"
             % (kstop, criter_change_pcent)
         )
