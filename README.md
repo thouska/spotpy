@@ -8,6 +8,7 @@ A Statistical Parameter Optimization Tool for Python
 [![Build Status][travis-image]][travis-link]
 [![License][license-image]][license-link]
 [![Coverage Status](https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master)](https://coveralls.io/github/thouska/spotpy?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/spotpy/badge/?version=latest)](https://readthedocs.org/projects/spotpy/badge/?version=latest)
 
 [pypi-v-image]: https://img.shields.io/pypi/v/spotpy.png
 [pypi-v-link]: https://pypi.python.org/pypi/spotpy
@@ -147,7 +148,7 @@ Or, after downloading the [source code](https://pypi.python.org/pypi/spotpy "sou
 Support
 =================
 
-* Documentation: http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy
+* Documentation: https://spotpy.readthedocs.io/en/latest/
 
 * Feel free to contact the authors of this tool for any support questions.
 
@@ -160,7 +161,7 @@ Support
 
 Getting started
 =================
-Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and https://spotpy.readthedocs.io/en/latest/getting_started/
 
 
 Contributing
