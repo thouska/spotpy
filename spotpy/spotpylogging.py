@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Defines a standard logger for the main application, which every child can derive from.
+Also it's possible to use the logger for the main application.
+"""
 
 import logging
-
-# TODO possible next steps
-# TODO 1. (tobias) remove logging calls with \n und passe die logging aufrufe an (grade alle info)
-# TODO 2. (pr) make cli flags to control verbosity (ich weiß grade nicht wie das gehen soll)
-# TODO 3. (pr) be able to create a file config
 
 path_to_logfile = 'spotpy.log'
 
