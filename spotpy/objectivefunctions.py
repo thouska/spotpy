@@ -11,9 +11,8 @@ returns the objective function value of interest.
 '''
 from spotpy import spotpylogging
 import numpy as np
-#logger.basicConfig(format='%(levelname)s: %(module)s.%(funcName)s(): %(message)s')
 
-logger = spotpylogging.get_logger('objective_function')
+logger = spotpylogging.get_logger('objective_functions')
 
 def bias(evaluation, simulation):
     """
