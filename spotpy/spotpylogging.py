@@ -26,8 +26,8 @@ if not spotpy_logger.handlers:
     handler_file = logging.FileHandler(path_to_logfile)  # TODO this should be bound to cli arguments
     handler_file.setFormatter(formatter_file)
     spotpy_logger.addHandler(handler_file)
-    
-    spotpy_logger.setLevel(logging.INFO)  # TODO this should be bound to cli arguments
+
+    spotpy_logger.setLevel(logging.INFO)  # TODO this should be bound to cli arguments    
     spotpy_logger.info('Write logging output to file \'%s\'', path_to_logfile)
     
 
@@ -36,4 +36,4 @@ def get_logger(name):
 
     Use this logger to return new childs of the main logger"""
     # Set the logger name, with the implementation class
-    return spotpy_logger.getChild(name)
+    return spotpy_logger.getChild(name)        

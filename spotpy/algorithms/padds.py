@@ -219,7 +219,7 @@ class padds(_algorithm):
                 # update the new status structure
                 self.status.params_max, self.status.params_min = self.parameter_current, self.parameter_current
 
-            self.logger.info('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
+            self.logger.debug('Best solution found has obj function value of ' + str(self.best_value.best_obj_val) + ' at '
                   + str(repitionno_best) + '\n\n')
             debug_results.append({"sbest": self.best_value.parameters , "objfunc_val": self.best_value.best_obj_val})
 

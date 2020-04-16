@@ -67,7 +67,7 @@ class dream(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.info('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
     def get_regular_startingpoint(self,nChains):
@@ -97,7 +97,7 @@ class dream(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.info('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
     def _get_gamma(self,N):
@@ -222,7 +222,7 @@ class dream(_algorithm):
         self.set_repetiton(repetitions)
         self.logger.info('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         if nChains <3:
-            self.logger.info('Please use at least n=3 chains!')
+            self.logger.error('Please use at least n=3 chains!')
             return None
         # Prepare storing MCMC chain as array of arrays.
         # define stepsize of MCMC.
@@ -247,7 +247,7 @@ class dream(_algorithm):
 
         #firstcall = True
 
-        self.logger.info('Initialize %s chain(s)...', self.nChains)
+        self.logger.debug('Initialize %s chain(s)...', self.nChains)
         self.iter=0
         #for i in range(10):
         startpoints = self.get_regular_startingpoint(nChains)
@@ -260,7 +260,7 @@ class dream(_algorithm):
             self.nChainruns[curChain] +=1
 
 
-        self.logger.info('Beginn of Random Walk')
+        self.logger.debug('Beginn of Random Walk')
         convergence = False
         #Walf through chains
         self.r_hats=[]
@@ -327,7 +327,7 @@ class dream(_algorithm):
 
                 if self.status.stop:
                     self.iter = self.repetitions
-                    self.logger.info('Stopping samplig')
+                    self.logger.debug('Stopping samplig')
                     break
                 self.iter+=1
                 self.nChainruns[cChain] +=1

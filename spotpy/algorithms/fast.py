@@ -146,7 +146,7 @@ class fast(_algorithm):
                 of totaly """ + str(Y.size) + """ 
                 """)
         else:
-            self.logger.info("""
+            self.logger.error("""
                 Error: Number of samples in model output file must be a multiple of D, 
                 where D is the number of parameters in your parameter file.
               """)
@@ -200,7 +200,7 @@ class fast(_algorithm):
         """
         self.set_repetiton(repetitions)
         self.logger.info('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
-        self.logger.info('Creating FAST Matrix')
+        self.logger.debug('Creating FAST Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']
         # Get the minimum and maximum value for each parameter from the

@@ -65,7 +65,7 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.info('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
     def check_par_validity_reflect(self, par):
@@ -83,7 +83,7 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.info('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
     def get_new_proposal_vector(self,old_par):
@@ -116,7 +116,7 @@ class mcmc(_algorithm):
         self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        self.logger.info('Initialize %s chain(s)...', self.nChains)
+        self.logger.debug('Initialize %s chain(s)...', self.nChains)
         self.iter=0
         param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))
         for curChain,randompar,simulations in self.repeat(param_generator):
@@ -126,7 +126,7 @@ class mcmc(_algorithm):
             self.iter+=1
 
         intervaltime = time.time()
-        self.logger.info('Beginn of Random Walk')
+        self.logger.debug('Beginn of Random Walk')
         # Walk through chains
         while self.iter <= repetitions - self.burnIn:
             param_generator = ((curChain,self.get_new_proposal_vector(self.bestpar[curChain])) for curChain in range(int(self.nChains)))
@@ -146,6 +146,6 @@ class mcmc(_algorithm):
                 text = '%i of %i (best like=%g)' % (
                     self.iter + self.burnIn, repetitions, self.status.objectivefunction_max)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
-                self.logger.info(text)
+                self.logger.debug(text)
                 intervaltime = time.time()
         self.final_call()

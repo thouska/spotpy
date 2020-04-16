@@ -311,7 +311,7 @@ class dds(_algorithm):
                     self.params_max = list(x_curr)
                     self.params_max = self.fix_status_params_format(self.params_max)
 
-            self.logger.info('Best solution found has obj function value of ' + str(objectivefunction_max) + ' at '
+            self.logger.debug('Best solution found has obj function value of ' + str(objectivefunction_max) + ' at '
                   + str(repitionno_best) + '\n\n')
             debug_results.append({"sbest": self.params_max, "trial_initial": trial_best_value,"objfunc_val": objectivefunction_max})
         self.final_call()
@@ -334,7 +334,7 @@ class dds(_algorithm):
         # by trying which randomized generated input matches best
         # initial_iterations is the number of function evaluations to initialize the DDS algorithm solution
         if initial_iterations > 1:
-            self.logger.info('Finding best starting point for trial ' + str(trial + 1) + ' using ' + str(
+            self.logger.debug('Finding best starting point for trial ' + str(trial + 1) + ' using ' + str(
                 initial_iterations) + ' random samples.')
             repetions_left = repetitions - initial_iterations  # use this to reduce number of fevals in DDS loop
             if repetions_left <= 0:
