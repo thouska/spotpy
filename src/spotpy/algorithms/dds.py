@@ -332,7 +332,7 @@ class dds(_algorithm):
                     self.params_max = list(x_curr)
                     self.params_max = self.fix_status_params_format(self.params_max)
 
-            self.logger.info('Best solution found has obj function value of %s at %s\n\n', \
+            self.logger.debug('Best solution found has obj function value of %s at %s\n\n', \
                 objectivefunction_max, repitionno_best)
             debug_results.append(
                 {
@@ -363,7 +363,7 @@ class dds(_algorithm):
         # by trying which randomized generated input matches best
         # initial_iterations is the number of function evaluations to initialize the DDS algorithm solution
         if initial_iterations > 1:
-            self.logger.info("Finding best starting point for trial %s using %s random samples.", \
+            self.logger.debug("Finding best starting point for trial %s using %s random samples.", \
                 trial + 1, initial_iterations)
             repetions_left = (
                 repetitions - initial_iterations

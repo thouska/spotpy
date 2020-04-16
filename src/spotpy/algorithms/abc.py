@@ -104,7 +104,7 @@ class abc(_algorithm):
             work.append([like, randompar, like, randompar, c, p])
             icall += 1
             if self.status.stop:
-                self.logger.info('Stopping sampling')
+                self.logger.debug('Stopping sampling')
                 break
 
         while icall < repetitions and gnrng > peps:
@@ -139,7 +139,7 @@ class abc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    self.logger.info('Stopping samplig')
+                    self.logger.debug('Stopping samplig')
                     break  # Probability distribution for roulette wheel selection
             bn = []
             for i, val in enumerate(work):
@@ -189,7 +189,7 @@ class abc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    self.logger.info('Stopping samplig')
+                    self.logger.debug('Stopping samplig')
                     break
             # Scout bee phase
             for i, val in enumerate(work):
@@ -203,7 +203,7 @@ class abc(_algorithm):
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:
-                        self.logger.info('Stopping samplig')
+                        self.logger.debug('Stopping samplig')
                         break
             gnrng = -self.status.objectivefunction_max
             if icall >= repetitions:

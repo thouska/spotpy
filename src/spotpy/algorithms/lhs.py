@@ -64,7 +64,7 @@ class lhs(_algorithm):
         self.logger.info(
             "Starting the LHS algotrithm with " + str(repetitions) + " repetitions..."
         )
-        self.logger.info("Creating LatinHyperCube Matrix")
+        self.logger.debug("Creating LatinHyperCube Matrix")
         # Get the names of the parameters to analyse
         names = self.parameter()["name"]
         # Define the jump size between the parameter

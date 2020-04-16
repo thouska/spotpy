@@ -62,7 +62,11 @@ class sa(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
+<<<<<<< HEAD:src/spotpy/algorithms/sa.py
             self.logger.info("ERROR: Bounds have not the same lenghts as Parameterarray")
+=======
+            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
+>>>>>>> f7fa4fd (Nuanced using of debug/info/error in algorithms):spotpy/algorithms/sa.py
         return par
 
     def sample(self, repetitions, Tini=80, Ntemp=50, alpha=0.99):

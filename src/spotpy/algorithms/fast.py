@@ -149,7 +149,7 @@ class fast(_algorithm):
                 """
             )
         else:
-            self.logger.info(
+            self.logger.error(
                 """
                 Error: Number of samples in model output file must be a multiple of D,
                 where D is the number of parameters in your parameter file.
@@ -169,24 +169,15 @@ class fast(_algorithm):
 
         # Calculate and Output the First and Total Order Values
         if print_to_console:
-<<<<<<< HEAD:src/spotpy/algorithms/fast.py
-            print("Parameter First Total")
-        Si = dict((k, [None] * D) for k in ["S1", "ST"])
-=======
             self.logger.info("Parameter First Total")
         Si = dict((k, [None] * D) for k in ['S1', 'ST'])
->>>>>>> a4673f4 (WIP: Adds logging):spotpy/algorithms/fast.py
         for i in range(D):
             l = np.arange(i * N, (i + 1) * N)
             Si["S1"][i] = self.compute_first_order(Y[l], N, M, omega[0])
             Si["ST"][i] = self.compute_total_order(Y[l], N, omega[0])
             if print_to_console:
-<<<<<<< HEAD:src/spotpy/algorithms/fast.py
-                print("%s %f %f" % (parnames[i], Si["S1"][i], Si["ST"][i]))
-=======
                 self.logger.info("%s %f %f" %
                       (parnames[i], Si['S1'][i], Si['ST'][i]))
->>>>>>> a4673f4 (WIP: Adds logging):spotpy/algorithms/fast.py
         return Si
 
     def compute_first_order(self, outputs, N, M, omega):
@@ -213,15 +204,9 @@ class fast(_algorithm):
             Maximum number of runs.
         """
         self.set_repetiton(repetitions)
-<<<<<<< HEAD:src/spotpy/algorithms/fast.py
-        print(
-            "Starting the FAST algotrithm with " + str(repetitions) + " repetitions..."
-        )
-        print("Creating FAST Matrix")
-=======
         self.logger.info('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
-        self.logger.info('Creating FAST Matrix')
->>>>>>> a4673f4 (WIP: Adds logging):spotpy/algorithms/fast.py
+
+        self.logger.debug('Creating FAST Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()["name"]
         # Get the minimum and maximum value for each parameter from the

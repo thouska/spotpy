@@ -292,7 +292,7 @@ class padds(_algorithm):
                     self.parameter_current,
                 )
 
-            self.logger.info(
+            self.logger.debug(
                 "Best solution found has obj function value of "
                 + str(self.best_value.best_obj_val)
                 + " at "

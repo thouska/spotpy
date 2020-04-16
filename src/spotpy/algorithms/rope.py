@@ -167,7 +167,7 @@ class rope(_algorithm):
             if acttime - intervaltime >= 2:
                 text = '1 Subset: Run %i of %i (best like=%g)' % (
                     rep, first_run, self.status.objectivefunction_max)
-                self.logger.info(text)
+                self.logger.debug(text)
                 intervaltime = time.time()
 
         for subset in range(subsets - 1):
@@ -204,7 +204,7 @@ class rope(_algorithm):
                 likes.append(like)
                 pars.append(ropepar)
                 if self.status.stop:
-                    self.logger.info('Stopping sampling')
+                    self.logger.debug('Stopping sampling')
                     break
 
                 # Progress bar
@@ -218,7 +218,7 @@ class rope(_algorithm):
                             repetitions_following_runs,
                             self.status.objectivefunction_max,
                         )
-                        self.logger.info(text)
+                        self.logger.debug(text)
                         intervaltime = time.time()
             if self.status.stop:
                 break
@@ -230,10 +230,10 @@ class rope(_algorithm):
 
         N, NP = X.shape
         text = str(N) + " input vectors with " + str(NP) + " parameters"
-        self.logger.info(text)
+        self.logger.debug(text)
 
         Ngen = int(runs)  # int(N*(1/self.percentage))
-        self.logger.info(("Generating " + str(Ngen) + " parameters:"))
+        self.logger.debug(("Generating " + str(Ngen) + " parameters:"))
 
         NPOSI = Ngen  # Number of points to generate
 

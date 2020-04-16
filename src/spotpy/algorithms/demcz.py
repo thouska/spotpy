@@ -105,7 +105,7 @@ class demcz(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.info("ERROR Bounds have not the same lenghts as Parameterarray")
+            self.logger.error('ERROR Bounds have not the same lenghts as Parameterarray')
         return par
 
     def sample(
@@ -222,9 +222,9 @@ class demcz(_algorithm):
             # 3) and we have not done more than the maximum number of iterations
 
             while cur_iter < maxChainDraws:
-                self.logger.info("%s, %s", cur_iter, burnIn)
+                self.logger.debug("%s, %s", cur_iter, burnIn)
                 if cur_iter == burnIn:
-                    self.logger.info('starting')
+                    self.logger.debug('starting')
                     history.start_sampling()
 
                 # every5th iteration allow a big jump
@@ -536,8 +536,8 @@ def _random_no_replace(sampleSize, populationSize, numSamples):
     return samples
 
 
-class _CovarianceConvergence:
-
+class _CovarianceConvergence():
+    
     relativeVariances = {}
 
     def update(self, history, group):
@@ -566,7 +566,7 @@ class _CovarianceConvergence:
             projection = np.dot(np.linalg.inv(basis1), basis2)
         except np.linalg.linalg.LinAlgError as e:
             projection = np.array(basis1) * np.nan
-            spotpylogging.get_logger("_CovarianceConvergence()").logger.info("Exception happend!\nExcpetion:%s", e)
+            spotpylogging.get_logger("_CovarianceConvergence()").logger.debug("Exception happend!\nExcpetion:%s", e)
 
         # find the releative size in each of the basis1 directions
         return np.log(np.sum(projection**2, axis=0) ** 0.5)
@@ -622,7 +622,7 @@ def _dream_proposals(
     return proposalVectors
 
 
-class _GRConvergence:
+class _GRConvergence():
     """
     Gelman Rubin convergence diagnostic calculator class. It currently only calculates the naive
     version found in the first paper. It does not check to see whether the variances have been
