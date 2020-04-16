@@ -15,16 +15,16 @@ if not spotpy_logger.handlers:
     # create the handlers and call logger.addHandler(logging_handler)
     # Add logging to stdout
     handler_stdout = logging.StreamHandler()
-#    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s ' +
-#                                  '%(message)s')
-    formatter = logging.Formatter('%(message)s')
+    formatter_file = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s ' +
+                                  '%(message)s')
+    formatter_stdout = logging.Formatter('%(message)s')
 
-    handler_stdout.setFormatter(formatter)
+    handler_stdout.setFormatter(formatter_stdout)
     spotpy_logger.addHandler(handler_stdout)
     
     # Add logging to file
     handler_file = logging.FileHandler(path_to_logfile)  # TODO this should be bound to cli arguments
-    handler_file.setFormatter(formatter)
+    handler_file.setFormatter(formatter_file)
     spotpy_logger.addHandler(handler_file)
     
     spotpy_logger.setLevel(logging.INFO)  # TODO this should be bound to cli arguments
