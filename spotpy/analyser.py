@@ -10,7 +10,7 @@ Holds functions to analyse results out of the database.
 Note: This part of SPOTPY is in alpha status and not yet ready for production use.
 '''
 
-from spotpylogging import get_logger
+from .spotpylogging import get_logger
 import numpy as np
 import spotpy
 
