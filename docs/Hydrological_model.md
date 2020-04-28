@@ -172,11 +172,11 @@ To define the VanGenuchten parameter boundaries we use a normal distribution.
 				return self.cmfmodel.observations
 		
 		def objectivefunction(self,simulation,evaluation):
-		if self._used_algorithm == 'sceua': # The SCE-UA algorithm minimizes the objectivefunction
-            like = spotpy.objectivefunctions.rmse(evaluation,simulation)
-        else: # All other implemented algorithm maximize the objectivefunction
-            objectivefunction= -spotpy.objectivefunctions.rmse(evaluation,simulation)
-		return objectivefunction
+			if self._used_algorithm == 'sceua': # The SCE-UA algorithm minimizes the objectivefunction
+				like = spotpy.objectivefunctions.rmse(evaluation,simulation)
+			else: # All other implemented algorithm maximize the objectivefunction
+				objectivefunction= -spotpy.objectivefunctions.rmse(evaluation,simulation)
+			return objectivefunction
 			
 			
 ## Sampling
