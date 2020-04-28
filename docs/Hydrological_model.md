@@ -142,7 +142,8 @@ Keep in mind, that the \__init\__ function is only called once during the sampli
 The more you can separate from you model into the \__init\__ function, the faster you sampling will be.
  
 	class spotpy_setup(object):
-		def __init__(self):
+		def __init__(self, used_algorithm = 'default'):
+			self._used_algorithm = _used_algorithm
 			datastart     = datetime(1998,6,1)
 			dataend       = datetime(2000,1,1)
 			analysestart  = datetime(1999,1,1)
@@ -171,21 +172,22 @@ To define the VanGenuchten parameter boundaries we use a normal distribution.
 				return self.cmfmodel.observations
 		
 		def objectivefunction(self,simulation,evaluation):
-			objectivefunction= -spotpy.objectivefunctions.rmse(evaluation,simulation)
-			return objectivefunction
+		if self._used_algorithm == 'sceua': # The SCE-UA algorithm minimizes the objectivefunction
+            like = spotpy.objectivefunctions.rmse(evaluation,simulation)
+        else: # All other implemented algorithm maximize the objectivefunction
+            objectivefunction= -spotpy.objectivefunctions.rmse(evaluation,simulation)
+		return objectivefunction
 			
 			
 ## Sampling
 
-	spotpy_setup=spotpy_setup()
-
-	sampler = spotpy.algorithms.mc(spotpy_setup,dbname='MC_CMF',dbformat='csv')
-	sampler = spotpy.algorithms.mle(spotpy_setup,dbname='MLE_CMF',dbformat='csv')
-	sampler = spotpy.algorithms.lhs(spotpy_setup,dbname='LHS_CMF',dbformat='csv')
-	sampler = spotpy.algorithms.sceua(spotpy_setup,dbname='SCEUA_CMF',dbformat='csv')
-	sampler = spotpy.algorithms.demcz(spotpy_setup,dbname='DE-MCz_CMF',dbformat='csv')
-	sampler = spotpy.algorithms.sa(spotpy_setup,dbname='SA_CMF',dbformat='csv')
-	sampler = spotpy.algorithms.rope(spotpy_setup,dbname='ROPE_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.mc(spotpy_setup(),dbname='MC_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.mle(spotpy_setup(),dbname='MLE_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.lhs(spotpy_setup(),dbname='LHS_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.sceua(spotpy_setup(used_algorithm='sceua'),dbname='SCEUA_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.demcz(spotpy_setup(),dbname='DE-MCz_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.sa(spotpy_setup(),dbname='SA_CMF',dbformat='csv')
+	sampler = spotpy.algorithms.rope(spotpy_setup(),dbname='ROPE_CMF',dbformat='csv')
 
 	algorithms=['MC','LHS','MLE','MCMC','SCE-UA','SA','DE-MCz','ROPE']
 	results=[]

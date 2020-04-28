@@ -11,7 +11,7 @@ This class holds example code how to use the dream algorithm
 import numpy as np
 import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-import pylab as plt
+import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     spot_setup=spot_setup(_used_algorithm='sceua')
     
     #Select number of maximum allowed repetitions
-    rep=5000
+    rep=500
     filename = 'SCEUA_hymod'
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is

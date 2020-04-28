@@ -20,6 +20,7 @@ sampling and an analyser class for the plotting of results by the sampling.
                - mpi4py (optional) (http://mpi4py.scipy.org/)
                - pathos (optional) (https://pypi.python.org/pypi/pathos/)
                - sqlite3 (optional) (https://pypi.python.org/pypi/sqlite3/)
+               - numba (optional) (https://pypi.python.org/pypi/numba/)
 
                :help: For specific questions, try to use the documentation website at:
                 https://spotpy.readthedocs.io/en/latest/
