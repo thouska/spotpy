@@ -527,7 +527,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     # where Y_{ht} should be the simulated model data and mu_t = exp(mu_h * Y_{ht}).
     # So, mu_h is "a bias parameter to be inferred from the model." (cite, page 3, formula (3))
 
-    mu_t = np.mean(muh * comparedata)
+    mu_t = np.exp(muh * comparedata)
 
     E = comparedata * mu_t
 
