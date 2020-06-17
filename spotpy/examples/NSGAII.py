@@ -5,11 +5,11 @@ from numpy.random import random
 import pdb
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+import math
 
 n_var = 5
 n_obj = 3
-n_pop = 100
+n_pop = 200
 
 
 def polynomial_mutation(x,xl,xu,prob_mut,eta_mut):
@@ -62,6 +62,41 @@ def polynomial_mutation(x,xl,xu,prob_mut,eta_mut):
     Y[do_mutation] = _Y
 
     return Y
+
+def random_permuations(n, l):
+    perms = []
+    for i in range(n):
+        perms.append(np.random.permutation(l))
+    P = np.concatenate(perms)
+    return P
+
+def tournament_selection_v0(pop_rank,elitism,pressure=2):
+    # number of random individuals needed
+
+    eli2 = (len(pop_rank) - elitism)
+    n_random = eli2 * pressure#n_select * n_parents * pressure
+
+    # number of permutations needed
+    n_perms = math.ceil(n_random / len(pop_rank))
+
+    # get random permutations and reshape them
+    P = random_permuations(n_perms, len(pop_rank))[:n_random]
+    #P = np.reshape(P, (n_select * n_parents, pressure))
+
+    P = np.reshape(P, (eli2, pressure))
+
+    n_tournament,n_competitors = P.shape
+
+    S = np.full(n_tournament,-1,dtype=np.int)
+
+    for i in range(n_tournament):
+        a,b = P[i]
+
+        if pop_rank[a] < pop_rank[b]:
+            S[i] = a
+        else:
+            S[i] = b
+    return S
 
 
 def tournament_selection_v1(n_pop,elitism,pressure=2):
@@ -189,8 +224,6 @@ objFunc = dtlz1
 def main(elitism=None,xl=None,xu=None,generations=None):
 
 
-    if not elitism:
-        elitism = 0
     # loop for each generation
     store = []
     for igen in range(1,generations):
@@ -202,7 +235,6 @@ def main(elitism=None,xl=None,xu=None,generations=None):
 
             Pt = random((n_pop,n_var))
 
-            #P2t = transfPop(Pt) # why the transfer pop??
 
             # calculate obj func
             Ot = objFunc(Pt,n_var=n_var,n_obj=n_obj) # (n_pop,n_obj)
@@ -217,16 +249,15 @@ def main(elitism=None,xl=None,xu=None,generations=None):
             # Np = domination count = number of solutions that dominates the solution p
             # Sp = set of solution that the solution p dominates
             nonDomRank = fastSort(Ot)
-            crDist = np.empty(n_pop)
-            #import pdb; pdb.set_trace()
 
+            crDist = np.empty(n_pop)
             for rk in range(1,np.max(nonDomRank)+1):
                 crDist[nonDomRank == rk] = crowdDist(Ot[nonDomRank==rk,:])
 
 
-                # sort
-                # by nonDomRand increasing
-                # by crDist decreasing
+            # sort
+            # by nonDomRand increasing
+            # by crDist decreasing
             sortOt =  np.lexsort((-crDist,nonDomRank)) 
             Psort = Pt[sortOt]
             Osort = Ot[sortOt]
@@ -245,37 +276,65 @@ def main(elitism=None,xl=None,xu=None,generations=None):
             #elitism = n_select * n_parents
 
             # create new population
-            Qt = np.full(Psort.shape,np.nan)
+            #Qt = np.full(Psort.shape,np.nan)
             # apply elitism
-            Qt[:elitism,:] = Psort[:elitism,:]
+            #Qt[:elitism,:] = Psort[:elitism,:]
+
+            Pt[:elitism,:] = Psort[:elitism,:]
             # get children index
             # [TODO] child can be replicates with this method
-            child = tournament_selection_v2(n_pop=n_pop,elitism=elitism,pressure=2)
-            Qt[elitism:] = Psort[child]#[child[np.random.randint(0,len(child),n_pop -len(child))]]
-            crossoverChance = 0.6
+            # child = tournament_selection_v2(n_pop=n_pop,elitism=elitism,pressure=2)
+            child = tournament_selection_v0(pop_rank=sortOt,elitism=elitism) #TODO fix handlngi fo elitism
+            #Qt[elitism:] = Psort[child]
+            Pt[elitism:] = Psort[child]
 
-            # combine populations, elitism, Deb papers says it is 2*n_pop
-            # crossover
-            crossoverCount = 0
-            #import pdb; pdb.set_trace()
-            Pt[:elitism] = Qt[:elitism]
 
-            for child in range(elitism,n_pop):
-                if np.random.uniform(0,1) < crossoverChance:
-                    parentID = []
-                    #for p in range(pressure):
-                    #    parentID.append(np.random.permutation(range(elitism,n_pop +1)))
-                    parentID = np.random.randint(elitism,n_pop,2)
-                    #parentID = np.stack(parentID,axis=1)
-                    parents = Qt[parentID,:]
-                    crossoverPoint = np.random.randint(0,n_var)
-                    Pt[child,:] =  np.concatenate([parents[0,:crossoverPoint],parents[1,crossoverPoint:]])
-                    crossoverCount += 1
-            print(f"crossover applied to: {crossoverCount} individuals")
+            # CROSSOVER
+
+            # crossoverCount = 0
+
+            #crossoverChance = 0.6
+
+            # #import pdb; pdb.set_trace()
+            #Pt[:elitism] = Qt[:elitism]
+
+            # for child in range(elitism,n_pop):
+            #     if np.random.uniform(0,1) < crossoverChance:
+            #         parentID = []
+            #         #for p in range(pressure):
+            #         #    parentID.append(np.random.permutation(range(elitism,n_pop +1)))
+            #         parentID = np.random.randint(elitism,n_pop,2)
+            #         #parentID = np.stack(parentID,axis=1)
+            #         parents = Qt[parentID,:]
+            #         crossoverPoint = np.random.randint(0,n_var)
+            #         Pt[child,:] =  np.concatenate([parents[0,:crossoverPoint],parents[1,crossoverPoint:]])
+            #         crossoverCount += 1
+            # print(f"crossover applied to: {crossoverCount} individuals")
             # mutation (Polynomial mutation)
 
+            # CROSSOVER handling elitism
+            crossProbThreshold = 0.9
+            #Elit = Qt[elitism:,:]
+            Elit = Pt[elitism:,:]
+            n_elit = Elit.shape[0]
+            crossProbability = np.random.random((n_elit))
+            do_cross = crossProbability <  crossProbThreshold
+            R = np.random.randint(0,n_elit,(n_elit,2))
+            parents = R[do_cross]
+            crossPoint = np.random.randint(0,n_var,parents.shape[0])
+            d = Elit[parents,:]
+            child = []
+            for i in range(parents.shape[0]):
+                child.append(np.concatenate([d[i,0,:crossPoint[i]],d[i,1,crossPoint[i]:]]))
+            child = np.vstack(child)
+            Pt[elitism:,:][do_cross,:] = child
+            print(f"crossover applied: {np.sum(do_cross)}")
+
+
+            # MUTATION
+
             prob_mut = 0.1
-            eta_mut = 350
+            eta_mut = 30
             Pt[elitism:,:] = polynomial_mutation(Pt[elitism:,:],xl,xu,prob_mut,eta_mut)
             
     return store,Ot
@@ -286,7 +345,8 @@ if __name__ == "__main__":
 
 
     generations = 200
-    store,Ot = main(elitism=None,xl = np.array([0,0,0,0,0]),xu=np.array([1,1,1,1,1]),generations=generations)
+    elitism = 100
+    store,Ot = main(elitism=elitism,xl = np.array([0,0,0,0,0]),xu=np.array([1,1,1,1,1]),generations=generations)
     #import pdb; pdb.set_trace()
     
     O1 = np.vstack(store)
@@ -296,7 +356,7 @@ if __name__ == "__main__":
         ax[i].plot(O1[:,i],linewidth=0.2,alpha=0.4)
     x1,y1,z1 = O1[:,0],O1[:,1],O1[:,2]
 
-    x,y,z = Ot[:100,0],Ot[:100,1],Ot[:100,2]
+    x,y,z = Ot[:elitism,0],Ot[:elitism,1],Ot[:elitism,2]
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(x,y,z,marker="o")
