@@ -5,10 +5,10 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Stijn Van Hoey
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 from . import _algorithm
 import numpy as np
 
@@ -63,6 +63,8 @@ class sceua(_algorithm):
         kwargs['optimization_direction'] = 'minimize'
         kwargs['algorithm_name'] = 'Shuffled Complex Evolution (SCE-UA) algorithm'
         super(sceua, self).__init__(*args, **kwargs)
+
+        print("LUKAS version anchor")
         
 
     def simulate(self, id_params_tuple):
@@ -128,7 +130,7 @@ class sceua(_algorithm):
             # Replace the complex back into the population;
             return igs, likes, pars, sims, cx, cf, k1, k2, discarded_runs
 
-    def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001):
+    def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001, max_loop_inc=None):
         """
         Samples from parameter distributions using SCE-UA (Duan, 2004), 
         converted to python by Van Hoey (2011), restructured and parallelized by Houska et al (2015).
@@ -146,6 +148,8 @@ class sceua(_algorithm):
             the percentage change allowed in the past kstop loops below which convergence is assumed to be achieved.
         peps: float
             Value of the normalized geometric range of the parameters in the population below which convergence is deemed achieved.
+        max_loop_inc: int
+            Number of loops executed at max in this function call
         """
         self.set_repetiton(repetitions)
         # Initialize SCE parameters:
@@ -163,6 +167,9 @@ class sceua(_algorithm):
         bound = self.bu - self.bl  # np.array
         self.stochastic_parameters = bound != 0
         proceed = True
+
+        # burnin_only, needed to indictat if only the burnin phase should be run
+        burnin_only = False
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -177,7 +184,7 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
-            print ('Starting burn-in sampling...')
+            print('Starting burn-in sampling...')
 
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
@@ -194,6 +201,17 @@ class sceua(_algorithm):
             idx = np.argsort(xf)
             xf = np.sort(xf)
             x = x[idx, :]
+
+            print('Burn-in sampling completed...')
+
+            # write brakpoint if only a single generation shall be computed and
+            # the main loop will not be executed
+            if (self.breakpoint == 'write' or self.breakpoint == 'readandwrite') \
+                    and max_loop_inc == 1:
+                work = (self.status.rep, (x, xf), gnrng)
+                self.write_breakdata(self.dbname, work)
+                burnin_only = True
+
         else:
             raise ValueError("Don't know the breakpoint keyword {}".format(self.breakpoint))
         
@@ -221,16 +239,23 @@ class sceua(_algorithm):
             print(
                 'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
 
-        print ('Burn-in sampling completed...')
+
+
 
         # Begin evolution loops:
         nloop = 0
         criter = []
         criter_change_pcent = 1e+5
-
-        self.repeat.setphase('ComplexEvo')
-        print ('Starting Complex Evolution...')
         proceed = True
+
+        # if only burnin, stop the following while loop to be started
+        if burnin_only:
+            proceed = False
+            print('ONLY THE BURNIN PHASE WAS COMPUTED')
+        else:
+            self.repeat.setphase('ComplexEvo')
+            print('Starting Complex Evolution...')
+
         while icall < repetitions and gnrng > peps and criter_change_pcent > pcento and proceed == True:
             nloop += 1
             print ('ComplexEvo loop #%d in progress...' % nloop)
@@ -260,10 +285,10 @@ class sceua(_algorithm):
                         self.discarded_runs+=1
                         print('Skipping saving')
                 
-                if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
-                  and self.status.rep >= self.backup_every_rep:
-                    work = (self.status.rep, (x, xf), gnrng)
-                    self.write_breakdata(self.dbname, work)
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
+              and self.status.rep >= self.backup_every_rep:
+                work = (self.status.rep, (x, xf), gnrng)
+                self.write_breakdata(self.dbname, work)
 
             # End of Loop on Complex Evolution;
 
@@ -315,7 +340,13 @@ class sceua(_algorithm):
                         'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
             elif self.status.stop:
                 proceed = False
-                break        
+                break
+
+            # stop, if max number of loop iteration was reached
+            elif max_loop_inc and nloop >= max_loop_inc:
+                proceed = False
+                print('THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED')
+                break
             
         # End of the Outer Loops
         print('SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % self.status.rep)
