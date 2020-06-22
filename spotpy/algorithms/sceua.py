@@ -170,6 +170,7 @@ class sceua(_algorithm):
 
         # burnin_only, needed to indictat if only the burnin phase should be run
         burnin_only = False
+
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -202,15 +203,10 @@ class sceua(_algorithm):
             xf = np.sort(xf)
             x = x[idx, :]
 
-            print('Burn-in sampling completed...')
-
-            # write brakpoint if only a single generation shall be computed and
-            # the main loop will not be executed
-            if (self.breakpoint == 'write' or self.breakpoint == 'readandwrite') \
-                    and max_loop_inc == 1:
-                work = (self.status.rep, (x, xf), gnrng)
-                self.write_breakdata(self.dbname, work)
+            if max_loop_inc == 1:
                 burnin_only = True
+
+            print('Burn-in sampling completed...')
 
         else:
             raise ValueError("Don't know the breakpoint keyword {}".format(self.breakpoint))
@@ -249,9 +245,15 @@ class sceua(_algorithm):
         proceed = True
 
         # if only burnin, stop the following while loop to be started
+        # write brakpoint if only a single generation shall be computed and
+        # the main loop will not be executed
         if burnin_only:
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite':
+                work = (self.status.rep, (x, xf), gnrng)
+                self.write_breakdata(self.dbname, work)
             proceed = False
             print('ONLY THE BURNIN PHASE WAS COMPUTED')
+            
         else:
             self.repeat.setphase('ComplexEvo')
             print('Starting Complex Evolution...')
