@@ -263,10 +263,9 @@ class NSGAII_DEV(_algorithm):
 
 
     def sample(self, generations,n_pop=None):
-
-        self.repetitions = int(generations)
         self.n_pop = n_pop
-        self.status.repetitions = self.repetitions*n_pop
+        self.generation= generations
+        self.set_repetiton(self.generations*self.n_pop)
 
         Pt = np.vstack([self.setup.parameters()['random'] for i in range(self.n_pop)])
         
@@ -313,7 +312,7 @@ class NSGAII_DEV(_algorithm):
 
         Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu = self.varmaxbound)
         
-        for igen in range(1,self.repetitions - 1):
+        for igen in range(1,self.generations - 1):
 
                 Rt = np.vstack([Pt,Qt])
 
