@@ -262,59 +262,58 @@ class NSGAII_DEV(_algorithm):
 
 
 
-    def sample(self, generations=None,n_pop=None):
+    def sample(self, generations,n_pop=None):
 
         self.repetitions = int(generations)
         self.n_pop = n_pop
-        self.status.repetitions = self.repetitions
+        self.status.repetitions = self.repetitions*n_pop
 
         Pt = np.vstack([self.setup.parameters()['random'] for i in range(self.n_pop)])
-        for igen in range(1,self.repetitions + 1):
-            if igen == 1:
+        
+        #Burn-in
+        #TODO: I would suggest to make the burin-in sample indiviudual for each cpu-core in case of parallel usage, compare dream.py, but not sure if this is defined in the publication
+        # evaluate population
+        param_generator = ((i,Pt[i,:]) for i in range(self.n_pop))
+        Of = list(self.repeat(param_generator))
 
-                # evaluate population
-                param_generator = ((i,Pt[i,:]) for i in range(self.n_pop))
-                Of = list(self.repeat(param_generator))
+        Of = np.vstack([i[2] for i in Of]).reshape(n_pop,self.setup.n_obj)
+        nonDomRank = self.fastSort(Of)
 
-                Of = np.vstack([i[2] for i in Of]).reshape(n_pop,self.setup.n_obj)
-                nonDomRank = self.fastSort(Of)
-
-                crDist = np.empty(self.n_pop)
-                for rk in range(1,np.max(nonDomRank)+1):
-                    crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
+        crDist = np.empty(self.n_pop)
+        for rk in range(1,np.max(nonDomRank)+1):
+            crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
 
 
-                # sorting
+        # sorting
 
-                rank = np.lexsort((-crDist,nonDomRank))
-                Psort = Pt[rank]
-                Ofsort = Of[rank]
-                #import pdb; pdb.set_trace()
-                for p in range(self.n_pop):
-                    self.postprocessing(igen, Psort[p,:], Ofsort[p,:], p)
+        rank = np.lexsort((-crDist,nonDomRank))
+        Psort = Pt[rank]
+        Ofsort = Of[rank]
+        #import pdb; pdb.set_trace()
+        for p in range(self.n_pop):
+            self.postprocessing(0, Psort[p,:], Ofsort[p,:], p)
 
-                # selection
+        # selection
 
-                offsprings = self.selection.calc(pop_rank = rank)
+        offsprings = self.selection.calc(pop_rank = rank)
 
-                Qt = Psort[offsprings,:]
+        Qt = Psort[offsprings,:]
 
-                #import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
-                # crossover
-                Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
+        # crossover
+        Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
 
-                # mutation
-                self.varminbound = np.array([])
-                self.varmaxbound = np.array([])
-                for i in self.setup.params:
-                    self.varminbound = np.append(self.varminbound,i.minbound)
-                    self.varmaxbound = np.append(self.varmaxbound,i.maxbound)
+        # mutation
+        self.varminbound = np.array([])
+        self.varmaxbound = np.array([])
+        for i in self.setup.params:
+            self.varminbound = np.append(self.varminbound,i.minbound)
+            self.varmaxbound = np.append(self.varmaxbound,i.maxbound)
 
-                Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu = self.varmaxbound)
-             
-            else:
-
+        Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu = self.varmaxbound)
+        
+        for igen in range(1,self.repetitions - 1):
 
                 Rt = np.vstack([Pt,Qt])
 

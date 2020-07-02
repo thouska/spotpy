@@ -25,4 +25,4 @@ if __name__ == "__main__":
                                  dbformat='csv',
                                  save_sim=True,
                                  parallel='seq')
-    sampler.sample(generations=generations,n_pop=n_pop) 
+    sampler.sample(generations,n_pop=n_pop) 
