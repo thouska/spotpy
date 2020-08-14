@@ -12,14 +12,14 @@ import numpy as np
 import spotpy
 #from spotpy.examples.spot_setup_hymod_exe import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-import pylab as plt
+import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
     parallel ='seq'
     # Initialize the Hymod example (will only work on Windows systems)
     #spot_setup=spot_setup(parallel=parallel)
-    spot_setup=spot_setup(_used_algorithm='dream')
+    spot_setup=spot_setup(obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut)
     
     # Create the Dream sampler of spotpy, al_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is

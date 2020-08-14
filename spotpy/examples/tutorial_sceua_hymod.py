@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # Initialize the Hymod example
     # In this case, we tell the setup which algorithm we want to use, so
     # we can use this exmaple for different algorithms
-    spot_setup=spot_setup(_used_algorithm='sceua')
+    spot_setup=spot_setup(users_objective_function=spotpy.objectivefunctions.rmse)
     
     #Select number of maximum allowed repetitions
     rep=500

@@ -45,7 +45,7 @@ class _RunStatistic(object):
             print('The objective function will be minimized')
         if optimization_direction == 'maximize':
             self.compare = self.maximizer
-            print('The objective function will be minimized')
+            print('The objective function will be maximized')
         if optimization_direction == 'grid':
             self.compare = self.grid
 
