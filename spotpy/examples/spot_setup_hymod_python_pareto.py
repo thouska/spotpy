@@ -24,8 +24,7 @@ class spot_setup(object):
     Ks    = spotpy.parameter.Uniform(low=0.0 , high=0.10, optguess=0.0404)
     Kq    = spotpy.parameter.Uniform(low=0.1 , high=0.99, optguess=0.5592)
 
-    def __init__(self, _used_algorithm = 'default'):
-        self._used_algorithm = _used_algorithm  
+    def __init__(self):
         #Transform [mm/day] into [l s-1], where 1.783 is the catchment area
         self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24) 
         #Load Observation data from file

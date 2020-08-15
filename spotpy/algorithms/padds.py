@@ -182,6 +182,7 @@ class padds(_algorithm):
         # Spotpy will not need this values.
         debug_results = []
         self.logger.info('Starting the PADDS algotrithm with ' + str(repetitions) + ' repetitions...')
+        self.logger.warning('WARNING: THE PADDS algorithm as implemented in SPOTPY is in an beta stage and not ready for production use!')
         self.set_repetiton(repetitions)
         self.number_of_parameters = len(self.best_value.parameters) # number_of_parameters is the amount of parameters
 

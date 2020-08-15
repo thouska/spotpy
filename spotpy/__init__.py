@@ -20,6 +20,7 @@ sampling and an analyser class for the plotting of results by the sampling.
                - mpi4py (optional) (http://mpi4py.scipy.org/)
                - pathos (optional) (https://pypi.python.org/pypi/pathos/)
                - sqlite3 (optional) (https://pypi.python.org/pypi/sqlite3/)
+               - numba (optional) (https://pypi.python.org/pypi/numba/)
 
                :help: For specific questions, try to use the documentation website at:
                 https://spotpy.readthedocs.io/en/latest/
@@ -40,4 +41,5 @@ from . import examples            # Contains tutorials how to use SPOTPY
 from . import describe            # Contains some helper functions to describe samplers and set-ups
 from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 
-__version__ = '1.5.9'
+
+__version__ = '1.5.10'
