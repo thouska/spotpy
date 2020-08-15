@@ -14,8 +14,9 @@ if __name__ == "__main__":
     #Create samplers for every algorithm:
     results=[]
     spot_setup=spot_setup(n_var=5,n_obj=3)
-    generations=300
-    n_pop = 100
+    generations=200
+    n_pop = 30
+    skip_duplicates = False
 
     sampler=spotpy.algorithms.NSGAII_DEV(selection = TournamentSelection(pressure=2) ,
                                  crossover = Crossover(crossProb=0.9),
@@ -25,4 +26,4 @@ if __name__ == "__main__":
                                  dbformat='csv',
                                  save_sim=True,
                                  parallel='seq')
-    sampler.sample(generations,n_pop=n_pop) 
+    sampler.sample(generations,n_pop=n_pop,skip_duplicates=skip_duplicates) 
