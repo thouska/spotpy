@@ -73,6 +73,6 @@ class spot_setup(object):
             # This is used if not overwritten by user
             like = rmse(evaluation,simulation)
         else:
-            #Way to ensure on flexible spot setup class
+            #Way to ensure flexible spot setup class
             like = self.obj_func(evaluation,simulation)    
         return like

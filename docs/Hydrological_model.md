@@ -142,8 +142,9 @@ Keep in mind, that the \__init\__ function is only called once during the sampli
 The more you can separate from you model into the \__init\__ function, the faster you sampling will be.
  
 	class spotpy_setup(object):
-		def __init__(self, used_algorithm = 'default'):
-			self._used_algorithm = _used_algorithm
+		def __init__(self, obj_func=None):
+			#Just a way to keep this example flexible and applicable to various examples
+			self.obj_func = obj_func 
 			datastart     = datetime(1998,6,1)
 			dataend       = datetime(2000,1,1)
 			analysestart  = datetime(1999,1,1)
@@ -172,11 +173,18 @@ To define the VanGenuchten parameter boundaries we use a normal distribution.
 				return self.cmfmodel.observations
 		
 		def objectivefunction(self,simulation,evaluation):
-			if self._used_algorithm == 'sceua': # The SCE-UA algorithm minimizes the objectivefunction
-				like = spotpy.objectivefunctions.rmse(evaluation,simulation)
-			else: # All other implemented algorithm maximize the objectivefunction
-				objectivefunction= -spotpy.objectivefunctions.rmse(evaluation,simulation)
-			return objectivefunction
+		        #SPOTPY expects to get one or multiple values back, 
+				#that define the performence of the model run
+				if not self.obj_func:
+					# This is used if not overwritten by user
+					# RMSE (root mean squared error) works good for the SCE-UA algorithm, 
+					# as it minimizes the objective function.
+					# All other implemented algorithm maximize the objectivefunction
+					model_performance = spotpy.objectivefunctions.rmse(evaluation,simulation)
+				else:
+					#Way to ensure flexible spot setup class
+					model_performance = self.obj_func(evaluation,simulation) 
+			return model_performance
 			
 			
 ## Sampling
