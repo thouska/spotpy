@@ -5,7 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import numpy as np
 import spotpy
-
+import time
 
 def g1(x,k):
     return 100*( k + np.sum(np.square(x - 0.5) - np.cos(20*np.pi*(x -0.5)), axis=1))
@@ -26,7 +26,7 @@ def dtlz1(x,n_var,n_obj):
         if i> 0:
             _f *= 1 - X[:,X.shape[1] -i]
         f.append(_f)
-
+    
     return f
 
 
@@ -48,6 +48,7 @@ class spot_setup(object):
     def simulation(self, vector):
         vars = np.array(vector)[None]
         sim = dtlz1(vars,n_var=self.n_var,n_obj=self.n_obj)
+        #time.sleep(0.1)
         return sim
     def evaluation(self):
         observations=[0]*self.n_obj
