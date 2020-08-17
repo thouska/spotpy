@@ -23,28 +23,26 @@ class TournamentSelection:
 
         P = np.reshape(P, (n_select, self.pressure))
 
-        n_tournament,n_competitors = P.shape
+        n_tournament,_ = P.shape
 
-        S = np.full(n_tournament,-1,dtype=np.int)
+        ret = np.full(n_tournament,-1,dtype=np.int)
 
         for i in range(n_tournament):
             a,b = P[i]
 
             if pop_rank[a] < pop_rank[b]:
-                S[i] = a
+                ret[i] = a
             else:
-                S[i] = b
+                ret[i] = b
 
-
-        return S
+        return ret
 
 
 def random_permuations(n, l):
     perms = []
-    for i in range(n):
+    for _ in range(n):
         perms.append(np.random.permutation(l))
-    P = np.concatenate(perms)
-    return P
+    return np.concatenate(perms)
 
 
 class Crossover:
@@ -87,7 +85,6 @@ class PolynomialMutation:
         do_mutation = np.random.random(X.shape) < self.prob_mut
 
         m = np.sum(np.sum(do_mutation))
-        #print(f"mutants locations: {m}")
 
         Y[:,:] = X
 
@@ -101,13 +98,11 @@ class PolynomialMutation:
 
         mut_pow = 1.0/(self.eta_mut + 1.0)
 
-
         rand = np.random.random(X.shape)
         mask = rand <= 0.5
         mask_not = np.logical_not(mask)
 
         deltaq = np.zeros(X.shape)
-        #import pdb; pdb.set_trace()
 
         xy = 1.0 - delta1
         val = 2.0 * rand + (1.0 - 2.0 * rand) * (np.power(xy, (self.eta_mut + 1.0)))
@@ -118,13 +113,12 @@ class PolynomialMutation:
         val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (np.power(xy, (self.eta_mut + 1.0)))
         d = 1.0 - (np.power(val, mut_pow))
         deltaq[mask_not] = d[mask_not]
-        #import pdb; pdb.set_trace()
 
-        _Y = X + deltaq * (xu - xl)
-        _Y[_Y < xl] = xl[_Y < xl]
-        _Y[_Y > xu] = xu[_Y > xu]
+        ret = X + deltaq * (xu - xl)
+        ret[ret < xl] = xl[ret < xl]
+        ret[ret > xu] = xu[ret > xu]
 
-        Y[do_mutation] = _Y
+        Y[do_mutation] = ret
 
         return Y
 
@@ -223,25 +217,19 @@ class NSGAII_DEV(_algorithm):
 
         dist = np.zeros(n)
 
-
         ord = np.argsort(x,axis=0)
-        #import pdb; pdb.set_trace()
 
         X = x[ord,range(nobj)]
-
-        #import pdb; pdb.set_trace()
-    
+        
         dist = np.vstack([X,np.full(nobj,np.inf)]) - np.vstack([np.full(nobj,-np.inf),X])
 
-    
         norm = np.max(X,axis=0) - np.min(X,axis=0)
         dist_to_last,dist_to_next = dist, np.copy(dist)
         dist_to_last,dist_to_next = dist_to_last[:-1]/norm ,dist_to_next[1:]/norm
         J = np.argsort(ord,axis=0)
-        _cd = np.sum(dist_to_last[J, np.arange(nobj)] + dist_to_next[J, np.arange(nobj)], axis=1) / nobj
+        ret = np.sum(dist_to_last[J, np.arange(nobj)] + dist_to_next[J, np.arange(nobj)], axis=1) / nobj
 
-
-        return _cd
+        return ret
 
     def crowdDist2(self,x):
         n = x.shape[0]
@@ -251,7 +239,6 @@ class NSGAII_DEV(_algorithm):
         for obj in range(x.shape[1]):
             ord = np.argsort(x[:,obj])
             dist[ord[[0,-1]]] = np.inf
-            #import pdb; pdb.set_trace()
 
             norm = np.max(x[:,obj]) - np.min(x[:,obj])
 
@@ -262,11 +249,12 @@ class NSGAII_DEV(_algorithm):
 
 
 
-    def sample(self, generations,n_pop=None, n_obj=None):
+
+    def sample(self, generations,n_pop=None,skip_duplicates=False):
         self.n_pop = n_pop
-        self.generation= generations
-        self.n_obj = n_obj
-        self.set_repetiton(self.generation*self.n_pop)
+        self.generations= generations
+        self.set_repetiton(self.generations*self.n_pop)
+        self.skip_duplicates = skip_duplicates
 
         Pt = np.vstack([self.setup.parameters()['random'] for i in range(self.n_pop)])
         
@@ -287,19 +275,22 @@ class NSGAII_DEV(_algorithm):
         # sorting
 
         rank = np.lexsort((-crDist,nonDomRank))
-        Psort = Pt[rank]
+        Ptsort = Pt[rank]
         Ofsort = Of[rank]
-        #import pdb; pdb.set_trace()
+
+        Of_parent = Ofsort[:,:]
+        Pt_parent = Ptsort[:,:]
+        
         for p in range(self.n_pop):
-            self.postprocessing(0, Psort[p,:], Ofsort[p,:], p)
+            self.postprocessing(0, Ptsort[p,:], Ofsort[p,:], p)
 
         # selection
 
         offsprings = self.selection.calc(pop_rank = rank)
 
-        Qt = Psort[offsprings,:]
+        Qt = Ptsort[offsprings,:]
 
-        #import pdb; pdb.set_trace()
+        
 
         # crossover
         Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
@@ -315,33 +306,61 @@ class NSGAII_DEV(_algorithm):
         
         for igen in range(1,self.generations - 1):
 
-                Rt = np.vstack([Pt,Qt])
+                Rt = np.vstack([Pt_parent,Qt])
 
-                #import pdb; pdb.set_trace()
-                # evaluate population
-                param_generator = ((i,Rt[i,:]) for i in range(self.n_pop*2))
-                Of = list(self.repeat(param_generator))
-                Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop*2,self.setup.n_obj)
-                nonDomRank = self.fastSort(Of)
 
-                crDist = np.empty(self.n_pop*2)
-                for rk in range(1,np.max(nonDomRank)+1):
-                    crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
+                if self.skip_duplicates:
+                    print(f"pop: {len(Qt)}")    
+                    print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
 
+                                
+                    #Qt_nondup = np.unique(Qt,axis=0)
+                    #self.n_pop_nondup = len(Qt_nondup)
+
+                    # evaluate population 
+                    param_generator = ((i,Qt[i,:]) for i in range(self.n_pop))
+
+                    Of = list(self.repeat(param_generator))
+                    Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop,self.setup.n_obj)
+                    
+                    Of = np.vstack([Of_parent ,Of])
+
+                    nonDomRank = self.fastSort(Of)
+
+                    crDist = np.empty(len(Of)) 
+                    for rk in range(1,np.max(nonDomRank)+1):
+                        crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
+                else:
+
+                    print(f"pop: {len(Qt)}")    
+                    print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
+                    # evaluate population
+                    param_generator = ((i,Rt[i,:]) for i in range(self.n_pop *2))
+                    Of = list(self.repeat(param_generator))
+                    Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop*2,self.setup.n_obj) 
+                    nonDomRank = self.fastSort(Of)
+
+                    crDist = np.empty(self.n_pop*2) 
+                    for rk in range(1,np.max(nonDomRank)+1):
+                        crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
+
+                        
                 # sorting
                 rank = np.lexsort((-crDist,nonDomRank))[:self.n_pop]
-                Psort = Rt[rank]
+                Ptsort = Rt[rank]
                 Ofsort = Of[rank]
 
-                Pt = Psort[:,:]
+                Pt_parent = Ptsort[:,:]
+
+                Of_parent = Ofsort[:,:]
 
                 #import pdb; pdb.set_trace()
                 for p in range(self.n_pop):
-                    self.postprocessing(igen, Psort[p,:], Ofsort[p,:], p)
+                    self.postprocessing(igen, Ptsort[p,:], Ofsort[p,:], p)
 
                 # selection
                 offsprings = self.selection.calc(pop_rank = rank)
-                Qt = Psort[offsprings,:]
+                Qt = Ptsort[offsprings,:]
                 # crossover
                 Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
                 # mutation

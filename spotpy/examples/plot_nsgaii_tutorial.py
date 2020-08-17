@@ -13,6 +13,7 @@ n_obj = 3
 
 last = None
 first = None
+n_pop = 100
 
 # output calibration 
 
@@ -36,10 +37,9 @@ for i,name in enumerate(df.columns[:n_obj]):
     plt.title(name)
 plt.show()
 
-last = 100
-first = None
 
-x,y,z = df.iloc[-last:,0],df.iloc[-last:,1],df.iloc[-last:,2]
+
+x,y,z = df.iloc[-n_pop:,0],df.iloc[-n_pop:,1],df.iloc[-n_pop:,2]
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.scatter(x,y,z,marker="o")
