@@ -15,6 +15,7 @@ URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=996017&isnumber=214
 import numpy as np
 
 from spotpy.algorithms import _algorithm
+from sys import exit
 
 
 class ParaPop:
@@ -213,7 +214,7 @@ class NSGAII(_algorithm):
         R_0 = {}
 
         for i in range(paramsamp * 2):
-            R_0[i] = list(self.setup.parameters()['random'])
+            R_0[i] = list(self.parameter()['random'])
 
         while self.generation < self.repetitions:
 

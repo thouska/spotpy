@@ -262,10 +262,11 @@ class NSGAII_DEV(_algorithm):
 
 
 
-    def sample(self, generations,n_pop=None):
+    def sample(self, generations,n_pop=None, n_obj=None):
         self.n_pop = n_pop
         self.generation= generations
-        self.set_repetiton(self.generations*self.n_pop)
+        self.n_obj = n_obj
+        self.set_repetiton(self.generation*self.n_pop)
 
         Pt = np.vstack([self.setup.parameters()['random'] for i in range(self.n_pop)])
         
@@ -275,7 +276,7 @@ class NSGAII_DEV(_algorithm):
         param_generator = ((i,Pt[i,:]) for i in range(self.n_pop))
         Of = list(self.repeat(param_generator))
 
-        Of = np.vstack([i[2] for i in Of]).reshape(n_pop,self.setup.n_obj)
+        Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop,self.n_obj)
         nonDomRank = self.fastSort(Of)
 
         crDist = np.empty(self.n_pop)
