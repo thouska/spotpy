@@ -134,7 +134,7 @@ class NSGAII_DEV(_algorithm):
 
     """
 
-    def __init__(self,selection,crossover,mutation, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         Input
         ----------
@@ -168,11 +168,6 @@ class NSGAII_DEV(_algorithm):
         """
 
         super(NSGAII_DEV, self).__init__(*args, **kwargs)
-
-
-        self.selection = selection
-        self.crossover = crossover
-        self.mutation = mutation
 
 
     def fastSort(self,x):
@@ -250,13 +245,22 @@ class NSGAII_DEV(_algorithm):
 
 
 
-    def sample(self, generations,n_pop=None,skip_duplicates=False):
+    def sample(self, generations, n_obj, n_pop = None, skip_duplicates = False, 
+               selection = TournamentSelection(pressure=2), 
+               crossover = Crossover(crossProb=0.9),
+               mutation = PolynomialMutation(prob_mut=0.25,eta_mut=30)):
+        
+        self.n_obj = n_obj
+        self.selection = selection
+        self.crossover = crossover
+        self.mutation = mutation
+                                 
         self.n_pop = n_pop
         self.generations= generations
         self.set_repetiton(self.generations*self.n_pop)
         self.skip_duplicates = skip_duplicates
 
-        Pt = np.vstack([self.setup.parameters()['random'] for i in range(self.n_pop)])
+        Pt = np.vstack([self.parameter()['random'] for i in range(self.n_pop)])
         
         #Burn-in
         #TODO: I would suggest to make the burin-in sample indiviudual for each cpu-core in case of parallel usage, compare dream.py, but not sure if this is defined in the publication

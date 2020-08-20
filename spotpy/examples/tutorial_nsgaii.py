@@ -17,32 +17,30 @@ except ImportError:
     import spotpy
 
 import spotpy.algorithms
-from spotpy.parameter import Uniform
-import os
 import unittest
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-
 def multi_obj_func(evaluation, simulation):
     #used to overwrite objective function in hymod example
-    like1 = spotpy.objectivefunctions.agreementindex(evaluation, simulation)
+    like1 = spotpy.objectivefunctions.pbias(evaluation, simulation)
     like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
-    like3 = spotpy.signatures.getCoeffVariation(evaluation, simulation)
+    like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
     return [like1, like2, like3]
 
 if __name__ == "__main__":
     
 
-    generations=20
+    generations=10
+    n_pop = 30
+    skip_duplicates = True
     
+    sp_setup=spot_setup(obj_func= multi_obj_func)
+    sampler = spotpy.algorithms.NSGAII_DEV(spot_setup=sp_setup, dbname='NSGA2', dbformat="csv")
     
-    spot_setup=spot_setup(obj_func= multi_obj_func)
-    sampler = spotpy.algorithms.NSGAII(spot_setup, dbname='NSGA2', dbformat="csv")
-    
-    sampler.sample(generations, paramsamp=40)
+    sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
     #sampler.sample(generations=5, paramsamp=40)
     
     
