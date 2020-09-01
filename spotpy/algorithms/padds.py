@@ -307,7 +307,7 @@ class padds(_algorithm):
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
             dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
-            new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var - 1,  self.min_bound[j],self.max_bound[j])
+            new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var - 1,  self.min_bound[dec_var - 1],self.max_bound[dec_var - 1])
 
             new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test
 
