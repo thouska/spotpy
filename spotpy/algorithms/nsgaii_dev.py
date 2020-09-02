@@ -174,7 +174,7 @@ class NSGAII_DEV(_algorithm):
         n = x.shape[0]
         S = np.zeros((n,n),dtype=bool)
         Np = np.zeros(n)
-
+        
 
         for i in range(n):
             for j in range(n):
@@ -266,9 +266,16 @@ class NSGAII_DEV(_algorithm):
         #TODO: I would suggest to make the burin-in sample indiviudual for each cpu-core in case of parallel usage, compare dream.py, but not sure if this is defined in the publication
         # evaluate population
         param_generator = ((i,Pt[i,:]) for i in range(self.n_pop))
-        Of = list(self.repeat(param_generator))
+        
+        ret = list(self.repeat(param_generator))
+        
+        Of = []
+        for p in range(self.n_pop):
+            index,parameters,simulation_results = ret[p]
+            Of.append(self.postprocessing(0, parameters, simulation_results, chains=p)) 
+        Of = np.vstack(Of) 
 
-        Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop,self.n_obj)
+
         nonDomRank = self.fastSort(Of)
 
         crDist = np.empty(self.n_pop)
@@ -285,9 +292,6 @@ class NSGAII_DEV(_algorithm):
         Of_parent = Ofsort[:,:]
         Pt_parent = Ptsort[:,:]
         
-        for p in range(self.n_pop):
-            self.postprocessing(0, Ptsort[p,:], Ofsort[p,:], p)
-
         # selection
 
         offsprings = self.selection.calc(pop_rank = rank)
@@ -295,13 +299,17 @@ class NSGAII_DEV(_algorithm):
         Qt = Ptsort[offsprings,:]
 
         
-
         # crossover
-        Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
+        try:
+            n_var = self.setup.n_var
+        except AttributeError:
+            n_var = len(parameters)
+
+
+        Qt = self.crossover.calc(pop = Qt,n_var = n_var)
 
         # mutation
-        self.min_bound, self.max_bound = self.parameter(
-        )['minbound'], self.parameter()['maxbound']
+        self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
         self.varminbound = np.array([])
         self.varmaxbound = np.array([])
         for i in range(len(self.min_bound)):
@@ -316,8 +324,8 @@ class NSGAII_DEV(_algorithm):
 
 
                 if self.skip_duplicates:
-                    print(f"pop: {len(Qt)}")    
-                    print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
+                    # print(f"pop: {len(Qt)}")    
+                    # print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
 
                                 
                     #Qt_nondup = np.unique(Qt,axis=0)
@@ -326,9 +334,15 @@ class NSGAII_DEV(_algorithm):
                     # evaluate population 
                     param_generator = ((i,Qt[i,:]) for i in range(self.n_pop))
 
-                    Of = list(self.repeat(param_generator))
-                    Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop,self.setup.n_obj)
-                    
+
+                    ret = list(self.repeat(param_generator))
+        
+                    Of = []
+                    for p in range(self.n_pop):
+                        index, parameters,simulation_results = ret[p]
+                        Of.append(self.postprocessing(igen, parameters, simulation_results, chains=p)) 
+                    Of = np.vstack(Of) 
+
                     Of = np.vstack([Of_parent ,Of])
 
                     nonDomRank = self.fastSort(Of)
@@ -338,12 +352,21 @@ class NSGAII_DEV(_algorithm):
                         crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
                 else:
 
-                    print(f"pop: {len(Qt)}")    
-                    print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
+                    # print(f"pop: {len(Qt)}")    
+                    # print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
                     # evaluate population
                     param_generator = ((i,Rt[i,:]) for i in range(self.n_pop *2))
-                    Of = list(self.repeat(param_generator))
-                    Of = np.vstack([i[2] for i in Of]).reshape(self.n_pop*2,self.setup.n_obj) 
+
+
+
+                    ret = list(self.repeat(param_generator))
+        
+                    Of = []
+                    for p in range(self.n_pop*2):
+                        index, parameters,simulation_results = ret[p]
+                        Of.append(self.postprocessing(igen, parameters, simulation_results, chains=p)) 
+                    Of = np.vstack(Of) 
+
                     nonDomRank = self.fastSort(Of)
 
                     crDist = np.empty(self.n_pop*2) 
@@ -360,15 +383,13 @@ class NSGAII_DEV(_algorithm):
 
                 Of_parent = Ofsort[:,:]
 
-                #import pdb; pdb.set_trace()
-                for p in range(self.n_pop):
-                    self.postprocessing(igen, Ptsort[p,:], Ofsort[p,:], p)
 
                 # selection
                 offsprings = self.selection.calc(pop_rank = rank)
+
                 Qt = Ptsort[offsprings,:]
                 # crossover
-                Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
+                Qt = self.crossover.calc(pop = Qt,n_var = n_var)
                 # mutation
                 Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu =self.varmaxbound)
 

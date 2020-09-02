@@ -16,7 +16,7 @@ if __name__ == "__main__":
     spot_setup=spot_setup(n_var=5, n_obj=3)
     generations=10
     n_pop = 30
-    skip_duplicates = True
+    skip_duplicates = False
 
     sampler=spotpy.algorithms.NSGAII_DEV(spot_setup=spot_setup,
                                  dbname='NSGA2',

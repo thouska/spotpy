@@ -25,7 +25,7 @@ import numpy as np
 
 def multi_obj_func(evaluation, simulation):
     #used to overwrite objective function in hymod example
-    like1 = spotpy.objectivefunctions.pbias(evaluation, simulation)
+    like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
     like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
     like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
     return [like1, like2, like3]
@@ -33,8 +33,8 @@ def multi_obj_func(evaluation, simulation):
 if __name__ == "__main__":
     
 
-    generations=10
-    n_pop = 30
+    generations=15
+    n_pop = 50
     skip_duplicates = True
     
     sp_setup=spot_setup(obj_func= multi_obj_func)
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     ax.plot(q95,color='dimgrey',linestyle='solid')
     ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
                     linewidth=0,label='parameter uncertainty')  
-    ax.plot(spot_setup.evaluation(),'r.',label='data')
+    ax.plot(sp_setup.evaluation(),'r.',label='data')
     ax.set_ylim(-50,450)
     ax.set_xlim(0,729)
     ax.legend()

@@ -13,11 +13,14 @@ n_obj = 3
 
 last = None
 first = None
-n_pop = 100
+n_pop = 50
 
 # output calibration 
 
 df = pd.read_csv("NSGA2.csv")
+
+df["like3"] = df.like3 * -1
+
 
 if last:
     df = df.iloc[-last:,:]
@@ -28,7 +31,6 @@ else:
 
 
 
-print(len(df))
 # plot objective functions
 fig = plt.figure()
 for i,name in enumerate(df.columns[:n_obj]):
@@ -43,9 +45,9 @@ x,y,z = df.iloc[-n_pop:,0],df.iloc[-n_pop:,1],df.iloc[-n_pop:,2]
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.scatter(x,y,z,marker="o")
-ax.set_xlabel("f0")
-ax.set_ylabel("f1")
-ax.set_zlabel("f2")
+ax.set_xlabel("pbias")
+ax.set_ylabel("rmse")
+ax.set_zlabel("rsquared")
 plt.show()
 
 # plot parameters
