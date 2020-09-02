@@ -166,7 +166,7 @@ class NSGAII_DEV(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        self._return_all_likes=True #alloes multi-objective calibration
         super(NSGAII_DEV, self).__init__(*args, **kwargs)
 
 
@@ -300,11 +300,13 @@ class NSGAII_DEV(_algorithm):
         Qt = self.crossover.calc(pop =Qt,n_var = self.setup.n_var)
 
         # mutation
+        self.min_bound, self.max_bound = self.parameter(
+        )['minbound'], self.parameter()['maxbound']
         self.varminbound = np.array([])
         self.varmaxbound = np.array([])
-        for i in self.setup.params:
-            self.varminbound = np.append(self.varminbound,i.minbound)
-            self.varmaxbound = np.append(self.varmaxbound,i.maxbound)
+        for i in range(len(self.min_bound)):
+            self.varminbound = np.append(self.varminbound,self.min_bound[i])
+            self.varmaxbound = np.append(self.varmaxbound,self.max_bound[i])
 
         Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu = self.varmaxbound)
         
