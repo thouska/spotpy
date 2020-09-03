@@ -9,11 +9,10 @@ from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
 import sys
+import copy
 
 if sys.version_info[0] >= 3:
     unicode = str
-
-from collections import namedtuple
 from itertools import cycle
 
 
@@ -111,20 +110,21 @@ class _ArgumentHelper(object):
             )
         # Return the name, the distribution parameter values, and a tuple of unprocessed args and kwargs
         if as_dict:
-            return dict((n, a) for n, a in zip(names, attributes))
+            # Creates the name / value dict with entries where the value is not None
+            return dict((n, a) for n, a in zip(names, attributes) if a is not None)
         else:
             return attributes
 
     def __len__(self):
         return len(self.args) + len(self.kwargs)
 
-    def get(self, argname):
+    def get(self, argname, default=None):
         """
         Checks if argname is in kwargs, if present it is returned and removed else none.
         :param argname:
         :return:
         """
-        return self.kwargs.pop(argname, None)
+        return self.kwargs.pop(argname, default)
 
     def check_complete(self):
         """
@@ -136,9 +136,21 @@ class _ArgumentHelper(object):
             error = '{}: {} arguments where given but only {} could be used'.format(self.classname, total_args, self.processed_args)
             raise TypeError(error)
 
+
 def _round_sig(x, sig=3):
+    """
+    Rounds x to sig significant digits
+    :param x: The value to round
+    :param sig: Number of significant digits
+    :return: rounded value
+    """
     from math import floor, log10
-    return round(x, sig-int(floor(log10(abs(x))))-1)
+    # Check for zero to avoid math value error with log10(0.0)
+    if abs(x) < 1e-12:
+        return 0
+    else:
+        return round(x, sig-int(floor(log10(abs(x))))-1)
+
 
 class Base(object):
     """
@@ -159,7 +171,7 @@ class Base(object):
     The Uniform parameter class is the reference implementation.
     """
     __rndargs__ = ()
-    def __init__(self, rndfunc, *args, **kwargs):
+    def __init__(self, rndfunc, rndfuncname, *args, **kwargs):
         """
         :name:     Name of the parameter
         :rndfunc:  Function to draw a random number, 
@@ -175,6 +187,7 @@ class Base(object):
                 rndfunc(*rndargs, size=1000)
         """
         self.rndfunc = rndfunc
+        self.rndfunctype = rndfuncname
         arghelper = _ArgumentHelper(self, *args, **kwargs)
         self.name = arghelper.name()
         arghelper.alias('default', 'optguess')
@@ -185,10 +198,10 @@ class Base(object):
             param_args = arghelper.attributes(['step', 'optguess', 'minbound', 'maxbound'], as_dict=True)
             # Draw one sample of size 1000
             sample = self(size=1000)
-            self.step = param_args.get('step') or (np.percentile(sample, 50) - np.percentile(sample, 40))
-            self.optguess = param_args.get('optguess') or np.median(sample)
-            self.minbound = param_args.get('minbound') or _round_sig(np.min(sample))
-            self.maxbound = param_args.get('maxbound') or _round_sig(np.max(sample))
+            self.step = param_args.get('step', _round_sig(np.percentile(sample, 50) - np.percentile(sample, 40)))
+            self.optguess = param_args.get('optguess', _round_sig(np.median(sample)))
+            self.minbound = param_args.get('minbound', _round_sig(np.min(sample)))
+            self.maxbound = param_args.get('maxbound', _round_sig(np.max(sample)))
 
         else:
 
@@ -198,6 +211,8 @@ class Base(object):
             self.maxbound = 0.0
 
         self.description = arghelper.get('doc')
+
+        self.as_int = not not arghelper.get("as_int")
         arghelper.check_complete()
 
     def __call__(self, **kwargs):
@@ -210,7 +225,7 @@ class Base(object):
         """
         Returns a tuple of a realization and the other parameter properties
         """
-        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound
+        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.as_int
     
     def __repr__(self):
         """
@@ -259,7 +274,7 @@ class Uniform(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Uniform, self).__init__(rnd.uniform, *args, **kwargs)
+        super(Uniform, self).__init__(rnd.uniform, 'Uniform', *args, **kwargs)
 
 
 class List(Base):
@@ -267,14 +282,14 @@ class List(Base):
     A specialization to sample from a list (or other iterable) of parameter sets.
 
     Usage:
-    >>>list_param = List([1,2,3,4], repeat=True)
-    >>>list_param()
+    list_param = List([1,2,3,4], repeat=True)
+    list_param()
     1
     """
     __rndargs__ = ('values', )
     def __init__(self, *args, **kwargs):
         self.repeat = kwargs.pop('repeat', False)
-        super(List, self).__init__(None,  *args, **kwargs)
+        super(List, self).__init__(None,  'List', *args, **kwargs)
         self.values, = self.rndargs
 
         # Hack to avoid skipping the first value. See __call__ function below.
@@ -312,7 +327,7 @@ class List(Base):
                 raise IndexError(text)
 
     def astuple(self):
-        return self(), self.name, 0, 0, 0, 0
+        return self(), self.name, 0, 0, 0, 0, self.as_int
 
 
 class Constant(Base):
@@ -322,7 +337,9 @@ class Constant(Base):
     __rndargs__ = 'scalar',
 
     def __init__(self, *args, **kwargs):
-        super(Constant, self).__init__(self, *args, **kwargs)
+        super(Constant, self).__init__(self, 'Constant', *args, **kwargs)
+
+    value = property(lambda self: self.rndargs[0])
 
     def __call__(self, size=None):
         """
@@ -331,12 +348,12 @@ class Constant(Base):
         :return:
         """
         if size:
-            return np.ones(size, dtype=float) * self.rndargs[0]
+            return np.ones(size, dtype=float) * self.value
         else:
-            return self.rndargs[0]
+            return self.value
 
     def astuple(self):
-        return self(), self.name, self.rndargs[0], self.rndargs[0], 0, 0
+        return self(), self.name, 0, self.value, self.value, self.value, self.as_int
 
 
 class Normal(Base):
@@ -357,7 +374,7 @@ class Normal(Base):
                 rndfunc(*rndargs, size=1000) 
         """
 
-        super(Normal, self).__init__(rnd.normal, *args, **kwargs)
+        super(Normal, self).__init__(rnd.normal, 'Normal', *args, **kwargs)
 
 
 class logNormal(Base):
@@ -377,7 +394,7 @@ class logNormal(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(logNormal, self).__init__(rnd.lognormal, *args, **kwargs)
+        super(logNormal, self).__init__(rnd.lognormal, 'logNormal', *args, **kwargs)
 
 
 class Chisquare(Base):
@@ -396,7 +413,7 @@ class Chisquare(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Chisquare, self).__init__(rnd.chisquare, *args, **kwargs)
+        super(Chisquare, self).__init__(rnd.chisquare, 'Chisquare', *args, **kwargs)
 
 
 class Exponential(Base):
@@ -416,7 +433,7 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Exponential, self).__init__(rnd.exponential,  *args, **kwargs)
+        super(Exponential, self).__init__(rnd.exponential, 'Exponential', *args, **kwargs)
 
 
 class Gamma(Base):
@@ -438,7 +455,7 @@ class Gamma(Base):
                 rndfunc(*rndargs, size=1000)
         """
 
-        super(Gamma, self).__init__(rnd.gamma,  *args, **kwargs)
+        super(Gamma, self).__init__(rnd.gamma, 'Gamma', *args, **kwargs)
 
 
 class Wald(Base):
@@ -459,7 +476,7 @@ class Wald(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Wald, self).__init__(rnd.wald, *args, **kwargs)
+        super(Wald, self).__init__(rnd.wald, 'Wald', *args, **kwargs)
 
 
 class Weibull(Base):
@@ -478,7 +495,8 @@ class Weibull(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Weibull, self).__init__(rnd.weibull, *args, **kwargs)
+        super(Weibull, self).__init__(rnd.weibull, 'Weibull', *args, **kwargs)
+
 
 class Triangular(Base):
     """
@@ -498,8 +516,162 @@ class Triangular(Base):
                 default is quantile(0.5) - quantile(0.4) of 
                 rndfunc(*rndargs, size=1000) 
         """
-        super(Triangular, self).__init__(rnd.triangular, *args, **kwargs)
+        super(Triangular, self).__init__(rnd.triangular, 'Triangular', *args, **kwargs)
 
+
+class ParameterSet(object):
+    """
+    A Pickable parameter set to use named parameters in a setup
+    Is not created by a user directly, but in algorithm.
+    Older versions used a namedtuple, which is not pickable.
+
+    An instance of ParameterSet is sent to the users setup.simulate method.
+
+    Usage:
+     ps = ParameterSet(...)
+
+    Update values by arguments or keyword arguments
+
+     ps(0, 1, 2)
+     ps(a=1, c=2)
+
+    Assess parameter values of this parameter set
+
+     ps[0] == ps['a'] == ps.a
+
+    A parameter set is a sequence:
+
+     list(ps)
+
+    Assess the parameter set properties as arrays
+     [ps.maxbound, ps.minbound, ps.optguess, ps.step, ps.random]
+
+
+    """
+    def __init__(self, param_info):
+        """
+        Creates a set of parameters from a parameter info array.
+        To create the parameter set from a setup use either:
+         setup = ...
+         ps = ParameterSet(get_parameters_array(setup))
+
+        or you can just use a function for this:
+
+         ps = create_set(setup)
+
+        :param param_info: A record array containing the properties of the parameters
+               of this set.
+        """
+        self.__lookup = dict(("p" + x if x.isdigit() else x, i) for i, x in enumerate(param_info['name']))
+        self.__info = param_info
+
+    def __call__(self, *values, **kwargs):
+        """
+        Populates the values ('random') of the parameter set with new data
+        :param values: Contains the new values or omitted.
+                       If given, the number of values needs to match the number
+                       of parameters
+        :param kwargs: Can be used to set only single parameter values
+        :return:
+        """
+        if values:
+            if len(self.__info) != len(values):
+                raise ValueError('Given values do are not the same length as the parameter set')
+            self.__info['random'][:] = values
+        for k in kwargs:
+            try:
+                self.__info['random'][self.__lookup[k]] = kwargs[k]
+            except KeyError:
+                raise TypeError('{} is not a parameter of this set'.format(k))
+        return self
+
+    def __len__(self):
+        return len(self.__info['random'])
+
+    def __iter__(self):
+        return iter(self.__info['random'])
+
+    def __getitem__(self, item):
+        """
+        Provides item access
+         ps[0] == ps['a']
+
+        :raises: KeyError, IndexError and TypeError
+        """
+        if type(item) is str:
+            item = self.__lookup[item]
+        return self.__info['random'][item]
+
+    def __setitem__(self, key, value):
+        """
+        Provides setting of item
+         ps[0] = 1
+         ps['a'] = 2
+        """
+        if key in self.__lookup:
+            key = self.__lookup[key]
+        self.__info['random'][key] = value
+
+    def __getattr__(self, item):
+        """
+        Provides the attribute access like
+         print(ps.a)
+        """
+        if item.startswith('_'):
+            raise AttributeError('{} is not a member of this parameter set'.format(item))
+        elif item in self.__lookup:
+            return self.__info['random'][self.__lookup[item]]
+        elif item in self.__info.dtype.names:
+            return self.__info[item]
+        else:
+            raise AttributeError('{} is not a member of this parameter set'.format(item))
+
+    def __setattr__(self, key, value):
+        """
+        Provides setting of attributes
+         ps.a = 2
+        """
+        # Allow normal usage
+        if key.startswith('_') or key not in self.__lookup:
+            return object.__setattr__(self, key, value)
+        else:
+            self.__info['random'][self.__lookup[key]] = value
+
+    def __str__(self):
+        return 'parameters({})'.format(
+            ', '.join('{}={:g}'.format(k, self.__info['random'][i])
+                      for i, k in enumerate(self.__info['name'])
+                      )
+        )
+
+    def __repr__(self):
+        return 'spotpy.parameter.ParameterSet()'
+
+    def __dir__(self):
+        """
+        Helps to show the field names in an interactive environment like IPython.
+        See: http://ipython.readthedocs.io/en/stable/config/integrating.html
+
+        :return: List of method names and fields
+        """
+        attrs = [attr for attr in vars(type(self)) if not attr.startswith('_')]
+        return attrs + list(self.__info['name']) + list(self.__info.dtype.names)
+
+    def set_by_array(self,array):
+        for i, a in enumerate(array):
+            self.__setitem__(i,a)
+
+    def copy(self):
+        return ParameterSet(copy.deepcopy(self.__info))
+
+def get_classes():
+    keys = []
+    current_module = sys.modules[__name__]
+    for key in dir(current_module):
+        if isinstance( getattr(current_module, key), type ):
+            keys.append(key)
+    return keys
+    
 
 def generate(parameters):
     """
@@ -509,12 +681,27 @@ def generate(parameters):
     """
     dtype = [('random', '<f8'), ('name', '|U30'),
              ('step', '<f8'), ('optguess', '<f8'),
-             ('minbound', '<f8'), ('maxbound', '<f8')]
+             ('minbound', '<f8'), ('maxbound', '<f8'), ('as_int', 'bool')]
 
     return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
 
 
-def get_parameters_array(setup):
+def check_parameter_types(parameters, unaccepted_parameter_types):
+    if unaccepted_parameter_types:
+        problems = []
+        for param in parameters:
+            for param_type in unaccepted_parameter_types:
+               if type(param) == param_type:
+                    problems.append([param, param_type])
+
+        if problems:
+            problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
+            raise TypeError('List parameters are only accepted for Monte Carlo (MC) sampler: ' + problem_string)
+
+    return parameters
+
+
+def get_parameters_array(setup, unaccepted_parameter_types=()):
     """
     Returns the parameter array from the setup
     """
@@ -522,9 +709,11 @@ def get_parameters_array(setup):
     # function
     param_arrays = []
     # Get parameters defined with the setup class
+    setup_parameters = get_parameters_from_setup(setup)
+    check_parameter_types(setup_parameters, unaccepted_parameter_types)
     param_arrays.append(
         # generate creates the array as defined in the setup API
-        generate(get_parameters_from_setup(setup))
+        generate(setup_parameters)
     )
 
     if hasattr(setup, 'parameters') and callable(setup.parameters):
@@ -536,22 +725,30 @@ def get_parameters_array(setup):
     return res
 
 
-def create_set(setup, random=False, **kwargs):
+def find_constant_parameters(parameter_array):
+    """
+    Checks which parameters are constant
+    :param parameter_array: Return array from parameter.get_parameter_array(setup)
+    :return: A True / False array with the len(result) == len(parameter_array)
+    """
+    return (parameter_array['maxbound'] - parameter_array['minbound'] == 0.0)
+
+
+def create_set(setup, valuetype='random', **kwargs):
     """
     Returns a named tuple holding parameter values, to be used with the simulation method of a setup
 
     This function is typically used to test models, before they are used in a sampling
 
     Usage:
-    >>> import spotpy
-    >>> from spotpy.examples.spot_setup_rosenbrock import spot_setup
-    >>> model = spot_setup()
-    >>> param_set = spotpy.parameter.create_set(model, x=2)
-    >>> result = model.simulation(param_set)
+     import spotpy
+     from spotpy.examples.spot_setup_rosenbrock import spot_setup
+     model = spot_setup()
+     param_set = spotpy.parameter.create_set(model, x=2)
+     result = model.simulation(param_set)
 
     :param setup: A spotpy compatible Model object
-    :param random: If True, undefined parameters are filled with a random realisation of the
-                    parameter distribution, when False undefined parameters are filled with optguess
+    :param valuetype: Select between 'optguess' (defaul), 'random', 'minbound' and 'maxbound'.
     :param kwargs: Any keywords can be used to set certain parameters to fixed values
     :return: namedtuple of parameter values
     """
@@ -560,36 +757,48 @@ def create_set(setup, random=False, **kwargs):
     params = get_parameters_array(setup)
 
     # Create the namedtuple from the parameter names
-    partype = get_namedtuple_from_paramnames(setup, params['name'])
-
-    # Get the values
-    if random:
-        # Use the generated values from the distribution
-        pardict = dict(zip(params['name'], params['random']))
-    else:
-        # Use opt guess instead of a random value
-        pardict = dict(zip(params['name'], params['optguess']))
-
-    # Overwrite parameters with keyword arguments
-    pardict.update(kwargs)
+    partype = ParameterSet(params)
 
     # Return the namedtuple with fitting names
-    return partype(**pardict)
+    return partype(*params[valuetype], **kwargs)
 
 
-def get_namedtuple_from_paramnames(owner, parnames):
+def get_constant_indices(setup, unaccepted_parameter_types=(Constant,)):
     """
-    Returns the namedtuple classname for parameter names
-    :param owner: Owner of the parameters, usually the spotpy setup
-    :param parnames: Sequence of parameter names
-    :return: Class
+    Returns a list of the class defined parameters, and
+    overwrites the names of the parameters. 
+    By defining parameters as class members, as shown below,
+    one can omit the parameters function of the setup.
+    
+    Usage:
+     from spotpy import parameter
+     class SpotpySetup:
+         # Add parameters p1 & p2 to the setup. 
+         p1 = parameter.Uniform(20, 100)
+         p2 = parameter.Gamma(2.3)
+    
+    setup = SpotpySetup()
+    parameters = parameter.get_parameters_from_setup(setup)
     """
 
-    # Get name of owner class
-    typename = type(owner).__name__
-    parnames = ["p" + x if x.isdigit() else x for x in list(parnames)]
-    return namedtuple('Par_' + typename,  # Type name created from the setup name
-                      parnames)  # get parameter names
+    # Get all class variables
+    cls = type(setup)
+    class_variables = vars(cls).items()
+
+    par_index = []
+    i=0
+    contained_class_parameter=False
+    #for i in range(len(class_variables)):
+    for attrname, attrobj in class_variables:
+        # Check if it is an spotpy parameter
+        if isinstance(attrobj, Base):
+            contained_class_parameter=True
+            if isinstance(attrobj, unaccepted_parameter_types):
+                par_index.append(i)
+            i+=1
+
+    if contained_class_parameter:
+        return par_index
 
 
 def get_parameters_from_setup(setup):
@@ -601,25 +810,28 @@ def get_parameters_from_setup(setup):
     
     Usage:
     
-    >>> from spotpy import parameter
-    >>> class SpotpySetup:
-    >>>     # Add parameters p1 & p2 to the setup. 
-    >>>     p1 = parameter.Uniform(20, 100)
-    >>>     p2 = parameter.Gamma(2.3)
-    >>>
-    >>> setup = SpotpySetup()
-    >>> parameters = spotpy.parameter.get_parameters_from_setup(setup)
+     from spotpy import parameter
+     class SpotpySetup:
+         # Add parameters p1 & p2 to the setup. 
+         p1 = parameter.Uniform(20, 100)
+         p2 = parameter.Gamma(2.3)
+    
+     setup = SpotpySetup()
+     parameters = parameter.get_parameters_from_setup(setup)
     """
 
     # Get all class variables
     cls = type(setup)
     class_variables = vars(cls).items()
-
+    
     parameters = []
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
-            # Set the attribute name
+#            if isinstance(attrobj, unaccepted_parameter_types):
+#                pass
+#            # Set the attribute name
+#            else:
             if not attrobj.name:
                 attrobj.name = attrname
             # Add parameter to dict
@@ -642,19 +854,3 @@ def get_parameters_from_setup(setup):
         parameters.extend(setup.parameters)
 
     return parameters
-
-
-if __name__ == '__main__':
-    class TestSetup:
-        a = Uniform(0, 1)
-        b = Triangular(0, 1, right=10, doc='A Triangular parameter')
-
-        def __init__(self):
-            self.parameters = [Uniform('c', 0, 1), Uniform('d', 0, 2)]
-
-    params = get_parameters_from_setup(TestSetup)
-    assert len(params) == 4, 'Expected 2 Parameters in the test setup, got {}'.format(len(params))
-    assert params[0] is TestSetup.a, 'Expected parameter a to be first in params'
-    assert params[1] is TestSetup.b
-    print('\n'.join(str(p) for p in params))
-

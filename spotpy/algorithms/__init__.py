@@ -32,4 +32,6 @@ from .fscabc import fscabc   # Fitness Scaling Artificial Bee Colony
 from .dream import dream     # DiffeRential Evolution Adaptive Metropolis
 from .list import list       # Samples from  given spotpy database
 from .nsgaii import NSGAII   # A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II
-from .nsgaii_dev import NSGAII_DEV
+from .list_sampler import list_sampler  # Samples from  given spotpy database
+from .dds import dds         # Dynamically Dimensioned Search algorithm
+from .padds import padds     # Pareto Archived - Dynamicallly Dimensioned Search algorithm

@@ -27,11 +27,11 @@ class DataProvider(object):
 
     def __init__(self):
         # Load data from file using numpy magic
-        data = np.recfromcsv('cmf_data/fulda_climate.csv')
+        data = np.recfromcsv('cmf_data/fulda_climate.csv', encoding='utf-8')
 
         def bstr2date(bs):
             """Helper function to convert date byte string to datetime object"""
-            return datetime.datetime.strptime(bs.decode(), '%d.%m.%Y')
+            return datetime.datetime.strptime(bs, '%d.%m.%Y')
 
         # Get begin, step and end from the date column
         self.begin = bstr2date(data.date[0])
@@ -107,7 +107,7 @@ class SingleStorage(object):
 
         """
 
-        self.dbname = 'cmf-singlestorage'
+        self.dbname = 'cmf_singlestorage'
 
         # Loads driver data
         self.data = DataProvider()
@@ -146,7 +146,7 @@ class SingleStorage(object):
         """
         Sets the parameters of the model by creating the connections
         """
-        par = par or spotpy.parameter.create_set(self, random=False)
+        par = par or spotpy.parameter.create_set(self, valuetype='optguess')
 
         # Some shortcuts to gain visibility
         c = self.project[0]
@@ -203,7 +203,10 @@ class SingleStorage(object):
         """
         Calculates the goodness of the simulation
         """
-        return spotpy.objectivefunctions.nashsutcliffe(evaluation, simulation)
+        return [
+            spotpy.objectivefunctions.nashsutcliffe(evaluation, simulation),
+            spotpy.objectivefunctions.pbias(evaluation, simulation)
+        ]
 
     def evaluation(self):
         """

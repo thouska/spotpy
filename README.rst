@@ -1,16 +1,6 @@
-.. image:: https://img.shields.io/pypi/v/spotpy.png
-  :target: https://pypi.python.org/pypi/spotpy
-.. image:: https://img.shields.io/travis/thouska/spotpy/master.png
-  :target: https://travis-ci.org/thouska/spotpy
-.. image:: https://img.shields.io/badge/license-MIT-blue.png
-  :target: http://opensource.org/licenses/MIT
-.. image:: https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master
-  :target: https://coveralls.io/github/thouska/spotpy?branch=master
-
-
-
-Purpose
--------
+SPOTPY
+========
+**A Statistical Parameter Optimization Tool for Python**
 
 SPOTPY is a Python tool that enables the use of Computational optimization techniques for calibration, uncertainty 
 and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One
@@ -47,13 +37,15 @@ We want to make this task as easy as possible. Some features you can use with th
   * Fourier Amplitude Sensitivity Test (`FAST`)
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
-
+  * Dynamically Dimensioned Search algorithm (`DDS`)
+  * Pareto Archived - Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
+  
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
   * Bias
   * Procentual Bias (`PBias`)
-  * Nash-Sutcliff (`NSE`)
-  * logarithmic Nash-Sutcliff (`logNSE`)
+  * Nash-Sutcliffe (`NSE`)
+  * logarithmic Nash-Sutcliffe (`logNSE`)
   * logarithmic probability (`logp`)
   * Correlation Coefficient (`r`)
   * Coefficient of Determination (`r^2`)
@@ -64,6 +56,7 @@ We want to make this task as easy as possible. Some features you can use with th
   * Agreement Index (`AI`)
   * Covariance, Decomposed MSE (`dMSE`)
   * Kling-Gupta Efficiency (`KGE`)
+  * Non parametric Kling-Gupta Efficiency (`KGE_non_parametric`)
 
 * Wide range of likelihood functions to validate the sampled results:
 
@@ -137,7 +130,7 @@ We want to make this task as easy as possible. Some features you can use with th
 Documentation
 -------------
 
-Documentation is available at `<http://fb09-pasig.umwelt.uni-giessen.de/spotpy>`__
+Documentation is available at `<https://spotpy.readthedocs.io/en/latest>`__
 
 
 Install
@@ -151,8 +144,9 @@ Or, after downloading the source code and making sure python is in your path:
 
 	python setup.py install
 
+	
 Papers citing SPOTPY
--------
+--------------------
 See `Google Scholar <https://scholar.google.de/scholar?cites=17155001516727704728&as_sdt=2005&sciodt=0,5&hl=de>`__ for a continuously updated list.
 
 
@@ -184,4 +178,4 @@ Patches/enhancements/new algorithms and any other contributions to this package 
 Getting started
 ---------------
 
-Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and https://spotpy.readthedocs.io/en/latest/getting_started/

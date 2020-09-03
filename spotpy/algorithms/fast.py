@@ -61,12 +61,10 @@ class fast(_algorithm):
     
         save_sim: boolean
             *True:  Simulation results will be saved
-            *False: Simulationt results will not be saved
+            *False: Simulation results will not be saved
         '''
+        kwargs['algorithm_name'] = 'Fourier Amplitude Sensitivity Test (FAST)'
         super(fast, self).__init__(*args, **kwargs)
-#        _algorithm.__init__(self, spot_setup, dbname=dbname,
-#                            dbformat=dbformat, parallel=parallel, save_sim=save_sim,
-#                           save_threshold=save_threshold)
 
     def scale_samples(self, params, bounds):
         '''
@@ -109,6 +107,7 @@ class fast(_algorithm):
 
         # Discretization of the frequency space, s
         s = (2 * math.pi / N) * np.arange(N)
+        #s = math.pi / 2.0 * (2 * np.arange(1,N+1) - N-1) / N
 
         # Transformation to get points in the X space
         X = np.empty([N * D, D])
@@ -185,12 +184,12 @@ class fast(_algorithm):
 
     def compute_total_order(self, outputs, N, omega):
         f = np.fft.fft(outputs)
-        Sp = np.power(np.absolute(f[np.arange(1, int(N / 2))]) / N, 2)
+        Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
         V = 2 * np.sum(Sp)
         Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
         return (1 - Dt / V)
 
-    def sample(self, repetitions):
+    def sample(self, repetitions, M=4):
         """
         Samples from the FAST algorithm.
 
@@ -199,8 +198,8 @@ class fast(_algorithm):
         repetitions: int 
             Maximum number of runs.  
         """
-        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
         print('Creating FAST Matrix')
         # Get the names of the parameters to analyse
         names = self.parameter()['name']
@@ -214,7 +213,7 @@ class fast(_algorithm):
         bounds = []
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
-        Matrix = self.matrix(bounds, N, M=4)
+        Matrix = self.matrix(bounds, N, M=M)
         lastbackup=0
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
@@ -238,6 +237,6 @@ class fast(_algorithm):
             data = self.datawriter.getdata()
             # this is likely to crash if database does not assign name 'like1'
             Si = self.analyze(
-                bounds, data['like1'], len(bounds), names, print_to_console=True)
+                bounds, data['like1'], len(bounds), names, M=M, print_to_console=True)
         except AttributeError:  # Happens if no database was assigned
             pass

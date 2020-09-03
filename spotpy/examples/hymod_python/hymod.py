@@ -1,3 +1,5 @@
+from numba import jit
+
 
 def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     """
@@ -20,7 +22,6 @@ def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     # Initialize state(s) of quick tank(s)
     x_quick = [0,0,0]
     t = 0
-    outflow = []
     output = []
     # START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
 
@@ -48,21 +49,21 @@ def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
         output.append(QS + outflow)
         t = t+1
 
-
     return output
 
+@jit
 def power(X,Y):
     X=abs(X) # Needed to capture invalid overflow with netgative values
     return X**Y
 
-
+@jit
 def linres(x_slow,inflow,Rs):
     # Linear reservoir
     x_slow = (1 - Rs) * x_slow + (1 - Rs) * inflow
     outflow = (Rs / (1 - Rs)) * x_slow
     return x_slow,outflow
 
-
+@jit
 def excess(x_loss,cmax,bexp,Pval,PETval):
     # this function calculates excess precipitation and evaporation
     xn_prev = x_loss

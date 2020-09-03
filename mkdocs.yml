@@ -1,0 +1,34 @@
+site_name: SPOTPY Documentation
+site_url: http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
+site_description: The documentation of the Statistical Parameter Optimization Framework
+site_author: Tobias Houska
+
+repo_url: https://github.com/thouska/spotpy/
+edit_url: ""
+
+theme:
+    name: readthedocs
+
+#markdown_extensions: [mathjax]
+
+
+nav:
+    - Home: index.md
+    - Tutorial:
+        - Introduction: Introduction.md
+        - Getting Started: getting_started.md
+        - Rosenbrock: Rosenbrock.md
+        - Griewank: Griewank.md
+        - Ackley: Ackley.md
+        - Hydrological_model: Hydrological_model.md
+        - Working with DREAM and Hymod: Working with DREAM and Hymod.md
+        - Advanced_hints: Advanced_hints.md
+        - Algorithm_guide: Algorithm_guide.md
+
+    - License: license.md
+
+
+copyright: Copyright &copy; 2015, <a href="http://www.uni-giessen.de/cms/fbz/fb09/institute/ilr/wasser/mitarbeiter/houska">Tobias Houska</a>.
+
+
+

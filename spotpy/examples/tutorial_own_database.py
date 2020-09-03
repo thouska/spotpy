@@ -54,5 +54,5 @@ spot_setup = spot_setup()
 
 # Leave out dbformat and dbname and spotpy will return results in spot_setup.save function
 sampler = spotpy.algorithms.mc(spot_setup)
-sampler.sample(10) # Choose equal or less repetitions as you have parameters in your List
+sampler.sample(9) # Choose equal or less repetitions as you have parameters in your List
 spot_setup.database.close() # Close the created txt file
