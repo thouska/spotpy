@@ -30,7 +30,6 @@ from .fast import fast       # Fourier Amplitude Sensitivity Test
 from .abc import abc         # Artificial Bee Colony
 from .fscabc import fscabc   # Fitness Scaling Artificial Bee Colony
 from .dream import dream     # DiffeRential Evolution Adaptive Metropolis
-from .list import list       # Samples from  given spotpy database
 from .nsgaii import NSGAII   # A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II
 from .list_sampler import list_sampler  # Samples from  given spotpy database
 from .dds import dds         # Dynamically Dimensioned Search algorithm

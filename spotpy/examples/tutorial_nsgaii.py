@@ -33,12 +33,12 @@ def multi_obj_func(evaluation, simulation):
 if __name__ == "__main__":
     
 
-    generations=15
-    n_pop = 50
+    generations=40
+    n_pop = 20
     skip_duplicates = True
     
     sp_setup=spot_setup(obj_func= multi_obj_func)
-    sampler = spotpy.algorithms.NSGAII_DEV(spot_setup=sp_setup, dbname='NSGA2', dbformat="csv")
+    sampler = spotpy.algorithms.NSGAII(spot_setup=sp_setup, dbname='NSGA2', dbformat="csv")
     
     sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
     #sampler.sample(generations=5, paramsamp=40)
@@ -160,30 +160,50 @@ if __name__ == "__main__":
     # Example plot to show remaining parameter uncertainty #
     fields=[word for word in results.dtype.names if word.startswith('sim')]
     fig= plt.figure(3, figsize=(16,9))
-    ax = plt.subplot(1,1,1)
+    ax11 = plt.subplot(1,1,1)
     q5,q25,q75,q95=[],[],[],[]
     for field in fields:
         q5.append(np.percentile(results[field][-100:-1],2.5))
         q95.append(np.percentile(results[field][-100:-1],97.5))
-    ax.plot(q5,color='dimgrey',linestyle='solid')
-    ax.plot(q95,color='dimgrey',linestyle='solid')
-    ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
+    ax11.plot(q5,color='dimgrey',linestyle='solid')
+    ax11.plot(q95,color='dimgrey',linestyle='solid')
+    ax11.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
                     linewidth=0,label='parameter uncertainty')  
-    ax.plot(sp_setup.evaluation(),'r.',label='data')
-    ax.set_ylim(-50,450)
-    ax.set_xlim(0,729)
-    ax.legend()
+    ax11.plot(sp_setup.evaluation(),'r.',label='data')
+    ax11.set_ylim(-50,450)
+    ax11.set_xlim(0,729)
+    ax11.legend()
     fig.savefig('python_hymod.png',dpi=300)
     #########################################################
+
+
+    x,y,z = results['like1'][-n_pop:],results['like2'][-n_pop:],results['like3'][-n_pop:]
+    fig = plt.figure(4)
+    ax12 = fig.add_subplot(111, projection='3d')
+    ax12.scatter(x,y,z,marker="o")
+    ax12.set_xlabel("pbias")
+    ax12.set_ylabel("rmse")
+    ax12.set_zlabel("rsquared")
+    plt.show()
+
+
     
 class Test_NSGAII(unittest.TestCase):
-    def setUp(self):
-        self.sp_setup = spot_setup()
-        self.sampler = spotpy.algorithms.NSGAII(self.sp_setup, dbname='NSGA2', dbformat="csv")
+    def multi_obj_func(evaluation, simulation):
+        #used to overwrite objective function in hymod example
+        like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
+        like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
+        like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
+        return [like1, like2, like3]
 
-        self.sampler.sample(generations=5, paramsamp=40)
+    def setUp(self):
+        generations=40
+        n_pop = 20
+        skip_duplicates = True
+
+        self.sp_setup=spot_setup(obj_func= multi_obj_func)
+        self.sampler = spotpy.algorithms.NSGAII(self.sp_setup, dbname='NSGA2', dbformat="csv")
+        self.sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
 
     def test_sampler_output(self):
-        self.assertGreaterEqual(400, len(self.sampler.getdata()))
-        self.assertLessEqual(300, len(self.sampler.getdata()))
-
+        self.assertEqual(200, len(self.sampler.getdata()))
