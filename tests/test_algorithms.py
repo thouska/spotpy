@@ -12,10 +12,9 @@ except ImportError:
     import sys
     sys.path.append(".")
     import spotpy
-import numpy as np
+#from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
-from spotpy.examples.tutorial_padds import padds_spot_setup
-from spotpy.describe import describe
+#from spotpy.describe import describe
 import os
 from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
@@ -23,6 +22,14 @@ from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 #https://docs.python.org/3/library/unittest.html
 
 class TestAlgorithms(unittest.TestCase):
+
+    def multi_obj_func(self, evaluation, simulation, params=None):
+        #used to overwrite objective function in hymod example
+        like1 = abs(spotpy.objectivefunctions.bias(evaluation, simulation))
+        like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
+        like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
+        return [like2, like3]
+
     def setUp(self):
         # How many digits to match in case of floating point answers
         self.tolerance = 7
@@ -115,11 +122,20 @@ class TestAlgorithms(unittest.TestCase):
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep) #Si values should be returned
 
-    def test_padds(self):
-        sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='RosenPADDS', dbformat=self.dbformat, sim_timeout=self.timeout)
-        sampler.sample(self.rep)
+#    def test_padds(self):
+#        sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+#        sampler.sample(self.rep)
+#        results = sampler.getdata()
+#        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
+
+    def test_nsgaii(self):
+        generations=40
+        n_pop = 20
+        skip_duplicates = True
+        sampler=spotpy.algorithms.NSGAII(spot_setup(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
         results = sampler.getdata()
-        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
+        self.assertLessEqual(len(results), generations*n_pop) 
 
     @classmethod
     def tearDownClass(cls):

@@ -89,7 +89,7 @@ class padds(_algorithm):
             self.r = kwargs.pop("r")
         except KeyError:
             self.r = 0.2  # default value
-
+        self._return_all_likes=True #alloes multi-objective calibration
         super(padds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
