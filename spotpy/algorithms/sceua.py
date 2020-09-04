@@ -5,10 +5,10 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Stijn Van Hoey
 '''
 
-
-
-
-
+from __future__ import absolute_import		
+from __future__ import division		
+from __future__ import print_function		
+from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
 
@@ -64,8 +64,6 @@ class sceua(_algorithm):
         kwargs['algorithm_name'] = 'Shuffled Complex Evolution (SCE-UA) algorithm'
         super(sceua, self).__init__(*args, **kwargs)
 
-        print("LUKAS version anchor")
-        
 
     def simulate(self, id_params_tuple):
         """This overwrites the simple wrapper function of _algorithms.py
@@ -253,7 +251,7 @@ class sceua(_algorithm):
                 self.write_breakdata(self.dbname, work)
             proceed = False
             print('ONLY THE BURNIN PHASE WAS COMPUTED')
-            
+
         else:
             self.repeat.setphase('ComplexEvo')
             print('Starting Complex Evolution...')
