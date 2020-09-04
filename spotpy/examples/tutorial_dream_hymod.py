@@ -12,21 +12,21 @@ import numpy as np
 import spotpy
 #from spotpy.examples.spot_setup_hymod_exe import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-import pylab as plt
-
+import matplotlib.pyplot as plt
+from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
 if __name__ == "__main__":
     parallel ='seq'
     # Initialize the Hymod example (will only work on Windows systems)
     #spot_setup=spot_setup(parallel=parallel)
-    spot_setup=spot_setup(_used_algorithm='dream')
+    spot_setup=spot_setup(GausianLike)
     
     # Create the Dream sampler of spotpy, al_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.log_p) 
     
     #Select number of maximum repetitions
-    rep=10000
+    rep=5000
     
     # Select five chains and set the Gelman-Rubin convergence limit
     nChains                = 4

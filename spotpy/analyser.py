@@ -280,7 +280,7 @@ def get_posterior(results,percentage=10, maximize=True):
     return results[index]
 
 def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posterior_parameter_uncertainty.png'):
-    import pylab as plt
+    import matplotlib.pyplot as plt
 
     simulation_fields = get_simulation_fields(posterior_results)
     fig= plt.figure(figsize=(16,9))
@@ -781,7 +781,7 @@ def plot_bestmodelrun(results,evaluation,fig_name ='Best_model_run.png'):
     Returns:
         figure. Plot of the simulation with the maximum objectivefunction value in the result array as a blue line and dots for the evaluation data.
     """
-    import pylab as plt
+    import matplotlib.pyplot as plt
     fig= plt.figure(figsize=(16,9))
     for i in range(len(evaluation)):
         if evaluation[i] == -9999:
