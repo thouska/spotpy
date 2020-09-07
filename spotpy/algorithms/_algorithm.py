@@ -432,26 +432,31 @@ class _algorithm(object):
         self.all_params[self.non_constant_positions] = params #TODO: List parameters are not updated if not accepted for the algorithm, we may have to warn/error if list is given
         all_params = self.all_params
 
-        # we need a layer to fetch returned data from a threaded process into a queue.
-        def model_layer(q,all_params):
-            # Call self.model with a namedtuple instead of another sequence
-            q.put(self.setup.simulation(self.partype(*all_params)))
+        if self.sim_timeout:
+            # we need a layer to fetch returned data from a threaded process into a queue.
+            def model_layer(q,all_params):
+                # Call self.model with a namedtuple instead of another sequence
+                q.put(self.setup.simulation(self.partype(*all_params)))
 
-        # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
-        # incompability which the main thread. Therefore only for older Python version a workaround follows
-        que = Queue()
-        sim_thread = threading.Thread(target=model_layer, args=(que, all_params))
-        sim_thread.daemon = True
-        sim_thread.start()
+            # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
+            # incompability which the main thread. Therefore only for older Python version a workaround follows
+            que = Queue()
 
+            sim_thread = threading.Thread(target=model_layer, args=(que, all_params))
+            sim_thread.daemon = True
+            sim_thread.start()
 
-        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
-        # long it needs to run
-        sim_thread.join(self.sim_timeout)
+            # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
+            # long it needs to run
+            sim_thread.join(self.sim_timeout)
 
-        # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
-        # '[nan]' and will not be saved. Otherwise get the result from the thread
-        model_result = None
-        if not que.empty():
-            model_result = que.get()
+            # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
+            # '[nan]' and will not be saved. Otherwise get the result from the thread
+            model_result = None
+            if not que.empty():
+                model_result = que.get()
+
+        else:
+            model_result = self.setup.simulation(self.partype(*all_params))
+
         return id, params, model_result
