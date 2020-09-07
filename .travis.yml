@@ -46,7 +46,7 @@ jobs:
 # Publish spotpy on PyPi if taged
 deploy:
   provider: pypi
-  distributions:  "sdist bdist_wheel gztar"
+  distributions:  "sdist bdist_wheel"
   on:
     # In this case I want to deploy only when a tag is present...
     tags: true
@@ -56,4 +56,3 @@ deploy:
       - /v?(\d+\.)?(\d+\.)?(\*|\d+)$/
   user: thouska
   password : ${deploying}
-  skip_existing: true
