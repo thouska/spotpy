@@ -3,10 +3,15 @@
 from setuptools import setup, find_packages
 import os
 
+# Type of python distribution
+[bdist_wheel]
+universal=0
+
 setup(
   name = 'spotpy',
   version = '1.5.11',
   description = 'A Statistical Parameter Optimization Tool',
+  description-file = README.rst
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
