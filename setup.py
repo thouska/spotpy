@@ -11,7 +11,6 @@ setup(
   name = 'spotpy',
   version = '1.5.11',
   description = 'A Statistical Parameter Optimization Tool',
-  description-file = 'README.rst',
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
