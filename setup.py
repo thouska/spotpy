@@ -3,10 +3,6 @@
 from setuptools import setup, find_packages
 import os
 
-# Type of python distribution
-[bdist_wheel]
-universal=0
-
 setup(
   name = 'spotpy',
   version = '1.5.11',
