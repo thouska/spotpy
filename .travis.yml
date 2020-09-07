@@ -1,7 +1,6 @@
 language: python
 python:
   #- "2.7"
-  #- "3.5"
   - "3.7"
 #  - "3.8" #Errors on Travis, build times out because no output was received...
 
@@ -46,10 +45,8 @@ jobs:
 
 # Publish spotpy on PyPi if taged
 deploy:
-  # If you need to deploy files Travis has built, use the next line
-  skip_cleanup: true
   provider: pypi
-  distributions: sdist bdist_wheel gztar
+  distributions:  "sdist bdist_wheel gztar"
   on:
     # In this case I want to deploy only when a tag is present...
     tags: true
@@ -59,3 +56,4 @@ deploy:
       - /v?(\d+\.)?(\d+\.)?(\*|\d+)$/
   user: thouska
   password : ${deploying}
+  skip_existing: true
