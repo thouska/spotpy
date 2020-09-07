@@ -31,8 +31,19 @@ install:
 
 
 script:
-  - py.test  tests/test_* --cov spotpy --cov-report term-missing -v
+  - py.test tests/test_* --cov spotpy --cov-report term-missing -v
 #  - mpirun -c 4 python spotpy/examples/tutorial_parallel_computing_hymod.py 100
   - pip uninstall spotpy -y
-after_success:
-  - coveralls
+
+jobs:
+  include:
+    - stage: Coveralls
+      name: Report Coveralls
+      after_success: python3 -m coveralls
+
+    # Test Deploy source distribution
+    - stage: deploy
+      name: PyPi Test Deploy
+      script: python3 setup.py sdist --formats=gztar bdist_wheel
+      after_success:
+       - python3 -m twine upload --verbose --skip-existing --repository-url https://test.pypi.org/legacy/ dist/*
