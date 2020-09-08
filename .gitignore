@@ -8,11 +8,10 @@ __pycache__/
 
 #other files
 *.out
-*.in
 *.png
 *.csv
 site/*
-mkdocs.yml
+#mkdocs.yml
 
 # Distribution / packaging
 .Python

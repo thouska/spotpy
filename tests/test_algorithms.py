@@ -17,6 +17,8 @@ from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.describe import describe
 import os
+from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
+
 
 #https://docs.python.org/3/library/unittest.html
 
@@ -50,37 +52,37 @@ class TestAlgorithms(unittest.TestCase):
         self.assertEqual(len(results), self.rep)
 
     def test_mcmc(self):
-        sampler=spotpy.algorithms.mcmc(spot_setup(used_algorithm='mcmc'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.mcmc(spot_setup(GausianLike),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
 
     def test_demcz(self):
-        sampler=spotpy.algorithms.demcz(spot_setup(used_algorithm='demcz'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.demcz(spot_setup(GausianLike),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep, convergenceCriteria=0)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
 
     def test_dream(self):
-        sampler=spotpy.algorithms.dream(spot_setup(used_algorithm='dream'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.dream(spot_setup(GausianLike),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep, convergence_limit=0.9, runs_after_convergence=500)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
 
     def test_sceua(self):
-        sampler=spotpy.algorithms.sceua(spot_setup(used_algorithm='sceua'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.sceua(spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertLessEqual(len(results), self.rep) #Sceua save per definition not all sampled runs
 
     def test_abc(self):
-        sampler=spotpy.algorithms.abc(spot_setup(used_algorithm='abc'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.abc(spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
 
     def test_fscabc(self):
-        sampler=spotpy.algorithms.fscabc(spot_setup(used_algorithm='fscabc'),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler=spotpy.algorithms.fscabc(spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)

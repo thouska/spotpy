@@ -72,9 +72,6 @@ class padds_spot_setup(object):
                 self.params.append(Uniform(str(i+1), 0, 1, 0, 0, 0, 1,doc="param no " + str(i+1)))
 
     def parameters(self):
-
-        a = spotpy.parameter.generate(self.params)
-
         return spotpy.parameter.generate(self.params)
 
     def simulation(self, vector):

@@ -10,9 +10,10 @@ from __future__ import division, print_function, unicode_literals
 import spotpy
 from spotpy.gui.mpl import GUI
 from spotpy.examples.spot_setup_hymod_python import spot_setup
+from  spotpy.objectivefunctions import rmse 
 
 if __name__ == '__main__':
-    setup_class=spot_setup(_used_algorithm='sceua')
+    setup_class=spot_setup(rmse)
     
     #Select number of maximum allowed repetitions
     rep=10000

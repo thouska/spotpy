@@ -17,7 +17,7 @@ except ImportError:
     import spotpy
 
 from spotpy.examples.spot_setup_hymod_python_pareto import spot_setup
-import pylab as plt
+import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":

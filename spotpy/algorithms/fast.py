@@ -107,6 +107,7 @@ class fast(_algorithm):
 
         # Discretization of the frequency space, s
         s = (2 * math.pi / N) * np.arange(N)
+        #s = math.pi / 2.0 * (2 * np.arange(1,N+1) - N-1) / N
 
         # Transformation to get points in the X space
         X = np.empty([N * D, D])

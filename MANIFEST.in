@@ -1,0 +1,9 @@
+include README.md
+include MANIFEST.in
+include setup.py
+include setup.cfg
+recursive-include spotpy/examples/cmf_data *
+recursive-include spotpy/examples/hymod_exe *
+recursive-include spotpy/examples/hymod_unix *
+recursive-include spotpy/examples/hymod_python *
+include LICENSE

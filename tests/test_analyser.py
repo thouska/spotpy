@@ -23,7 +23,7 @@ import sys
 from spotpy.examples.spot_setup_rosenbrock import spot_setup as rosenbrock_setup
 from spotpy.examples.spot_setup_griewank import spot_setup as griewank_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as hymod_setup
-
+from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
 class TestAnalyser(unittest.TestCase):
     @classmethod
@@ -51,7 +51,7 @@ class TestAnalyser(unittest.TestCase):
             sampler.sample(self.rep)
             self.sens_results = sampler.getdata()
             #Hymod resuts are empty with Python <3.6
-            sampler = spotpy.algorithms.dream(hymod_setup(_used_algorithm='dream'), 
+            sampler = spotpy.algorithms.dream(hymod_setup(GausianLike), 
                                                sim_timeout=self.timeout)
             self.r_hat = sampler.sample(self.rep)
             self.hymod_results = sampler.getdata()

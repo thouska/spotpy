@@ -13,7 +13,7 @@ where we defined control variables as  *-10 < x < 10* and *-10 < y < 10*, with *
 
 *Figure 1: Response surface of the two dimensional Rosenbrock function. Check out `/examples/3dplot.py`to produce such plots.*
 
-We want to find the global minimum of this function. To do so, one could test every possible parameter setting for *x* and *y* OR one can use SPOTPYPY.
+We want to find the global minimum of this function. To do so, one could test every possible parameter setting for *x* and *y* OR one can use SPOTPY.
 
 ## Creating the setup file
 
@@ -34,10 +34,12 @@ We start to have a look at the parameters *x* and *y*:
 We assume to have no prior knowledge about the parameters *x* and *y*, which is why we select a uniform prior distribution from them using NumPy.
 Numpy offers a wide range of distributions such as uniform, normal and chi-squared. 
 As a minimum (`low`) of the distribution we select *-10* and as maximum (`high`) *10*. The next information which is needed is the name of each parameter (`x` and `y`).
+
 The `stepsize` is biggest possible jump, which a algorithm can make to the next sampling point (used in MCMC, MLE and SA). 
 It is used as the standard derivation within a normal distribution around the last sampled point.
 The `optguess` value is the initial parameter setting. It will be your first sample in the results and should be selected to a good as possible setting, 
 because it influences how the algorithms evolove from this position.
+
 Further settings can be made by minbound and maxbound, which set the boundaries for the algorithms to sample parameter combination inside the prior given range. If they are not given,
 bound are determined by sampling 1,000 times from the prior distribution and selecting the minimum and maximum of the sampled values as bounds.
 
@@ -55,7 +57,7 @@ In this case, we know, that *f(x=1,y=1) = 0*. Accordingly, our evaluation functi
 			observations=[0]
 			return observations
 
-Finally, we have to create a function to evaluate our samples. To do so, we select a objective function out of the SPOTPYPY objective function package. 
+Finally, we have to create a function to evaluate our samples. To do so, we select a objective function out of the SPOTPY objective function package. 
 In this case we select the Root Mean Squared Error, giving the simulations and the evaluations. 
 As we want to minimize our function, we select a negative objective function at this point.
 

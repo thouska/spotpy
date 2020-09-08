@@ -182,6 +182,7 @@ class padds(_algorithm):
         # Spotpy will not need this values.
         debug_results = []
         print('Starting the PADDS algotrithm with ' + str(repetitions) + ' repetitions...')
+        print('WARNING: THE PADDS algorithm as implemented in SPOTPY is in an beta stage and not ready for production use!')
         self.set_repetiton(repetitions)
         self.number_of_parameters = len(self.best_value.parameters) # number_of_parameters is the amount of parameters
 
@@ -305,10 +306,11 @@ class padds(_algorithm):
                 new_x_curr[j] = new_value  # change relevant dec var value in x_curr
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
-            dec_var = np.int(np.ceil(amount_params * self.np_random.rand())) - 1
-            new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var, self.min_bound[dec_var],
-                                                             self.max_bound[dec_var])
-            new_x_curr[dec_var] = new_value  # change relevant decision variable value in s_test
+
+            dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
+            new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var - 1,  self.min_bound[dec_var - 1],self.max_bound[dec_var - 1])
+
+            new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test
         return new_x_curr
 
 
