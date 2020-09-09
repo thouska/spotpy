@@ -90,6 +90,9 @@ class padds(_algorithm):
         except KeyError:
             self.r = 0.2  # default value
 
+        kwargs['optimization_direction'] = 'minimize'
+        kwargs['algorithm_name'] = 'Pareto Archived Dynamically Dimensioned Search (PADDS) algorithm'
+
         super(padds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
