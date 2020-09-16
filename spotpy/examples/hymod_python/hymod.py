@@ -1,9 +1,26 @@
+# -*- coding: utf-8 -*-
+'''
+Copyright (c) 2015 by Tobias Houska
+
+This file is part of Statistical Parameter Estimation Tool (SPOTPY).
+
+:author: Tobias Houska and Benjamin Manns
+
+:paper: Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: 
+SPOTting Model Parameters Using a Ready-Made Python Package, 
+PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
+'''
+
 from numba import jit
 
 
 def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     """
-    See https://www.proc-iahs.net/368/180/2015/piahs-368-180-2015.pdf for a scientific paper.
+    See https://www.proc-iahs.net/368/180/2015/piahs-368-180-2015.pdf for a scientific paper:
+    
+    Quan, Z.; Teng, J.; Sun, W.; Cheng, T. & Zhang, J. (2015): Evaluation of the HYMOD model 
+    for rainfall–runoff simulation using the GLUE method. Remote Sensing and GIS for Hydrology 
+    and Water Resources, 180 - 185, IAHS Publ. 368. DOI: 10.5194/piahs-368-180-2015.
 
     :param cmax:
     :param bexp:
