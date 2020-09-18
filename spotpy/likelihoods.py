@@ -12,7 +12,7 @@ We modified the formula so, that a best fit of model can be archived by maximizi
 # Dream has now a bunch of options. We tested only likelihoods, which do not need a additional parameter
 # from this we saw that
 # ExponentialTransformErrVarShapingFactor with option 2 and 6 is good
-# InverseErrorVarianceShapingFactor with option 2 ist good
+# InverseErrorVarianceShapingFactor with option 2 is good
 # gaussianLikelihoodMeasErrorOut with option 6 is good
 # NoisyABCGaussianLikelihood with Option 6 is good
 # ABCBoxcarLikelihood with Option 2 and 6 is good
@@ -33,6 +33,14 @@ class LikelihoodError(Exception):
 def __generateMeaserror(data):
     return np.array(data) * 0.1
 
+def __calcSimpleDeviation_bias(data, comparedata, mu_h):
+    __standartChecksBeforeStart(data, comparedata)
+    d = np.array(data)
+    c = np.array(comparedata)
+    #Adjust c for multiplicative bias parameter:
+    mu_t = np.exp(mu_h * c)
+    Et = c * mu_t
+    return d - Et
 
 def __calcSimpleDeviation(data, comparedata):
     __standartChecksBeforeStart(data, comparedata)
@@ -429,7 +437,6 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
     """
 
     __standartChecksBeforeStart(data, comparedata)
-    errorArr = __calcSimpleDeviation(data, comparedata)
     if measerror is None:
         measerror = __generateMeaserror(data)
     measerror = np.array(measerror)
@@ -505,7 +512,7 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         mu_xi = 0.0
 
     n = data.__len__()
-
+    errorArr = __calcSimpleDeviation_bias(data, comparedata, muh)
     sum_at = 0
     # formula for a_t is from page 3, (6)
     for j in range(n - 1):
