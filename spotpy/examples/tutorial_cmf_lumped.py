@@ -46,11 +46,11 @@ if __name__ == '__main__':
     model = SingleStorage(datetime.datetime(1980, 1, 1),
                           datetime.datetime(1985, 12, 31))
 
-    runs = get_runs(default=5)
+    runs = get_runs(default=100)
     # Create the sampler
     sampler = spotpy.algorithms.mc(model,
                                    parallel=parallel(),
-                                   dbname=model.dbname, dbformat='hdf5',
+                                   dbname=model.dbname, dbformat='csv',
                                    save_sim=True, sim_timeout=300)
 
     # Now we can sample with the implemented Monte Carlo algorithm:

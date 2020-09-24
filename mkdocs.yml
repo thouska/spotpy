@@ -20,8 +20,7 @@ nav:
         - Rosenbrock: Rosenbrock.md
         - Griewank: Griewank.md
         - Ackley: Ackley.md
-        - Hydrological_model: Hydrological_model.md
-        - Working with DREAM and Hymod: Working with DREAM and Hymod.md
+        - Calibrating a hydrological model with DREAM: Calibrating a hydrological model with DREAM.md
         - Advanced_hints: Advanced_hints.md
         - Algorithm_guide: Algorithm_guide.md
 
