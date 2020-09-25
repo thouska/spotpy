@@ -40,8 +40,8 @@ if __name__ == "__main__":
     acceptance_test_option = 6
     
     sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv')
-    #r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
-    #                       runs_after_convergence,acceptance_test_option)
+    r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
+                           runs_after_convergence,acceptance_test_option)
     
     
     
@@ -57,15 +57,17 @@ if __name__ == "__main__":
     ax = plt.subplot(1,1,1)
     q5,q25,q75,q95=[],[],[],[]
     for field in fields:
-        q5.append(np.percentile(results[field][-100:-1],2.5))
-        q95.append(np.percentile(results[field][-100:-1],97.5))
+        q5.append(np.percentile(results[field][-100:-1],2.5))# ALl 100 runs after convergence
+        q95.append(np.percentile(results[field][-100:-1],97.5))# ALl 100 runs after convergence
     ax.plot(q5,color='dimgrey',linestyle='solid')
     ax.plot(q95,color='dimgrey',linestyle='solid')
     ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
-                    linewidth=0,label='parameter uncertainty')  
+                    linewidth=0,label='simulation uncertainty')  
     ax.plot(spot_setup.evaluation(),color='red', markersize=2,label='data')
     ax.set_ylim(-50,450)
     ax.set_xlim(0,729)
+    ax.set_ylabel('Discharge [l s-1]')
+    ax.set_xlabel('Days')
     ax.legend()
     fig.savefig('DREAM_simulation_uncertainty_Hymod.png',dpi=150)
     #########################################################

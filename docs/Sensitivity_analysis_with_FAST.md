@@ -9,7 +9,7 @@ The algorithm will tell you, how sensitive your parameters are based on whatever
 iterations you need to get an reliable information about your parameter. The number of iteration can be calculate after [Henkel et al. GLOBAL SENSITIVITY ANALYSIS OF NONLINEAR MATHEMATICAL MODELS - AN 
 IMPLEMENTATION OF TWO COMPLEMENTING VARIANCE-BASED ALGORITHMS, 2012] (https://www.informs-sim.org/wsc12papers/includes/files/con308.pdf): 
 
-	$$N = (1+4M^2(1+(k-2)d))k$$ 
+$$N = (1+4M^2(1+(k-2)d))k$$
 
 with N = needed parameter iterations, M= inference factor (SPOTPY default M=4) and d= frequency step (SPOTPY default d=2) and k as the number of parameters of your model.
 
