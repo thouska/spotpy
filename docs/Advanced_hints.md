@@ -1,4 +1,5 @@
 <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+
 # Advanced settings
 
 This chapter will show you, how to get the full power out of SPOTPY:

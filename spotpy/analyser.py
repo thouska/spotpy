@@ -283,13 +283,13 @@ def plot_parameter_trace(ax, results, parameter):
     #THis function plots the parameter setting for each run
     for i in range(int(max(results['chain']))):
         index=np.where(results['chain']==i)
-        ax.plot(results['par'+parameter['name']][index],'.')
+        ax.plot(results['par'+parameter['name']][index],'.', markersize=2)
     ax.set_ylabel(parameter['name'])
     ax.set_ylim(parameter['minbound'], parameter['maxbound'])
     
 def plot_posterior_parameter_histogram(ax, results, parameter):
-    #This functing is plotting the last 10% of the results
-    ax.hist(results['par'+parameter['name']][int(len(results)*0.9):], 
+    #This functing is the last 100 runs
+    ax.hist(results['par'+parameter['name']][-100:], 
              bins =np.linspace(parameter['minbound'],parameter['maxbound'],20))
     ax.set_ylabel('Density')
     ax.set_xlim(parameter['minbound'], parameter['maxbound'])
@@ -468,7 +468,7 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
     import matplotlib.pyplot as plt
 
     parnames=get_parameternames(results)
-    fig=plt.figure(figsize=(16,6))
+    fig=plt.figure(figsize=(9,6))
 
     ax  = plt.subplot(1,1,1)
     Si  = get_sensitivity_of_fast(results, like_index=like_index)
@@ -530,7 +530,7 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
     plt.tight_layout()
-    fig.savefig(fig_name,dpi=300)
+    fig.savefig(fig_name,dpi=150)
     
 
 def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
@@ -989,7 +989,7 @@ def plot_gelman_rubin(results, r_hat_values,fig_name='gelman_rub.png'):
        Output: Plot as seen for e.g. in (Sadegh and Vrugt 2014)'''
     import matplotlib.pyplot as plt
     
-    fig= plt.figure(figsize=(12,16))
+    fig= plt.figure(figsize=(9,6))
     ax1 = plt.subplot(2,1,1)
     for i in range(int(max(results['chain']))+1):
         index=np.where(results['chain']==i)
@@ -1008,7 +1008,7 @@ def plot_gelman_rubin(results, r_hat_values,fig_name='gelman_rub.png'):
     ax2.set_ylabel('R$^d$ - convergence diagnostic')
     ax2.set_xlabel('Number of chainruns')
     ax2.legend()
-    fig.savefig(fig_name,dpi=300)
+    fig.savefig(fig_name,dpi=150)
 
 def gelman_rubin(x):
     '''NOT USED YET'''

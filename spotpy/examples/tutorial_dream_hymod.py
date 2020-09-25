@@ -40,8 +40,8 @@ if __name__ == "__main__":
     acceptance_test_option = 6
     
     sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv')
-    r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
-                           runs_after_convergence,acceptance_test_option)
+    #r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
+    #                       runs_after_convergence,acceptance_test_option)
     
     
     
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     
     
     # Example plot to show remaining parameter uncertainty #
-    fig= plt.figure(figsize=(16,9))
+    fig= plt.figure(figsize=(9,6))
     ax = plt.subplot(1,1,1)
     q5,q25,q75,q95=[],[],[],[]
     for field in fields:
@@ -63,16 +63,16 @@ if __name__ == "__main__":
     ax.plot(q95,color='dimgrey',linestyle='solid')
     ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
                     linewidth=0,label='parameter uncertainty')  
-    ax.plot(spot_setup.evaluation(),'r.',label='data')
+    ax.plot(spot_setup.evaluation(),color='red', markersize=2,label='data')
     ax.set_ylim(-50,450)
     ax.set_xlim(0,729)
     ax.legend()
-    fig.savefig('python_hymod.png',dpi=300)
+    fig.savefig('DREAM_simulation_uncertainty_Hymod.png',dpi=150)
     #########################################################
     
     
     # Example plot to show the convergence #################
-    spotpy.analyser.plot_gelman_rubin(results, r_hat)
+    spotpy.analyser.plot_gelman_rubin(results, r_hat, fig_name='DREAM_r_hat.png')
     ########################################################
     
     
@@ -82,6 +82,8 @@ if __name__ == "__main__":
     parameters = spotpy.parameter.get_parameters_array(spot_setup)
     
     fig, ax = plt.subplots(nrows=5, ncols=2)
+    fig.set_figheight(9)
+    fig.set_figwidth(9)
     for par_id in range(len(parameters)):
         plot_parameter_trace(ax[par_id][0], results, parameters[par_id])
         plot_posterior_parameter_histogram(ax[par_id][1], results, parameters[par_id])
@@ -90,5 +92,6 @@ if __name__ == "__main__":
     ax[-1][1].set_xlabel('Parameter range')
     
     plt.show()
-    fig.savefig('hymod_parameters.png',dpi=300)
+    fig.tight_layout()
+    fig.savefig('DREAM_parameter_uncertainty_Hymod.png',dpi=300)
     #######################################################

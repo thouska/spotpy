@@ -57,14 +57,15 @@ Herein we show a example how the objective function was minimized during samplin
 *Figure 1: Root Mean Squared Error of Hymod model results during the optimization with SCE-UA algorithm.*
 
 
-## Plot parameter uncertainty
+## Plot best model run
 Or if you want to check the best model run, we first need to find the run_id with the minimal objective function value
+
     bestindex,bestobjf = spotpy.analyser.get_minlikeindex(results)
 
 Than we select the best model run:
 
     best_model_run = results[bestindex]
-    
+
 And filter results for simulation results only:
 
     fields=[word for word in best_model_run.dtype.names if word.startswith('sim')]

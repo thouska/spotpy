@@ -92,7 +92,7 @@ If you want to see the remaining posterior model uncertainty:
     ax.legend()
     fig.savefig('python_hymod.png',dpi=300)
 
-![Posterior model uncertainty](../img/python_hymod_simulation.png)
+![Posterior simulation uncertainty](../img/DREAM_simulation_uncertainty_Hymod.png)
 *Figure 1: Posterior model uncertainty of HYMOD.*
 
 ## Plot convergence diagnostic
@@ -100,7 +100,7 @@ If you want to check the convergence of the DREAM algorithm:
 
     spotpy.analyser.plot_gelman_rubin(results, r_hat, fig_name='python_hymod_convergence.png')
 
-![Convergence diagnostic](../img/python_hymod_convergence.png)
+![Convergence diagnostic](../img/DREAM_r_hat.png)
 
 *Figure 2: Gelman-Rubin onvergence diagnostic of DREAM results.*
 
@@ -121,8 +121,8 @@ Or if you want to check the posterior parameter distribution:
     plt.show()
     fig.savefig('hymod_parameters.png',dpi=300)
 
-![Parameter distribution](../img/python_hymod_parameters.png)
+![DREAM_parameter_uncertainty_Hymod](../img/DREAM_parameter_uncertainty_Hymod.png)
 
-*Figure 3: Posterior parameter distribution of HYMOD.*
+*Figure 3: Posterior parameter distribution of HYMOD. Plotting the last 100 repetitions of the algorithm as a histogram.*
 
 The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_dream_hymod.py).

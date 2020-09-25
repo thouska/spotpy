@@ -35,12 +35,12 @@ if __name__ == "__main__":
     
     
     #Plot how the objective function was minimized during sampling
-    fig= plt.figure(1,figsize=(9,5))
+    fig= plt.figure(1,figsize=(9,6))
     plt.plot(results['like1'])
     plt.show()
     plt.ylabel('RMSE')
     plt.xlabel('Iteration')
-    fig.savefig('SCEUA_objectivefunctiontrace.png',dpi=300)
+    fig.savefig('SCEUA_objectivefunctiontrace.png',dpi=150)
     
     # Plot the best model run
     #Find the run_id with the minimal objective function value
@@ -53,12 +53,12 @@ if __name__ == "__main__":
     fields=[word for word in best_model_run.dtype.names if word.startswith('sim')]
     best_simulation = list(best_model_run[fields])
 
-    fig= plt.figure(figsize=(16,9))
+    fig= plt.figure(figsize=(9,6))
     ax = plt.subplot(1,1,1)
     ax.plot(best_simulation,color='black',linestyle='solid', label='Best objf.='+str(bestobjf))
     ax.plot(spot_setup.evaluation(),'r.',markersize=3, label='Observation data')
     plt.xlabel('Number of Observation Points')
     plt.ylabel ('Discharge [l s-1]')
     plt.legend(loc='upper right')
-    fig.savefig('SCEUA_best_modelrun.png',dpi=300)
+    fig.savefig('SCEUA_best_modelrun.png',dpi=150)
 
