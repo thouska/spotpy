@@ -1,3 +1,4 @@
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
 # Sensitivity analysis of HYMOD with FAST
 
 SPOTPY gives you the opportunity to start a sensitivity analysis of your model. In this case, we included a global sensitivity analysis called "FAST" based on 
