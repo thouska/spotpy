@@ -187,7 +187,7 @@ def get_minlikeindex(results):
     textv=text+str(index[0][0])+text2+value
     print(textv)
 
-    return index, minimum
+    return index[0][0], minimum
 
 
 def get_percentiles(results,sim_number=''):

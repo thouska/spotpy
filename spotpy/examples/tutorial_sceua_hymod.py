@@ -24,11 +24,7 @@ if __name__ == "__main__":
     spot_setup=spot_setup(spotpy.objectivefunctions.rmse)
     
     #Select number of maximum allowed repetitions
-    rep=1000
-    filename = 'SCEUA_hymod'
-    # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
-    # to jump into the def objectivefunction in the spot_setup class (default is
-    # spotpy.objectivefunctions.rmse) 
+    rep=5000
     sampler=spotpy.algorithms.sceua(spot_setup, dbname='SCEUA_hymod', dbformat='csv')
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
@@ -37,114 +33,32 @@ if __name__ == "__main__":
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     results = spotpy.analyser.load_csv_results('SCEUA_hymod')
     
-
-    print(len(results), 'runs were saved.')
     
+    #Plot how the objective function was minimized during sampling
     fig= plt.figure(1,figsize=(9,5))
     plt.plot(results['like1'])
     plt.show()
     plt.ylabel('RMSE')
     plt.xlabel('Iteration')
-    fig.savefig('hymod_objectivefunction.png',dpi=300)
+    fig.savefig('SCEUA_objectivefunctiontrace.png',dpi=300)
     
-    # Example plot to show the parameter distribution ###### 
-    fig= plt.figure(2,figsize=(9,9))
-    normed_value = 1
-    
-    plt.subplot(5,2,1)
-    x = results['parcmax']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1) #Ignores burn-in chain
-        plt.plot(x[index],'.')
-    plt.ylabel('cmax')
-    plt.ylim(spot_setup.cmax.minbound, spot_setup.cmax.maxbound)
-    
-    
-    plt.subplot(5,2,2)
-    x = x[int(len(results)*0.9):] #choose the last 10% of the sample
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('cmax')
-    plt.xlim(spot_setup.cmax.minbound, spot_setup.cmax.maxbound)
-    
-    
-    plt.subplot(5,2,3)
-    x = results['parbexp']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('bexp')
-    plt.ylim(spot_setup.bexp.minbound, spot_setup.bexp.maxbound)
-    
-    plt.subplot(5,2,4)
-    x = x[int(len(results)*0.9):]
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('bexp')
-    plt.xlim(spot_setup.bexp.minbound, spot_setup.bexp.maxbound)
-    
-    
-    
-    plt.subplot(5,2,5)
-    x = results['paralpha']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('alpha')
-    plt.ylim(spot_setup.alpha.minbound, spot_setup.alpha.maxbound)
-    
-    
-    plt.subplot(5,2,6)
-    x = x[int(len(results)*0.9):]
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('alpha')
-    plt.xlim(spot_setup.alpha.minbound, spot_setup.alpha.maxbound)
-    
-    
-    plt.subplot(5,2,7)
-    x = results['parKs']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('Ks')
-    plt.ylim(spot_setup.Ks.minbound, spot_setup.Ks.maxbound)
-    
-    
-    plt.subplot(5,2,8)
-    x = x[int(len(results)*0.9):]
+    # Plot the best model run
+    #Find the run_id with the minimal objective function value
+    bestindex,bestobjf = spotpy.analyser.get_minlikeindex(results)
 
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('Ks')
-    plt.xlim(spot_setup.Ks.minbound, spot_setup.Ks.maxbound)
+    # Select best model run
+    best_model_run = results[bestindex]
     
-    
-    plt.subplot(5,2,9)
-    x = results['parKq']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('Kq')
-    plt.ylim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
-    plt.xlabel('Iterations')
-    
-    plt.subplot(5,2,10)
-    x = x[int(len(results)*0.9):]
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('Kq')
-    plt.xlabel('Parameter range')
-    plt.xlim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
-    plt.show()
-    fig.savefig('hymod_parameters.png',dpi=300)
+    #Filter results for simulation results
+    fields=[word for word in best_model_run.dtype.names if word.startswith('sim')]
+    best_simulation = list(best_model_run[fields])
+
+    fig= plt.figure(figsize=(16,9))
+    ax = plt.subplot(1,1,1)
+    ax.plot(best_simulation,color='black',linestyle='solid', label='Best objf.='+str(bestobjf))
+    ax.plot(spot_setup.evaluation(),'r.',markersize=3, label='Observation data')
+    plt.xlabel('Number of Observation Points')
+    plt.ylabel ('Discharge [l s-1]')
+    plt.legend(loc='upper right')
+    fig.savefig('SCEUA_best_modelrun.png',dpi=300)
+

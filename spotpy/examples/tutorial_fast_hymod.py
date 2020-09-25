@@ -5,15 +5,10 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
-This class holds example code how to use the dream algorithm
+This class holds example code how to use the FAST algorithm
 '''
 
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append(".")
-    import spotpy
+import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 
 
@@ -23,7 +18,7 @@ if __name__ == "__main__":
     spot_setup = spot_setup()
     
     #Select number of maximum repetitions
-    rep = 1000
+    rep = 1345
     
     #Start a sensitivity analysis
     sampler = spotpy.algorithms.fast(spot_setup, dbname='FAST_hymod', dbformat='csv')

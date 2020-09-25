@@ -15,7 +15,7 @@ import numpy as np
 
 class sceua(_algorithm):
     """
-    This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, 
+    This class holds the Shuffled Complex Evolution Algorithm (SCE-UA) algorithm, 
     based on:
     Duan, Q., Sorooshian, S. and Gupta, V. K. (1994) 
     Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol.
