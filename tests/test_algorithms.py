@@ -133,7 +133,7 @@ class TestAlgorithms(unittest.TestCase):
         n_pop = 20
         skip_duplicates = True
         sampler=spotpy.algorithms.NSGAII(spot_setup(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-        sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
+        sampler.sample(generations, n_obj= 3, n_pop = n_pop)
         results = sampler.getdata()
         self.assertLessEqual(len(results), generations*n_pop) 
 

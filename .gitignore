@@ -8,7 +8,6 @@ __pycache__/
 
 #other files
 *.out
-
 *.png
 *.csv
 site/*

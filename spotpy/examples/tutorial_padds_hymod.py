@@ -16,10 +16,16 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-from spotpy.examples.spot_setup_hymod_python_pareto import spot_setup
+from spotpy.examples.spot_setup_hymod_python import spot_setup
 import matplotlib.pyplot as plt
 
-
+def multi_obj_func(evaluation, simulation):
+    #used to overwrite objective function in hymod example
+    like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
+    like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
+    like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
+    return [like1, like2, like3]
+   
 if __name__ == "__main__":
     parallel ='seq' # Runs everthing in sequential mode
     np.random.seed(2000) # Makes the results reproduceable
@@ -27,29 +33,29 @@ if __name__ == "__main__":
     # Initialize the Hymod example
     # In this case, we tell the setup which algorithm we want to use, so
     # we can use this exmaple for different algorithms
-    spot_setup=spot_setup()
+    sp_setup=spot_setup(obj_func= multi_obj_func)
     
     #Select number of maximum allowed repetitions
-    rep=3000
+    rep=2000
         
     # Create the SCE-UA sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv')
+    sampler=spotpy.algorithms.padds(sp_setup, dbname='padds_hymod', dbformat='csv')
     
-    #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
-    print(sampler.sample(rep, metric="crowd_distance"))
+    #Start the sampler, one can specify metric if desired
+    sampler.sample(rep,metric='ones')
     
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     #results = spotpy.analyser.load_csv_results('DDS_hymod')
 
 
     results = sampler.getdata()
-    from pprint import pprint
-    #pprint(results)
-    pprint(results['chain'])
+    # from pprint import pprint
+    # #pprint(results)
+    # pprint(results['chain'])
 
-    for likno in range(1,5):
+    for likno in range(1,4):
         fig_like1 = plt.figure(1,figsize=(9,5))
         plt.plot(results['like'+str(likno)])
         plt.show()
@@ -61,104 +67,72 @@ if __name__ == "__main__":
 
     
     # Example plot to show the parameter distribution ###### 
+    def plot_parameter_trace(ax, results, parameter):
+        ax.plot(results['par'+parameter.name],'.')
+        ax.set_ylabel(parameter.name)
+        ax.set_ylim(parameter.minbound, parameter.maxbound)
+        
+    def plot_parameter_histogram(ax, results, parameter):
+        #chooses the last 20% of the sample
+        ax.hist(results['par'+parameter.name][int(len(results)*0.9):], 
+                 bins =np.linspace(parameter.minbound,parameter.maxbound,20))
+        ax.set_ylabel('Density')
+        ax.set_xlim(parameter.minbound, parameter.maxbound)
+        
     fig= plt.figure(2,figsize=(9,9))
-    normed_value = 1
     
-    plt.subplot(5,2,1)
-    x = results['parcmax']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1) #Ignores burn-in chain
-        plt.plot(x[index],'.')
-    plt.ylabel('cmax')
-    plt.ylim(spot_setup.cmax.minbound, spot_setup.cmax.maxbound)
+    ax1 = plt.subplot(5,2,1)
+    plot_parameter_trace(ax1, results, spot_setup.cmax)
     
+    ax2 = plt.subplot(5,2,2)
+    plot_parameter_histogram(ax2,results, spot_setup.cmax)
     
-    plt.subplot(5,2,2)
-    x = x[int(len(results)*0.9):] #choose the last 10% of the sample
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('cmax')
-    plt.xlim(spot_setup.cmax.minbound, spot_setup.cmax.maxbound)
+    ax3 = plt.subplot(5,2,3)
+    plot_parameter_trace(ax3, results, spot_setup.bexp)
     
-    
-    plt.subplot(5,2,3)
-    x = results['parbexp']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('bexp')
-    plt.ylim(spot_setup.bexp.minbound, spot_setup.bexp.maxbound)
-    
-    plt.subplot(5,2,4)
-    x = x[int(len(results)*0.9):]
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('bexp')
-    plt.xlim(spot_setup.bexp.minbound, spot_setup.bexp.maxbound)
-    
-    
-    
-    plt.subplot(5,2,5)
-    x = results['paralpha']
-    print(x)
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('alpha')
-    plt.ylim(spot_setup.alpha.minbound, spot_setup.alpha.maxbound)
-    
-    
-    plt.subplot(5,2,6)
-    x = x[int(len(results)*0.9):]
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('alpha')
-    plt.xlim(spot_setup.alpha.minbound, spot_setup.alpha.maxbound)
-    
-    
-    plt.subplot(5,2,7)
-    x = results['parKs']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('Ks')
-    plt.ylim(spot_setup.Ks.minbound, spot_setup.Ks.maxbound)
-    
-    
-    plt.subplot(5,2,8)
-    x = x[int(len(results)*0.9):]
+    ax4 = plt.subplot(5,2,4)
+    plot_parameter_histogram(ax4, results, spot_setup.bexp)
+        
+    ax5 = plt.subplot(5,2,5)
+    plot_parameter_trace(ax5, results, spot_setup.alpha)
+     
+    ax6 = plt.subplot(5,2,6)
+    plot_parameter_histogram(ax6, results, spot_setup.alpha)
 
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('Ks')
-    plt.xlim(spot_setup.Ks.minbound, spot_setup.Ks.maxbound)
+    ax7 = plt.subplot(5,2,7)
+    plot_parameter_trace(ax7, results, spot_setup.Ks)
     
+    ax8 = plt.subplot(5,2,8)
+    plot_parameter_histogram(ax8, results, spot_setup.Ks)
+
+    ax9 = plt.subplot(5,2,9)
+    plot_parameter_trace(ax9, results, spot_setup.Kq)
+    ax9.set_xlabel('Iterations')
     
-    plt.subplot(5,2,9)
-    x = results['parKq']
-    for i in range(int(max(results['chain'])-1)):
-        index=np.where(results['chain']==i+1)
-        plt.plot(x[index],'.')
-    plt.ylabel('Kq')
-    plt.ylim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
-    plt.xlabel('Iterations')
+    ax10 = plt.subplot(5,2,10)
+    plot_parameter_histogram(ax10, results, spot_setup.Kq)
+    ax10.set_xlabel('Parameter range')
     
-    plt.subplot(5,2,10)
-    x = x[int(len(results)*0.9):]
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('Kq')
-    plt.xlabel('Parameter range')
-    plt.xlim(spot_setup.Kq.minbound, spot_setup.Kq.maxbound)
     plt.show()
     fig.savefig('hymod_parameters.png',dpi=300)
+    
+    
+    
+    # Example plot to show remaining parameter uncertainty #
+    fields=[word for word in results.dtype.names if word.startswith('sim')]
+    fig= plt.figure(3, figsize=(16,9))
+    ax11 = plt.subplot(1,1,1)
+    q5,q25,q75,q95=[],[],[],[]
+    for field in fields:
+        q5.append(np.percentile(results[field][-100:-1],2.5))
+        q95.append(np.percentile(results[field][-100:-1],97.5))
+    ax11.plot(q5,color='dimgrey',linestyle='solid')
+    ax11.plot(q95,color='dimgrey',linestyle='solid')
+    ax11.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
+                    linewidth=0,label='parameter uncertainty')  
+    ax11.plot(sp_setup.evaluation(),'r.',label='data')
+    ax11.set_ylim(-50,450)
+    ax11.set_xlim(0,729)
+    ax11.legend()
+    fig.savefig('python_hymod.png',dpi=300)
+    #########################################################

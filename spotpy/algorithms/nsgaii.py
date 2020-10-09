@@ -260,7 +260,7 @@ class NSGAII(_algorithm):
 
 
 
-    def sample(self, generations, n_obj, n_pop = None, skip_duplicates = False, 
+    def sample(self, generations, n_obj, n_pop = None, 
                selection = TournamentSelection(pressure=2), 
                crossover = Crossover(crossProb=0.9),
                mutation = PolynomialMutation(prob_mut=0.25,eta_mut=30)):
@@ -273,7 +273,7 @@ class NSGAII(_algorithm):
         self.n_pop = n_pop
         self.generations= generations
         self.set_repetiton(self.generations*self.n_pop)
-        self.skip_duplicates = skip_duplicates
+        self.skip_duplicates = True # False does not work yet
 
         Pt = np.vstack([self.parameter()['random'] for i in range(self.n_pop)])
         

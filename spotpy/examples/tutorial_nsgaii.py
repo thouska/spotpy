@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
+# -*- coding: utf-8 -*-
+'''
+Copyright 2015 by Tobias Houska
+This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
+:author: Tobias Houska
+
+This class holds example code how to use the nsgaii algorithm
+'''
 
 from __future__ import division, print_function
 from __future__ import absolute_import
@@ -24,7 +32,22 @@ import numpy as np
 
 
 def multi_obj_func(evaluation, simulation):
-    #used to overwrite objective function in hymod example
+    """
+    This function is used to overwrite objective function in hymod example
+    
+    Parameters
+    ----------
+    evaluation : array
+        The observation data.
+    simulation : array
+        The model input
+
+    Returns
+    -------
+    list
+        Three different kinds of objective functions.
+
+    """
     like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
     like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
     like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
@@ -40,61 +63,7 @@ if __name__ == "__main__":
     sp_setup=spot_setup(obj_func= multi_obj_func)
     sampler = spotpy.algorithms.NSGAII(spot_setup=sp_setup, dbname='NSGA2', dbformat="csv")
     
-    sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
-    #sampler.sample(generations=5, paramsamp=40)
-    
-    
-#    # user config
-#    
-#    n_var = 5
-#    
-#    
-#    last = None
-#    first = None
-#    
-#    # output calibration 
-#    
-#    df = pd.read_csv("NSGA2.csv")
-#    
-#    if last:
-#        df = df.iloc[-last:,:]
-#    elif first:
-#        df = df.iloc[:first,:]
-#    else:
-#        pass
-#    
-#    
-#    
-#    print(len(df))
-#    # plot objective functions
-#    fig = plt.figure()
-#    for i,name in enumerate(df.columns[:n_obj]):
-#        ax = fig.add_subplot(n_obj,1,i +1)
-#        df.loc[::5,name].plot(lw=0.5,figsize=(18,8),ax = ax,color="black")
-#        plt.title(name)
-#    plt.show()
-#    
-#    last = 100
-#    first = None
-#    
-#    x,y,z = df.iloc[-last:,0],df.iloc[-last:,1],df.iloc[-last:,2]
-#    fig = plt.figure()
-#    ax = fig.add_subplot(111, projection='3d')
-#    ax.scatter(x,y,z,marker="o")
-#    ax.set_xlabel("f0")
-#    ax.set_ylabel("f1")
-#    ax.set_zlabel("f2")
-#    plt.show()
-#    
-#    # plot parameters
-#    fig = plt.figure()
-#    for i,name in enumerate(df.columns[n_obj:8]):
-#        ax = fig.add_subplot(5,1,i +1)
-#        df.loc[:,name].plot(lw=0.5,figsize=(18,8),ax = ax,color="black")
-#        plt.title(name)
-#    plt.show()
-#    
-
+    sampler.sample(generations, n_obj= 3, n_pop = n_pop)
 
 
     results = sampler.getdata()
