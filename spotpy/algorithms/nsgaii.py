@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 '''
-Copyright (c) 2018 by Benjamin Manns
+Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
-:author: Benjamin Manns
+:author: Iacopo Ferrario
 
 This file contains the NSGA-II Algorithm implemented for SPOTPY based on:
 - K. Deb, A. Pratap, S. Agarwal and T. Meyarivan, "A fast and elitist multiobjective genetic algorithm:
@@ -13,21 +14,130 @@ URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=996017&isnumber=214
 '''
 
 import numpy as np
-
+import math
 from spotpy.algorithms import _algorithm
+import copy
 
 
-class ParaPop:
-    def __init__(self, params, m_vals=[], sim=None):
-        self.params = params
-        self.m_vals = m_vals
-        self.sim = sim
 
-    def __str__(self):
-        return "<ParaPop> with content " + str(self.m_vals)
+class TournamentSelection:
 
-    def __repr__(self):
-        return self.__str__()
+    def __init__(self,pressure = 2):
+        self.pressure = pressure
+
+    def calc(self,pop_rank):
+
+        n_select = len(pop_rank)
+        n_random = n_select * self.pressure #n_select * n_parents * pressure
+
+        n_perms = math.ceil(n_random / len(pop_rank))
+
+        P = random_permuations(n_perms, len(pop_rank))[:n_random]
+
+        P = np.reshape(P, (n_select, self.pressure))
+
+        n_tournament,_ = P.shape
+
+        ret = np.full(n_tournament,-1,dtype=np.int)
+
+        for i in range(n_tournament):
+            a,b = P[i]
+
+            if pop_rank[a] < pop_rank[b]:
+                ret[i] = a
+            else:
+                ret[i] = b
+
+        return ret
+
+
+def random_permuations(n, l):
+    perms = []
+    for _ in range(n):
+        perms.append(np.random.permutation(l))
+    return np.concatenate(perms)
+
+
+class Crossover:
+
+    def __init__(self,crossProb=0.9): 
+
+        self.crossProbThreshold = crossProb
+
+    def calc(self,pop,n_var):
+
+        n_pop = pop.shape[0]
+        crossProbability = np.random.random((n_pop))
+        do_cross = crossProbability <  self.crossProbThreshold
+        R = np.random.randint(0,n_pop,(n_pop,2))
+        parents = R[do_cross]
+        crossPoint = np.random.randint(1,n_var,parents.shape[0])
+        d = pop[parents,:]
+        child = []
+        for i in range(parents.shape[0]):
+            child.append(np.concatenate([d[i,0,:crossPoint[i]],d[i,1,crossPoint[i]:]]))
+        child = np.vstack(child)
+        pop[do_cross,:] = child
+        return pop
+
+
+
+
+class PolynomialMutation:
+
+    def __init__(self,prob_mut,eta_mut):
+
+        self.prob_mut = prob_mut
+        self.eta_mut = eta_mut
+
+    def calc(self,x,xl,xu):
+
+        X = copy.deepcopy(x)
+        Y = np.full(X.shape,np.inf)
+
+        do_mutation = np.random.random(X.shape) < self.prob_mut
+
+        m = np.sum(np.sum(do_mutation))
+
+        Y[:,:] = X
+
+        xl = np.repeat(xl[None,:],X.shape[0],axis=0)[do_mutation] #selecting who is mutating
+        xu = np.repeat(xu[None,:],X.shape[0],axis=0)[do_mutation]
+
+        X = X[do_mutation]
+
+        delta1 = (X - xl) / (xu - xl)
+        delta2 = (xu - X) / (xu -xl)
+
+        mut_pow = 1.0/(self.eta_mut + 1.0)
+
+        rand = np.random.random(X.shape)
+        mask = rand <= 0.5
+        mask_not = np.logical_not(mask)
+
+        deltaq = np.zeros(X.shape)
+
+        xy = 1.0 - delta1
+        val = 2.0 * rand + (1.0 - 2.0 * rand) * (np.power(xy, (self.eta_mut + 1.0)))
+        d = np.power(val, mut_pow) - 1.0
+        deltaq[mask] = d[mask]
+
+        xy = 1.0 - delta2
+        val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (np.power(xy, (self.eta_mut + 1.0)))
+        d = 1.0 - (np.power(val, mut_pow))
+        deltaq[mask_not] = d[mask_not]
+
+        ret = X + deltaq * (xu - xl)
+        ret[ret < xl] = xl[ret < xl]
+        ret[ret > xu] = xu[ret > xu]
+
+        Y[do_mutation] = ret
+
+        return Y
+
+
+
+
 
 
 class NSGAII(_algorithm):
@@ -69,270 +179,227 @@ class NSGAII(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-
+        self._return_all_likes=True #alloes multi-objective calibration
+        kwargs['optimization_direction'] = 'minimize'
+        kwargs['algorithm_name'] = 'Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II'
         super(NSGAII, self).__init__(*args, **kwargs)
-        # self.all_objectives = [self.setup.__getattribute__(m) for m in dir(self.setup) if "objectivefunc" in m]
-
-        self.param_len = len(self.get_parameters())
-        self.generation = 0
-        self.length_of_objective_func = 0
-
-        self.objfun_maxmin_list = None
-        self.objfun_normalize_list= []
-
-    def fast_non_dominated_sort(self, P):
-        S = {}
-        n = {}
-        F = {}
-        rank = {}
-        F[1] = {}
-
-        if self.objfun_maxmin_list is None:
-            self.length_of_objective_func = 0
-            # In the first iteration create this list to have it prepared for later use
-            self.objfun_maxmin_list = []
-            for _ in self.objectivefunction(self.setup.evaluation(), self.setup.simulation(P[0])):
-                self.length_of_objective_func += 1
-                self.objfun_maxmin_list.append([])
-
-        param_generator = ((p, list(P[p])) for p in P)
-        calculated_sims = list(self.repeat(param_generator))
-        for p, par_p, sim_p in calculated_sims:
-
-            S[p] = {}
-            S_p_index = 0
-            n[p] = 0
-            for q, par_q, sim_q in calculated_sims:
-
-                # check whether parameter set p or q is dominating so we test all objective functions here
-                # https://cims.nyu.edu/~gn387/glp/lec1.pdf / Definition / Dominance Relation
-
-                # m_diffs = np.array([])
-                m_vals_p = np.array([])
-                m_vals_q = np.array([])
-
-                for i, m in enumerate(self.objectivefunction(self.setup.evaluation(), sim_q)):
-                    m_vals_q = np.append(m_vals_q, m)
-                    self.objfun_maxmin_list[i].append(m)
-
-                for i, m in enumerate(self.objectivefunction(self.setup.evaluation(), sim_p)):
-                    m_vals_p = np.append(m_vals_p, m)
-                    self.objfun_maxmin_list[i].append(m)
-
-                m_diffs = m_vals_q - m_vals_p
-
-                # TODO ist Minimieren oder Maximieren richtig?
-
-                pp_q = ParaPop(np.array(P[q]), list(m_vals_q.tolist()), sim_q)
-
-                pp_p = ParaPop(np.array(P[q]), list(m_vals_p.tolist()), sim_p)
-
-                # Allow here also more then 2
-                # if p dominates q
-                if (m_diffs >= 0).all and (m_diffs > 0).any():
-
-                    S[p][S_p_index] = pp_q
-                    S_p_index += 1
-
-                # elif q dominates p:
-                elif (m_diffs <= 0).all() and (m_diffs < 0).any():
-                    # else:
-                    n[p] += 1
-
-            if n[p] == 0:
-                rank[p] = 1
-                F[1][p] = pp_p
-
-        i = 1
-        while len(F[i]) > 0:
-            Q = {}
-            # q_ind is just a useless indices which may has to change somehow, it is only for the dict we use
-            q_ind = 0
-            for p in F[i]:
-                for q in S[p]:
-                    n[q] -= 1
-                    if n[q] == 0:
-                        rank[q] = i + 1
-                        Q[q_ind] = S[p][q]
-                        q_ind += 1
-
-            i += 1
-            F[i] = Q
-
-        return F
-
-    def crowding_distance_assignement(self, I):
-        l = len(I)
-
-        if l > 2:
-
-            I = list(I.values())
-
-            ##################
-            # I = sort(I,m)  #
-            ##################
-
-            sorting_m = []
-
-            for i in I:
-                sorting_m.append(i.m_vals)
-
-            sorting_m = np.array(sorting_m)
-
-            new_order = np.argsort(np.sqrt(np.sum(sorting_m ** 2, 1)))
-
-            I = np.array(I)
-            I = I[new_order]
 
 
-            distance_I = list(np.repeat(0, l))
-            distance_I[0] = distance_I[l - 1] = np.inf
+    def fastSort(self,x):
+        n = x.shape[0]
+        S = np.zeros((n,n),dtype=bool)
+        Np = np.zeros(n)
+        
 
-            for_distance = []
+        for i in range(n):
+            for j in range(n):
+                S[i,j] = self.dominates(x[i,:],x[j,:])
 
-            for i in I:
-                for_distance.append(i.m_vals)
+        nDom = np.sum(S,axis=0) # the n solutions that dominates i
+        Np[nDom == 0] = 1 # if i ==  0, i is non-dominated, set i rank to 1, i belongs to first non-dominated front
+        k = 1
+        # loop over pareto fronts
+        while np.sum(Np == 0) > 0:
+            l = np.arange(n)[Np==k] # first non-dominated front
+            for i in l: # loop over the non-dominated front
+                nDom[S[i,:]] = nDom[S[i,:]] -1 # reduce by 1 the rank of the solutions that i dominates
+            k += 1
+            # now nDom has been reduced by 1, so the next non-dominated front will be nDom ==  0
+            # and Np == 0 ensure that we don't pass over the first ranked non-dom solutions
+            Np[(nDom == 0) & (Np == 0) ] = k
+    
+        return Np.astype(int)
 
-            which_obj_fn = 0
-            for_distance = np.array(for_distance)
-            for k in for_distance.T:
-                tmp_dist = k[2:l] - k[0:l - 2]
 
-                distance_I[1:l - 1] += tmp_dist / self.objfun_normalize_list[which_obj_fn]
-
-                which_obj_fn += 1
-
-            return distance_I
-
+   
+    def dominates(self,a,b):
+        if len(a.shape) >1:
+            ret = (np.sum(a <= b,axis =1) == a.shape[1]) & (np.sum(a < b,axis=1) >0)
         else:
-            return [np.inf]
+            ret = (np.sum(a <= b) == len(a)) & (np.sum(a < b) >0)
+        return ret
 
-    def sample(self, generations=2, paramsamp=20):
-        self.repetitions = int(generations)
-        self.status.repetitions = self.repetitions*paramsamp*2
-        R_0 = {}
 
-        for i in range(paramsamp * 2):
-            R_0[i] = list(self.setup.parameters()['random'])
+    def crowdDist(self,x):
+        n = x.shape[0]
 
-        while self.generation < self.repetitions:
+        nobj = x.shape[1]
 
-            F = self.fast_non_dominated_sort(R_0)
+        dist = np.zeros(n)
 
-            print("GENERATION: " + str(self.generation) + " of " + str(generations))
+        ord = np.argsort(x,axis=0)
 
-            # Debuggin Issue
-            # import matplotlib.pyplot as pl
-            # from mpl_toolkits.mplot3d import Axes3D
-            # layer = 0
-            # fig = pl.figure()
-            #
-            # if self.length_of_objective_func == 2:
-            #
-            #     for i in F:
-            #         if layer == 0:
-            #             l_color = "b"
-            #         else:
-            #             l_color = "#"
-            #             for _ in range(6):
-            #                 l_color += ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"][
-            #                     np.random.randint(16)]
-            #         for j in F[i]:
-            #             pl.plot(F[i][j].m_vals[0], F[i][j].m_vals[1], color=l_color, marker='o')
-            #         layer += 1
-            #
-            #     pl.show()
-            #
-            # elif self.length_of_objective_func == 3:
-            #
-            #     ax = fig.add_subplot(111, projection='3d')
-            #
-            #     for i in F:
-            #         for j in F[i]:
-            #             ax.scatter(F[i][j].m_vals[0], F[i][j].m_vals[1],
-            #                        F[i][j].m_vals[2])  # , lay_col[layer] + 'o')
-            #         layer += 1
-            #
-            #     # ax.set_xlabel(m1_name)
-            #     # ax.set_ylabel(m2_name)
-            #     # ax.set_zlabel(m3_name)
-            #
-            #     pl.show()
+        X = x[ord,range(nobj)]
+        
+        dist = np.vstack([X,np.full(nobj,np.inf)]) - np.vstack([np.full(nobj,-np.inf),X])
 
-            # Now sort again
-            complete_sort_all_p = []
+        norm = np.max(X,axis=0) - np.min(X,axis=0)
+        dist_to_last,dist_to_next = dist, np.copy(dist)
+        dist_to_last,dist_to_next = dist_to_last[:-1]/norm ,dist_to_next[1:]/norm
+        J = np.argsort(ord,axis=0)
+        ret = np.sum(dist_to_last[J, np.arange(nobj)] + dist_to_next[J, np.arange(nobj)], axis=1) / nobj
 
-            # post-proccesing min-max values of each objective function:
-            # reset the normalize list
-            self.objfun_normalize_list = []
-            for i in self.objfun_maxmin_list:
-                # fill the normalize list
-                self.objfun_normalize_list.append(abs(max(i)-min(i)))
+        return ret
 
-            # reset the objfun_maxmin_list
-            self.objfun_maxmin_list = None
+    def crowdDist2(self,x):
+        n = x.shape[0]
+        
+        dist = np.zeros(n)
 
-            cChain = 0
-            for k in F:
+        for obj in range(x.shape[1]):
+            ord = np.argsort(x[:,obj])
+            dist[ord[[0,-1]]] = np.inf
 
-                # Save fronts we have now before sorting and mutation
-                for o in F[k]:
+            norm = np.max(x[:,obj]) - np.min(x[:,obj])
 
-                    self.postprocessing(self.generation, F[k][o].params, F[k][o].sim, cChain)
+            for i in range(1,n-1):
+                dist[i] = dist[ord[i]] + (x[ord[i+1],obj] - x[ord[i-1],obj])/norm
 
-                F_I_distance = self.crowding_distance_assignement(F[k])
+        return dist
 
-                # print(F_I_distance)
 
-                # sort within the list and then add to general list
-                # the partial order <_n is defined as follows:
-                # i <_n j if(i_rank < j_rank) or (i_rank = j_rank
-                # and i_distance > j_distance )
-                i_distance_order = np.argsort(F_I_distance)
 
-                F_ar = np.array(list(F[k].values()))
-                if len(F[k]) > 0:
-                    for a in F_ar[i_distance_order]:
-                        complete_sort_all_p.append(a)
 
-                    # TODO Why is algorithm to take all values again, I think only the first which are the best
-                cChain +=1
+    def sample(self, generations, n_obj, n_pop = None, skip_duplicates = False, 
+               selection = TournamentSelection(pressure=2), 
+               crossover = Crossover(crossProb=0.9),
+               mutation = PolynomialMutation(prob_mut=0.25,eta_mut=30)):
+        
+        self.n_obj = n_obj
+        self.selection = selection
+        self.crossover = crossover
+        self.mutation = mutation
+                                 
+        self.n_pop = n_pop
+        self.generations= generations
+        self.set_repetiton(self.generations*self.n_pop)
+        self.skip_duplicates = skip_duplicates
 
-            N = paramsamp
-            complete_sort_all_p = np.array(complete_sort_all_p)
-            P_new = complete_sort_all_p[0:N]
-            Q_new = {}
-            M = len(P_new)
-            if M < N:
-                P_new = np.append(P_new, complete_sort_all_p[0:N - M])
-                if N > len(P_new):
-                    exit("We still have to few parameters after selecting parent elements")
+        Pt = np.vstack([self.parameter()['random'] for i in range(self.n_pop)])
+        
+        #Burn-in
+        #TODO: I would suggest to make the burin-in sample indiviudual for each cpu-core in case of parallel usage, compare dream.py, but not sure if this is defined in the publication
+        # evaluate population
+        param_generator = ((i,Pt[i,:]) for i in range(self.n_pop))
+        
+        ret = list(self.repeat(param_generator))
+        
+        Of = []
+        for p in range(self.n_pop):
+            index,parameters,simulation_results = ret[p]
+            Of.append(self.postprocessing(0, parameters, simulation_results, chains=p)) 
+        Of = np.vstack(Of) 
 
-            list_index = 0
-            while list_index < N:
-                # select pairs... with tournament, because this is a sorted list we just use the
-                # first occurence of a pick "out of M (= length of P_new)
-                tmp_parm_1 = P_new[np.random.randint(0, M, 1)[0]].params
-                tmp_parm_2 = P_new[np.random.randint(0, M, 1)[0]].params
 
-                # select cross over point
-                xover_point = np.random.randint(0, self.param_len - 1, 1)[0]
+        nonDomRank = self.fastSort(Of)
 
-                # cross over
-                A = np.append(tmp_parm_2[0:xover_point], tmp_parm_1[xover_point:])
+        crDist = np.empty(self.n_pop)
+        for rk in range(1,np.max(nonDomRank)+1):
+            crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
 
+
+        # sorting
+
+        rank = np.lexsort((-crDist,nonDomRank))
+        Ptsort = Pt[rank]
+        Ofsort = Of[rank]
+
+        Of_parent = Ofsort[:,:]
+        Pt_parent = Ptsort[:,:]
+        
+        # selection
+
+        offsprings = self.selection.calc(pop_rank = rank)
+
+        Qt = Ptsort[offsprings,:]
+
+        
+        # crossover
+        try:
+            n_var = self.setup.n_var
+        except AttributeError:
+            n_var = len(parameters)
+
+
+        Qt = self.crossover.calc(pop = Qt,n_var = n_var)
+
+        # mutation
+        self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
+        self.varminbound = np.array([])
+        self.varmaxbound = np.array([])
+        for i in range(len(self.min_bound)):
+            self.varminbound = np.append(self.varminbound,self.min_bound[i])
+            self.varmaxbound = np.append(self.varmaxbound,self.max_bound[i])
+
+        Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu = self.varmaxbound)
+        
+        for igen in range(1,self.generations - 1):
+
+                Rt = np.vstack([Pt_parent,Qt]) 
+
+
+                if self.skip_duplicates:
+
+                    # evaluate population 
+                    param_generator = ((i,Qt[i,:]) for i in range(self.n_pop)) 
+
+                    ret = list(self.repeat(param_generator))
+        
+                    Of = []
+                    for p in range(self.n_pop):
+                        index, parameters,simulation_results = ret[p]
+                        Of.append(self.postprocessing(igen, parameters, simulation_results, chains=p)) 
+                    Of = np.vstack(Of) 
+
+                    Of = np.vstack([Of_parent ,Of]) 
+
+                    nonDomRank = self.fastSort(Of)
+
+                    crDist = np.empty(len(Of)) 
+                    for rk in range(1,np.max(nonDomRank)+1):
+                        crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
+                else:
+                    
+                    n_pop_combined = self.n_pop *2
+                    # evaluate population
+                    param_generator = ((i,Rt[i,:]) for i in range( n_pop_combined ))
+
+
+                    #import pdb;pdb.set_trace()
+                    ret = list(self.repeat(param_generator))
+        
+                    Of = []
+                    for p in range(n_pop_combined):
+                        index, parameters,simulation_results = ret[p]
+                        Of.append(self.postprocessing(igen, parameters, simulation_results, chains=p)) 
+                    Of = np.vstack(Of) 
+
+                    nonDomRank = self.fastSort(Of)
+
+                    crDist = np.empty(n_pop_combined) 
+                    for rk in range(1,np.max(nonDomRank)+1):
+                        crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
+
+                        
+                # sorting
+                rank = np.lexsort((-crDist,nonDomRank))[:self.n_pop] 
+                Ptsort = Rt[rank]
+                Ofsort = Of[rank]
+
+                Pt_parent = Ptsort[:,:]
+
+                Of_parent = Ofsort[:,:]
+
+
+                # selection
+                offsprings = self.selection.calc(pop_rank = rank)
+
+                Qt = Ptsort[offsprings,:]
+                # crossover
+                Qt = self.crossover.calc(pop = Qt,n_var = n_var)
                 # mutation
-                sign = [0, 1, -1][np.random.randint(0, 3, 1)[0]]
-                Q_new[list_index] = A + sign * (A / 4)  # was 100 before
+                Qt = self.mutation.calc(x = Qt,xl = self.varminbound,xu =self.varmaxbound)
 
-                list_index += 1
 
-            self.generation += 1
-
-            # merge P and Q
-            for i in P_new.tolist():
-                Q_new[list_index] = i.params
-                list_index += 1
-            R_0 = Q_new
 
         self.final_call()

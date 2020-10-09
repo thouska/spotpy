@@ -53,8 +53,8 @@ class mcmc(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-        if 'alt_objfun' not in kwargs:
-            kwargs['alt_objfun'] = 'log_p'
+        kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'Markov Chain Monte Carlo (MCMC) sampler'
         super(mcmc, self).__init__(*args, **kwargs)
 
     def check_par_validity(self, par):
@@ -99,8 +99,8 @@ class mcmc(_algorithm):
 
             
     def sample(self, repetitions,nChains=1):
-        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the MCMC algotrithm with '+str(repetitions)+ ' repetitions...')
         # Prepare storing MCMC chain as array of arrays.
         self.nChains = int(nChains)
         #Ensure initialisation of chains and database
@@ -116,7 +116,7 @@ class mcmc(_algorithm):
         self.nChainruns=[[0]]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        print('Inititalize ',self.nChains, ' chain(s)...')
+        print('Initialize ', self.nChains, ' chain(s)...')
         self.iter=0
         param_generator = ((curChain,self.parameter()['random']) for curChain in range(int(self.nChains)))                
         for curChain,randompar,simulations in self.repeat(param_generator):
@@ -144,7 +144,7 @@ class mcmc(_algorithm):
             #Refresh MCMC progressbar every two second
             if acttime - intervaltime >= 2 and self.iter >=2:
                 text = '%i of %i (best like=%g)' % (
-                    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                    self.iter + self.burnIn, repetitions, self.status.objectivefunction_max)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 intervaltime = time.time()

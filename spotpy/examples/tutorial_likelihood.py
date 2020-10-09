@@ -350,7 +350,7 @@ rep = 1000
 sampler = spotpy.algorithms.lhs(spot_setup, dbname='RosenMC', dbformat='csv', alt_objfun=None)
 sampler.sample(rep)
 results.append(sampler.getdata())
-import pprint
+
 import pickle
 
 pickle.dump(results, open('mle_LimitsOfAcceptability_v2.p', 'wb'))

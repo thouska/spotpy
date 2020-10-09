@@ -1,28 +1,39 @@
 language: python
 python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
+  #- "2.7"
+  #- "3.5"
+  - "3.7"
+#  - "3.8" #Errors on Travis, build times out because no output was received...
 
-  # command to install dependencies
+# this ubuntu distribution has sure the libopenmpi-dev packages available
+dist: bionic
+
+# command to install dependencies
 install:
-  #- pip install pandas
+  - sudo apt-get update
+  - sudo apt install libopenmpi-dev openmpi-bin
+  - pip install mpi4py
   - python setup.py install
   - pip install coveralls
   - pip install pathos
   - pip install numpy
   - pip install matplotlib
-  - pip install scipy
   - pip install pandas
-  - pip install pytest pytest-pep8 pytest-cov
+  - pip install scipy
+  - pip install click
+  - pip install deap
+  # Need to force pytest-cov to v2.6 as current version (2.6.1) is deprecated and pytest:3.10.1
+  - pip install pytest==3.10.1 pytest-pep8 pytest-cov==2.6
   # Use docutils to generate html describe
   - pip install docutils
-  #- pip install matplotlib
-  #- travis_wait pip install scipy
+  - pip install numba
+  - pip install tables
+
 
 script:
+  - py.test  tests/test_* --cov spotpy --cov-report term-missing -v
+#  - mpirun -c 4 python spotpy/examples/tutorial_parallel_computing_hymod.py 100
   - pip uninstall spotpy -y
-  - py.test  spotpy/unittests/test_* spotpy/examples/tutorial_rosenbrock.py  spotpy/examples/tutorial_nsgaii.py --cov spotpy --cov-report term-missing -v
 
 after_success:
   - coveralls

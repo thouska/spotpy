@@ -17,76 +17,193 @@ except ImportError:
     import spotpy
 
 import spotpy.algorithms
-from spotpy.examples.hymod_python.hymod import hymod
-import os
 import unittest
+from spotpy.examples.spot_setup_hymod_python import spot_setup
+import matplotlib.pyplot as plt
+import numpy as np
 
 
-class spot_setup(object):
-    def __init__(self):
-        # Transform [mm/day] into [l s-1], where 1.783 is the catchment area
-        self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24)
-        # Load Observation data from file
-        self.PET, self.Precip = [], []
-        self.date, self.trueObs = [], []
-        self.owd = os.path.dirname(os.path.realpath(__file__))
-        self.hymod_path = self.owd + os.sep + 'hymod_python'
-        climatefile = open(self.hymod_path + os.sep + 'hymod_input.csv', 'r')
-        headerline = climatefile.readline()[:-1]
+def multi_obj_func(evaluation, simulation):
+    #used to overwrite objective function in hymod example
+    like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
+    like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
+    like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
+    return [like1, like2, like3]
 
-        if ';' in headerline:
-            self.delimiter = ';'
-        else:
-            self.delimiter = ','
-        self.header = headerline.split(self.delimiter)
-        for line in climatefile:
-            values = line.strip().split(self.delimiter)
-            self.date.append(str(values[0]))
-            self.Precip.append(float(values[1]))
-            self.PET.append(float(values[2]))
-            self.trueObs.append(float(values[3]))
+if __name__ == "__main__":
+    
 
-        climatefile.close()
-        self.params = [spotpy.parameter.Uniform('cmax', low=1.0, high=500, optguess=412.33),
-                       spotpy.parameter.Uniform('bexp', low=0.1, high=2.0, optguess=0.1725),
-                       spotpy.parameter.Uniform('alpha', low=0.1, high=0.99, optguess=0.8127),
-                       spotpy.parameter.Uniform('Ks', low=0.0, high=0.10, optguess=0.0404),
-                       spotpy.parameter.Uniform('Kq', low=0.1, high=0.99, optguess=0.5592),
-                       spotpy.parameter.Uniform('fake1', low=0.1, high=10, optguess=0.5592),
-                       spotpy.parameter.Uniform('fake2', low=0.1, high=10, optguess=0.5592)]
+    generations=40
+    n_pop = 20
+    skip_duplicates = True
+    
+    sp_setup=spot_setup(obj_func= multi_obj_func)
+    sampler = spotpy.algorithms.NSGAII(spot_setup=sp_setup, dbname='NSGA2', dbformat="csv")
+    
+    sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
+    #sampler.sample(generations=5, paramsamp=40)
+    
+    
+#    # user config
+#    
+#    n_var = 5
+#    
+#    
+#    last = None
+#    first = None
+#    
+#    # output calibration 
+#    
+#    df = pd.read_csv("NSGA2.csv")
+#    
+#    if last:
+#        df = df.iloc[-last:,:]
+#    elif first:
+#        df = df.iloc[:first,:]
+#    else:
+#        pass
+#    
+#    
+#    
+#    print(len(df))
+#    # plot objective functions
+#    fig = plt.figure()
+#    for i,name in enumerate(df.columns[:n_obj]):
+#        ax = fig.add_subplot(n_obj,1,i +1)
+#        df.loc[::5,name].plot(lw=0.5,figsize=(18,8),ax = ax,color="black")
+#        plt.title(name)
+#    plt.show()
+#    
+#    last = 100
+#    first = None
+#    
+#    x,y,z = df.iloc[-last:,0],df.iloc[-last:,1],df.iloc[-last:,2]
+#    fig = plt.figure()
+#    ax = fig.add_subplot(111, projection='3d')
+#    ax.scatter(x,y,z,marker="o")
+#    ax.set_xlabel("f0")
+#    ax.set_ylabel("f1")
+#    ax.set_zlabel("f2")
+#    plt.show()
+#    
+#    # plot parameters
+#    fig = plt.figure()
+#    for i,name in enumerate(df.columns[n_obj:8]):
+#        ax = fig.add_subplot(5,1,i +1)
+#        df.loc[:,name].plot(lw=0.5,figsize=(18,8),ax = ax,color="black")
+#        plt.title(name)
+#    plt.show()
+#    
 
-    def parameters(self):
-        return spotpy.parameter.generate(self.params)
 
-    def simulation(self, x):
-        data = hymod(self.Precip, self.PET, x[0], x[1], x[2], x[3], x[4])
-        sim = []
-        for val in data:
-            sim.append(val * self.Factor)
-        return sim[366:]
 
-    def evaluation(self):
-        return self.trueObs[366:]
+    results = sampler.getdata()
+    
+    fig= plt.figure(1,figsize=(9,5))
+    plt.plot(results['like1'])
+    plt.show()
+    plt.ylabel('Objective function')
+    plt.xlabel('Iteration')
+    fig.savefig('hymod_objectivefunction.png',dpi=300)
+    
+    # Example plot to show the parameter distribution ###### 
+    def plot_parameter_trace(ax, results, parameter):
+        ax.plot(results['par'+parameter.name],'.')
+        ax.set_ylabel(parameter.name)
+        ax.set_ylim(parameter.minbound, parameter.maxbound)
+        
+    def plot_parameter_histogram(ax, results, parameter):
+        #chooses the last 20% of the sample
+        ax.hist(results['par'+parameter.name][int(len(results)*0.9):], 
+                 bins =np.linspace(parameter.minbound,parameter.maxbound,20))
+        ax.set_ylabel('Density')
+        ax.set_xlim(parameter.minbound, parameter.maxbound)
+        
+    fig= plt.figure(2,figsize=(9,9))
+    
+    ax1 = plt.subplot(5,2,1)
+    plot_parameter_trace(ax1, results, spot_setup.cmax)
+    
+    ax2 = plt.subplot(5,2,2)
+    plot_parameter_histogram(ax2,results, spot_setup.cmax)
+    
+    ax3 = plt.subplot(5,2,3)
+    plot_parameter_trace(ax3, results, spot_setup.bexp)
+    
+    ax4 = plt.subplot(5,2,4)
+    plot_parameter_histogram(ax4, results, spot_setup.bexp)
+        
+    ax5 = plt.subplot(5,2,5)
+    plot_parameter_trace(ax5, results, spot_setup.alpha)
+     
+    ax6 = plt.subplot(5,2,6)
+    plot_parameter_histogram(ax6, results, spot_setup.alpha)
 
-    def objectivefunction(self, simulation, evaluation, params=None):
-        # like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)
-        # return -like
-        # like1 = spotpy.signatures.getSkewness(evaluation, simulation)
-        like1 = spotpy.objectivefunctions.agreementindex(evaluation, simulation)
+    ax7 = plt.subplot(5,2,7)
+    plot_parameter_trace(ax7, results, spot_setup.Ks)
+    
+    ax8 = plt.subplot(5,2,8)
+    plot_parameter_histogram(ax8, results, spot_setup.Ks)
+
+    ax9 = plt.subplot(5,2,9)
+    plot_parameter_trace(ax9, results, spot_setup.Kq)
+    ax9.set_xlabel('Iterations')
+    
+    ax10 = plt.subplot(5,2,10)
+    plot_parameter_histogram(ax10, results, spot_setup.Kq)
+    ax10.set_xlabel('Parameter range')
+    
+    plt.show()
+    fig.savefig('hymod_parameters.png',dpi=300)
+    
+
+    # Example plot to show remaining parameter uncertainty #
+    fields=[word for word in results.dtype.names if word.startswith('sim')]
+    fig= plt.figure(3, figsize=(16,9))
+    ax11 = plt.subplot(1,1,1)
+    q5,q25,q75,q95=[],[],[],[]
+    for field in fields:
+        q5.append(np.percentile(results[field][-100:-1],2.5))
+        q95.append(np.percentile(results[field][-100:-1],97.5))
+    ax11.plot(q5,color='dimgrey',linestyle='solid')
+    ax11.plot(q95,color='dimgrey',linestyle='solid')
+    ax11.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
+                    linewidth=0,label='parameter uncertainty')  
+    ax11.plot(sp_setup.evaluation(),'r.',label='data')
+    ax11.set_ylim(-50,450)
+    ax11.set_xlim(0,729)
+    ax11.legend()
+    fig.savefig('python_hymod.png',dpi=300)
+    #########################################################
+
+
+    x,y,z = results['like1'][-n_pop:],results['like2'][-n_pop:],results['like3'][-n_pop:]
+    fig = plt.figure(4)
+    ax12 = fig.add_subplot(111, projection='3d')
+    ax12.scatter(x,y,z,marker="o")
+    ax12.set_xlabel("pbias")
+    ax12.set_ylabel("rmse")
+    ax12.set_zlabel("rsquared")
+    plt.show()
+
+
+    
+class Test_NSGAII(unittest.TestCase):
+    def multi_obj_func(evaluation, simulation):
+        #used to overwrite objective function in hymod example
+        like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
         like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
-        like3 = spotpy.signatures.getCoeffVariation(evaluation, simulation)
+        like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
         return [like1, like2, like3]
 
-
-
-class Test_NSGAII(unittest.TestCase):
     def setUp(self):
-        self.sp_setup = spot_setup()
-        self.sampler = spotpy.algorithms.NSGAII(self.sp_setup, dbname='NSGA2', dbformat="csv")
+        generations=40
+        n_pop = 20
+        skip_duplicates = True
 
-        self.sampler.sample(generations=5, paramsamp=40)
+        self.sp_setup=spot_setup(obj_func= multi_obj_func)
+        self.sampler = spotpy.algorithms.NSGAII(self.sp_setup, dbname='NSGA2', dbformat="csv")
+        self.sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
 
     def test_sampler_output(self):
-        self.assertGreaterEqual(400, len(self.sampler.getdata()))
-        self.assertLessEqual(300, len(self.sampler.getdata()))
-
+        self.assertEqual(200, len(self.sampler.getdata()))

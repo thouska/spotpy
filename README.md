@@ -8,6 +8,7 @@ A Statistical Parameter Optimization Tool for Python
 [![Build Status][travis-image]][travis-link]
 [![License][license-image]][license-link]
 [![Coverage Status](https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master)](https://coveralls.io/github/thouska/spotpy?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/spotpy/badge/?version=latest)](https://readthedocs.org/projects/spotpy/badge/?version=latest)
 
 [pypi-v-image]: https://img.shields.io/pypi/v/spotpy.png
 [pypi-v-link]: https://pypi.python.org/pypi/spotpy
@@ -61,13 +62,15 @@ Some features you can use with the SPOTPY package are:
   * Fourier Amplitude Sensitivity Test (`FAST`)
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
+  * Dynamically Dimensioned Search algorithm (`DDS`)
+  * Pareto Archived - Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
 
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
   * Bias
   * PBias
-  * Nash-Sutcliff (`NSE`)
-  * logarithmic Nash-Sutcliff (`logNSE`)
+  * Nash-Sutcliffe (`NSE`)
+  * logarithmic Nash-Sutcliffe (`logNSE`)
   * logarithmic probability (`logp`)
   * Correlation Coefficient (`r`)
   * Coefficient of Determination (`r^2`)
@@ -77,7 +80,20 @@ Some features you can use with the SPOTPY package are:
   * Relative Root Mean Squared Error (`RRMSE`)
   * Agreement Index (`AI`)
   * Covariance, Decomposed MSE (`dMSE`)
-  * Kling-Gupta Efficiency (`KGE`).
+  * Kling-Gupta Efficiency (`KGE`)
+  * Non parametric Kling-Gupta Efficiency (`KGE_non_parametric`)
+
+* Wide range of hydrological signatures functions to validate the sampled results:
+
+  * Slope
+  * Flooding/Drought events
+  * Flood/Drought frequency
+  * Flood/Drought duration
+  * Flood/Drought variance
+  * Mean flow
+  * Median flow
+  * Skewness
+  * compare percentiles of discharge
 
 * Prebuild parameter distribution functions: 
 
@@ -89,48 +105,6 @@ Some features you can use with the SPOTPY package are:
   * Gamma
   * Wald
   * Weilbull
-
-* A toolbox of hydrological signatures, to see a hydrological fit of modeled data to the measured one. 
-
-To use this signatures, you call the _get_**HydrologicalSignature** function and entering the measured and the modeled data.
-Setting `mode='calc_Dev'` performs our desired calculation. Sometimes additional parameters are needed, as for example
-a timestamp list (in a pandas object) or threshold values. The closer the return value is to zero, the more fits the simulated 
-data with measured one. 
-
-
-	spotpy.signatures.getSlopeFDC(measured_data,results,mode='calc_Dev')
-
-By changing the value of `mode` to `'get_signature'`, we get the signature value _only_ for the parameter `data`.
-
-By changing the value of `mode` to `'get_raw_data'`, we get a raw calculation of flood-signatures, belonging to each signature calculation.
-
-**tutorial_signatures.py** contains al available functions and it's mode settings.
-
-  * List of available hydrological signatures, additional required parameters are in brackets
-    * getMeanFlow
-    * getMedianFlow
-    * getSkewness
-    * getCoeffVariation
-    * getQ001
-    * getQ01
-    * getQ1
-    * getQ5
-    * getQ10
-    * getQ20
-    * getQ85
-    * getQ95
-    * getQ99
-    * getSlopeFDC
-    * getAverageFloodOverflowPerSection(datetime_series, threshold_value)
-    * getAverageFloodFrequencyPerSection(datetime_series, threshold_value)
-    * getAverageFloodDuration(datetime_series, threshold_value)
-    * getAverageBaseflowUnderflowPerSection(datetime_series, threshold_value)
-    * getAverageBaseflowFrequencyPerSection(datetime_series, threshold_value)
-    * getFloodFrequency(datetime_series, threshold_value)
-    * getBaseflowFrequency (datetime_series, threshold_value)
-    * getLowFlowVar(datetime_series)
-    * getHighFlowVar(datetime_series)
-    * getBaseflowIndex(datetime_series)
 
 * Wide range to adapt algorithms to perform uncertainty-, sensitivity analysis or calibration
   of a model.
@@ -174,7 +148,7 @@ Or, after downloading the [source code](https://pypi.python.org/pypi/spotpy "sou
 Support
 =================
 
-* Documentation: http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy
+* Documentation: https://spotpy.readthedocs.io/en/latest/
 
 * Feel free to contact the authors of this tool for any support questions.
 
@@ -187,4 +161,22 @@ Support
 
 Getting started
 =================
-Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and http://fb09-pasig.umwelt.uni-giessen.de/spotpy/Tutorial/2-Rosenbrock/
+Have a look at https://github.com/thouska/spotpy/tree/master/spotpy/examples and https://spotpy.readthedocs.io/en/latest/getting_started/
+
+
+Contributing
+=================
+Patches/enhancements/new algorithms and any other contributions to this package are very welcome!
+
+1. Fork it ( http://github.com/thouska/spotpy/fork )
+2. Create your feature branch (``git checkout -b my-new-feature``)
+3. Add your modifications
+4. Add short summary of your modifications on ``CHANGELOG.rst``
+5. Commit your changes (``git commit -m "Add some feature"``)
+6. Push to the branch (``git push origin my-new-feature``)
+7. Create new Pull Request
+
+Papers citing SPOTPY
+=====================
+See [Google Scholar](https://scholar.google.de/scholar?cites=17155001516727704728&as_sdt=2005&sciodt=0,5&hl=de) for a continuously updated list.
+

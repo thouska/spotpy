@@ -20,23 +20,24 @@ sampling and an analyser class for the plotting of results by the sampling.
                - mpi4py (optional) (http://mpi4py.scipy.org/)
                - pathos (optional) (https://pypi.python.org/pypi/pathos/)
                - sqlite3 (optional) (https://pypi.python.org/pypi/sqlite3/)
+               - numba (optional) (https://pypi.python.org/pypi/numba/)
 
                :help: For specific questions, try to use the documentation website at:
-                http://fb09-pasig.umwelt.uni-giessen.de/spotpy/
+                https://spotpy.readthedocs.io/en/latest/
 
 For general things about parameter optimization techniques have a look at:
 https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
 
 Please cite our paper, if you are using SPOTPY.
 '''
-from . import database           # Writes the results of the sampler in a user defined output file
-from . import algorithms         # Contains all the different algorithms implemented in SPOTPY 
-from . import parameter          # Contains different distributions to discribe the prior information for every model parameter
-from . import analyser           # Contains some examples to analyse the results of the different algorithms
-from . import objectivefunctions # Quantifies goodness of fit between simulation and evaluation data with objectivefunctions
-from . import signatures         # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
-from . import likelihoods        # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
-from . import examples           # Contains tutorials how to use SPOTPY
-from . import describe           # Contains some helper functions to describe smaplers and setups
+from . import database            # Writes the results of the sampler in a user defined output file
+from . import algorithms          # Contains all the different algorithms implemented in SPOTPY 
+from . import parameter           # Contains different distributions to describe the prior information for every model parameter
+from . import analyser            # Contains some examples to analyse the results of the different algorithms
+from . import objectivefunctions  # Quantifies goodness of fit between simulation and evaluation data with objective functions
+from . import likelihoods         # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
+from . import examples            # Contains tutorials how to use SPOTPY
+from . import describe            # Contains some helper functions to describe samplers and set-ups
+from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 
-__version__ = '1.3.25'
+__version__ = '1.5.10'

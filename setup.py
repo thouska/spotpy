@@ -1,26 +1,21 @@
 # Copyright (c) 2015, Tobias Houska
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 setup(
   name = 'spotpy',
-  version = '1.3.25',
+  version = '1.5.10',
   description = 'A Statistical Parameter Optimization Tool',
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),
   author = 'Tobias Houska, Philipp Kraft, Alejandro Chamorro-Chavez and Lutz Breuer',
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
-  url = 'http://www.uni-giessen.de/cms/faculties/f09/institutes/ilr/hydro/download/spotpy',
+  url = 'https://spotpy.readthedocs.io/en/latest/',
   license = 'MIT',
-  packages = ["spotpy", "spotpy.examples", "spotpy.examples.hymod_python", "spotpy.examples.hymod_exe", "spotpy.algorithms", "spotpy.parallel", "spotpy.gui"],
-  package_data={
-   'spotpy.examples.hymod_exe': ['*'],
-   'spotpy.examples.hymod_python': ['*'],
-   },
-  #include_package_data = True,
+  packages=find_packages(exclude=["tests*", "docs*"]),
   use_2to3 = True,
-  keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, Uncertainty, Calibration, Model, Signatures',
+  keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, DDS, PA-DDS, Uncertainty, Calibration, Model, Signatures',
   classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -28,10 +23,10 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries :: Python Modules'],
         )

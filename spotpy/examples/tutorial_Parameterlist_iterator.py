@@ -15,11 +15,13 @@ import spotpy
 
         
 class spot_setup(object):
-    slow = 1000
+    
     def __init__(self):
-        self.params = [spotpy.parameter.List('x',[1,2,3,4,6,7,8,9,0]), #Give possible x values as a List
-                       spotpy.parameter.List('y',[0,1,2,5,7,8,9,0,1])  #Give possible y values as a List
-                       ]
+        self.slow = 1000
+        self.params = [spotpy.parameter.List('x',[1,2,3,4,5,6,7,8,9,0]), #Give possible x values as a List
+                       spotpy.parameter.List('y',[0,1,2,5,6,7,8,9,0,1])  #Give possible y values as a List
+        
+                   ]
     def parameters(self):
         return spotpy.parameter.generate(self.params)
         

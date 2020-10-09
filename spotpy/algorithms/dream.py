@@ -55,9 +55,8 @@ class dream(_algorithm):
             * False: Simulation results will not be saved
         """
 
-
-        if 'alt_objfun' not in kwargs:
-            kwargs['alt_objfun'] = 'log_p'
+        kwargs['optimization_direction'] = 'maximize'
+        kwargs['algorithm_name'] = 'DiffeRential Evolution Adaptive Metropolis (DREAM) algorithm'
         super(dream, self).__init__(*args, **kwargs)
 
     def check_par_validity_bound(self, par):
@@ -124,9 +123,9 @@ class dream(_algorithm):
         random_chain1,random_chain2 = self.get_other_random_chains(cur_chain)
         new_parameterset=[]        
         #position = self.chain_samples-1#self.nChains*self.chain_samples+self.chain_samples+cur_chain-1
-        cur_par_set = self.bestpar[cur_chain][self.nChainruns[cur_chain]-1]
-        random_par_set1 = self.bestpar[random_chain1][self.nChainruns[random_chain1]-1]
-        random_par_set2 = self.bestpar[random_chain2][self.nChainruns[random_chain2]-1]
+        cur_par_set = list(self.bestpar[cur_chain][self.nChainruns[cur_chain]-1])
+        random_par_set1 = list(self.bestpar[random_chain1][self.nChainruns[random_chain1]-1])
+        random_par_set2 = list(self.bestpar[random_chain2][self.nChainruns[random_chain2]-1])
                 
         for i in range(self.N):#Go through parameters
             
@@ -144,9 +143,9 @@ class dream(_algorithm):
 #        return new_par
 
     def update_mcmc_status(self,par,like,sim,cur_chain):  
-        self.bestpar[cur_chain][self.nChainruns[cur_chain]]=par
+        self.bestpar[cur_chain][self.nChainruns[cur_chain]]=list(par)
         self.bestlike[cur_chain]=like
-        self.bestsim[cur_chain]=sim
+        self.bestsim[cur_chain]=list(sim)
 
     def get_r_hat(self, parameter_array):
         """
@@ -220,8 +219,8 @@ class dream(_algorithm):
             return R_stat#[R_stat, MR_stat]
 
     def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
-        print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         self.set_repetiton(repetitions)
+        print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         if nChains <3:
             print('Please use at least n=3 chains!')
             return None
@@ -248,7 +247,7 @@ class dream(_algorithm):
         
         #firstcall = True
         
-        print('Inititalize ',self.nChains, ' chain(s)...')
+        print('Initialize ', self.nChains, ' chain(s)...')
         self.iter=0
         #for i in range(10):
         startpoints = self.get_regular_startingpoint(nChains)
@@ -272,7 +271,7 @@ class dream(_algorithm):
         self.N = len(self.parameter()['random'])
         nrN=1
         newN = [True]*self.N
-        while self.iter <= self.repetitions - self.burnIn:
+        while self.iter < self.repetitions:
             param_generator = ((curChain,self.get_new_proposal_vector(curChain,newN,nrN)) for curChain in range(int(self.nChains)))                
             for cChain,par,sim in self.repeat(param_generator):
                 pCr = np.random.randint(0,nCr)
@@ -290,20 +289,9 @@ class dream(_algorithm):
                 if nrN == 0:
                     ids=[np.random.randint(0,self.N)]
                     nrN=1
-                #print(self.bestpar[cChain][self.nChainruns[cChain]-1])
                 like = self.postprocessing(self.iter, par, sim, chains=cChain)
-                #like = self.objectivefunction(
-                #    evaluation=self.evaluation, simulation=sim)
-                #self.status(self.iter, like, par)
-                
-#                logMetropHastRatio = np.abs(self.bestlike[cChain])/np.abs(like) #Fast convergence high uncertainty
-#                u = np.random.uniform(low=0.0, high=1)
-             
-#                logMetropHastRatio = like - self.bestlike[cChain] # Slow convergence, low uncertainty
-#                u = np.log(np.random.uniform(low=0.0, high=1))
 
                 # set a option which type of comparision should be choose:
-
                 metro_opt=acceptance_test_option
 
                 if metro_opt == 1:
@@ -334,33 +322,22 @@ class dream(_algorithm):
                     self.update_mcmc_status(par,like,sim,cChain)   
                     self.accepted[cChain] += 1  # monitor acceptance
                     
-                    #self.save(like, par, simulations=sim,chains=cChain)
                 else:
                     self.update_mcmc_status(self.bestpar[cChain][self.nChainruns[cChain]-1],self.bestlike[cChain],self.bestsim[cChain],cChain)   
-                    #self.save(self.bestlike[cChain], self.bestpar[cChain][self.nChainruns[cChain]], 
-                    #                     simulations=self.bestsim[cChain],chains=cChain)
-                # Progress bar
                 
-                #acttime = time.time()
+                if self.status.stop:
+                    self.iter = self.repetitions
+                    print('Stopping samplig')
+                    break
                 self.iter+=1
                 self.nChainruns[cChain] +=1
-                #if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
-                #    self.r_hats.append(self.get_r_hat(self.bestpar))                
-                #    #print(self.r_hats[-1])
-                #    text = '%i of %i (best like=%g)' % (
-                #        self.iter + self.burnIn, repetitions, self.status.objectivefunction)
+                
 
             r_hat = self.get_r_hat(self.bestpar)
-            #self.gammalevel+=.1
-            #print((r_hat < 1.2).all())
             self.r_hats.append(r_hat)
             # Refresh progressbar every two seconds
             acttime = time.time()
             if acttime - intervaltime >= 2 and self.iter >=2 and self.nChainruns[-1] >=3:
-                #self.r_hats.append(self.get_r_hat(self.bestpar))                
-                #text = '%i of %i (best like=%g)' % (
-                #    self.iter + self.burnIn, repetitions, self.status.objectivefunction)
-                #print(text)
                 text = "Acceptance rates [%] =" +str(np.around((self.accepted)/float(((self.iter-self.burnIn)/self.nChains)),decimals=4)*100).strip('array([])')
                 print(text)
                 text = "Convergence rates =" +str(np.around((r_hat),decimals=4)).strip('array([])')
