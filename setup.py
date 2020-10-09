@@ -14,7 +14,7 @@ setup(
   url = 'https://spotpy.readthedocs.io/en/latest/',
   license = 'MIT',
   install_requires=[
-          'scipy', 'numpy'],
+          'scipy'],
   packages=find_packages(exclude=["tests*", "docs*"]),
   use_2to3 = True,
   keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, DDS, PA-DDS, NSGAii, Uncertainty, Calibration, Model, Signatures',
@@ -25,9 +25,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries :: Python Modules'],
