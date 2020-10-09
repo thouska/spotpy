@@ -14,8 +14,10 @@ except ImportError:
     import spotpy
 #from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
-#from spotpy.describe import describe
+from spotpy.examples.spot_setup_hymod_python import spot_setup as spot_setup_hymod
+from spotpy.describe import describe
 import os
+import numpy as np
 from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
 
@@ -28,7 +30,7 @@ class TestAlgorithms(unittest.TestCase):
         like1 = abs(spotpy.objectivefunctions.bias(evaluation, simulation))
         like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
         like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
-        return [like2, like3]
+        return np.array([like1, like2, like3])
 
     def setUp(self):
         # How many digits to match in case of floating point answers
@@ -122,17 +124,16 @@ class TestAlgorithms(unittest.TestCase):
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep) #Si values should be returned
 
-#    def test_padds(self):
-#        sampler=spotpy.algorithms.padds(padds_spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
-#        sampler.sample(self.rep)
-#        results = sampler.getdata()
-#        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
+    def test_padds(self):
+        sampler=spotpy.algorithms.padds(spot_setup_hymod(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        sampler.sample(int(self.rep*0.5), metric='ones')
+        results = sampler.getdata()
+        self.assertEqual(len(results)+5, int(self.rep*0.5))
 
     def test_nsgaii(self):
-        generations=40
-        n_pop = 20
-        skip_duplicates = True
-        sampler=spotpy.algorithms.NSGAII(spot_setup(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
+        generations=20
+        n_pop = 10
+        sampler=spotpy.algorithms.NSGAII(spot_setup_hymod(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(generations, n_obj= 3, n_pop = n_pop)
         results = sampler.getdata()
         self.assertLessEqual(len(results), generations*n_pop) 

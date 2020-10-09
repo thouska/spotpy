@@ -136,7 +136,7 @@ if __name__ == "__main__":
     ax11.plot(q95,color='dimgrey',linestyle='solid')
     ax11.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
                     linewidth=0,label='parameter uncertainty')
-    ax11.plot(spot_setup.evaluation(),'r.',label='data')´
+    ax11.plot(spot_setup.evaluation(),'r.',label='data')
     ax11.set_ylim(-50,450)
     ax11.set_xlim(0,729)
     ax11.legend()
