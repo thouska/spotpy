@@ -64,6 +64,7 @@ Some features you can use with the SPOTPY package are:
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
   * Dynamically Dimensioned Search algorithm (`DDS`)
   * Pareto Archived - Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
+  * Fast and Elitist Multiobjective Genetic Algorithm (`NSGA-II`)
 
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
@@ -136,15 +137,23 @@ Some features you can use with the SPOTPY package are:
 Install
 =================
 
-Installing SPOTPY is easy. Just use:
+Classical Python options exist to install SPOTPY:
+
+From PyPi:
 
 	pip install spotpy
 
-Or, after downloading the [source code](https://pypi.python.org/pypi/spotpy "source code") and making sure python is in your OS path:
+From Conda-Forge:
+
+	conda config --add channels conda-forge
+	conda config --set channel_priority strict
+	conda install spotpy
+
+From [Source](https://pypi.python.org/pypi/spotpy):
 
 	python setup.py install
 
-	
+
 Support
 =================
 

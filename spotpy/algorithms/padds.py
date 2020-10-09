@@ -90,6 +90,7 @@ class padds(_algorithm):
         except KeyError:
             self.r = 0.2  # default value
 
+        self._return_all_likes=True #allows multi-objective calibration
         kwargs['optimization_direction'] = 'minimize'
         kwargs['algorithm_name'] = 'Pareto Archived Dynamically Dimensioned Search (PADDS) algorithm'
 
@@ -137,7 +138,7 @@ class padds(_algorithm):
             else:  # otherwise use the last generated solution
                 self.best_value.parameters, self.best_value.best_obj_val = (self.parameter_current, self.obj_func_current)
 
-            # This line is needed to get an array of data converted into a parameter object
+            # # This line is needed to get an array of data converted into a parameter object
             self.best_value.fix_format()
 
             yield rep, self.calculate_next_s_test(self.best_value.parameters, rep, self.generator_repetitions, self.r)
@@ -166,9 +167,9 @@ class padds(_algorithm):
             for i in range(initial_params.shape[0]):
                 self.parameter_current = initial_params[i]
                 if len(initial_objs[i]) > 0:
-                    self.obj_func_current = initial_objs[i]
+                    self.obj_func_current = np.array(initial_objs[i])
                 else:
-                    self.obj_func_current = self.getfitness(simulation=[], params=self.parameter_current)
+                    self.obj_func_current = np.array(self.getfitness(simulation=[], params=self.parameter_current))
 
                 if i == 0:  # Initial value
                     self.pareto_front = np.array([[self.obj_func_current, self.parameter_current]])
@@ -209,7 +210,8 @@ class padds(_algorithm):
             self.generator_repetitions = repetions_left
 
             for rep, x_curr, simulations in self.repeat(self.get_next_x_curr()):
-                self.obj_func_current = self.postprocessing(rep, x_curr, simulations)
+                obj_func_current = self.postprocessing(rep, x_curr, simulations)
+                self.obj_func_current = np.array(obj_func_current)
                 num_imp = np.sum(self.obj_func_current <= self.best_value.best_obj_val)
                 num_deg = np.sum(self.obj_func_current > self.best_value.best_obj_val)
 
@@ -338,6 +340,7 @@ def nd_check(nd_set_input, objective_values, parameter_set):
     dominance_flag = 0
 
     # These are simply reshaping problems if we want to loop over arrays but we have a single float given
+    objective_values = np.array(objective_values)
     try:
         like_struct_len = objective_values.shape[0]
     except IndexError:

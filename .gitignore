@@ -117,3 +117,6 @@ spotpy/hymod/likelihood_test/*
 
 # a doc folder for some notices
 _doc
+
+# spacemacs projects
+.projectile

@@ -14,6 +14,7 @@ techniques in one Framework. It comes along with an algorithms folder for the
 sampling and an analyser class for the plotting of results by the sampling.
 
 :dependencies: - Numpy >1.8 (http://www.numpy.org/) 
+               - Scipy >1.5 (https://pypi.org/project/scipy/)
                - Pandas >0.13 (optional) (http://pandas.pydata.org/)
                - Matplotlib >1.4 (optional) (http://matplotlib.org/) 
                - CMF (optional) (http://fb09-pasig.umwelt.uni-giessen.de:8000/)
@@ -40,4 +41,4 @@ from . import examples            # Contains tutorials how to use SPOTPY
 from . import describe            # Contains some helper functions to describe samplers and set-ups
 from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 
-__version__ = '1.5.13'
+__version__ = '1.5.14'

@@ -96,4 +96,4 @@ class padds_spot_setup(object):
 spot_setup = padds_spot_setup()
 
 sampler = spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv')
-res = sampler.sample(10000,trials=1)
+res = sampler.sample(2000,trials=1)

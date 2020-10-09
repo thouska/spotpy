@@ -39,6 +39,7 @@ We want to make this task as easy as possible. Some features you can use with th
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
   * Dynamically Dimensioned Search algorithm (`DDS`)
   * Pareto Archived - Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
+  * Fast and Elitist Multiobjective Genetic Algorithm (`NSGA-II`)
   
 * Wide range of objective functions (also known as loss function, fitness function or energy function) to validate the sampled results. Available functions are
 
@@ -136,15 +137,23 @@ Documentation is available at `<https://spotpy.readthedocs.io/en/latest>`__
 Install
 -------
 
-Installing SPOTPY is easy. Just use:
+Classical Python options exist to install SPOTPY:
+
+From PyPi:
 
 	pip install spotpy
 
-Or, after downloading the source code and making sure python is in your path:
+From Conda-Forge:
+
+	conda config --add channels conda-forge
+	conda config --set channel_priority strict
+	conda install spotpy
+
+From [Source](https://pypi.python.org/pypi/spotpy):
 
 	python setup.py install
 
-	
+
 Papers citing SPOTPY
 --------------------
 See `Google Scholar <https://scholar.google.de/scholar?cites=17155001516727704728&as_sdt=2005&sciodt=0,5&hl=de>`__ for a continuously updated list.

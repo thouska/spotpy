@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding: utf-8
 # -*- coding: utf-8 -*-
 '''
 Copyright 2015 by Tobias Houska
@@ -5,73 +7,73 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
-This class holds example code how to use the dream algorithm
+This class holds example code how to use the nsgaii algorithm
 '''
 
-import numpy as np
+from __future__ import division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 try:
     import spotpy
 except ImportError:
     import sys
+
     sys.path.append(".")
     import spotpy
 
+import spotpy.algorithms
+import unittest
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def multi_obj_func(evaluation, simulation):
-    #used to overwrite objective function in hymod example
+    """
+    This function is used to overwrite objective function in hymod example
+    
+    Parameters
+    ----------
+    evaluation : array
+        The observation data.
+    simulation : array
+        The model input
+
+    Returns
+    -------
+    list
+        Three different kinds of objective functions.
+
+    """
     like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
     like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
     like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
-    return np.array([like1, like2, like3])
+    return [like1, like2, like3]
 
 if __name__ == "__main__":
-    parallel ='seq' # Runs everthing in sequential mode
-    np.random.seed(2000) # Makes the results reproduceable
     
-    # Initialize the Hymod example
-    # In this case, we tell the setup which algorithm we want to use, so
-    # we can use this exmaple for different algorithms
-    spot_setup=spot_setup(multi_obj_func)
 
-    #Select number of maximum allowed repetitions
-    rep=2000
+    generations=40
+    n_pop = 20
+    skip_duplicates = True
     
-        
-    # Create the PADDS sampler of spotpy, alt_objfun is set to None to force SPOTPY
-    # to jump into the def objectivefunction in the spot_setup class (default is
-    # spotpy.objectivefunctions.rmse) 
-    sampler=spotpy.algorithms.padds(sp_setup, dbname='padds_hymod', dbformat='csv')
+    sp_setup=spot_setup(obj_func= multi_obj_func)
+    sampler = spotpy.algorithms.NSGAII(spot_setup=sp_setup, dbname='NSGA2', dbformat="csv")
     
-    #Start the sampler, one can specify metric if desired
-    sampler.sample(rep,metric='ones')
-    
-    # Load the results gained with the sceua sampler, stored in padds_hymod.csv
-    #results = spotpy.analyser.load_csv_results('padds_hymod')
+    sampler.sample(generations, n_obj= 3, n_pop = n_pop)
+
+
     results = sampler.getdata()
-
-    # from pprint import pprint
-    # #pprint(results)
-    # pprint(results['chain'])
-
-    for likno in range(1,4):
-        fig_like1 = plt.figure(1,figsize=(9,5))
-        plt.plot(results['like'+str(likno)])
-        plt.show()
-        fig_like1.savefig('hymod_padds_objectivefunction_' + str(likno) + '.png', dpi=300)
-
-
-    fig, ax=plt.subplots(3)
-    for likenr in range(3):
-        ax[likenr].plot(results['like'+str(likenr+1)])
-        ax[likenr].set_ylabel('like'+str(likenr+1))
-    fig.savefig('hymod_padds_objectivefunction.png', dpi=300)
-
-
-
-
+    
+    fig= plt.figure(1,figsize=(9,5))
+    plt.plot(results['like1'])
+    plt.show()
+    plt.ylabel('Objective function')
+    plt.xlabel('Iteration')
+    fig.savefig('hymod_objectivefunction.png',dpi=300)
     
     # Example plot to show the parameter distribution ###### 
     def plot_parameter_trace(ax, results, parameter):
@@ -123,7 +125,7 @@ if __name__ == "__main__":
     plt.show()
     fig.savefig('hymod_parameters.png',dpi=300)
     
-    
+
     # Example plot to show remaining parameter uncertainty #
     fields=[word for word in results.dtype.names if word.startswith('sim')]
     fig= plt.figure(3, figsize=(16,9))
@@ -135,10 +137,42 @@ if __name__ == "__main__":
     ax11.plot(q5,color='dimgrey',linestyle='solid')
     ax11.plot(q95,color='dimgrey',linestyle='solid')
     ax11.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
-                    linewidth=0,label='parameter uncertainty')
-    ax11.plot(spot_setup.evaluation(),'r.',label='data')
+                    linewidth=0,label='parameter uncertainty')  
+    ax11.plot(sp_setup.evaluation(),'r.',label='data')
     ax11.set_ylim(-50,450)
     ax11.set_xlim(0,729)
     ax11.legend()
     fig.savefig('python_hymod.png',dpi=300)
     #########################################################
+
+
+    x,y,z = results['like1'][-n_pop:],results['like2'][-n_pop:],results['like3'][-n_pop:]
+    fig = plt.figure(4)
+    ax12 = fig.add_subplot(111, projection='3d')
+    ax12.scatter(x,y,z,marker="o")
+    ax12.set_xlabel("pbias")
+    ax12.set_ylabel("rmse")
+    ax12.set_zlabel("rsquared")
+    plt.show()
+
+
+    
+class Test_NSGAII(unittest.TestCase):
+    def multi_obj_func(evaluation, simulation):
+        #used to overwrite objective function in hymod example
+        like1 = abs(spotpy.objectivefunctions.pbias(evaluation, simulation))
+        like2 = spotpy.objectivefunctions.rmse(evaluation, simulation)
+        like3 = spotpy.objectivefunctions.rsquared(evaluation, simulation)*-1
+        return [like1, like2, like3]
+
+    def setUp(self):
+        generations=40
+        n_pop = 20
+        skip_duplicates = True
+
+        self.sp_setup=spot_setup(obj_func= multi_obj_func)
+        self.sampler = spotpy.algorithms.NSGAII(self.sp_setup, dbname='NSGA2', dbformat="csv")
+        self.sampler.sample(generations, n_obj= 3, n_pop = n_pop, skip_duplicates = skip_duplicates)
+
+    def test_sampler_output(self):
+        self.assertEqual(200, len(self.sampler.getdata()))

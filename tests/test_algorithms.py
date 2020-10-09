@@ -12,7 +12,7 @@ except ImportError:
     import sys
     sys.path.append(".")
     import spotpy
-import numpy as np
+#from spotpy.examples.tutorial_padds import padds_spot_setup
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as spot_setup_hymod
 from spotpy.describe import describe
@@ -136,7 +136,7 @@ class TestAlgorithms(unittest.TestCase):
         sampler=spotpy.algorithms.NSGAII(spot_setup_hymod(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(generations, n_obj= 3, n_pop = n_pop)
         results = sampler.getdata()
-        self.assertEqual(len(results)+5, self.rep) #Si values should be returned
+        self.assertLessEqual(len(results), generations*n_pop) 
 
     @classmethod
     def tearDownClass(cls):

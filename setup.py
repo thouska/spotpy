@@ -5,7 +5,7 @@ import os
 
 setup(
   name = 'spotpy',
-  version = '1.5.13',
+  version = '1.5.14',
   description = 'A Statistical Parameter Optimization Tool',
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),
@@ -17,7 +17,7 @@ setup(
           'scipy', 'numpy'],
   packages=find_packages(exclude=["tests*", "docs*"]),
   use_2to3 = True,
-  keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, DDS, PA-DDS, Uncertainty, Calibration, Model, Signatures',
+  keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, DDS, PA-DDS, NSGAii, Uncertainty, Calibration, Model, Signatures',
   classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
