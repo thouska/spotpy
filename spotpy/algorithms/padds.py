@@ -89,7 +89,11 @@ class padds(_algorithm):
             self.r = kwargs.pop("r")
         except KeyError:
             self.r = 0.2  # default value
-        self._return_all_likes=True #alloes multi-objective calibration
+
+        self._return_all_likes=True #allows multi-objective calibration
+        kwargs['optimization_direction'] = 'minimize'
+        kwargs['algorithm_name'] = 'Pareto Archived Dynamically Dimensioned Search (PADDS) algorithm'
+
         super(padds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
@@ -307,11 +311,11 @@ class padds(_algorithm):
                 new_x_curr[j] = new_value  # change relevant dec var value in x_curr
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
+
             dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
             new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var - 1,  self.min_bound[dec_var - 1],self.max_bound[dec_var - 1])
 
             new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test
-
         return new_x_curr
 
 

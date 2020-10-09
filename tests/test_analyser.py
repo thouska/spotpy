@@ -362,7 +362,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_gelman_rubin(self):
         if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_gelman_rubin(self.r_hat, fig_name =self.fig_name)
+            spotpy.analyser.plot_gelman_rubin(self.hymod_results, self.r_hat, fig_name =self.fig_name)
             self.assertGreaterEqual(abs(os.path.getsize(self.fig_name)), 100)
 
 

@@ -68,7 +68,7 @@ class spot_setup(object):
     
     def objectivefunction(self,simulation,evaluation, params=None):
         #SPOTPY expects to get one or multiple values back, 
-        #that define the performence of the model run
+        #that define the performance of the model run
         if not self.obj_func:
             # This is used if not overwritten by user
             like = rmse(evaluation,simulation)

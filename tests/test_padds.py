@@ -61,6 +61,22 @@ class TestPADDS(unittest.TestCase):
     def test_run_9(self):
         self.run_a_dds(9)
 
+    def outside_bound(self, x_curr, min_bound, max_bound):
+        out_left = min_bound > x_curr  # [x<x_curr self.min_bound, self.max_bound
+        out_right = max_bound < x_curr
+
+        self.assertNotIn(True, out_right)
+        self.assertNotIn(True, out_left)
+
+    def test_bounds(self):
+        self.spot_setup = padds_spot_setup(False)
+        sampler = spotpy.algorithms.padds(self.spot_setup, parallel="seq", dbname='test_DDS', dbformat="csv",
+                                        sim_timeout=self.timeout)
+        sampler._set_np_random(self.f_random)
+        results = sampler.sample(100, 1)
+
+        self.outside_bound(results[0]['sbest'], sampler.min_bound, sampler.max_bound)
+
     def test_chc(self):
         self.assertArrayEqual([0.01851852, 0. , 0.01851852, 0.01851852, 0.,0.01851852],
                               chc([[1,10], [2,9.8],[3,5] ,[4, 4], [8,2], [10,1]]))

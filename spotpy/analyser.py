@@ -187,7 +187,7 @@ def get_minlikeindex(results):
     textv=text+str(index[0][0])+text2+value
     print(textv)
 
-    return index, minimum
+    return index[0][0], minimum
 
 
 def get_percentiles(results,sim_number=''):
@@ -279,6 +279,21 @@ def get_posterior(results,percentage=10, maximize=True):
         index = np.where(results['like1']>=np.percentile(results['like1'],100.0-percentage))
     return results[index]
 
+def plot_parameter_trace(ax, results, parameter):
+    #THis function plots the parameter setting for each run
+    for i in range(int(max(results['chain']))):
+        index=np.where(results['chain']==i)
+        ax.plot(results['par'+parameter['name']][index],'.', markersize=2)
+    ax.set_ylabel(parameter['name'])
+    ax.set_ylim(parameter['minbound'], parameter['maxbound'])
+    
+def plot_posterior_parameter_histogram(ax, results, parameter):
+    #This functing is the last 100 runs
+    ax.hist(results['par'+parameter['name']][-100:], 
+             bins =np.linspace(parameter['minbound'],parameter['maxbound'],20))
+    ax.set_ylabel('Density')
+    ax.set_xlim(parameter['minbound'], parameter['maxbound'])
+    
 def plot_parameter_uncertainty(posterior_results,evaluation, fig_name='Posterior_parameter_uncertainty.png'):
     import matplotlib.pyplot as plt
 
@@ -453,7 +468,7 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
     import matplotlib.pyplot as plt
 
     parnames=get_parameternames(results)
-    fig=plt.figure(figsize=(16,6))
+    fig=plt.figure(figsize=(9,6))
 
     ax  = plt.subplot(1,1,1)
     Si  = get_sensitivity_of_fast(results, like_index=like_index)
@@ -515,7 +530,7 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
     ax.plot(np.arange(-1,len(parnames)+1,1),[threshold]*(len(parnames)+2),'r--')
     ax.set_xlim(-0.5,len(parnames)-0.5)
     plt.tight_layout()
-    fig.savefig(fig_name,dpi=300)
+    fig.savefig(fig_name,dpi=150)
     
 
 def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
@@ -969,16 +984,31 @@ def plot_autocorellation(parameterdistribution,parametername,fig_name='Autocorre
     plt.savefig(fig_name,dpi=300)
 
 
-def plot_gelman_rubin(r_hat_values,fig_name='gelman_rub.png'):
+def plot_gelman_rubin(results, r_hat_values,fig_name='gelman_rub.png'):
     '''Input:  List of R_hat values of chains (see Gelman & Rubin 1992)
        Output: Plot as seen for e.g. in (Sadegh and Vrugt 2014)'''
     import matplotlib.pyplot as plt
-    fig=plt.figure(figsize=(16,9))
-    ax = plt.subplot(1,1,1)
-    ax.plot(r_hat_values)
-    ax.plot([1.2]*len(r_hat_values),'k--')
-    ax.set_xlabel='r_hat'
-    plt.savefig(fig_name,dpi=300)
+    
+    fig= plt.figure(figsize=(9,6))
+    ax1 = plt.subplot(2,1,1)
+    for i in range(int(max(results['chain']))+1):
+        index=np.where(results['chain']==i)
+        ax1.plot(results['like1'][index], label='Chain '+str(i+1))
+    
+    ax1.set_ylabel('Likelihood value')
+    ax1.legend()
+    
+    ax2 =plt.subplot(2,1,2)
+    r_hat=np.array(r_hat_values)
+    ax2.plot([1.2]*len(r_hat),'k--')
+    for i in range(len(r_hat[0])):
+        ax2.plot(r_hat[:,i],label='x'+str(i+1))
+    
+    ax2.set_yscale("log", nonpositive='clip')
+    ax2.set_ylabel('R$^d$ - convergence diagnostic')
+    ax2.set_xlabel('Number of chainruns')
+    ax2.legend()
+    fig.savefig(fig_name,dpi=150)
 
 def gelman_rubin(x):
     '''NOT USED YET'''

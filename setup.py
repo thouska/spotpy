@@ -13,6 +13,8 @@ setup(
   author_email = 'tobias.houska@umwelt.uni-giessen.de',
   url = 'https://spotpy.readthedocs.io/en/latest/',
   license = 'MIT',
+  install_requires=[
+          'scipy', 'numpy'],
   packages=find_packages(exclude=["tests*", "docs*"]),
   use_2to3 = True,
   keywords = 'Monte Carlo, MCMC, MLE, SCE-UA, Simulated Annealing, DE-MCz, DREAM, ROPE, Artifical Bee Colony, DDS, PA-DDS, NSGAii, Uncertainty, Calibration, Model, Signatures',

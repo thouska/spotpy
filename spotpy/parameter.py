@@ -431,7 +431,7 @@ class Exponential(Base):
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
                 default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                rndfunc(*rndargs, size=1000)
         """
         super(Exponential, self).__init__(rnd.exponential, 'Exponential', *args, **kwargs)
 
@@ -474,7 +474,7 @@ class Wald(Base):
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
                 default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                rndfunc(*rndargs, size=1000)
         """
         super(Wald, self).__init__(rnd.wald, 'Wald', *args, **kwargs)
 

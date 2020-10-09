@@ -61,12 +61,6 @@ class spot_setup(object):
         return self.trueObs[366:]
     
     def objectivefunction(self,simulation,evaluation, params=None):
-        return np.array([
-            spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation, simulation),
-            -spotpy.objectivefunctions.rmse(evaluation, simulation),
-            -spotpy.objectivefunctions.mse(evaluation, simulation),
-            -spotpy.objectivefunctions.pbias(evaluation, simulation),
-            spotpy.likelihoods.NashSutcliffeEfficiencyShapingFactor(evaluation, simulation),
-            spotpy.likelihoods.ABCBoxcarLikelihood(evaluation, simulation),
-            spotpy.likelihoods.LikelihoodAR1NoC(evaluation, simulation)
-        ])
+        return [-abs(spotpy.objectivefunctions.bias(evaluation, simulation)),
+            spotpy.objectivefunctions.rsquared(evaluation, simulation),
+            spotpy.objectivefunctions.nashsutcliffe(evaluation, simulation)]

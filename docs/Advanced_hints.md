@@ -1,4 +1,5 @@
 <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+
 # Advanced settings
 
 This chapter will show you, how to get the full power out of SPOTPY:
@@ -20,7 +21,7 @@ To tell SPOTPY to use MPI, just give this information to the sampler:
 
 	sampler = spotpy.algorithms.sceua(spotpy_setup,() dbname='RosenSCEUA', dbformat='csv', parallel='mpi')
 	sampler.sample(10000)
-	
+
 Now save this file and start it from a console: `mpirun -c 20 your_script.py`, where 20 is the number of cores you want to use.
 This should give you and speed of neerly 20 times compared with the standard sequential sampling.
 
@@ -38,29 +39,7 @@ DE-MCz will parallelize the selcted number of chains [terBrack and Vrugt, 2008](
 
 Th algorithms `MLE`, `MCMC` and `SA` can not run in parallel.
 
-## FAST - Sensitivity analysis
-SPOTPY gives you the opportunity to start a sensitivity analysis of your model. In this case, we included a global sensitivity analysis called "Extended FAST" based on 
-Saltelli et al. (1999). This is besides the Sobol´ sensitivity test the only algorithm available that is taking parameter interaction into account.
 
-The algorithm will tell you, how sensitive your parameters are on whatever is given back by your objective function. Before you start to sample, you should know how how many
-iterations you need to get an reliable information about your parameter. The number of iteration can be calculate after [Henkel et al. GLOBAL SENSITIVITY ANALYSIS OF NONLINEAR MATHEMATICAL MODELS - AN 
-IMPLEMENTATION OF TWO COMPLEMENTING VARIANCE-BASED ALGORITHMS, 2012] (https://www.informs-sim.org/wsc12papers/includes/files/con308.pdf): 
-
-$$N = (1+4M^2(1+(k-2)d))k$$ 
-
-with N = needed parameter iterations, M= inference factor (SPOTPY default M=4) and d= frequency step (SPOTPY default d=2) and k as the number of parameters of your model.
-
-You can start the simulation with
-
-	sampler = spotpy.algorithms.fast(spotpy_setup,() dbname='Fast_sensitivity', dbformat='csv')
-	
-and you can analyse your results with
-
-	results = sampler.get_data()
-	analyser.plot_fast_sensitivity(results,number_of_sensitiv_pars=5)
-	
-This will show you a Plot with the total Sensitivity index of all your parameters and in this case the five most sensitive parameters (can be adjusted).
- 
 ## Plotting time
 If you want create plots out of your samples and you don't want to sample your results again do something like this: 
 

@@ -20,8 +20,10 @@ nav:
         - Rosenbrock: Rosenbrock.md
         - Griewank: Griewank.md
         - Ackley: Ackley.md
-        - Hydrological_model: Hydrological_model.md
-        - Working with DREAM and Hymod: Working with DREAM and Hymod.md
+        - How to link a model to SPOTPY: How_to_link_a_model_to_SPOTPY.md
+        - Sensitivity analysis with FAST: Sensitivity_analysis_with_FAST.md
+        - Calibrating with SCE-UA: Calibration_with_SCE-UA.md
+        - Bayesian uncertainty analysis with DREAM: Bayesian_uncertainty_analysis_with_DREAM.md
         - Advanced_hints: Advanced_hints.md
         - Algorithm_guide: Algorithm_guide.md
 

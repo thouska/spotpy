@@ -1,9 +1,11 @@
 language: python
 python:
   #- "2.7"
-  #- "3.5"
   - "3.7"
 #  - "3.8" #Errors on Travis, build times out because no output was received...
+
+# Uses cache to build faster
+cache: pip
 
 # this ubuntu distribution has sure the libopenmpi-dev packages available
 dist: bionic
@@ -31,9 +33,27 @@ install:
 
 
 script:
-  - py.test  tests/test_* --cov spotpy --cov-report term-missing -v
+  - py.test tests/test_* --cov spotpy --cov-report term-missing -v
 #  - mpirun -c 4 python spotpy/examples/tutorial_parallel_computing_hymod.py 100
   - pip uninstall spotpy -y
 
-after_success:
-  - coveralls
+
+jobs:
+  include:
+    - stage: Coveralls
+      name: Report Coveralls
+      after_success: python3 -m coveralls
+
+# Publish spotpy on PyPi if taged
+deploy:
+  provider: pypi
+  distributions:  "sdist bdist_wheel"
+  on:
+    # In this case I want to deploy only when a tag is present...
+    tags: true
+    # ... and when tag is on master and respects the form "v0.0.0"
+    branch:
+      - master
+      - /v?(\d+\.)?(\d+\.)?(\*|\d+)$/
+  user: thouska
+  password : ${deploying}

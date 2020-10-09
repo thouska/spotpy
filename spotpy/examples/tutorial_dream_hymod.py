@@ -14,14 +14,15 @@ import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 import matplotlib.pyplot as plt
 from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
-
+from spotpy.analyser import plot_parameter_trace
+from spotpy.analyser import plot_posterior_parameter_histogram
 if __name__ == "__main__":
     parallel ='seq'
     # Initialize the Hymod example (will only work on Windows systems)
     #spot_setup=spot_setup(parallel=parallel)
     spot_setup=spot_setup(GausianLike)
     
-    # Create the Dream sampler of spotpy, al_objfun is set to None to force SPOTPY
+    # Create the Dream sampler of spotpy, alt_objfun is set to None to force SPOTPY
     # to jump into the def objectivefunction in the spot_setup class (default is
     # spotpy.objectivefunctions.log_p) 
     
@@ -31,11 +32,16 @@ if __name__ == "__main__":
     # Select five chains and set the Gelman-Rubin convergence limit
     nChains                = 4
     convergence_limit      = 1.2
+    
+    # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
+    nCr                    = 3
+    eps                    = 10e-6
     runs_after_convergence = 100
+    acceptance_test_option = 6
     
     sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv')
-    r_hat = sampler.sample(rep,nChains=nChains,convergence_limit=convergence_limit, 
-                           runs_after_convergence=runs_after_convergence)
+    r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
+                           runs_after_convergence,acceptance_test_option)
     
     
     
@@ -47,46 +53,28 @@ if __name__ == "__main__":
     
     
     # Example plot to show remaining parameter uncertainty #
-    fig= plt.figure(figsize=(16,9))
+    fig= plt.figure(figsize=(9,6))
     ax = plt.subplot(1,1,1)
     q5,q25,q75,q95=[],[],[],[]
     for field in fields:
-        q5.append(np.percentile(results[field][-100:-1],2.5))
-        q95.append(np.percentile(results[field][-100:-1],97.5))
+        q5.append(np.percentile(results[field][-100:-1],2.5))# ALl 100 runs after convergence
+        q95.append(np.percentile(results[field][-100:-1],97.5))# ALl 100 runs after convergence
     ax.plot(q5,color='dimgrey',linestyle='solid')
     ax.plot(q95,color='dimgrey',linestyle='solid')
     ax.fill_between(np.arange(0,len(q5),1),list(q5),list(q95),facecolor='dimgrey',zorder=0,
-                    linewidth=0,label='parameter uncertainty')  
-    ax.plot(spot_setup.evaluation(),'r.',label='data')
+                    linewidth=0,label='simulation uncertainty')  
+    ax.plot(spot_setup.evaluation(),color='red', markersize=2,label='data')
     ax.set_ylim(-50,450)
     ax.set_xlim(0,729)
+    ax.set_ylabel('Discharge [l s-1]')
+    ax.set_xlabel('Days')
     ax.legend()
-    fig.savefig('python_hymod.png',dpi=300)
+    fig.savefig('DREAM_simulation_uncertainty_Hymod.png',dpi=150)
     #########################################################
     
     
     # Example plot to show the convergence #################
-    fig= plt.figure(figsize=(12,16))
-    plt.subplot(2,1,1)
-    for i in range(int(max(results['chain']))+1):
-        index=np.where(results['chain']==i)
-        plt.plot(results['like1'][index], label='Chain '+str(i+1))
-    
-    plt.ylabel('Likelihood value')
-    plt.legend()
-    
-    ax =plt.subplot(2,1,2)
-    r_hat=np.array(r_hat)
-    ax.plot([1.2]*len(r_hat),'k--')
-    for i in range(len(r_hat[0])):
-        ax.plot(r_hat[:,i],label='x'+str(i+1))
-    
-    ax.set_yscale("log", nonposy='clip')
-    ax.set_ylim(-1,50)
-    ax.set_ylabel('R$^d$ - convergence diagnostic')
-    plt.xlabel('Number of chainruns')
-    plt.legend()
-    fig.savefig('python_hymod_convergence.png',dpi=300)
+    spotpy.analyser.plot_gelman_rubin(results, r_hat, fig_name='DREAM_r_hat.png')
     ########################################################
     
     
@@ -95,111 +83,17 @@ if __name__ == "__main__":
     # Example plot to show the parameter distribution ######
     parameters = spotpy.parameter.get_parameters_array(spot_setup)
     
+    fig, ax = plt.subplots(nrows=5, ncols=2)
+    fig.set_figheight(9)
+    fig.set_figwidth(9)
+    for par_id in range(len(parameters)):
+        plot_parameter_trace(ax[par_id][0], results, parameters[par_id])
+        plot_posterior_parameter_histogram(ax[par_id][1], results, parameters[par_id])
     
-    min_vs,max_vs = parameters['minbound'], parameters['maxbound']
+    ax[-1][0].set_xlabel('Iterations')
+    ax[-1][1].set_xlabel('Parameter range')
     
-    fig= plt.figure(figsize=(16,16))
-    plt.subplot(5,2,1)
-    x = results['par'+str(parameters['name'][0])]
-    for i in range(int(max(results['chain']))):
-        index=np.where(results['chain']==i)
-        plt.plot(x[index],'.')
-    plt.ylabel('cmax')
-    plt.ylim(min_vs[0],max_vs[0])
-    
-    
-    plt.subplot(5,2,2)
-    x = results['par'+parameters['name'][0]][int(len(results)*0.5):]
-    normed_value = 1
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('cmax')
-    plt.xlim(min_vs[0],max_vs[0])
-    
-    
-    
-    plt.subplot(5,2,3)
-    x = results['par'+parameters['name'][1]]
-    for i in range(int(max(results['chain']))):
-        index=np.where(results['chain']==i)
-        plt.plot(x[index],'.')
-    plt.ylabel('bexp')
-    plt.ylim(min_vs[1],max_vs[1])
-    
-    plt.subplot(5,2,4)
-    x = results['par'+parameters['name'][1]][int(len(results)*0.5):]
-    normed_value = 1
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('bexp')
-    plt.xlim(min_vs[1],max_vs[1])
-    
-    
-    
-    plt.subplot(5,2,5)
-    x = results['par'+parameters['name'][2]]
-    for i in range(int(max(results['chain']))):
-        index=np.where(results['chain']==i)
-        plt.plot(x[index],'.')
-    plt.ylabel('alpha')
-    plt.ylim(min_vs[2],max_vs[2])
-    
-    
-    plt.subplot(5,2,6)
-    x = results['par'+parameters['name'][2]][int(len(results)*0.5):]
-    normed_value = 1
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('alpha')
-    plt.xlim(min_vs[2],max_vs[2])
-    
-    
-    plt.subplot(5,2,7)
-    x = results['par'+parameters['name'][3]]
-    for i in range(int(max(results['chain']))):
-        index=np.where(results['chain']==i)
-        plt.plot(x[index],'.')
-    plt.ylabel('Ks')
-    plt.ylim(min_vs[3],max_vs[3])
-    
-    
-    plt.subplot(5,2,8)
-    x = results['par'+parameters['name'][3]][int(len(results)*0.5):]
-    normed_value = 1
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('Ks')
-    plt.xlim(min_vs[3],max_vs[3])
-    
-    
-    plt.subplot(5,2,9)
-    x = results['par'+parameters['name'][4]]
-    for i in range(int(max(results['chain']))):
-        index=np.where(results['chain']==i)
-        plt.plot(x[index],'.')
-    plt.ylabel('Kq')
-    plt.ylim(min_vs[4],max_vs[4])
-    plt.xlabel('Iterations')
-    
-    plt.subplot(5,2,10)
-    x = results['par'+parameters['name'][4]][int(len(results)*0.5):]
-    normed_value = 1
-    hist, bins = np.histogram(x, bins=20, density=True)
-    widths = np.diff(bins)
-    hist *= normed_value
-    plt.bar(bins[:-1], hist, widths)
-    plt.ylabel('Kq')
-    plt.xlabel('Parameter range')
-    plt.xlim(min_vs[4],max_vs[4])
     plt.show()
-    fig.savefig('python_parameters.png',dpi=300)
-    ########################################################
-    
+    fig.tight_layout()
+    fig.savefig('DREAM_parameter_uncertainty_Hymod.png',dpi=300)
+    #######################################################
