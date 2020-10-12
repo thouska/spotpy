@@ -335,20 +335,13 @@ class NSGAII(_algorithm):
         
         for igen in range(1,self.generations - 1):
 
-                Rt = np.vstack([Pt_parent,Qt])
+                Rt = np.vstack([Pt_parent,Qt]) 
 
 
                 if self.skip_duplicates:
-                    # print(f"pop: {len(Qt)}")    
-                    # print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
-
-                                
-                    #Qt_nondup = np.unique(Qt,axis=0)
-                    #self.n_pop_nondup = len(Qt_nondup)
 
                     # evaluate population 
-                    param_generator = ((i,Qt[i,:]) for i in range(self.n_pop))
-
+                    param_generator = ((i,Qt[i,:]) for i in range(self.n_pop)) 
 
                     ret = list(self.repeat(param_generator))
         
@@ -358,7 +351,7 @@ class NSGAII(_algorithm):
                         Of.append(self.postprocessing(igen, parameters, simulation_results, chains=p)) 
                     Of = np.vstack(Of) 
 
-                    Of = np.vstack([Of_parent ,Of])
+                    Of = np.vstack([Of_parent ,Of]) 
 
                     nonDomRank = self.fastSort(Of)
 
@@ -366,31 +359,30 @@ class NSGAII(_algorithm):
                     for rk in range(1,np.max(nonDomRank)+1):
                         crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
                 else:
-
-                    # print(f"pop: {len(Qt)}")    
-                    # print(f"pop non dup: {len(np.unique(Qt,axis=0))}")
+                    
+                    n_pop_combined = self.n_pop *2
                     # evaluate population
-                    param_generator = ((i,Rt[i,:]) for i in range(self.n_pop *2))
+                    param_generator = ((i,Rt[i,:]) for i in range( n_pop_combined ))
 
 
-
+                    #import pdb;pdb.set_trace()
                     ret = list(self.repeat(param_generator))
         
                     Of = []
-                    for p in range(self.n_pop*2):
+                    for p in range(n_pop_combined):
                         index, parameters,simulation_results = ret[p]
                         Of.append(self.postprocessing(igen, parameters, simulation_results, chains=p)) 
                     Of = np.vstack(Of) 
 
                     nonDomRank = self.fastSort(Of)
 
-                    crDist = np.empty(self.n_pop*2) 
+                    crDist = np.empty(n_pop_combined) 
                     for rk in range(1,np.max(nonDomRank)+1):
                         crDist[nonDomRank == rk] = self.crowdDist(Of[nonDomRank ==rk,:])
 
                         
                 # sorting
-                rank = np.lexsort((-crDist,nonDomRank))[:self.n_pop]
+                rank = np.lexsort((-crDist,nonDomRank))[:self.n_pop] 
                 Ptsort = Rt[rank]
                 Ofsort = Of[rank]
 
