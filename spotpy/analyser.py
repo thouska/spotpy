@@ -180,7 +180,7 @@ def get_minlikeindex(results):
     except ValueError:
         likes=results['like1']
     minimum=np.nanmin(likes)
-    value=str(round(minimum,4))
+    value=np.format_float_positional(minimum, 4)
     text=str('Run number ' )
     index=np.where(likes==minimum)
     text2=str(' has the lowest objectivefunction with: ')
