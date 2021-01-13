@@ -23,9 +23,9 @@ So the first step is as always to initialize the spotpy setup class example:
 	spot_setup=spot_setup()
 
 As a next step we apply the above formular to determine the number of repetitions needed for the FAST analysis. In our case we have k=5 parameter
-in the hymod model, so we need N=1345 repetitions to get reliable results:
+in the hymod model, so we need N=2245 repetitions to get reliable results:
 
-    rep = 1345
+    rep = 2245
 
 And that's already it. Now we can start the sensitivity analysis:
     sampler = spotpy.algorithms.fast(spot_setup, dbname='FAST_hymod', dbformat='csv')
