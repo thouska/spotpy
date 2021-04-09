@@ -39,7 +39,7 @@ if __name__ == "__main__":
     runs_after_convergence = 100
     acceptance_test_option = 6
     
-    sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv')
+    sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv', parallel=parallel)
     r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
                            runs_after_convergence,acceptance_test_option)
     

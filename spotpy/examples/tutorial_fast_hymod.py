@@ -9,7 +9,9 @@ This class holds example code how to use the FAST algorithm
 '''
 
 import spotpy
-from spotpy.examples.spot_setup_hymod_python import spot_setup
+#from spotpy.examples.spot_setup_hymod_python import spot_setup
+from spotpy.examples.spot_setup_rosenbrock import spot_setup
+import numpy as np
 
 
 if __name__ == "__main__":
@@ -23,7 +25,7 @@ if __name__ == "__main__":
     rep = 2245
     
     #Start a sensitivity analysis
-    sampler = spotpy.algorithms.fast(spot_setup, dbname='FAST_hymod', dbformat='csv')
+    sampler = spotpy.algorithms.fast(spot_setup, dbname='FAST_hymod', dbformat='csv', db_precision=np.float32)
     sampler.sample(rep)
     
     # Load the results gained with the fast sampler, stored in FAST_hymod.csv
