@@ -975,15 +975,6 @@ def plot_allmodelruns(modelruns,observations,dates=None, fig_name='bestmodel.png
     print(text)
 
 
-def plot_autocorellation(parameterdistribution,parametername,fig_name='Autocorrelation.png'):
-    '''Input:  List of sampled values for one Parameter
-       Output: Parameter Trace, Histogramm and Autocorrelation Plot'''
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    pd.plotting.autocorrelation_plot(parameterdistribution)
-    plt.savefig(fig_name,dpi=300)
-
-
 def plot_gelman_rubin(results, r_hat_values,fig_name='gelman_rub.png'):
     '''Input:  List of R_hat values of chains (see Gelman & Rubin 1992)
        Output: Plot as seen for e.g. in (Sadegh and Vrugt 2014)'''

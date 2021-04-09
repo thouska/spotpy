@@ -352,14 +352,6 @@ class TestAnalyser(unittest.TestCase):
             self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
 
 
-    def test_plot_autocorellation(self):
-        spotpy.analyser.plot_autocorellation(self.results["parx"],"parx", fig_name=self.fig_name)
-
-        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-        # we expecting a plot with some content without testing the structure of the plot, just
-        # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
-
     def test_plot_gelman_rubin(self):
         if sys.version_info >= (3, 6):
             spotpy.analyser.plot_gelman_rubin(self.hymod_results, self.r_hat, fig_name =self.fig_name)
