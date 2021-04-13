@@ -63,7 +63,7 @@ These steps are performed during the sampling:
 * The best parameter set is taking after the burn-in as an inital parameter set for the Metropolis sampler
 * A random value with a Gaussian distribution around the last best found parameter set is drawn to generate a new parameter-set (mean= last best parameter set, standard deviation=step-size of parameters function) 
 * Run simulation function with the new parameter set
-* Calculate a hardcoded logProbability as likelihood
+* Calculate a user defined likelihood function
 * Decide if the new parameter is accepted through a Metropolis decision
 * Save the last accepted run with likelihood, parameter set and simulation in a database 
 
@@ -161,7 +161,7 @@ Like SCE-UA and SA, DE-MCz does not require any prior distribution information, 
 * Sample uniformly for all chains
 * Generate a new parameter set
 * Run simulation function with generated parameter sets
-* Calculate a hardcoded logProbability as likelihood
+* Calculate a user defined likelihood function
 * Decide if the new parameter is accepted through a Metropolis decision
 * Check convergence, if criterion is reached, stop
 
