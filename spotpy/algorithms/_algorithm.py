@@ -14,6 +14,7 @@ from spotpy import parameter
 import numpy as np
 import time
 import threading
+import random
 
 
 try:
@@ -244,7 +245,9 @@ class _algorithm(object):
         # Set the random state
         if random_state is None: #ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state) 
+        np.random.seed(random_state) #Both numpy.random and random or used in spotpy
+        random.seed(random_state)    #Both numpy.random and random or used in spotpy
+            
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
