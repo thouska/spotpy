@@ -271,17 +271,10 @@ class _algorithm(object):
         elif parallel == 'mpi':
             from spotpy.parallel.mpi import ForEach
 
-        # MPC is based on pathos mutiprocessing and uses ordered map, so results are given back in the order
+        # MPC is based on  mutiprocessing. mpc returns the results in order, umpc unordered, as the results are created
         # as the parameters are
-        elif parallel == 'mpc':
+        elif parallel in ('mpc', 'umpc'):
             from spotpy.parallel.mproc import ForEach
-
-        # UMPC is based on pathos mutiprocessing and uses unordered map, so results are given back in the order
-        # as the subprocesses are finished which may speed up the whole simulation process but is not recommended if
-        # objective functions do their calculation based on the order of the data because the order of the result is chaotic
-        # and randomized
-        elif parallel == 'umpc':
-            from spotpy.parallel.umproc import ForEach
         else:
             raise ValueError(
                 "'%s' is not a valid keyword for parallel processing" % parallel)
@@ -292,6 +285,8 @@ class _algorithm(object):
         # to other functions. This is introduced for sceua to differentiate between burn in and
         # the normal work on the chains
         self.repeat = ForEach(self.simulate)
+        if parallel == 'umpc':
+            self.repeat.unordered = True
 
         # method "save" needs to know whether objective function result is list or float, default is float
         self.like_struct_typ = type(1.1)
