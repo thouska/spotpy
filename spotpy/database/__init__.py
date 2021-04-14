@@ -18,7 +18,6 @@ def __dir__():
 
 def __getattr__(name):
     names = __dir__()
-    print(names)
     if name in names:
         try:
             db_module = import_module('.' + name, __name__)
