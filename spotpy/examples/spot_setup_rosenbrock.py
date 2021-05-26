@@ -36,7 +36,8 @@ class spot_setup(object):
         observations = [0]
         return observations
     
-    def objectivefunction(self, simulation, evaluation):
+    def objectivefunction(self, simulation, evaluation, params=None):
+
         #SPOTPY expects to get one or multiple values back, 
         #that define the performence of the model run
         if not self.obj_func:

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import sys
+from spotpy.parameter import Uniform
 try:
     import spotpy
 except ModuleNotFoundError:
@@ -48,10 +49,27 @@ def ZDT1(x):
 
 
 class padds_spot_setup(object):
-    def __init__(self):
+    def __init__(self, default=True):
         self.params = []
-        for i in range(30):
-            self.params.append(spotpy.parameter.Uniform(str(i+1), 0, 1, 0, 0, 0, 1,doc="param no " + str(i+1)))
+        if default:
+            for i in range(30):
+                self.params.append(spotpy.parameter.Uniform(str(i+1), 0, 1, 0, 0, 0, 1,doc="param no " + str(i+1)))
+        else:
+            self.params = [Uniform(.5, 5., optguess=1.5, doc='saturated depth at beginning'),
+                           Uniform(.001, .8, optguess=.1, doc='porosity of matrix [m3 Pores / m3 Soil]'),
+                           Uniform(1., 240., optguess=10.,
+                                   doc='ssaturated conductivity of macropores [m/day]'),
+                           Uniform(.0001, .5, optguess=.05, doc='macropore fraction [m3/m3]'),
+                           Uniform(.005, 1., optguess=.05,
+                                   doc='mean distance between the macropores [m]'),
+                           Uniform(0., 1., optguess=0.,
+                                   doc='water content when matric potential pointing towards -infinity'),
+                           Uniform(.5, 1., optguess=.99,
+                                   doc='wetness above which the parabolic extrapolation is used instead of VGM'),
+                           Uniform(0., 50, optguess=.1,
+                                   doc='exchange rate [1/day] for macropore-matrix-exchange')]
+            for i in range(8,30):
+                self.params.append(Uniform(str(i+1), 0, 1, 0, 0, 0, 1,doc="param no " + str(i+1)))
 
     def parameters(self):
         return spotpy.parameter.generate(self.params)
@@ -78,4 +96,4 @@ class padds_spot_setup(object):
 spot_setup = padds_spot_setup()
 
 sampler = spotpy.algorithms.padds(spot_setup, dbname='padds_hymod', dbformat='csv')
-res = sampler.sample(10000,trials=1)
+res = sampler.sample(2000,trials=1)

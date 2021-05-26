@@ -157,8 +157,10 @@ The results can be analysed with some pre-build statistics and plotting features
 		rope.py       # RObust Parameter Estimation
 		fast.py       # Fourier Amplitude Sensitivity Testing
 		abc.py        # Artificial Bee Colony
-        fscabc.py     # Fitness Scaled Chaotic Artificial Bee Colony
-		dream.py      # Differential Evolution Adaptive Metropolis 
+		fscabc.py     # Fitness Scaled Chaotic Artificial Bee Colony
+		dream.py      # Differential Evolution Adaptive Metropolis
+		dds.py        # Dynamically Dimensioned Search
+
 	
 	parallel/
 		mpi.py        #Basic Parralel Computing features 

@@ -15,6 +15,7 @@ from spotpy import spotpylogging
 import numpy as np
 import time
 import threading
+import random
 
 
 try:
@@ -251,12 +252,15 @@ class _algorithm(object):
         # Set the random state
         if random_state is None: #ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state)
+        np.random.seed(random_state) #Both numpy.random and random or used in spotpy
+        random.seed(random_state)    #Both numpy.random and random or used in spotpy
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
         self.sim_timeout = sim_timeout
         self.save_threshold = save_threshold
-
+        
+        self._return_all_likes = False #allows multi-objective calibration if set to True, is set by the algorithm
+        
         if breakpoint == 'read' or breakpoint == 'readandwrite':
             self.logger.info('Reading backupfile')
             try:
@@ -373,17 +377,19 @@ class _algorithm(object):
             Reason: In case of incomplete optimizations, old data can be restored. '''
         import pickle
         with open(dbname+'.break', 'rb') as breakfile:
-            work,backuptime,repos,obmin,obmax=pickle.load(breakfile)
+            work,backuptime,repos,obmin,obmax,pmin,pmax=pickle.load(breakfile)
             self.status.starttime=self.status.starttime-backuptime
             self.status.rep=repos
             self.status.objectivefunction_min=obmin
             self.status.objectivefunction_max=obmax
+            self.status.params_min=pmin
+            self.status.params_max=pmax
             return work
 
     def write_breakdata(self, dbname, work):
         ''' Write data to a pickle file if a breakpoint has been set.'''
         import pickle
-        work=(work,self.status.last_print-self.status.starttime,self.status.rep,self.status.objectivefunction_min,self.status.objectivefunction_max)
+        work=(work,self.status.last_print-self.status.starttime,self.status.rep,self.status.objectivefunction_min,self.status.objectivefunction_max,self.status.params_min,self.status.params_max)
         with open(str(dbname)+'.break', 'wb') as breakfile:
             pickle.dump(work, breakfile)
 
@@ -412,10 +418,14 @@ class _algorithm(object):
 
         if save_run is True and simulation is not None:
             self.save(like, params, simulations=simulation, chains=chains)
-        if type(like)==type([]):
-            return like[0]
-        else:
+        if self._return_all_likes:
             return like
+        else:
+            try:
+                iter(like)
+                return like[0]
+            except TypeError: # Happens if iter(like) fails, i.e. if like is just one value      
+                return like
 
 
     def getfitness(self, simulation, params):
@@ -439,26 +449,31 @@ class _algorithm(object):
         self.all_params[self.non_constant_positions] = params #TODO: List parameters are not updated if not accepted for the algorithm, we may have to warn/error if list is given
         all_params = self.all_params
 
-        # we need a layer to fetch returned data from a threaded process into a queue.
-        def model_layer(q,all_params):
-            # Call self.model with a namedtuple instead of another sequence
-            q.put(self.setup.simulation(self.partype(*all_params)))
+        if self.sim_timeout:
+            # we need a layer to fetch returned data from a threaded process into a queue.
+            def model_layer(q,all_params):
+                # Call self.model with a namedtuple instead of another sequence
+                q.put(self.setup.simulation(self.partype(*all_params)))
 
-        # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
-        # incompability which the main thread. Therefore only for older Python version a workaround follows
-        que = Queue()
-        sim_thread = threading.Thread(target=model_layer, args=(que, all_params))
-        sim_thread.daemon = True
-        sim_thread.start()
+            # starting a queue, where in python2.7 this is a multiprocessing class and can cause errors because of
+            # incompability which the main thread. Therefore only for older Python version a workaround follows
+            que = Queue()
 
+            sim_thread = threading.Thread(target=model_layer, args=(que, all_params))
+            sim_thread.daemon = True
+            sim_thread.start()
 
-        # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
-        # long it needs to run
-        sim_thread.join(self.sim_timeout)
+            # If self.sim_timeout is not None the self.model will break after self.sim_timeout seconds otherwise is runs as
+            # long it needs to run
+            sim_thread.join(self.sim_timeout)
 
-        # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
-        # '[nan]' and will not be saved. Otherwise get the result from the thread
-        model_result = None
-        if not que.empty():
-            model_result = que.get()
+            # If no result from the thread is given, i.e. the thread was killed from the watcher the default result is
+            # '[nan]' and will not be saved. Otherwise get the result from the thread
+            model_result = None
+            if not que.empty():
+                model_result = que.get()
+
+        else:
+            model_result = self.setup.simulation(self.partype(*all_params))
+
         return id, params, model_result

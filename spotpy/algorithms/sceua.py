@@ -15,7 +15,7 @@ import numpy as np
 
 class sceua(_algorithm):
     """
-    This class holds the Shuffled Complex Evolution Algortithm (SCE-UA) algorithm, 
+    This class holds the Shuffled Complex Evolution Algorithm (SCE-UA) algorithm, 
     based on:
     Duan, Q., Sorooshian, S. and Gupta, V. K. (1994) 
     Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol.
@@ -63,7 +63,6 @@ class sceua(_algorithm):
         kwargs['optimization_direction'] = 'minimize'
         kwargs['algorithm_name'] = 'Shuffled Complex Evolution (SCE-UA) algorithm'
         super(sceua, self).__init__(*args, **kwargs)
-        
 
     def simulate(self, id_params_tuple):
         """This overwrites the simple wrapper function of _algorithms.py
@@ -128,7 +127,7 @@ class sceua(_algorithm):
             # Replace the complex back into the population;
             return igs, likes, pars, sims, cx, cf, k1, k2, discarded_runs
 
-    def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001):
+    def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001, max_loop_inc=None):
         """
         Samples from parameter distributions using SCE-UA (Duan, 2004), 
         converted to python by Van Hoey (2011), restructured and parallelized by Houska et al (2015).
@@ -146,6 +145,8 @@ class sceua(_algorithm):
             the percentage change allowed in the past kstop loops below which convergence is assumed to be achieved.
         peps: float
             Value of the normalized geometric range of the parameters in the population below which convergence is deemed achieved.
+        max_loop_inc: int
+            Number of loops executed at max in this function call
         """
         self.set_repetiton(repetitions)
         self.logger.info('Starting the SCEUA algotrithm with '+str(repetitions)+ ' repetitions...')
@@ -165,6 +166,10 @@ class sceua(_algorithm):
         bound = self.bu - self.bl  # np.array
         self.stochastic_parameters = bound != 0
         proceed = True
+
+        # burnin_only, needed to indictat if only the burnin phase should be run
+        burnin_only = False
+
         if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
             data_frombreak = self.read_breakdata(self.dbname)
             icall = data_frombreak[0]
@@ -196,6 +201,12 @@ class sceua(_algorithm):
             idx = np.argsort(xf)
             xf = np.sort(xf)
             x = x[idx, :]
+
+            if max_loop_inc == 1:
+                burnin_only = True
+
+            print('Burn-in sampling completed...')
+
         else:
             raise ValueError("Don't know the breakpoint keyword {}".format(self.breakpoint))
         
@@ -229,10 +240,25 @@ class sceua(_algorithm):
         nloop = 0
         criter = []
         criter_change_pcent = 1e+5
-
         self.repeat.setphase('ComplexEvo')
         self.logger.debug('Starting Complex Evolution...')
+
         proceed = True
+
+        # if only burnin, stop the following while loop to be started
+        # write brakpoint if only a single generation shall be computed and
+        # the main loop will not be executed
+        if burnin_only:
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite':
+                work = (self.status.rep, (x, xf), gnrng)
+                self.write_breakdata(self.dbname, work)
+            proceed = False
+            print('ONLY THE BURNIN PHASE WAS COMPUTED')
+
+        else:
+            self.repeat.setphase('ComplexEvo')
+            print('Starting Complex Evolution...')
+
         while icall < repetitions and gnrng > peps and criter_change_pcent > pcento and proceed == True:
             nloop += 1
             self.logger.debug('ComplexEvo loop #%d in progress...' % nloop)
@@ -262,10 +288,10 @@ class sceua(_algorithm):
                         self.discarded_runs+=1
                         self.logger.debug('Skipping saving')
                 
-                if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
-                  and self.status.rep >= self.backup_every_rep:
-                    work = (self.status.rep, (x, xf), gnrng)
-                    self.write_breakdata(self.dbname, work)
+            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
+              and self.status.rep >= self.backup_every_rep:
+                work = (self.status.rep, (x, xf), gnrng)
+                self.write_breakdata(self.dbname, work)
 
             # End of Loop on Complex Evolution;
 
@@ -317,7 +343,13 @@ class sceua(_algorithm):
                         'CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!')
             elif self.status.stop:
                 proceed = False
-                break        
+                break
+
+            # stop, if max number of loop iteration was reached
+            elif max_loop_inc and nloop >= max_loop_inc:
+                proceed = False
+                print('THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED')
+                break
             
         # End of the Outer Loops
         self.logger.debug('SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % self.status.rep)
