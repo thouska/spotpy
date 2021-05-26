@@ -6,8 +6,9 @@ Defines a standard logger for the main application, which every child can
 """
 
 import logging
+from datetime import datetime
 
-path_to_logfile = 'spotpy.log'
+path_to_logfile = '{}-spotpy.log'.format(datetime.isoformat(datetime.now()))
 
 # Standard defintion of main logger
 spotpy_logger = logging.getLogger("spotpy")
