@@ -62,6 +62,8 @@ def cli():
 @click.option('--runs', '-n', type=click.INT, default=1, help='Number of runs')
 @click.option('--config', '-c', is_flag=True,
               help='Print only the configuration, can be used to create a config file with your_model.py > spotpy.conf')
+@click.option('--quiet', '-q', is_flag=True,
+              help='Suppress any logging messages to stdout during computation.')
 def run(ctx, **kwargs):
     """
     Runs a sampler for automatic calibration
@@ -94,4 +96,3 @@ def main(setup):
     cli.help = '\b\n' + describe.setup(setup).replace('\n\n', '\n\b\n')
     config = get_config_from_file()
     cli(obj=setup, auto_envvar_prefix='SPOTPY', default_map=config)
-
