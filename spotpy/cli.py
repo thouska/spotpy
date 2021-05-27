@@ -63,7 +63,9 @@ def cli():
 @click.option('--config', '-c', is_flag=True,
               help='Print only the configuration, can be used to create a config file with your_model.py > spotpy.conf')
 @click.option('--quiet', '-q', is_flag=True,
-              help='Suppress any logging messages to stdout during computation.')
+              help='Suppress any logging messages to stdout during computation')
+@click.option('--logfile', type=click.Path(),
+              help='Logging messages will be written to this file. If already exists, contents are appended')
 def run(ctx, **kwargs):
     """
     Runs a sampler for automatic calibration
