@@ -212,10 +212,11 @@ class _algorithm(object):
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, breakpoint=None,
                  backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,
-                 sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name=''):
+                 sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name='',
+                 quiet=False, logfile=None, logdir=None):
 
         # Instatiate logging
-        self.logger = spotpylogging.get_logger(self.__class__.__name__)
+        self.logger = spotpylogging.instantiate_logger(self.__class__.__name__, quiet, logfile, logdir)
 
         # Initialize the user defined setup class
         self.setup = spot_setup
