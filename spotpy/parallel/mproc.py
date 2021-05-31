@@ -50,6 +50,6 @@ class ForEach(object):
         return data
 
     def __call__(self, jobs):
-        results = self.pool.imap(self.f, jobs)
+        results = self.pool.map(self.f, jobs)
         for i in results:
             yield i
