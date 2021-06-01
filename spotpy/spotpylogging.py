@@ -53,7 +53,7 @@ def instantiate_logger(name, quiet=None, logfile=None, logdir=None):
       spotpy_logger.setLevel(logging.INFO)  # TODO this should be bound to cli arguments
       spotpy_logger.info('Write logging output to file \'%s\'', path_to_logfile)
 
-      return get_logger(name)
+    return get_logger(name)
     #else:
       #if quiet and not (logfile is None):
       #  raise RuntimeError("Logger is already instantiated!")
