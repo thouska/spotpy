@@ -27,7 +27,7 @@ class ForEach(object):
     We using the pathos multiprocessing module and the unordered map function where results are yield back while some
     processes are still running.
     """
-    def __init__(self, process):
+    def __init__(self, process, **kwargs):
         self.size = process_count or mp.cpu_count()
         self.process = process
         self.phase = None

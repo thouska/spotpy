@@ -58,20 +58,39 @@ class ForEach(object):
     def __repr__(self):
         return "ForEach(rank=%i/%i,phase=%s)" % (self.rank, self.size, self.phase)
 
-    def __init__(self, process):
+    def __init__(self, process, **kwargs):
         """
         Creates a repetition around a callable
         
         :param process: A callable to process the data
+        :param kwargs: Optional keyword arguments.
+
+        kwargs
+        ------
+        mpicomm: MPI.Intracomm:
+            A custom MPI communicator that is used for communication instead of
+            MPI_COMM_WORLD (default).
+        on_worker_terminate: callable
+            A custom callable that is called when all jobs have been processed and the
+            spotpy workers are terminated. This can be used to shutdown workers of the
+            setup level. The default implementation does nothing.
         """
-        self.comm = MPI.COMM_WORLD
-        self.size = self.comm.Get_size()
+        self.comm = kwargs.get('mpicomm', MPI.COMM_WORLD)
+        if not isinstance(self.comm, MPI.Intracomm):
+            raise TypeError('mpicomm must be a MPI.Intracomm instance')
+
+        try:
+            self.size = self.comm.Get_size()
+        except MPI.Exception as e:
+            raise e
         if self.size <= 1:
             raise RuntimeError('Need at least two processes for parallelization')
         self.rank = self.comm.Get_rank()
         self.process = process
         self.phase = None
-        self.on_worker_terminate = None
+        self.on_worker_terminate = kwargs.get('on_worker_terminate', None)
+        if not callable(self.on_worker_terminate) and self.on_worker_terminate is not None:
+            raise TypeError('on_worker_terminate must be a callable of None')
         if self.rank == 0:
             # The slots are a place for the master to remember which worker is doing something
             # Idle slots contain None
@@ -145,7 +164,7 @@ class ForEach(object):
                 self.on_worker_terminate()
         
         finally:
-            exit()
+            exit(0)
 
     def __send(self, jobiter):
         """
@@ -186,7 +205,7 @@ class ForEach(object):
                     the args of the process function
         :return: Yields the received result 
         """
-
+        assert self.is_master(), 'Supposed to be only called on the master'
         # Get the iterator for the iterable
         jobiter = iter(jobs)
         # Send out job while we have them

@@ -201,6 +201,19 @@ class _algorithm(object):
         If the model run has been broken simlply '[nan]' will be returned.
     random_state: int or None, default: None
         the algorithms uses the number in random_state as seed for numpy. This way stochastic processes can be reproduced.
+    parallel_kwargs: None or dict
+        Additional keyword arguments that are supplied to the ForEach repetition object.
+        Recognized keywords depend on the selected `parallel` mode:
+
+        mpi
+        ---
+        `mpicomm`: MPI.Intracomm:
+            A custom MPI communicator that is used for communication instead of
+            MPI_COMM_WORLD (default).
+        `on_worker_terminate`: callable
+            A custom callable that is called when all jobs have been processed and the
+            spotpy workers are terminated. This can be used to shutdown workers of the
+            setup level. The default implementation does nothing.
     """
 
     _unaccepted_parameter_types = (parameter.List, )
@@ -208,7 +221,7 @@ class _algorithm(object):
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, breakpoint=None,
                  backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,
-                 sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name=''):
+                 sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name='', parallel_kwargs=None):
 
         # Initialize the user defined setup class
         self.setup = spot_setup
@@ -263,6 +276,7 @@ class _algorithm(object):
                 print('Backupfile not found')
             self.dbappend = True
 
+        parallel_kwargs = parallel_kwargs or {}
         # Now a repeater (ForEach-object) is loaded
         # A repeater is a convinent wrapper to repeat tasks
         # We have the same interface for sequential and for parallel tasks
@@ -291,7 +305,7 @@ class _algorithm(object):
         # setphase function. The simulate method can check the current phase and dispatch work
         # to other functions. This is introduced for sceua to differentiate between burn in and
         # the normal work on the chains
-        self.repeat = ForEach(self.simulate)
+        self.repeat = ForEach(self.simulate, **parallel_kwargs)
 
         # method "save" needs to know whether objective function result is list or float, default is float
         self.like_struct_typ = type(1.1)

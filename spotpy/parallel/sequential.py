@@ -11,7 +11,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 class ForEach(object):
-    def __init__(self,process):
+    def __init__(self,process, **kwargs):
         self.process = process
         self.phase=None
     def is_idle(self):
