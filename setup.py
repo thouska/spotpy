@@ -14,6 +14,7 @@ setup(
   url = 'https://spotpy.readthedocs.io/en/latest/',
   license = 'MIT',
   install_requires=[
+          'click',
           'scipy'],
   packages=find_packages(exclude=["tests*", "docs*"]),
   use_2to3 = True,
