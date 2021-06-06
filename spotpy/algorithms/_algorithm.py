@@ -125,7 +125,8 @@ class _RunStatistic(object):
             self.last_print = time.time()
 
     def print_status_final(self):
-        self.logger.info('\n*** Final SPOTPY summary ***')
+        self.logger.info('')
+        self.logger.info('*** Final SPOTPY summary ***')
         self.logger.info('Total Duration: %s seconds' % str(round((time.time() - self.starttime), 2)))
         self.logger.info('Total Repetitions: %s', self.rep)
 
@@ -156,7 +157,8 @@ class _RunStatistic(object):
                 text = '%s: %g' % (self.parnames[i], self.params_max[i])
                 self.logger.info(text)
 
-        self.logger.info('******************************\n')
+        self.logger.info('******************************')
+        self.logger.info('')
 
 
     def __repr__(self):
