@@ -41,12 +41,6 @@ class ForEach(object):
         return data
 
     def __call__(self, jobs):
-        with mp.Pool(self.size) as pool:
-
-            if self.unordered:
-                results = pool.imap_unordered(self.f, jobs)
-            else:
-                results = pool.imap(self.f, jobs)
-
-            for i in results:
-                yield i
+        results = self.pool.map(self.f, jobs)
+        for i in results:
+            yield i
