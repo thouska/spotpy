@@ -47,7 +47,6 @@ if __name__ == "__main__":
      # Sample in parlallel
      sampler.sample(rep)
     
-
      # Load results from file
      results = spotpy.analyser.load_csv_results('Parallel_hymod3')
      print('File contains', len(results), 'runs')
