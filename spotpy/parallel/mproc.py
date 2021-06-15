@@ -5,8 +5,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Philipp Kraft
 '''
-
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from joblib import Parallel, delayed
 import multiprocessing as mp
 
 process_count = None
@@ -22,7 +25,6 @@ class ForEach(object):
         self.size = process_count or mp.cpu_count()
         self.process = process
         self.phase = None
-        self.unordered = False
 
     def is_idle(self):
         return False
@@ -41,12 +43,6 @@ class ForEach(object):
         return data
 
     def __call__(self, jobs):
-        with mp.Pool(self.size) as pool:
-
-            if self.unordered:
-                results = pool.imap_unordered(self.f, jobs)
-            else:
-                results = pool.imap(self.f, jobs)
-
-            for i in results:
-                yield i
+        results = Parallel(n_jobs=self.size)(delayed(self.f)(job) for job in jobs)
+        for res in results:
+             yield res
