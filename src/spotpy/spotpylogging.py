@@ -7,7 +7,7 @@ Defines a standard logger for the main application, which every child can
 
 import logging
 from datetime import datetime
-from os import path
+from pathlib import PurePath
 
 # Standard defintion of main logger
 spotpy_logger = logging.getLogger("spotpy")
@@ -25,8 +25,8 @@ def instantiate_logger(name, quiet=None, logfile=None, logdir=None):
       if already instantiated returns a new child of the main logger
     """
 
-    path_to_logdir = '.'
-    path_to_logfile = '{}-spotpy.log'.format(datetime.isoformat(datetime.now()))
+    path_to_logdir = PurePath() # current directory is assumed
+    path_to_logfile = PurePath('{}-spotpy.log'.format(datetime.isoformat(datetime.now())))
 
     if not spotpy_logger.handlers:
       # create the handlers and call logger.addHandler(logging_handler)
@@ -44,7 +44,7 @@ def instantiate_logger(name, quiet=None, logfile=None, logdir=None):
         path_to_logdir = logdir
       if logfile is not None:
         path_to_logfile = logfile
-      path_to_logfile = path_to_logdir + path.sep + path_to_logfile
+      path_to_logfile = PurePath(path_to_logdir, path_to_logfile)
 
       handler_file = logging.FileHandler(path_to_logfile)
       handler_file.setFormatter(formatter_file)
