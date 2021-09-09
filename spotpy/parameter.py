@@ -679,7 +679,7 @@ def generate(parameters):
     is given as a structured array in the format the parameters function of a setup expects
     :parameters: A sequence of parameter objects
     """
-    dtype = [('random', '<f8'), ('name', '|U30'),
+    dtype = [('random', '<f8'), ('name', '|U100'),
              ('step', '<f8'), ('optguess', '<f8'),
              ('minbound', '<f8'), ('maxbound', '<f8'), ('as_int', 'bool')]
 
