@@ -803,8 +803,8 @@ def plot_bestmodelrun(results,evaluation,fig_name ='Best_model_run.png'):
             evaluation[i] = np.nan
     plt.plot(evaluation,'ro',markersize=1, label='Observation data')
     simulation_fields = get_simulation_fields(results)
-    bestindex,bestobjf = get_maxlikeindex(results,verbose=False)
-    plt.plot(list(results[simulation_fields][bestindex][0]),'b-',label='Obj='+str(round(bestobjf,2)))
+    bestindex,bestobjf = get_minlikeindex(results)
+    plt.plot(list(results[simulation_fields][bestindex]),'b',label='Obj='+str(round(bestobjf,2)))
     plt.xlabel('Number of Observation Points')
     plt.ylabel ('Simulated value')
     plt.legend(loc='upper right')

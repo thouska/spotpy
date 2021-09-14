@@ -25,7 +25,7 @@ if __name__ == "__main__":
     
     #Select number of maximum allowed repetitions
     rep=5000
-    sampler=spotpy.algorithms.sceua(spot_setup, dbname='SCEUA_hymod', dbformat='csv')
+    sampler=spotpy.algorithms.sceua(spot_setup, dbname='SCEUA_hymod', dbformat='csv', breakpoint='read', backup_every_rep=1000)
     
     #Start the sampler, one can specify ngs, kstop, peps and pcento id desired
     sampler.sample(rep, ngs=7, kstop=3, peps=0.1, pcento=0.1) 

@@ -17,7 +17,7 @@ from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 from spotpy.analyser import plot_parameter_trace
 from spotpy.analyser import plot_posterior_parameter_histogram
 if __name__ == "__main__":
-    parallel ='seq'
+    parallel ='mpc'
     # Initialize the Hymod example (will only work on Windows systems)
     #spot_setup=spot_setup(parallel=parallel)
     spot_setup=spot_setup(GausianLike)
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     
     # Load the results gained with the dream sampler, stored in DREAM_hymod.csv
     results = spotpy.analyser.load_csv_results('DREAM_hymod')
+
     # Get fields with simulation data
     fields=[word for word in results.dtype.names if word.startswith('sim')]
     

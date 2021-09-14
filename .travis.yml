@@ -30,6 +30,8 @@ install:
   - pip install docutils
   - pip install numba
   - pip install tables
+    pip install multiprocessing
+    pip install joblib
 
 
 script:
