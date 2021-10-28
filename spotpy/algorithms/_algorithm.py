@@ -200,7 +200,7 @@ class _algorithm(object):
         If the objectivefunction value is higher, the results are saved in the database. If not they are ignored (saves storage).
     db_precision:np.float type
         set np.float16, np.float32 or np.float64 for rounding of floats in the output database
-        Default is np.float16
+        Default is np.float32
     sim_timeout: float, int or None, default: None
         the defined model given in the spot_setup class can be controlled to break after 'sim_timeout' seconds if
         sim_timeout is not None.
@@ -213,10 +213,10 @@ class _algorithm(object):
 
     def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
                  dbappend=False, parallel='seq', save_sim=True, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,
+                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float32,
                  sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name='',
                  quiet=False, logfile=None, logdir=None):
-
+        
         # Instatiate logging
         self.logger = spotpylogging.instantiate_logger(self.__class__.__name__, quiet, logfile, logdir)
 

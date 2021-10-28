@@ -47,7 +47,7 @@ if __name__ == "__main__":
     sampler.sample(rep)
     
     # Load results from file
-    #results = spotpy.analyser.load_csv_results('Parallel_hymod')
-    
+    results = spotpy.analyser.load_csv_results('Parallel_hymod')
+    print(len(results))
     # Plot best model run
     #spotpy.analyser.plot_bestmodelrun(results,spot_setup.evaluation())

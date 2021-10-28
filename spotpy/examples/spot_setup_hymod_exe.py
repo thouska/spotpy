@@ -11,7 +11,6 @@ from __future__ import unicode_literals
 import numpy as np
 import spotpy
 import os
-import multiprocessing as mp
 from distutils.dir_util import copy_tree, remove_tree
 #from shutil import rmtree
 import sys
