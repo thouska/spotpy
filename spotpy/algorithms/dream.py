@@ -100,37 +100,59 @@ class dream(_algorithm):
             print('ERROR: Bounds have not the same lenghts as Parameterarray')
         return par
 
-    def _get_gamma(self,N):
+    def _get_gamma(self,newN, nchain_pairs):
         #N = Number of parameters
         p = np.random.uniform(low=0,high=1)
-        if p >=0.2:
-            gamma = 2.38/np.sqrt(2*int(N))#/self.gammalevel
+        if p >= 0.2:
+            # d_star is the dimension of subspace of parameters to jump
+            d_star = newN.count(True)
+            gamma = 2.38/np.sqrt(2*nchain_pairs*d_star)  # /self.gammalevel
         else:
             gamma = 1
         return gamma
 
-    def get_other_random_chains(self,cur_chain):
-        valid=False        
-        while valid == False:         
-            random_chain1 = np.random.randint(0,self.nChains)
-            random_chain2 = np.random.randint(0,self.nChains)
-            if random_chain1!=cur_chain and random_chain2!=cur_chain and random_chain1!=random_chain2:
-                valid=True
-        return random_chain1, random_chain2
+    def get_other_random_chains(self,cur_chain, nchain_pairs):
+        chain_pairs = []
+        selectable_chain = list(range(self.nChains))
+        selectable_chain.remove(cur_chain)
+    
+        for i in range(nchain_pairs):
+            pair_ith = random.sample(selectable_chain, 2)
+            chain_pairs.append(pair_ith)
+            for chain in pair_ith:
+                selectable_chain.remove(chain)
+                
+        return chain_pairs
         
-    def get_new_proposal_vector(self,cur_chain,newN,nrN):
-        gamma = self._get_gamma(nrN)
-        random_chain1,random_chain2 = self.get_other_random_chains(cur_chain)
+    def get_new_proposal_vector(self,cur_chain,newN,c):
+        nchain_pairs = random.randint(1, self.delta)
+        gamma = self._get_gamma(newN,nchain_pairs)
+        chain_pairs = self.get_other_random_chains(cur_chain, nchain_pairs)
         new_parameterset=[]        
         #position = self.chain_samples-1#self.nChains*self.chain_samples+self.chain_samples+cur_chain-1
         cur_par_set = list(self.bestpar[cur_chain][self.nChainruns[cur_chain]-1])
-        random_par_set1 = list(self.bestpar[random_chain1][self.nChainruns[random_chain1]-1])
-        random_par_set2 = list(self.bestpar[random_chain2][self.nChainruns[random_chain2]-1])
+        random_par_sets1 = []  # contain all random_par_set1
+        random_par_sets2 = []  # contain all random_par_set2
+    
+        for i in range(nchain_pairs):
+            random_chain1 = chain_pairs[i][0]
+            random_chain2 = chain_pairs[i][1]
+            random_par_set1 = list(
+                self.bestpar[random_chain1][self.nChainruns[random_chain1]-1])
+            random_par_set2 = list(
+                self.bestpar[random_chain2][self.nChainruns[random_chain2]-1])
+            random_par_sets1.append(random_par_set1)
+            random_par_sets2.append(random_par_set2)
+    
+        random_par_set1 = [sum(i) for i in zip(*random_par_sets1)]  # sum all random_par_set1
+        random_par_set2 = [sum(i) for i in zip(*random_par_sets2)]  # sum all random_par_set2
                 
         for i in range(self.N):#Go through parameters
             
             if newN[i] == True:
-                new_parameterset.append(cur_par_set[i] + gamma*np.array(random_par_set1[i]-random_par_set2[i]) + np.random.normal(0,self.eps))
+                lambda_ =  np.random.uniform(-c,c)
+                new_parameterset.append(cur_par_set[i] + (1.0+lambda_)*gamma*np.array(
+                    random_par_set1[i]-random_par_set2[i]) + np.random.normal(0,self.eps))
             else:
                 new_parameterset.append(cur_par_set[i])
                 
@@ -218,16 +240,17 @@ class dream(_algorithm):
 #            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
             return R_stat#[R_stat, MR_stat]
 
-    def sample(self, repetitions,nChains=5, nCr=3, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
+    def sample(self, repetitions,nChains=5, nCr=3, delta=3, c=0.1, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
         self.set_repetiton(repetitions)
         print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
-        if nChains <3:
-            print('Please use at least n=3 chains!')
+        if nChains <2*delta+1:
+            print('Please use at least n=2*delta+1 chains!')
             return None
         # Prepare storing MCMC chain as array of arrays.
         # define stepsize of MCMC.
         self.repetitions = int(repetitions)
         self.nChains = int(nChains)
+        self.delta = delta
         #Ensure initialisation of chains and database
         self.burnIn = self.nChains
         self.stepsizes = self.parameter()['step']  # array of stepsizes
@@ -272,7 +295,7 @@ class dream(_algorithm):
         nrN=1
         newN = [True]*self.N
         while self.iter < self.repetitions:
-            param_generator = ((curChain,self.get_new_proposal_vector(curChain,newN,nrN)) for curChain in range(int(self.nChains)))                
+            param_generator = ((curChain,self.get_new_proposal_vector(curChain,newN,c)) for curChain in range(int(self.nChains)))                
             for cChain,par,sim in self.repeat(param_generator):
                 pCr = np.random.randint(0,nCr)
                 ids=[]         

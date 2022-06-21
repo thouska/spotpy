@@ -30,17 +30,19 @@ if __name__ == "__main__":
     rep=5000
     
     # Select five chains and set the Gelman-Rubin convergence limit
-    nChains                = 4
+    delta                  = 3
+    nChains                = 7
     convergence_limit      = 1.2
     
     # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
+    c                      = 0.1
     nCr                    = 3
     eps                    = 10e-6
     runs_after_convergence = 100
     acceptance_test_option = 6
     
     sampler=spotpy.algorithms.dream(spot_setup, dbname='DREAM_hymod', dbformat='csv', parallel=parallel)
-    r_hat = sampler.sample(rep, nChains, nCr, eps, convergence_limit, 
+    r_hat = sampler.sample(rep, nChains, nCr, delta, c, eps, convergence_limit, 
                            runs_after_convergence,acceptance_test_option)
     
     
