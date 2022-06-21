@@ -425,7 +425,7 @@ class Exponential(Base):
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
-        :scale: The scale parameter, \beta = 1/\lambda.
+        :scale: The scale parameter, \beta = 1 divided by lambda.
         :step:     (optional) number for step size required for some algorithms, 
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
