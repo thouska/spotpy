@@ -41,4 +41,4 @@ from . import examples            # Contains tutorials how to use SPOTPY
 from . import describe            # Contains some helper functions to describe samplers and set-ups
 from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
 
-__version__ = '1.5.14'
+__version__ = '1.5.15'
