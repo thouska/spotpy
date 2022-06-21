@@ -5,7 +5,7 @@ import os
 
 setup(
   name = 'spotpy',
-  version = '1.5.14',
+  version = '1.5.15',
   description = 'A Statistical Parameter Optimization Tool',
   long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),
@@ -27,5 +27,6 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Software Development :: Libraries :: Python Modules'],
         )

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     #Select number of maximum repetitions
     rep=5000
     
-    # Select five chains and set the Gelman-Rubin convergence limit
+    # Select seven chains and set the Gelman-Rubin convergence limit
     delta                  = 3
     nChains                = 7
     convergence_limit      = 1.2
