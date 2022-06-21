@@ -168,7 +168,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_get_sensitivity_of_fast(self):
@@ -210,7 +210,7 @@ class TestAnalyser(unittest.TestCase):
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_plot_fast_sensitivity(self):
@@ -220,7 +220,7 @@ class TestAnalyser(unittest.TestCase):
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
         
     def test_plot_heatmap_griewank(self):
         spotpy.analyser.plot_heatmap_griewank([self.griewank_results],["test"],
@@ -229,7 +229,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_plot_objectivefunction(self):
@@ -240,7 +240,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
     def test_plot_parametertrace_algorithms(self):
         spotpy.analyser.plot_parametertrace_algorithms([self.griewank_results],
@@ -250,7 +250,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
         os.remove(self.fig_name)
 
     def test_plot_parametertrace(self):
@@ -259,7 +259,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
     def test_plot_posterior_parametertrace(self):
         spotpy.analyser.plot_posterior_parametertrace(self.griewank_results, ["0","1"], fig_name=self.fig_name)
@@ -267,7 +267,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_plot_posterior(self):
@@ -278,7 +278,7 @@ class TestAnalyser(unittest.TestCase):
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
         
     def test_plot_bestmodelrun(self):
         spotpy.analyser.plot_bestmodelrun(self.griewank_results, 
@@ -287,7 +287,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
         os.remove(self.fig_name)
 
     def test_plot_bestmodelruns(self):
@@ -300,7 +300,7 @@ class TestAnalyser(unittest.TestCase):
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
     def test_plot_objectivefunctiontraces(self):
         spotpy.analyser.plot_objectivefunctiontraces([self.results], 
@@ -310,7 +310,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6820)
 
     def test_plot_regression(self):
         spotpy.analyser.plot_regression(self.results, rosenbrock_setup().evaluation(),
@@ -319,7 +319,7 @@ class TestAnalyser(unittest.TestCase):
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
-        self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
         
     def test_plot_parameterInteraction(self):
         # Test only untder Python 3.6 as lower versions results in a strange ValueError
@@ -330,7 +330,7 @@ class TestAnalyser(unittest.TestCase):
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
     
     def test_plot_allmodelruns(self):
@@ -349,7 +349,7 @@ class TestAnalyser(unittest.TestCase):
             # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
             # we expecting a plot with some content without testing the structure of the plot, just
             # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 8855)
+            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_plot_gelman_rubin(self):

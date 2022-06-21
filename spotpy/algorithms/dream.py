@@ -240,7 +240,7 @@ class dream(_algorithm):
 #            MR_stat = np.sqrt((n + 1) / n * R + (d - 1) / d)
             return R_stat#[R_stat, MR_stat]
 
-    def sample(self, repetitions,nChains=5, nCr=3, delta=3, c=0.1, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
+    def sample(self, repetitions,nChains=7, nCr=3, delta=3, c=0.1, eps=10e-6, convergence_limit=1.2, runs_after_convergence=100,acceptance_test_option=6):
         self.set_repetiton(repetitions)
         print('Starting the DREAM algotrithm with '+str(repetitions)+ ' repetitions...')
         if nChains <2*delta+1:

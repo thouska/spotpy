@@ -557,7 +557,7 @@ def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
 
     cmap = plt.get_cmap('autumn')
 
-    rows=2.0
+    rows=2
     for i in range(subplots):
         amount_row = int(np.ceil(subplots/rows))
         ax = plt.subplot(rows, amount_row, i+1)
