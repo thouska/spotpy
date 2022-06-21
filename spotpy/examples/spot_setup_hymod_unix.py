@@ -64,10 +64,7 @@ class spot_setup(object):
 
         os.chdir(self.hymod_path+call)
         try:
-            if sys.version_info.major == 2:
-                params = file('Param.in', 'w')
-            elif sys.version_info.major == 3:
-                params = open('Param.in','w')
+            params = open('Param.in','w')
     
             for i in range(len(x)):
                 if i == len(x):
@@ -78,13 +75,8 @@ class spot_setup(object):
 
             os.system('./hymod_%s.%s' % (sys.version_info.major, sys.version_info.minor))
 
-            #try: 
-            if sys.version_info.major == 2:
-                SimRR = file('Q.out', 'r')
-            elif sys.version_info.major == 3:
-                SimRR = open('Q.out', 'r')
-            else:
-                raise Exception("Your python is too old for this example")
+            SimRR = open('Q.out', 'r')
+            
             simulations=[]
             for i in range(64):
                 SimRR.readline()
