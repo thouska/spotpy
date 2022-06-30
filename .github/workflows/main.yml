@@ -40,11 +40,11 @@ jobs:
 
       - name: black check
         run: |
-          python -m black --check --diff --color .
+          python -m black --diff --color .
 
       - name: isort check
         run: |
-          python -m isort --check --diff --color .
+          python -m isort --diff --color .
 
   build_sdist:
     name: sdist on ${{ matrix.os }} with py ${{ matrix.python-version }}
