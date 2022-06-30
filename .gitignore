@@ -9,6 +9,7 @@ __pycache__/
 #other files
 *.out
 *.png
+test_DDS.csv
 ./*.csv
 site/*
 #mkdocs.yml

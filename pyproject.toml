@@ -74,7 +74,11 @@ plotting = [
     "pandas>=1",
     "matplotlib>=3",
 ]
-test = ["pytest-cov>=3"]
+test = [
+    "pytest-cov>=3",
+    "numba",
+    "pathos",
+]
 
 [project.urls]
 Changelog = "https://github.com/thouska/spotpy/blob/master/CHANGELOG.md"
