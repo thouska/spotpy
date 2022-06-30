@@ -1,5 +1,5 @@
 prune **
 recursive-include tests *.py
-recursive-include spotpy *.py
-recursive-include spotpy/examples *
+recursive-include src/spotpy *.py
+recursive-include src/spotpy/examples *
 include LICENSE README.md pyproject.toml setup.py

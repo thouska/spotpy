@@ -6,7 +6,7 @@ There are 4 main ways of contributing to the SPOTPY project (in descending order
 
 * Adding new or improved functionality to the existing codebase
 * Fixing outstanding issues (bugs) with the existing codebase. They range from low-level software bugs to higher-level design problems.
-* Contributing or improving the documentation (`docs`) or examples (`spotpy/examples`)
+* Contributing or improving the documentation (`docs`) or examples (`src/spotpy/examples`)
 * Submitting issues related to bugs or desired enhancements
 
 # Opening issues
@@ -76,7 +76,7 @@ We recommended that your contribution complies with the following guidelines bef
 
 *  Please prefix the title of incomplete contributions with `[WIP]` (to indicate a work in progress). WIPs may be useful to (1) indicate you are working on something to avoid duplicated work, (2) request broad review of functionality or API, or (3) seek collaborators.
 
-*  When adding additional functionality, you may want to provide at least one example script in the ``spotpy/examples/`` folder. Have a look at other examples for reference. Examples should demonstrate why the new functionality is useful in practice and, if possible, compare it to other methods available in SPOTPY.
+*  When adding additional functionality, you may want to provide at least one example script in the ``src/spotpy/examples/`` folder. Have a look at other examples for reference. Examples should demonstrate why the new functionality is useful in practice and, if possible, compare it to other methods available in SPOTPY.
 
 You can also check for common programming errors with the following
 tools:

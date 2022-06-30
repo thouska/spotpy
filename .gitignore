@@ -33,7 +33,7 @@ wheels/
 *.egg
 
 # generated version file
-spotpy/_version.py
+src/spotpy/_version.py
 
 # Python Unittest tool `py.test`
 .pytest_cache/*
@@ -113,12 +113,12 @@ ENV/
 .settings/
 
 # hymod example
-spotpy/examples/hymod/*
+src/spotpy/examples/hymod/*
 
 # Test Cases
-spotpy/hymod/testHymod/*
-spotpy/hymod/RunsWithNewHymod/*
-spotpy/hymod/likelihood_test/*
+src/spotpy/hymod/testHymod/*
+src/spotpy/hymod/RunsWithNewHymod/*
+src/spotpy/hymod/likelihood_test/*
 
 # a doc folder for some notices
 _doc

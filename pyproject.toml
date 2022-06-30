@@ -85,7 +85,7 @@ Source = "https://github.com/thouska/spotpy"
 Tracker = "https://github.com/thouska/spotpy/issues"
 
 [tool.setuptools_scm]
-write_to = "spotpy/_version.py"
+write_to = "src/spotpy/_version.py"
 write_to_template = "__version__ = '{version}'"
 local_scheme = "no-local-version"
 fallback_version = "0.0.0.dev0"
