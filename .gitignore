@@ -98,6 +98,8 @@ ENV/
 .spyderproject
 # PyCharm
 .idea/
+# VSCode
+.vscode/
 
 # Rope project settings
 .ropeproject
