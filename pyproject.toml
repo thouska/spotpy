@@ -80,6 +80,9 @@ test = [
     "pathos",
     "matplotlib",
     "click",
+    "pandas",
+    "tables",
+    "docutils",
 ]
 
 [project.urls]
