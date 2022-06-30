@@ -32,6 +32,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# generated version file
+spotpy/_version.py
+
 # Python Unittest tool `py.test`
 .pytest_cache/*
 

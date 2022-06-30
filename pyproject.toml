@@ -89,6 +89,7 @@ write_to = "spotpy/_version.py"
 write_to_template = "__version__ = '{version}'"
 local_scheme = "no-local-version"
 fallback_version = "0.0.0.dev0"
+tag_regex = "^(?:[\\w-]+-)?[vV]?\\.?(?P<version>\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:\\+.*)?$"
 
 [tool.isort]
 profile = "black"
