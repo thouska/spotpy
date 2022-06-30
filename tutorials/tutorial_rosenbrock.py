@@ -7,10 +7,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 This file holds the example code from the Rosenbrock tutorial web-documention.
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 try:
     import spotpy
@@ -62,32 +58,32 @@ sampler.sample(rep,ngs=4)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.sa(spot_setup(obj_func=bayesian_likelihood_func), 
+sampler=spotpy.algorithms.sa(spot_setup(obj_func=bayesian_likelihood_func),
                              parallel=parallel, dbname='RosenSA', dbformat=dbformat, sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
 
-sampler=spotpy.algorithms.rope(spot_setup(), 
+sampler=spotpy.algorithms.rope(spot_setup(),
                                parallel=parallel, dbname='RosenROPE',  dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.abc(spot_setup(), 
+sampler=spotpy.algorithms.abc(spot_setup(),
                               parallel=parallel,  dbname='RosenABC',     dbformat=dbformat,sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.fscabc(spot_setup(), 
+sampler=spotpy.algorithms.fscabc(spot_setup(),
                                  parallel=parallel, dbname='RosenFSABC', dbformat=dbformat, sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.mcmc(spot_setup(obj_func=bayesian_likelihood_func), 
+sampler=spotpy.algorithms.mcmc(spot_setup(obj_func=bayesian_likelihood_func),
                                parallel=parallel, dbname='RosenMCMC', dbformat=dbformat, sim_timeout=timeout)
 sampler.sample(rep)
 results.append(sampler.getdata())

@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Philipp Kraft
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import pathos.multiprocessing as mp
 
@@ -20,7 +16,7 @@ class PhaseChange(object):
     """
     def __init__(self, phase):
         self.phase = phase
-        
+
 class ForEach(object):
     """
     ForEach is a classes for multiprocessed work based on a generater object which is given if __call__ is called

@@ -16,11 +16,6 @@ import time
 from ..parameter import get_parameters_array, create_set
 
 
-if sys.version_info < (3, 5):
-    raise ImportError('spotpy.gui.mpl needs at least Python 3.5, you are running Python {}.{}.{}'
-                      .format(*sys.version_info[:3]))
-
-
 if matplotlib.__version__ < '2.1':
     raise ImportError('Your matplotlib package is too old. Required >=2.1, you have ' + matplotlib.__version__)
 

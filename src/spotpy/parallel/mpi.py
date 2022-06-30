@@ -11,15 +11,11 @@ This class makes the MPI parallelization.
 When an algorithm is constructed with parallel='mpi' the repeater of the algorithm as
 a ForEach object from this package. The .start() method seperates one master process from
 all the other processes that are used as workers. The master holds a list called "slots",
-where the master notes which processes are busy with a job. When a new job should be sent to 
-a worker, the master looks for a free slot and sends the job to the corresponding worker 
+where the master notes which processes are busy with a job. When a new job should be sent to
+a worker, the master looks for a free slot and sends the job to the corresponding worker
 process.
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from mpi4py import MPI
 
 
@@ -61,7 +57,7 @@ class ForEach(object):
     def __init__(self, process):
         """
         Creates a repetition around a callable
-        
+
         :param process: A callable to process the data
         """
         self.comm = MPI.COMM_WORLD
@@ -79,21 +75,21 @@ class ForEach(object):
 
     def is_master(self):
         """
-        :return: True if this Repititor lives on the master process 
+        :return: True if this Repititor lives on the master process
         """
         return self.rank == 0
 
     def is_worker(self):
         """
-        
-        :return: True if self lives on a worker process 
+
+        :return: True if self lives on a worker process
         """
         return self.rank > 0
 
     def is_idle(self):
         """
-        
-        :return: True, if all slots are empty 
+
+        :return: True, if all slots are empty
         """
         assert self.is_master()
         return all(s is None for s in self.slots)
@@ -101,7 +97,7 @@ class ForEach(object):
     def terminate(self):
         """
         Sends a termination command to all workers
-        :return: 
+        :return:
         """
         assert self.is_master(), "Don't call terminate on worker"
         for i in range(1, self.size):
@@ -110,8 +106,8 @@ class ForEach(object):
     def setphase(self, phasename):
         """
         Sends out to all workers that a new phase has come
-        :param phasename: 
-        :return: 
+        :param phasename:
+        :return:
         """
         assert self.is_master()
         for i in range(1, self.size):
@@ -120,7 +116,7 @@ class ForEach(object):
 
     def __wait(self):
         """
-        The loop where a worker is waiting for jobs. 
+        The loop where a worker is waiting for jobs.
         Breaks when master sent StopIteration
         :return: Nothing, calls exit()
         """
@@ -140,10 +136,10 @@ class ForEach(object):
                     # Send the object back for processing it
                     res = self.process(obj)
                     self.comm.send(res, dest=0, tag=tag.answer)
-    
+
             if callable(self.on_worker_terminate):
                 self.on_worker_terminate()
-        
+
         finally:
             exit()
 
@@ -152,7 +148,7 @@ class ForEach(object):
         The master uses this function to send jobs to the workers
         First it looks for a free slots, and then the jobs go there
         Used by __call__
-        :param jobiter: An iterator over job arguments 
+        :param jobiter: An iterator over job arguments
         :return: True if there are pending jobs
         """
         assert(self.is_master())
@@ -173,8 +169,8 @@ class ForEach(object):
     def start(self):
         """
         Sepearates the master from the workers
-        Sends all workers into wait modus, the master will just proceed 
-        :return: 
+        Sends all workers into wait modus, the master will just proceed
+        :return:
         """
         if self.is_worker():
             self.__wait()
@@ -182,9 +178,9 @@ class ForEach(object):
     def __call__(self, jobs):
         """
         Sends the jobs out to the workers and receives the results
-        :param jobs: an iterable of jobs to be sent to the workers. Each job contains 
+        :param jobs: an iterable of jobs to be sent to the workers. Each job contains
                     the args of the process function
-        :return: Yields the received result 
+        :return: Yields the received result
         """
 
         # Get the iterator for the iterable

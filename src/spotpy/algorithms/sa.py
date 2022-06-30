@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Alejandro Chamorro-Chavez
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
 
@@ -16,8 +12,8 @@ import numpy as np
 class sa(_algorithm):
     """
     This class holds the Simulated Annealing (SA) algorithm based on:
-    
-    Kirkpatrick, S., Gelatt, C. D., Vecchi, M. P. and others (2013). 
+
+    Kirkpatrick, S., Gelatt, C. D., Vecchi, M. P. and others (2013).
     Optimization by simmulated annealing, science.
     """
 
@@ -56,7 +52,7 @@ class sa(_algorithm):
         kwargs['optimization_direction'] = 'maximize'
         kwargs['algorithm_name'] = 'Simulated Annealing (SA) algorithm'
         super(sa, self).__init__(*args, **kwargs)
-        
+
     def check_par_validity(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -74,8 +70,8 @@ class sa(_algorithm):
 
         Input
         ----------
-        repetitions: int 
-            Maximum number of runs.  
+        repetitions: int
+            Maximum number of runs.
         """
         self.set_repetiton(repetitions)
         print('Starting the SA algotrithm with '+str(repetitions)+ ' repetitions...')
@@ -118,7 +114,7 @@ class sa(_algorithm):
 
 
             Titer = alpha * Titer
-        self.final_call()  
+        self.final_call()
 
 
 def frandom(Enew, Eold, Titer):

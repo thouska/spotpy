@@ -7,10 +7,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This class holds the example code from the ackley tutorial web-documention.
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 import spotpy
 from spotpy.examples.spot_setup_ackley import spot_setup
 

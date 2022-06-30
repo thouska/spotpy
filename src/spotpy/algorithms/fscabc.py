@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Patrick Lauer
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from ._algorithm import _algorithm
 import numpy as np
 import random
@@ -16,15 +12,15 @@ import random
 
 class fscabc(_algorithm):
     """
-    This class holds the Fitness Scaled Chaotic Artificial Bee Colony (FSCABC) algorithm, 
+    This class holds the Fitness Scaled Chaotic Artificial Bee Colony (FSCABC) algorithm,
     based on:
-    
-    Yudong Zhang, Lenan Wu, and Shuihua Wang (2011). Magnetic Resonance Brain Image 
-    Classification by an Improved Artificial Bee Colony Algorithm. 
+
+    Yudong Zhang, Lenan Wu, and Shuihua Wang (2011). Magnetic Resonance Brain Image
+    Classification by an Improved Artificial Bee Colony Algorithm.
     Progress In Electromagnetics Research
-    
-    Yudong Zhang, Lenan Wu, and Shuihua Wang (2013). 
-    UCAV Path Planning by Fitness-Scaling Adaptive Chaotic Particle Swarm Optimization. 
+
+    Yudong Zhang, Lenan Wu, and Shuihua Wang (2013).
+    UCAV Path Planning by Fitness-Scaling Adaptive Chaotic Particle Swarm Optimization.
     Mathematical Problems in Engineering
     """
 
@@ -80,7 +76,7 @@ class fscabc(_algorithm):
         a: float
             mutation factor
         peps: float
-            convergence criterion    
+            convergence criterion
         kpow: float
             exponent for power scaling method
         limit: int
@@ -103,7 +99,7 @@ class fscabc(_algorithm):
         r = 0.25
         while r == 0.25 or r == 0.5 or r == 0.75:
             r = random.random()
-            
+
         icall = 0
         gnrng = 1e100
 
@@ -169,7 +165,7 @@ class fscabc(_algorithm):
                 if self.status.stop:
                     print('Stopping samplig')
                     break
-                
+
             # Fitness scaling
             bn = []
             csum = 0

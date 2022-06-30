@@ -7,10 +7,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This code shows you, how to use the hydroligcal signatures. They can also be implemented in the def objective function.
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from spotpy.examples.spot_setup_hymod import spot_setup
 import spotpy.signatures as sig
 

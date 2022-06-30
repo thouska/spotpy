@@ -5,7 +5,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
 '''
 
-from __future__ import division, print_function, unicode_literals
 import io
 
 from click.testing import CliRunner

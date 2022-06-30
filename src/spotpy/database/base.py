@@ -9,16 +9,11 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 This is the parent class of all algorithms, which can handle the database
 structure during the sample.
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 import numpy as np
 import time
 from itertools import product
 import sys
-if sys.version_info[0] >= 3:
-    unicode = str
+unicode = str
 
 from importlib import import_module
 

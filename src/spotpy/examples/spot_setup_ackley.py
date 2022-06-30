@@ -4,12 +4,8 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Tobias Houska
 
-This example implements the Ackley function into SPOT.  
+This example implements the Ackley function into SPOT.
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 import numpy as np
 import spotpy
 
@@ -19,7 +15,7 @@ class spot_setup(object):
         self.params = []
         for i in range(self.dim):
             self.params.append(spotpy.parameter.Uniform(str(i),-32.768,32.768,2.5,-20.0))
-        
+
     def parameters(self):
         return spotpy.parameter.generate(self.params)
 

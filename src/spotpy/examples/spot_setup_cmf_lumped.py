@@ -7,7 +7,6 @@ A spot setup using cmf for a simple 1 storage hydrological model
 This example can be easily extended with more storages
 """
 
-from __future__ import division, print_function
 import datetime
 import cmf
 

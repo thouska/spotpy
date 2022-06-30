@@ -7,10 +7,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This example implements the python version of hymod into SPOTPY.
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 from spotpy.parameter import Uniform
 from spotpy.objectivefunctions import rmse
@@ -25,12 +21,12 @@ class spot_setup(object):
     Kq    = Uniform(low=0.1 , high=0.99, optguess=0.5592)
     #fake1 =spotpy.parameter.Uniform(low=0.1 , high=10, optguess=0.5592)
     #fake2 =spotpy.parameter.Uniform(low=0.1 , high=10, optguess=0.5592)
-        
+
     def __init__(self, obj_func=None):
         #Just a way to keep this example flexible and applicable to various examples
-        self.obj_func = obj_func  
+        self.obj_func = obj_func
         #Transform [mm/day] into [l s-1], where 1.783 is the catchment area
-        self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24) 
+        self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24)
         #Load Observation data from file
         self.PET,self.Precip   = [], []
         self.date,self.trueObs = [], []
@@ -62,17 +58,17 @@ class spot_setup(object):
             sim.append(val*self.Factor)
         #The first year of simulation data is ignored (warm-up)
         return sim[366:]
-        
+
     def evaluation(self):
         return self.trueObs[366:]
-    
+
     def objectivefunction(self,simulation,evaluation, params=None):
-        #SPOTPY expects to get one or multiple values back, 
+        #SPOTPY expects to get one or multiple values back,
         #that define the performance of the model run
         if not self.obj_func:
             # This is used if not overwritten by user
             like = rmse(evaluation,simulation)
         else:
             #Way to ensure flexible spot setup class
-            like = self.obj_func(evaluation,simulation)    
+            like = self.obj_func(evaluation,simulation)
         return like

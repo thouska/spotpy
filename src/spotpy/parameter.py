@@ -5,14 +5,12 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Philipp Kraft and Tobias Houska
 Contains classes to generate random parameter sets
 '''
-from __future__ import division, print_function, absolute_import
 import numpy.random as rnd
 import numpy as np
 import sys
 import copy
 
-if sys.version_info[0] >= 3:
-    unicode = str
+unicode = str
 from itertools import cycle
 
 
@@ -174,7 +172,7 @@ class Base(object):
     def __init__(self, rndfunc, rndfuncname, *args, **kwargs):
         """
         :name:     Name of the parameter
-        :rndfunc:  Function to draw a random number, 
+        :rndfunc:  Function to draw a random number,
                    eg. the random functions from numpy.random using the rndargs
         :rndargs:  tuple of the argument names for the random function
                    eg. for uniform: ('low', 'high'). The values for the rndargs are retrieved
@@ -226,7 +224,7 @@ class Base(object):
         Returns a tuple of a realization and the other parameter properties
         """
         return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.as_int
-    
+
     def __repr__(self):
         """
         Returns a textual representation of the parameter
@@ -236,15 +234,12 @@ class Base(object):
     def __str__(self):
         """
         Returns the description of the parameter, if available, else repr(self)
-        :return: 
+        :return:
         """
         doc = vars(self).get('description')
         if doc:
             res = '{} ({})'.format(doc, repr(self))
-            if sys.version_info.major == 2:
-                return res.encode('utf-8', errors='ignore')
-            else:
-                return res
+            return res
         else:
             return repr(self)
 
@@ -267,12 +262,12 @@ class Uniform(Base):
         :name: Name of the parameter
         :low: lower bound of the uniform distribution
         :high: higher bound of the uniform distribution
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
         super(Uniform, self).__init__(rnd.uniform, 'Uniform', *args, **kwargs)
 
@@ -366,12 +361,12 @@ class Normal(Base):
         :name: Name of the parameter
         :mean: center of the normal distribution
         :stddev: variance of the normal distribution
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
 
         super(Normal, self).__init__(rnd.normal, 'Normal', *args, **kwargs)
@@ -387,12 +382,12 @@ class logNormal(Base):
         :name: Name of the parameter
         :mean: Mean value of the underlying normal distribution
         :sigma: Standard deviation of the underlying normal distribution >0
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
         super(logNormal, self).__init__(rnd.lognormal, 'logNormal', *args, **kwargs)
 
@@ -406,12 +401,12 @@ class Chisquare(Base):
         """
         :name: Name of the parameter
         :dt: Number of degrees of freedom.
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
         super(Chisquare, self).__init__(rnd.chisquare, 'Chisquare', *args, **kwargs)
 
@@ -426,11 +421,11 @@ class Exponential(Base):
         """
         :name: Name of the parameter
         :scale: The scale parameter, \beta = 1 divided by lambda.
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
+                default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
         super(Exponential, self).__init__(rnd.exponential, 'Exponential', *args, **kwargs)
@@ -469,11 +464,11 @@ class Wald(Base):
         :name: Name of the parameter
         :mean: Shape of the distribution.
         :scale: Shape of the distribution.
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
+                default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
         super(Wald, self).__init__(rnd.wald, 'Wald', *args, **kwargs)
@@ -488,12 +483,12 @@ class Weibull(Base):
         """
         :name: Name of the parameter
         :a: Shape of the distribution.
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
         super(Weibull, self).__init__(rnd.weibull, 'Weibull', *args, **kwargs)
 
@@ -509,12 +504,12 @@ class Triangular(Base):
         :left: Lower limit of the parameter
         :mode: The value where the peak of the distribution occurs.
         :right: Upper limit, should be larger than `left`.
-        :step:     (optional) number for step size required for some algorithms, 
+        :step:     (optional) number for step size required for some algorithms,
                 eg. mcmc need a parameter of the variance for the next step
                 default is median of rndfunc(*rndargs, size=1000)
         :optguess: (optional) number for start point of parameter
-                default is quantile(0.5) - quantile(0.4) of 
-                rndfunc(*rndargs, size=1000) 
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
         """
         super(Triangular, self).__init__(rnd.triangular, 'Triangular', *args, **kwargs)
 
@@ -671,7 +666,7 @@ def get_classes():
         if isinstance( getattr(current_module, key), type ):
             keys.append(key)
     return keys
-    
+
 
 def generate(parameters):
     """
@@ -766,17 +761,17 @@ def create_set(setup, valuetype='random', **kwargs):
 def get_constant_indices(setup, unaccepted_parameter_types=(Constant,)):
     """
     Returns a list of the class defined parameters, and
-    overwrites the names of the parameters. 
+    overwrites the names of the parameters.
     By defining parameters as class members, as shown below,
     one can omit the parameters function of the setup.
-    
+
     Usage:
      from spotpy import parameter
      class SpotpySetup:
-         # Add parameters p1 & p2 to the setup. 
+         # Add parameters p1 & p2 to the setup.
          p1 = parameter.Uniform(20, 100)
          p2 = parameter.Gamma(2.3)
-    
+
     setup = SpotpySetup()
     parameters = parameter.get_parameters_from_setup(setup)
     """
@@ -804,18 +799,18 @@ def get_constant_indices(setup, unaccepted_parameter_types=(Constant,)):
 def get_parameters_from_setup(setup):
     """
     Returns a list of the class defined parameters, and
-    overwrites the names of the parameters. 
+    overwrites the names of the parameters.
     By defining parameters as class members, as shown below,
     one can omit the parameters function of the setup.
-    
+
     Usage:
-    
+
      from spotpy import parameter
      class SpotpySetup:
-         # Add parameters p1 & p2 to the setup. 
+         # Add parameters p1 & p2 to the setup.
          p1 = parameter.Uniform(20, 100)
          p2 = parameter.Gamma(2.3)
-    
+
      setup = SpotpySetup()
      parameters = parameter.get_parameters_from_setup(setup)
     """
@@ -823,7 +818,7 @@ def get_parameters_from_setup(setup):
     # Get all class variables
     cls = type(setup)
     class_variables = vars(cls).items()
-    
+
     parameters = []
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
@@ -836,16 +831,6 @@ def get_parameters_from_setup(setup):
                 attrobj.name = attrname
             # Add parameter to dict
             parameters.append(attrobj)
-
-    # starting with Python 3.6 the order of the class defined parameters are presevered with vars,
-    # prior the sorting changes.
-    # For a MPI parallized run with spotpy, this is terrible, since the spotpy code expects
-    # the list of parameters to be ordered
-    # For older pythons, we will sort the list of parameters by their name. For >=3.6, we keep
-    # the order.
-    if sys.version_info[:3] < (3, 6, 0):
-        # Sort the list parameters by name
-        parameters.sort(key=lambda p: p.name)
 
     # Get the parameters list of setup if the parameter attribute is not a method:
     if hasattr(setup, 'parameters') and not callable(setup.parameters):

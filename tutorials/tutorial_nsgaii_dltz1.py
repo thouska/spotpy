@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import spotpy
 from spotpy.examples.spot_setup_dtlz1 import spot_setup
@@ -25,13 +21,13 @@ if __name__ == "__main__":
                                  dbname='NSGA2',
                                  dbformat='csv',
                                  save_sim=True)
-    sampler.sample(generations,n_obj=3, n_pop=n_pop,skip_duplicates=skip_duplicates) 
+    sampler.sample(generations,n_obj=3, n_pop=n_pop,skip_duplicates=skip_duplicates)
 
 
     last = None
     first = None
 
-    # output calibration 
+    # output calibration
 
     df = pd.read_csv("NSGA2.csv")
 

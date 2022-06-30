@@ -5,25 +5,21 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Stijn Van Hoey
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
 
 
 class sceua(_algorithm):
     """
-    This class holds the Shuffled Complex Evolution Algorithm (SCE-UA) algorithm, 
+    This class holds the Shuffled Complex Evolution Algorithm (SCE-UA) algorithm,
     based on:
-    Duan, Q., Sorooshian, S. and Gupta, V. K. (1994) 
+    Duan, Q., Sorooshian, S. and Gupta, V. K. (1994)
     Optimal use of the SCE-UA global optimization method for calibrating watershed models, J. Hydrol.
 
     Based on the PYthon package Optimization_SCE
     Copyright (c) 2011 Stijn Van Hoey.
     Restructured and parallelized by Houska et al (2015):
-    Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L. (2015) 
+    Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L. (2015)
     SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE.
 
     """
@@ -70,7 +66,7 @@ class sceua(_algorithm):
         1) burn-in
         2) complex evolution
         """
-        
+
         if not self.repeat.phase:  # burn-in
             return _algorithm.simulate(self, id_params_tuple)
 
@@ -110,7 +106,7 @@ class sceua(_algorithm):
                 likes.append(fnew)
                 pars.append(snew)
                 sims.append(simulation)
-                
+
                 # Replace the worst point in Simplex with the new point:
                 s[-1, :] = snew
                 sf[-1] = fnew
@@ -123,13 +119,13 @@ class sceua(_algorithm):
                 idx = np.argsort(cf)
                 cf = np.sort(cf)
                 cx = cx[idx, :]
-                
+
             # Replace the complex back into the population;
             return igs, likes, pars, sims, cx, cf, k1, k2, discarded_runs
 
     def sample(self, repetitions, ngs=20, kstop=100, pcento=0.0000001, peps=0.0000001, max_loop_inc=None):
         """
-        Samples from parameter distributions using SCE-UA (Duan, 2004), 
+        Samples from parameter distributions using SCE-UA (Duan, 2004),
         converted to python by Van Hoey (2011), restructured and parallelized by Houska et al (2015).
 
         Parameters
@@ -188,7 +184,7 @@ class sceua(_algorithm):
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.postprocessing(icall, randompar, simulations,chains=0)              
+                like = self.postprocessing(icall, randompar, simulations,chains=0)
                 xf[rep] = like
                 icall+=1
                 if self.status.stop:
@@ -207,7 +203,7 @@ class sceua(_algorithm):
 
         else:
             raise ValueError("Don't know the breakpoint keyword {}".format(self.breakpoint))
-        
+
         # Record the best points;
         bestx = x[0, :]
         bestf = xf[0]
@@ -265,7 +261,7 @@ class sceua(_algorithm):
             if remaining_runs <= self.ngs:
                 self.ngs = remaining_runs-1
                 proceed = False
-            
+
             sce_vars = [self.npg, self.nopt, self.ngs, self.nspl,
                         self.nps, self.bl, self.bu, self.stochastic_parameters, self.discarded_runs]
             param_generator = ((rep, x, xf, cx, cf, sce_vars)
@@ -275,7 +271,7 @@ class sceua(_algorithm):
                 xf[k2] = cf[k1]
                 self.discard_runs = discarded_runs
                 for i in range(len(likes)):
-                    if not self.status.stop:    
+                    if not self.status.stop:
                         like = self.postprocessing(i, pars[i], sims[i], chains=i+1)
                     else:
                         #Collect data from all slaves but do not save
@@ -283,7 +279,7 @@ class sceua(_algorithm):
                         like = self.postprocessing(i, pars[i], sims[i], chains=i+1, save_run=False)
                         self.discarded_runs+=1
                         print('Skipping saving')
-                
+
             if self.breakpoint == 'write' or self.breakpoint == 'readandwrite'\
               and self.status.rep >= self.backup_every_rep:
                 work = (self.status.rep, (x, xf), gnrng)
@@ -309,7 +305,7 @@ class sceua(_algorithm):
                 np.mean(np.log((np.max(x[:, self.stochastic_parameters], axis=0) - np.min(x[:, self.stochastic_parameters], axis=0)) / bound[self.stochastic_parameters])))
 
             criter = np.append(criter, bestf)
-            
+
             # Check for convergency;
             if self.status.rep >= repetitions:
                 print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
@@ -346,7 +342,7 @@ class sceua(_algorithm):
                 proceed = False
                 print('THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED')
                 break
-            
+
         # End of the Outer Loops
         print('SEARCH WAS STOPPED AT TRIAL NUMBER: %d' % self.status.rep)
         print('NUMBER OF DISCARDED TRIALS: %d' % self.discarded_runs)
@@ -357,7 +353,7 @@ class sceua(_algorithm):
         # reshape BESTX
         #BESTX = BESTX.reshape(BESTX.size // self.nopt, self.nopt)
         self.final_call()
-        
+
 
     def _cceua(self, s, sf, discarded_runs):
             #  This is the subroutine for generating a new point in a simplex
@@ -409,7 +405,7 @@ class sceua(_algorithm):
         _, _, simulations = _algorithm.simulate(self, (1, snew))
         like = self.postprocessing(1, snew, simulations, save_run=False, block_print=True)
         discarded_runs+=1
-            
+
         fnew = like
 
         # Reflection failed; now attempt a contraction point:

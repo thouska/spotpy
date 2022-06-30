@@ -1,8 +1,4 @@
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 import numpy as np
 import spotpy
 import time
@@ -26,7 +22,7 @@ def dtlz1(x,n_var,n_obj):
         if i> 0:
             _f *= 1 - X[:,X.shape[1] -i]
         f.append(_f)
-    
+
     return f
 
 

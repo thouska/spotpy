@@ -7,10 +7,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This example implements the python version of hymod into SPOTPY.
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import spotpy
 from spotpy.examples.hymod_python.hymod import hymod
@@ -26,7 +22,7 @@ class spot_setup(object):
 
     def __init__(self):
         #Transform [mm/day] into [l s-1], where 1.783 is the catchment area
-        self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24) 
+        self.Factor = 1.783 * 1000 * 1000 / (60 * 60 * 24)
         #Load Observation data from file
         self.PET,self.Precip   = [], []
         self.date,self.trueObs = [], []
@@ -49,17 +45,17 @@ class spot_setup(object):
 
         climatefile.close()
 
-        
+
     def simulation(self,x):
         data = hymod(self.Precip, self.PET, x[0], x[1], x[2], x[3], x[4])
         sim=[]
         for val in data:
             sim.append(val*self.Factor)
         return sim[366:]
-        
+
     def evaluation(self):
         return self.trueObs[366:]
-    
+
     def objectivefunction(self,simulation,evaluation, params=None):
         return [-abs(spotpy.objectivefunctions.bias(evaluation, simulation)),
             spotpy.objectivefunctions.rsquared(evaluation, simulation),

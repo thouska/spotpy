@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Patrick Lauer
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
 import random
@@ -133,7 +129,7 @@ class abc(_algorithm):
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
-                    work[rep][4] = work[rep][4] + 1                
+                    work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
                     print('Stopping samplig')
@@ -179,7 +175,7 @@ class abc(_algorithm):
                     work[rep][0] = clike
                     work[rep][4] = 0
                 else:
-                    work[rep][4] = work[rep][4] + 1                
+                    work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
                     print('Stopping samplig')

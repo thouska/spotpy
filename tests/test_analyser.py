@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Tobias Houska, Benjamin Manns
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -35,34 +31,32 @@ class TestAnalyser(unittest.TestCase):
         self.timeout = 5
         self.fig_name = 'test_output.png'
 
-        sampler = spotpy.algorithms.mc(rosenbrock_setup(), 
+        sampler = spotpy.algorithms.mc(rosenbrock_setup(),
                                        sim_timeout=self.timeout)
         sampler.sample(self.rep)
         self.results = sampler.getdata()
 
-        sampler = spotpy.algorithms.mc(griewank_setup(), 
-                                       sim_timeout=self.timeout) 
+        sampler = spotpy.algorithms.mc(griewank_setup(),
+                                       sim_timeout=self.timeout)
         sampler.sample(self.rep)
         self.griewank_results = sampler.getdata()
-        if sys.version_info >= (3, 6): # FAST is only fully operational under
-            #Python 3
-            sampler = spotpy.algorithms.fast(rosenbrock_setup(), 
-                                               sim_timeout=self.timeout)
-            sampler.sample(self.rep)
-            self.sens_results = sampler.getdata()
-            #Hymod resuts are empty with Python <3.6
-            sampler = spotpy.algorithms.dream(hymod_setup(GausianLike), 
-                                               sim_timeout=self.timeout)
-            self.r_hat = sampler.sample(self.rep)
-            self.hymod_results = sampler.getdata()
-                
+
+        sampler = spotpy.algorithms.fast(rosenbrock_setup(),
+                                            sim_timeout=self.timeout)
+        sampler.sample(self.rep)
+        self.sens_results = sampler.getdata()
+        #Hymod resuts are empty with Python <3.6
+        sampler = spotpy.algorithms.dream(hymod_setup(GausianLike),
+                                            sim_timeout=self.timeout)
+        self.r_hat = sampler.sample(self.rep)
+        self.hymod_results = sampler.getdata()
+
     def test_setUp(self):
         self.assertEqual(len(self.results), self.rep)
         self.assertEqual(len(self.griewank_results), self.rep)
-        if sys.version_info >= (3, 6):
-            self.assertEqual(len(self.hymod_results), self.rep)
-            self.assertEqual(len(self.sens_results), self.rep)
-        
+        self.assertEqual(len(self.hymod_results), self.rep)
+        self.assertEqual(len(self.sens_results), self.rep)
+
     def test_get_parameters(self):
 
         self.assertEqual(len(spotpy.analyser.get_parameters(
@@ -172,12 +166,11 @@ class TestAnalyser(unittest.TestCase):
 
 
     def test_get_sensitivity_of_fast(self):
-        if sys.version_info >= (3, 6):
-            get_sensitivity_of_fast = spotpy.analyser.get_sensitivity_of_fast(self.sens_results)
-            self.assertEqual(len(get_sensitivity_of_fast), 2)
-            self.assertEqual(len(get_sensitivity_of_fast["S1"]), 3)
-            self.assertEqual(len(get_sensitivity_of_fast["ST"]), 3)
-            self.assertEqual(type(get_sensitivity_of_fast), type({}))
+        get_sensitivity_of_fast = spotpy.analyser.get_sensitivity_of_fast(self.sens_results)
+        self.assertEqual(len(get_sensitivity_of_fast), 2)
+        self.assertEqual(len(get_sensitivity_of_fast["S1"]), 3)
+        self.assertEqual(len(get_sensitivity_of_fast["ST"]), 3)
+        self.assertEqual(type(get_sensitivity_of_fast), type({}))
 
     def test_get_simulation_fields(self):
         get_simulation_fields = spotpy.analyser.get_simulation_fields(
@@ -198,30 +191,28 @@ class TestAnalyser(unittest.TestCase):
         self.assertEqual(type(compare_different_objectivefunctions[1]),type(np.array([0.5])[0]))
 
     def test_plot_parameter_uncertainty(self):
-        if sys.version_info >= (3, 6):
-            posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
-            #assertAlmostEqual tests on after comma accuracy, therefor we divide both by 100
-            self.assertAlmostEqual(len(posterior)/100, self.rep*0.001, 1)
-            self.assertEqual(type(posterior), type(np.array([])))
-            spotpy.analyser.plot_parameter_uncertainty(posterior,
-                                                       hymod_setup().evaluation(),
-                                                       fig_name=self.fig_name)
-    
-            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-            # we expecting a plot with some content without testing the structure of the plot, just
-            # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+        posterior = spotpy.analyser.get_posterior(self.hymod_results,percentage=10)
+        #assertAlmostEqual tests on after comma accuracy, therefor we divide both by 100
+        self.assertAlmostEqual(len(posterior)/100, self.rep*0.001, 1)
+        self.assertEqual(type(posterior), type(np.array([])))
+        spotpy.analyser.plot_parameter_uncertainty(posterior,
+                                                    hymod_setup().evaluation(),
+                                                    fig_name=self.fig_name)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the plot, just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_plot_fast_sensitivity(self):
 
-        if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_fast_sensitivity(self.sens_results,fig_name=self.fig_name)
-            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-            # we expecting a plot with some content without testing the structure of the plot, just
-            # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
-        
+        spotpy.analyser.plot_fast_sensitivity(self.sens_results,fig_name=self.fig_name)
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the plot, just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+
     def test_plot_heatmap_griewank(self):
         spotpy.analyser.plot_heatmap_griewank([self.griewank_results],["test"],
                                               fig_name=self.fig_name)
@@ -236,7 +227,7 @@ class TestAnalyser(unittest.TestCase):
         spotpy.analyser.plot_objectivefunction(self.results,
                                                rosenbrock_setup().evaluation(),
                                                fig_name=self.fig_name)
-        
+
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
@@ -244,7 +235,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_parametertrace_algorithms(self):
         spotpy.analyser.plot_parametertrace_algorithms([self.griewank_results],
-                                                       ["test_plot_parametertrace_algorithms"], 
+                                                       ["test_plot_parametertrace_algorithms"],
                                                        spot_setup=griewank_setup(),
                                                        fig_name=self.fig_name)
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
@@ -263,7 +254,7 @@ class TestAnalyser(unittest.TestCase):
 
     def test_plot_posterior_parametertrace(self):
         spotpy.analyser.plot_posterior_parametertrace(self.griewank_results, ["0","1"], fig_name=self.fig_name)
-        
+
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
@@ -271,17 +262,16 @@ class TestAnalyser(unittest.TestCase):
 
 
     def test_plot_posterior(self):
-        if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_posterior(self.hymod_results
-                                           , hymod_setup().evaluation(),fig_name=self.fig_name)
-            
-            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-            # we expecting a plot with some content without testing the structure of the plot, just
-            # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
-        
+        spotpy.analyser.plot_posterior(self.hymod_results
+                                        , hymod_setup().evaluation(),fig_name=self.fig_name)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the plot, just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+
     def test_plot_bestmodelrun(self):
-        spotpy.analyser.plot_bestmodelrun(self.griewank_results, 
+        spotpy.analyser.plot_bestmodelrun(self.griewank_results,
                                           griewank_setup().evaluation(), fig_name=self.fig_name)
 
         # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
@@ -291,19 +281,18 @@ class TestAnalyser(unittest.TestCase):
         os.remove(self.fig_name)
 
     def test_plot_bestmodelruns(self):
-        if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_bestmodelruns(
-                [self.hymod_results[0:10],self.hymod_results[10:20]], hymod_setup().evaluation(),
-                dates=range(1, 1+len(hymod_setup().evaluation())), algorithms=["test", "test2"],
-                fig_name=self.fig_name)
+        spotpy.analyser.plot_bestmodelruns(
+            [self.hymod_results[0:10],self.hymod_results[10:20]], hymod_setup().evaluation(),
+            dates=range(1, 1+len(hymod_setup().evaluation())), algorithms=["test", "test2"],
+            fig_name=self.fig_name)
 
-            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-            # we expecting a plot with some content without testing the structure of the plot, just
-            # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the plot, just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
     def test_plot_objectivefunctiontraces(self):
-        spotpy.analyser.plot_objectivefunctiontraces([self.results], 
+        spotpy.analyser.plot_objectivefunctiontraces([self.results],
                                                      [rosenbrock_setup().evaluation()],
                                                      ["test"],fig_name=self.fig_name)
 
@@ -320,42 +309,39 @@ class TestAnalyser(unittest.TestCase):
         # we expecting a plot with some content without testing the structure of the plot, just
         # the size
         self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
-        
+
     def test_plot_parameterInteraction(self):
         # Test only untder Python 3.6 as lower versions results in a strange ValueError
-        if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_parameterInteraction(self.results, 
-                                                      fig_name = self.fig_name)
-            
-            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-            # we expecting a plot with some content without testing the structure of the plot, just
-            # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+        spotpy.analyser.plot_parameterInteraction(self.results,
+                                                    fig_name = self.fig_name)
 
-    
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the plot, just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+
+
     def test_plot_allmodelruns(self):
-        if sys.version_info >= (3, 6):
-            modelruns = []
-            for run in self.hymod_results:
-                on_run = []
-                for i in run:
-                    on_run.append(i)
-                on_run = np.array(on_run)[:-7]
-                modelruns.append(on_run.tolist())
-            spotpy.analyser.plot_allmodelruns(modelruns, hymod_setup().evaluation(),
-                                              dates=range(1, len(hymod_setup().evaluation()) + 1),
-                                              fig_name=self.fig_name)
-    
-            # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
-            # we expecting a plot with some content without testing the structure of the plot, just
-            # the size
-            self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
+        modelruns = []
+        for run in self.hymod_results:
+            on_run = []
+            for i in run:
+                on_run.append(i)
+            on_run = np.array(on_run)[:-7]
+            modelruns.append(on_run.tolist())
+        spotpy.analyser.plot_allmodelruns(modelruns, hymod_setup().evaluation(),
+                                            dates=range(1, len(hymod_setup().evaluation()) + 1),
+                                            fig_name=self.fig_name)
+
+        # approximately 8855 KB is the size of an empty matplotlib.pyplot.plot, so
+        # we expecting a plot with some content without testing the structure of the plot, just
+        # the size
+        self.assertGreaterEqual(os.path.getsize(self.fig_name), 6855)
 
 
     def test_plot_gelman_rubin(self):
-        if sys.version_info >= (3, 6):
-            spotpy.analyser.plot_gelman_rubin(self.hymod_results, self.r_hat, fig_name =self.fig_name)
-            self.assertGreaterEqual(abs(os.path.getsize(self.fig_name)), 100)
+        spotpy.analyser.plot_gelman_rubin(self.hymod_results, self.r_hat, fig_name =self.fig_name)
+        self.assertGreaterEqual(abs(os.path.getsize(self.fig_name)), 100)
 
 
     @classmethod

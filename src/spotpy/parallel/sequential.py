@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 :author: Philipp Kraft
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 class ForEach(object):
     def __init__(self,process):
@@ -26,4 +22,4 @@ class ForEach(object):
         for job in jobs:
             data = self.process(job)
             yield data
-        
+

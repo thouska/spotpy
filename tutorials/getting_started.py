@@ -7,12 +7,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This class holds the example code from the getting_started web-documention.
 '''
-from __future__ import print_function, division, absolute_import, unicode_literals
 # Getting started
 
 #To start your experience with SPOT you need to have SPOT installed. Please see the [Installation chapter](index.md) for further details.
 #To use SPOT we have to import it and use one of the pre-build examples:
-import spotpy                                # Load the SPOT package into your working storage 
+import spotpy                                # Load the SPOT package into your working storage
 from spotpy.examples.spot_setup_rosenbrock import spot_setup # Import the two dimensional Rosenbrock example
 
 
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     #spot.analyser.plot_parametertrace(results)     # Use the analyser to show the parameter trace
     spotpy.analyser.plot_parameterInteraction(results)
     posterior=spotpy.analyser.get_posterior(results)
-    spotpy.analyser.plot_parameterInteraction(posterior)            
+    spotpy.analyser.plot_parameterInteraction(posterior)
     #spotpy.analyser.plot_posterior_parametertrace(results, threshold=0.9)
-    
+
     print(spotpy.analyser.get_best_parameterset(results))

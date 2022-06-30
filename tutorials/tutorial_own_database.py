@@ -6,10 +6,6 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This example implements the Rosenbrock function into SPOT.
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 import numpy as np
 import spotpy
 from spotpy.objectivefunctions import rmse
@@ -18,9 +14,9 @@ from spotpy.objectivefunctions import rmse
 class spot_setup(object):
     a = spotpy.parameter.Uniform(low=0, high=1)
     b = spotpy.parameter.Uniform(low=0, high=1)
- 
+
     def __init__(self):
-   
+
         self.db_headers = ["obj_functions", "parameters", "simulations"]
 
         self.database = open('MyOwnDatabase.txt', 'w')
@@ -47,7 +43,7 @@ class spot_setup(object):
 
 if __name__ == "__main__":
     spot_setup = spot_setup()
-    
+
     # set dbformat to custom and spotpy will return results in spot_setup.save function
     sampler = spotpy.algorithms.mc(spot_setup, dbformat='custom')
     sampler.sample(100) # Choose equal or less repetitions as you have parameters in your List

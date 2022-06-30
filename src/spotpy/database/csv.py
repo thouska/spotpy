@@ -1,14 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from .base import database
 import numpy as np
 import io
 import time
 import sys
-if sys.version_info[0] >= 3:
-    unicode = str
+unicode = str
 
 class csv(database):
     """
@@ -24,8 +19,6 @@ class csv(database):
             print("* Database file '{}.csv' created.".format(self.dbname))
             # Create a open file, which needs to be closed after the sampling
             mode = 'w'
-            if sys.version_info.major < 3:
-                mode += 'b'
             self.db = io.open(self.dbname + '.csv', mode)
             # write header line
             self.db.write(unicode(','.join(self.header) + '\n'))
@@ -33,8 +26,6 @@ class csv(database):
             print("* Appending to database file '{}.csv'.".format(self.dbname))
             # Continues writing file
             mode = 'a'
-            if sys.version_info.major < 3:
-                mode += 'b'
             self.db = io.open(self.dbname + '.csv', mode)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):

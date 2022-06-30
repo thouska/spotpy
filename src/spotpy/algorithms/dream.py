@@ -5,10 +5,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Motjaba Sadegh
 '''
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from . import _algorithm
 import numpy as np
 import random
@@ -17,7 +13,7 @@ import time
 
 class dream(_algorithm):
     """
-    Implements the DiffeRential Evolution Adaptive Metropolis (DREAM) algorithhm 
+    Implements the DiffeRential Evolution Adaptive Metropolis (DREAM) algorithhm
     based on:
     Vrugt, J. A. (2016) Markov chain Monte Carlo simulation using the DREAM software package.
     """
@@ -71,7 +67,7 @@ class dream(_algorithm):
         return par
 
     def get_regular_startingpoint(self,nChains):
-        randompar=self.parameter()['random']        
+        randompar=self.parameter()['random']
         for i in range(1000):
             randompar=np.column_stack((randompar,self.parameter()['random']))
         startpoints = []
@@ -81,7 +77,7 @@ class dream(_algorithm):
         for k in range(len(randompar)):
             random.shuffle(startpoints[:, k])
         return startpoints
-    
+
     def check_par_validity_reflect(self, par):
         if len(par) == len(self.min_bound) and len(par) == len(self.max_bound):
             for i in range(len(par)):
@@ -115,25 +111,25 @@ class dream(_algorithm):
         chain_pairs = []
         selectable_chain = list(range(self.nChains))
         selectable_chain.remove(cur_chain)
-    
+
         for i in range(nchain_pairs):
             pair_ith = random.sample(selectable_chain, 2)
             chain_pairs.append(pair_ith)
             for chain in pair_ith:
                 selectable_chain.remove(chain)
-                
+
         return chain_pairs
-        
+
     def get_new_proposal_vector(self,cur_chain,newN,c):
         nchain_pairs = random.randint(1, self.delta)
         gamma = self._get_gamma(newN,nchain_pairs)
         chain_pairs = self.get_other_random_chains(cur_chain, nchain_pairs)
-        new_parameterset=[]        
+        new_parameterset=[]
         #position = self.chain_samples-1#self.nChains*self.chain_samples+self.chain_samples+cur_chain-1
         cur_par_set = list(self.bestpar[cur_chain][self.nChainruns[cur_chain]-1])
         random_par_sets1 = []  # contain all random_par_set1
         random_par_sets2 = []  # contain all random_par_set2
-    
+
         for i in range(nchain_pairs):
             random_chain1 = chain_pairs[i][0]
             random_chain2 = chain_pairs[i][1]
@@ -143,28 +139,28 @@ class dream(_algorithm):
                 self.bestpar[random_chain2][self.nChainruns[random_chain2]-1])
             random_par_sets1.append(random_par_set1)
             random_par_sets2.append(random_par_set2)
-    
+
         random_par_set1 = [sum(i) for i in zip(*random_par_sets1)]  # sum all random_par_set1
         random_par_set2 = [sum(i) for i in zip(*random_par_sets2)]  # sum all random_par_set2
-                
+
         for i in range(self.N):#Go through parameters
-            
+
             if newN[i] == True:
                 lambda_ =  np.random.uniform(-c,c)
                 new_parameterset.append(cur_par_set[i] + (1.0+lambda_)*gamma*np.array(
                     random_par_set1[i]-random_par_set2[i]) + np.random.normal(0,self.eps))
             else:
                 new_parameterset.append(cur_par_set[i])
-                
-        new_parameter=self.check_par_validity_reflect(new_parameterset)        
-        #new_parameter=self.check_par_validity_bound(new_parameterset)        
+
+        new_parameter=self.check_par_validity_reflect(new_parameterset)
+        #new_parameter=self.check_par_validity_bound(new_parameterset)
         return new_parameter
-        
+
 #        new_par = np.random.normal(loc=old_par, scale=self.stepsizes)
 #        new_par = self.check_par_validity_reflect(new_par)
 #        return new_par
 
-    def update_mcmc_status(self,par,like,sim,cur_chain):  
+    def update_mcmc_status(self,par,like,sim,cur_chain):
         self.bestpar[cur_chain][self.nChainruns[cur_chain]]=list(par)
         self.bestlike[cur_chain]=like
         self.bestsim[cur_chain]=list(sim)
@@ -221,8 +217,8 @@ class dream(_algorithm):
             W_uni[whichW_UNIIsNull] = np.random.uniform(0.1,1,1)
 
             R_stat = np.sqrt((n + 1) / n * (np.divide(sigma2, W_uni)) - (d - 1) / (n * d))
-            
-            
+
+
 #            W_mult = 0
 #            for ii in range(n):
 #                W_mult = W_mult + np.cov(np.nan_to_num(np.transpose(parameter_array[ii, :, :])), ddof=1)
@@ -267,15 +263,15 @@ class dream(_algorithm):
         self.nChainruns=[0]*self.nChains
         self.min_bound, self.max_bound = self.parameter(
         )['minbound'], self.parameter()['maxbound']
-        
+
         #firstcall = True
-        
+
         print('Initialize ', self.nChains, ' chain(s)...')
         self.iter=0
         #for i in range(10):
         startpoints = self.get_regular_startingpoint(nChains)
-        #param_generator = ((curChain,list(self.parameter()['random'])) for curChain in range(int(self.nChains)))   #TODO: Start with regular interval raster             
-        param_generator = ((curChain,list(startpoints[curChain])) for curChain in range(int(self.nChains)))   #TODO: Start with regular interval raster             
+        #param_generator = ((curChain,list(self.parameter()['random'])) for curChain in range(int(self.nChains)))   #TODO: Start with regular interval raster
+        param_generator = ((curChain,list(startpoints[curChain])) for curChain in range(int(self.nChains)))   #TODO: Start with regular interval raster
         for curChain,par,sim in self.repeat(param_generator):
             like = self.postprocessing(self.iter, par, sim, chains=curChain)
             self.update_mcmc_status(par,like,sim,curChain)
@@ -295,10 +291,10 @@ class dream(_algorithm):
         nrN=1
         newN = [True]*self.N
         while self.iter < self.repetitions:
-            param_generator = ((curChain,self.get_new_proposal_vector(curChain,newN,c)) for curChain in range(int(self.nChains)))                
+            param_generator = ((curChain,self.get_new_proposal_vector(curChain,newN,c)) for curChain in range(int(self.nChains)))
             for cChain,par,sim in self.repeat(param_generator):
                 pCr = np.random.randint(0,nCr)
-                ids=[]         
+                ids=[]
                 for i in range(self.N):
                     ids.append(np.random.uniform(low=0,high=1))
                 newN = []
@@ -340,21 +336,21 @@ class dream(_algorithm):
                     logMetropHastRatio = np.exp(-0.5 * (-like + self.bestlike[cChain]))  # signs are different because we write -SSR
 
                 u = np.random.uniform(low=0.0, high=1)
-             
+
                 if logMetropHastRatio>u:
-                    self.update_mcmc_status(par,like,sim,cChain)   
+                    self.update_mcmc_status(par,like,sim,cChain)
                     self.accepted[cChain] += 1  # monitor acceptance
-                    
+
                 else:
-                    self.update_mcmc_status(self.bestpar[cChain][self.nChainruns[cChain]-1],self.bestlike[cChain],self.bestsim[cChain],cChain)   
-                
+                    self.update_mcmc_status(self.bestpar[cChain][self.nChainruns[cChain]-1],self.bestlike[cChain],self.bestsim[cChain],cChain)
+
                 if self.status.stop:
                     self.iter = self.repetitions
                     print('Stopping samplig')
                     break
                 self.iter+=1
                 self.nChainruns[cChain] +=1
-                
+
 
             r_hat = self.get_r_hat(self.bestpar)
             self.r_hats.append(r_hat)
@@ -376,7 +372,7 @@ class dream(_algorithm):
                 self.set_repetiton(self.repetitions)
                 #self.iter =self.repetitions - runs_after_convergence
                 convergence=True
-                
+
         self.final_call()
 
 
