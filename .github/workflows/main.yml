@@ -1,0 +1,114 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - "master"
+      - "refactor_setup"
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - "master"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  # needed by coveralls
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  source_check:
+    name: source check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black 'isort[colors]<6'
+          pip install --editable .
+
+      - name: black check
+        run: |
+          python -m black --check --diff --color .
+
+      - name: isort check
+        run: |
+          python -m isort --check --diff --color .
+
+  build_sdist:
+    name: sdist on ${{ matrix.os }} with py ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build coveralls>=3.0.0
+          pip install --editable .[test]
+
+      - name: Run tests
+        run: |
+          python -m pytest --cov spotpy --cov-report term-missing -v tests/
+          python -m coveralls --service=github
+
+      - name: Build sdist
+        run: |
+          python -m build
+
+      - uses: actions/upload-artifact@v2
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+        with:
+          path: dist
+
+  upload_to_pypi:
+    needs: [build_sdist]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      # - name: Publish to Test PyPI
+      #   # only if working on main
+      #   if: github.ref == 'refs/heads/main'
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     user: __token__
+      #     password: ${{ secrets.PYPI_API_TOKEN }}
+      #     repository_url: https://test.pypi.org/legacy/
+      #     skip_existing: true
+
+      - name: Publish to PyPI
+        # only if tagged
+        if: startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
