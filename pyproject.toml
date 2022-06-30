@@ -78,6 +78,8 @@ test = [
     "pytest-cov>=3",
     "numba",
     "pathos",
+    "matplotlib",
+    "click",
 ]
 
 [project.urls]
