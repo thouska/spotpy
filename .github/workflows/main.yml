@@ -74,7 +74,6 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest --cov spotpy --cov-report term-missing -v tests/
-          python -m coveralls --service=github
 
       - name: Build sdist
         run: |
