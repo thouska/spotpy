@@ -10,7 +10,6 @@ import numpy as np
 import sys
 import copy
 
-unicode = str
 from itertools import cycle
 
 
@@ -48,7 +47,7 @@ class _ArgumentHelper(object):
         :return: name
         """
         # Check if args[0] is string like (and exists)
-        if self.args and unicode(self.args[0]) == self.args[0]:
+        if self.args and str(self.args[0]) == self.args[0]:
             name = self.args.pop(0)
             self.processed_args += 1
         # else get the name from the keywords
@@ -246,7 +245,7 @@ class Base(object):
     def __unicode__(self):
         doc = vars(self).get('description')
         if doc:
-            return u'{}({})'.format(unicode(doc), repr(self))
+            return u'{}({})'.format(str(doc), repr(self))
         else:
             return repr(self)
 

@@ -13,7 +13,6 @@ import numpy as np
 import time
 from itertools import product
 import sys
-unicode = str
 
 from importlib import import_module
 

@@ -19,7 +19,6 @@ except ImportError:
           'installed the hdf5 extension (https://www.hdfgroup.org/downloads/hdf5/)')
     raise
 import sys
-unicode = str
 
 
 class hdf5(database):

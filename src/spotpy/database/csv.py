@@ -3,7 +3,6 @@ import numpy as np
 import io
 import time
 import sys
-unicode = str
 
 class csv(database):
     """
@@ -21,7 +20,7 @@ class csv(database):
             mode = 'w'
             self.db = io.open(self.dbname + '.csv', mode)
             # write header line
-            self.db.write(unicode(','.join(self.header) + '\n'))
+            self.db.write(str(','.join(self.header) + '\n'))
         else:
             print("* Appending to database file '{}.csv'.".format(self.dbname))
             # Continues writing file

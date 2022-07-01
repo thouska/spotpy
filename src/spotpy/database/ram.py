@@ -13,7 +13,6 @@ structure during the sample.
 import numpy as np
 from .base import database
 import sys
-unicode = str
 
 
 class ram(database):

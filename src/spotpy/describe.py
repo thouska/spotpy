@@ -15,7 +15,6 @@ import sys
 from .parameter import get_parameters_from_setup
 from .algorithms._algorithm import _algorithm
 from inspect import getdoc as _getdoc
-unicode = str
 
 try:
     from docutils.core import publish_string
@@ -39,7 +38,7 @@ def sampler(obj):
     large multiline description
     :return:
     """
-    cname = unicode(type(obj).__name__)
+    cname = str(type(obj).__name__)
     s = [cname, '=' * len(cname), _getdoc(obj),
          '    db format: ' + obj.dbformat,
          '    db name: ' + obj.dbname,
@@ -55,11 +54,11 @@ def setup(obj):
     :return: A describing string
     """
     # Get class name
-    cname = unicode(type(obj).__name__)
+    cname = str(type(obj).__name__)
     # Add doc string
     mdoc = _getdoc(obj).strip('\n').replace('\r', '\n')
     # Get parameters from class
-    params = '\n'.join(' - {p}'.format(p=unicode(p)) for p in get_parameters_from_setup(obj))
+    params = '\n'.join(' - {p}'.format(p=str(p)) for p in get_parameters_from_setup(obj))
     parts = [cname, '=' * len(cname), mdoc, 'Parameters:', '-' * 11, params]
     return '\n'.join(parts)
 

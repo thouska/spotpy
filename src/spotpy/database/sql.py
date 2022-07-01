@@ -3,7 +3,6 @@ import sqlite3
 import sys
 from .base import database
 
-unicode = str
 
 
 class PickalableSWIG:
