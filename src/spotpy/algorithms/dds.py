@@ -278,7 +278,7 @@ class dds(_algorithm):
         number_of_parameters = self.status.parameters  # number_of_parameters is the amount of parameters
 
         if len(x_initial) == 0:
-            initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
+            initial_iterations = int(np.max([5, round(0.005 * repetitions)]))
         elif len(x_initial) != number_of_parameters:
             raise ValueError("User specified 'x_initial' has not the same length as available parameters")
         else:
@@ -298,7 +298,7 @@ class dds(_algorithm):
                                                                                     repetitions, x_initial)
             params_max = self.fix_status_params_format(params_max)
             trial_best_value = list(params_max)#self.status.params_max.copy()
-            
+
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
             self.generator_repetitions = repetions_left
@@ -341,7 +341,7 @@ class dds(_algorithm):
                 raise ValueError('# Initialization samples >= Max # function evaluations.')
 
             starting_generator = (
-                (rep, [self.np_random.randint(np.int(self.min_bound[j]), np.int(self.max_bound[j]) + 1) if
+                (rep, [self.np_random.randint(int(self.min_bound[j]), int(self.max_bound[j]) + 1) if
                        discrete_flag[j] else self.min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
                        for j in
                        range(number_of_parameters)]) for rep in range(int(initial_iterations)))
@@ -351,7 +351,7 @@ class dds(_algorithm):
                 # status setting update
                 if like > objectivefunction_max:
                     objectivefunction_max = like
-                    params_max = list(x_curr)         
+                    params_max = list(x_curr)
                     params_max = self.fix_status_params_format(params_max)
 
         else:  # now initial_iterations=1, using a user supplied initial solution.  Calculate obj func value.
@@ -396,7 +396,7 @@ class dds(_algorithm):
                 new_x_curr[j] = new_value  # change relevant dec var value in x_curr
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
-            dec_var = np.int(np.ceil(amount_params * self.np_random.rand())) - 1
+            dec_var = int(np.ceil(amount_params * self.np_random.rand())) - 1
             new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var, self.min_bound[dec_var],
                                                              self.max_bound[dec_var])
             new_x_curr[dec_var] = new_value  # change relevant decision variable value in s_test

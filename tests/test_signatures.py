@@ -23,7 +23,7 @@ class TestSignatures(unittest.TestCase):
         np.random.seed(0)
         rain = np.random.normal(-1, 5, size=3650)
         rain[rain < 0] = 0.0
-        runoff = np.zeros(rain.shape, np.float)
+        runoff = np.zeros(rain.shape, float)
         stor = 0.0
         for i, prec in enumerate(rain):
             runoff[i] = 0.1 * stor

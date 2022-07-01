@@ -36,39 +36,39 @@ class TestLikelihood(unittest.TestCase):
     def test_logLikelihood(self):
         l_normal = spotpy.likelihoods.logLikelihood(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(np.abs(l_normal), 900)
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("logLikelihood: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.logLikelihood(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(np.abs(l_binom), 900)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("logLikelihood: " + str(l_binom))
 
     def test_gaussianLikelihoodMeasErrorOut(self):
         l_normal = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(-40, l_normal)
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("gaussianLikelihoodMeasErrorOut: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(-40, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("gaussianLikelihoodMeasErrorOut: " + str(l_binom))
 
     def test_gaussianLikelihoodHomoHeteroDataError(self):
         l_normal = spotpy.likelihoods.gaussianLikelihoodHomoHeteroDataError(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(5, np.abs(l_normal))
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("gaussianLikelihoodHomoHeteroDataError: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.gaussianLikelihoodHomoHeteroDataError(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(10, np.abs(l_binom))
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("gaussianLikelihoodHomoHeteroDataError: " + str(l_binom))
 
@@ -149,7 +149,7 @@ class TestLikelihood(unittest.TestCase):
         for l_normal in l_normal_list:
 
             self.assertNotEqual(None, l_normal)
-            self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+            self.assertEqual(type(float(l_normal)), type(float(1)))
             if self.do_print:
                 print("generalizedLikelihoodFunction: " + str(l_normal))
 
@@ -157,33 +157,33 @@ class TestLikelihood(unittest.TestCase):
 
         self.assertNotEqual(None, l_binom)
         self.assertGreaterEqual(-10000, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("generalizedLikelihoodFunction: " + str(l_binom))
 
     def test_LaplacianLikelihood(self):
         l_normal = spotpy.likelihoods.LaplacianLikelihood(self.normal_data, self.normal_comparedata)
         self.assertNotEqual(None, l_normal)
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("LaplacianLikelihood: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.LaplacianLikelihood(self.binom_data, self.binom_comparedata)
         self.assertNotEqual(None, l_normal)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("LaplacianLikelihood: " + str(l_binom))
 
     def test_SkewedStudentLikelihoodHomoscedastic(self):
         l_normal = spotpy.likelihoods.SkewedStudentLikelihoodHomoscedastic(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(12, np.abs(l_normal))
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("SkewedStudentLikelihoodHomoscedastic: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.SkewedStudentLikelihoodHomoscedastic(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(17, np.abs(l_binom))
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("SkewedStudentLikelihoodHomoscedastic: " + str(l_binom))
 
@@ -214,14 +214,14 @@ class TestLikelihood(unittest.TestCase):
         for l_normal in l_normal_list:
             if not np.isnan(l_normal):
                 self.assertGreaterEqual(-100, l_normal)
-            self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+            self.assertEqual(type(float(l_normal)), type(float(1)))
             if self.do_print:
                 print("SkewedStudentLikelihoodHeteroscedastic: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.SkewedStudentLikelihoodHeteroscedastic(self.binom_data, self.binom_comparedata)
         if not np.isnan(l_binom):
             self.assertGreaterEqual(-100, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("SkewedStudentLikelihoodHeteroscedastic: " + str(l_binom))
 
@@ -247,7 +247,7 @@ class TestLikelihood(unittest.TestCase):
 
         for l_normal in l_normal_list:
             self.assertNotEqual(None, l_normal)
-            self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+            self.assertEqual(type(float(l_normal)), type(float(1)))
             if self.do_print:
                 print("SkewedStudentLikelihoodHeteroscedasticAdvancedARModel: " + str(l_normal))
 
@@ -255,21 +255,21 @@ class TestLikelihood(unittest.TestCase):
             self.normal_data, self.normal_comparedata)
 
         self.assertNotEqual(None, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("SkewedStudentLikelihoodHeteroscedasticAdvancedARModel: " + str(l_binom))
 
     def test_NoisyABCGaussianLikelihood(self):
         l_normal = spotpy.likelihoods.NoisyABCGaussianLikelihood(self.normal_data, self.normal_comparedata)
         self.assertNotEqual(None, l_normal)
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("NoisyABCGaussianLikelihood: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.NoisyABCGaussianLikelihood(self.binom_data, self.binom_data,
                                                                 measerror=[0.0])
         self.assertNotEqual(None, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("NoisyABCGaussianLikelihood: " + str(l_binom))
 
@@ -277,14 +277,14 @@ class TestLikelihood(unittest.TestCase):
         l_normal = spotpy.likelihoods.ABCBoxcarLikelihood(self.normal_data, self.normal_comparedata)
         self.assertNotEqual(None, l_normal)
         self.assertNotEqual(np.nan, l_normal)
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("ABCBoxcarLikelihood: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.ABCBoxcarLikelihood(self.binom_data, self.binom_comparedata)
         self.assertNotEqual(None, l_binom)
         self.assertNotEqual(np.nan, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("ABCBoxcarLikelihood: " + str(l_binom))
 
@@ -292,40 +292,40 @@ class TestLikelihood(unittest.TestCase):
         l_normal = spotpy.likelihoods.LimitsOfAcceptability(self.normal_data, self.normal_comparedata)
         self.assertEqual(12, l_normal)
         self.assertNotEqual(None, l_normal)
-        self.assertEqual(type(np.int(l_normal)), type(int(1)))
+        self.assertEqual(type(int(l_normal)), type(int(1)))
         if self.do_print:
             print("LimitsOfAcceptability: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.LimitsOfAcceptability(self.binom_data, self.binom_comparedata)
         self.assertEqual(5, l_binom)
         self.assertNotEqual(None, l_binom)
-        self.assertEqual(type(np.int(l_binom)), type(int(1)))
+        self.assertEqual(type(int(l_binom)), type(int(1)))
         if self.do_print:
             print("LimitsOfAcceptability: " + str(l_binom))
 
     def test_InverseErrorVarianceShapingFactor(self):
         l_normal = spotpy.likelihoods.InverseErrorVarianceShapingFactor(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(-10, l_normal)
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.InverseErrorVarianceShapingFactor(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(-10, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l_binom))
 
     def test_ExponentialTransformErrVarShapingFactor(self):
         l_binom = spotpy.likelihoods.ExponentialTransformErrVarShapingFactor(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(-30, l_binom)
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l_binom))
 
         l_gauss = spotpy.likelihoods.ExponentialTransformErrVarShapingFactor(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(-30, l_gauss)
-        self.assertEqual(type(np.float(l_gauss)), type(np.float(1)))
+        self.assertEqual(type(float(l_gauss)), type(float(1)))
         if self.do_print:
             print("inverseErrorVarianceShapingFactor: " + str(l_gauss))
 
@@ -353,20 +353,20 @@ class TestLikelihood(unittest.TestCase):
 
         for l_normal in l_normal_list:
             self.assertNotEqual(None, l_normal)
-            self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+            self.assertEqual(type(float(l_normal)), type(float(1)))
             if self.do_print:
                 print("NashSutcliffeEfficiencyShapingFactor: " + str(l_normal))
 
     def test_sumOfAbsoluteErrorResiduals(self):
         l_normal = spotpy.likelihoods.sumOfAbsoluteErrorResiduals(self.normal_data, self.normal_comparedata)
         self.assertGreaterEqual(7, np.abs(np.abs(l_normal) - 10))
-        self.assertEqual(type(np.float(l_normal)), type(np.float(1)))
+        self.assertEqual(type(float(l_normal)), type(float(1)))
         if self.do_print:
             print("sumOfAbsoluteErrorResiduals: " + str(l_normal))
 
         l_binom = spotpy.likelihoods.sumOfAbsoluteErrorResiduals(self.binom_data, self.binom_comparedata)
         self.assertGreaterEqual(7, np.abs(np.abs(l_binom) - 10))
-        self.assertEqual(type(np.float(l_binom)), type(np.float(1)))
+        self.assertEqual(type(float(l_binom)), type(float(1)))
         if self.do_print:
             print("sumOfAbsoluteErrorResiduals: " + str(l_binom))
 

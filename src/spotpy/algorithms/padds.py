@@ -154,7 +154,7 @@ class padds(_algorithm):
             raise ValueError("User specified 'initial_objs' and 'initial_params' have no equal length")
 
         if len(initial_objs) == 0:
-            initial_iterations = np.int(np.max([5, round(0.005 * repetitions)]))
+            initial_iterations = int(np.max([5, round(0.005 * repetitions)]))
             self.calc_initial_pareto_front(initial_iterations)
         elif initial_params.shape[1] != self.number_of_parameters:
             raise ValueError("User specified 'initial_params' has not the same length as available parameters")
@@ -192,7 +192,7 @@ class padds(_algorithm):
 
         if metric == "hvc":
             self.hvc = HVC(np_random=self.np_random)
-        
+
         self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
@@ -312,7 +312,7 @@ class padds(_algorithm):
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
 
-            dec_var = np.int(np.ceil(amount_params * self.np_random.rand()))
+            dec_var = int(np.ceil(amount_params * self.np_random.rand()))
             new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var - 1,  self.min_bound[dec_var - 1],self.max_bound[dec_var - 1])
 
             new_x_curr[dec_var - 1] = new_value  # change relevant decision variable value in s_test

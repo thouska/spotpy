@@ -41,7 +41,7 @@ class ram(database):
         the same structure as a csv database.
         """
         dt = {'names': self.header,
-              'formats': [np.float] * len(self.header)}
+              'formats': [float] * len(self.header)}
         i = 0
         Y = np.zeros(len(self.ram), dtype=dt)
 

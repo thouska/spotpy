@@ -61,7 +61,7 @@ class FixedRandomizer():
         fraq = 1. / vals_size
         if self.uniform_counter < self.max_uniform_counter:
             q_uni = self.uniform_list[self.uniform_counter]
-            pos = np.int(np.floor(q_uni / fraq))
+            pos = int(np.floor(q_uni / fraq))
             self.uniform_counter += 1
             if self.debug:
                 print("fixrand::randint() counter = " + str(self.uniform_counter))
