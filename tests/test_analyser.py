@@ -20,6 +20,7 @@ from spotpy.examples.spot_setup_griewank import spot_setup as griewank_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as hymod_setup
 from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
+
 class TestAnalyser(unittest.TestCase):
     @classmethod
     def setUpClass(self):

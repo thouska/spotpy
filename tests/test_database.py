@@ -7,7 +7,6 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 import unittest
 import os
 import glob
-import spotpy
 import spotpy.database as db
 import numpy as np
 
