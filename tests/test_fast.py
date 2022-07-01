@@ -6,14 +6,7 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
-import sys
-
-try:
-    import spotpy
-except ImportError:
-    sys.path.append(".")
-    import spotpy
-
+import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 
 

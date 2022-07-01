@@ -6,15 +6,8 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 import unittest
 import numpy as np
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append(".")
-    import spotpy
-
 from spotpy.hydrology.signatures import SignatureMethod
-import spotpy.hydrology as sig
+
 
 class TestSignatures(unittest.TestCase):
 

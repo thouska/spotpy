@@ -5,19 +5,35 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
-import sys
-try:
-    import spotpy
-except ImportError:
-    sys.path.append(".")
-    import spotpy
+import spotpy
 from spotpy import parameter
 import numpy as np
 
 # Import inspect to scan spotpy.parameter for all Parameter classes
 import inspect
-from .testutils import repeat
-# https://docs.python.org/3/library/unittest.html
+
+
+def repeat(times):
+    """Repeats a single test the given number of times
+
+    Usage:
+    @repeat(5)
+    def test_foo(self):
+        self.assertTrue(self.bar == self.baz)
+
+    The above test will execute 5 times
+
+    Reference: https://stackoverflow.com/a/13606054/4014685
+    """
+    def repeatHelper(f):
+        def func_repeat_executor(*args, **kwargs):
+            for i in range(0, times):
+                f(*args, **kwargs)
+                args[0].setUp()
+
+        return func_repeat_executor
+
+    return repeatHelper
 
 
 class TestListParameterDistribution(unittest.TestCase):
@@ -196,9 +212,9 @@ class TestChiSquareParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_chisq_has_correct_statistics(self):
         nums = [self.chisq() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), self.df, self.tolerance, 
+        self.assertAlmostEqual(np.mean(nums), self.df, self.tolerance,
                                "Mean of Chisquare({df}) should be {df}".format(df=self.df))
-        self.assertAlmostEqual(np.std(nums), np.sqrt(2*self.df), self.tolerance, 
+        self.assertAlmostEqual(np.std(nums), np.sqrt(2*self.df), self.tolerance,
                                "SD of Chisquare({df}) should be sqrt(2*{df})".format(df=self.df))
 
 
@@ -219,9 +235,9 @@ class TestExponentialParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_exp_has_correct_statistics(self):
         nums = [self.exp() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance, 
+        self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance,
                                "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta))
-        self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance, 
+        self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance,
                                "SD of Exponential({beta}) should be {beta}".format(beta=self.beta))
 
 
@@ -245,9 +261,9 @@ class TestGammaParameterDistribution(unittest.TestCase):
         nums = [self.gamma() for _ in range(10000)]
         expected_mean = self.shape*self.scale
         expected_sd = np.sqrt(self.shape*self.scale*self.scale)
-        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, 
+        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance,
                                "Mean of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance,
                                "SD of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_sd))
 
 
@@ -269,9 +285,9 @@ class TestWaldParameterDistribution(unittest.TestCase):
     def test_wald_has_correct_statistics(self):
         nums = [self.wald() for _ in range(40000)]
         expected_sd = np.sqrt(self.mean**3 / self.scale)
-        self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance, 
+        self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance,
                                "Mean of Wald({}, {}) should be {}".format(self.mean, self.scale, self.mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance,
                                "SD of Wald({}, {}) should be {}".format(self.mean, self.scale, expected_sd))
 
 
@@ -291,9 +307,9 @@ class TestWeibullParameterDistribution(unittest.TestCase):
 
     def test_weibull_has_correct_statistics(self):
         nums = [self.weibull() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), 0.918169, self.tolerance, 
+        self.assertAlmostEqual(np.mean(nums), 0.918169, self.tolerance,
                                "Mean of Weibull({}) should be {}".format(self.a, 0.918169))
-        self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance, 
+        self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance,
                                "SD of Weibull({}) should be {}".format(self.a, 0.0442300))
 
 
@@ -312,10 +328,10 @@ class TestTriangularParameterDistribution(unittest.TestCase):
         nums = [self.triangular() for _ in range(10000)]
         expected_mean = (self.a + self.b + self.c) / 3
         expected_sd = np.sqrt((self.a**2 + self.b**2 + self.c**2 - self.a*self.c - self.a*self.b - self.b*self.c)/18)
-        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, 
+        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance,
                                "Mean of Triangular({}, {}, {}) should be {}"
                                .format(self.a, self.c, self.b, expected_mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
+        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance,
                                "SD of Triangular({}, {}, {}) should be {}"
                                .format(self.a, self.c, self.b, expected_sd))
 
@@ -379,12 +395,12 @@ def make_args(pcls):
 def get_classes():
     """
     Get all classes from spotpy.parameter module, except special cases
-    """    
+    """
     def predicate(cls):
         return (inspect.isclass(cls)
                 and cls not in [parameter.Base, parameter.List]
                 and issubclass(cls, parameter.Base))
-    
+
     return [[cname, cls]
             for cname, cls in
             inspect.getmembers(parameter, predicate)

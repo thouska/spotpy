@@ -7,10 +7,8 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 import unittest
 import spotpy
-import numpy as np
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
-from spotpy.describe import describe
-import os
+
 
 class TestParallel(unittest.TestCase):
     @classmethod

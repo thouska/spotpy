@@ -7,13 +7,7 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 import unittest
 import numpy as np
 import inspect
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append(".")
-    import spotpy
-
+import spotpy
 from spotpy import parameter
 from spotpy.objectivefunctions import rmse
 from itertools import cycle

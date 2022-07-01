@@ -15,7 +15,6 @@ import unittest
 import numpy as np
 import spotpy.analyser
 import os
-import sys
 from spotpy.examples.spot_setup_rosenbrock import spot_setup as rosenbrock_setup
 from spotpy.examples.spot_setup_griewank import spot_setup as griewank_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as hymod_setup

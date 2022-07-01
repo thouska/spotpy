@@ -8,15 +8,7 @@ This code tests the likelihood framework and present all existing function.
 """
 
 import numpy as np
-
-try:
-    import spotpy
-except ImportError:
-    import sys
-
-    sys.path.append(".")
-    import spotpy
-
+import spotpy
 import unittest
 from spotpy.likelihoods import LikelihoodError
 

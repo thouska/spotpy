@@ -8,11 +8,7 @@ Focus especially the usage of parameters as class attributes
 '''
 import sys
 import unittest
-try:
-    import spotpy
-except ImportError:
-    sys.path.append(".")
-    import spotpy
+import spotpy
 from spotpy import parameter
 import numpy as np
 import inspect
@@ -193,10 +189,10 @@ class TestSetupVariants(unittest.TestCase):
 
     def test_parameter_list(self):
         self.parameter_count_test(SpotSetupParameterList())
-        
+
     def test_parameter_mixed_list(self):
         self.parameter_count_test(SpotSetupMixedParameterList())
-        
+
     def test_parameter_mixed_function(self):
         self.parameter_count_test(SpotSetupMixedParameterFunction())
 

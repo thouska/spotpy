@@ -6,13 +6,7 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
-try:
-    import spotpy
-except ImportError:
-    import sys
-    sys.path.append(".")
-    import spotpy
-#from spotpy.examples.tutorial_padds import padds_spot_setup
+import spotpy
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as spot_setup_hymod
 from spotpy.describe import describe
@@ -107,7 +101,7 @@ class TestAlgorithms(unittest.TestCase):
         sampler.sample(self.rep)
         results = sampler.getdata()
         self.assertEqual(len(results), self.rep)
-        
+
     def test_list(self):
         #generate a List sampler input
         sampler=spotpy.algorithms.mc(spot_setup(),parallel=self.parallel, dbname='Rosen', dbformat='csv', sim_timeout=self.timeout)
@@ -136,7 +130,7 @@ class TestAlgorithms(unittest.TestCase):
         sampler=spotpy.algorithms.NSGAII(spot_setup_hymod(self.multi_obj_func),parallel=self.parallel, dbname='Rosen', dbformat=self.dbformat, sim_timeout=self.timeout)
         sampler.sample(generations, n_obj= 3, n_pop = n_pop)
         results = sampler.getdata()
-        self.assertLessEqual(len(results), generations*n_pop) 
+        self.assertLessEqual(len(results), generations*n_pop)
 
     @classmethod
     def tearDownClass(cls):

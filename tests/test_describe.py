@@ -4,10 +4,7 @@ Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
 '''
-
-import sys
 import unittest
-sys.path.insert(0, '.')
 
 import spotpy
 from spotpy.parameter import Uniform
