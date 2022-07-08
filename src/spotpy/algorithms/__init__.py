@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
@@ -12,9 +12,7 @@ PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
 
 Imports the different algorithms from this package.
 To reduce dependencies, one may select here just the needed algorithm.
-'''
-
-
+"""
 
 
 from ._algorithm import _algorithm

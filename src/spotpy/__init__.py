@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
@@ -30,7 +30,7 @@ For general things about parameter optimization techniques have a look at:
 https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
 
 Please cite our paper, if you are using SPOTPY.
-'''
+"""
 from . import algorithms  # Contains all the different algorithms implemented in SPOTPY
 from . import (
     analyser,  # Contains some examples to analyse the results of the different algorithms

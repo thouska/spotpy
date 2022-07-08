@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Patrick Lauer
-'''
+"""
 
 import random
 
@@ -52,12 +52,13 @@ class abc(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-        kwargs['optimization_direction'] = 'maximize'
-        kwargs['algorithm_name'] = 'Artificial Bee Colony (ABC) algorithm'
+        kwargs["optimization_direction"] = "maximize"
+        kwargs["algorithm_name"] = "Artificial Bee Colony (ABC) algorithm"
         super(abc, self).__init__(*args, **kwargs)
 
-
-    def sample(self, repetitions, eb=48, a=(1 / 10), peps=0.0001, ownlimit=False, limit=24):
+    def sample(
+        self, repetitions, eb=48, a=(1 / 10), peps=0.0001, ownlimit=False, limit=24
+    ):
         """
 
 
@@ -77,45 +78,49 @@ class abc(_algorithm):
             sets the limit
         """
         self.set_repetiton(repetitions)
-        print('Starting the ABC algotrithm with '+str(repetitions)+ ' repetitions...')
+        print(
+            "Starting the ABC algotrithm with " + str(repetitions) + " repetitions..."
+        )
         # Initialize ABC parameters:
-        randompar = self.parameter()['random']
+        randompar = self.parameter()["random"]
         self.nopt = randompar.size
         random.seed()
         if ownlimit == True:
             self.limit = limit
         else:
             self.limit = eb
-        lb, ub = self.parameter()['minbound'], self.parameter()['maxbound']
+        lb, ub = self.parameter()["minbound"], self.parameter()["maxbound"]
         # Initialization
         work = []
         icall = 0
         gnrng = 1e100
         # Calculate the objective function
-        param_generator = (
-            (rep, self.parameter()['random']) for rep in range(eb))
+        param_generator = ((rep, self.parameter()["random"]) for rep in range(eb))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate fitness
-            like = self.postprocessing(rep, randompar, simulations, chains = 1, negativlike=True)
+            like = self.postprocessing(
+                rep, randompar, simulations, chains=1, negativlike=True
+            )
             c = 0
             p = 0
             work.append([like, randompar, like, randompar, c, p])
-            icall +=1
+            icall += 1
             if self.status.stop:
-                print('Stopping sampling')
+                print("Stopping sampling")
                 break
 
         while icall < repetitions and gnrng > peps:
             psum = 0
-        # Employed bee phase
+            # Employed bee phase
             # Generate new input parameters
             for i, val in enumerate(work):
                 k = i
                 while k == i:
                     k = random.randint(0, (eb - 1))
                 j = random.randint(0, (self.nopt - 1))
-                work[i][3][j] = work[i][1][j] + \
-                    random.uniform(-a, a) * (work[i][1][j] - work[k][1][j])
+                work[i][3][j] = work[i][1][j] + random.uniform(-a, a) * (
+                    work[i][1][j] - work[k][1][j]
+                )
                 if work[i][3][j] < lb[j]:
                     work[i][3][j] = lb[j]
                 if work[i][3][j] > ub[j]:
@@ -125,7 +130,9 @@ class abc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.postprocessing(icall+eb, randompar, simulations, chains = 2, negativlike=True)
+                clike = self.postprocessing(
+                    icall + eb, randompar, simulations, chains=2, negativlike=True
+                )
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -134,16 +141,16 @@ class abc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
-                    break            # Probability distribution for roulette wheel selection
+                    print("Stopping samplig")
+                    break  # Probability distribution for roulette wheel selection
             bn = []
             for i, val in enumerate(work):
                 psum = psum + (1 / work[i][0])
             for i, val in enumerate(work):
-                work[i][5] = ((1 / work[i][0]) / psum)
+                work[i][5] = (1 / work[i][0]) / psum
                 bn.append(work[i][5])
             bounds = np.cumsum(bn)
-        # Onlooker bee phase
+            # Onlooker bee phase
             # Roulette wheel selection
             for i, val in enumerate(work):
                 pn = random.uniform(0, 1)
@@ -155,14 +162,16 @@ class abc(_algorithm):
                         z = t
                         break
                 j = random.randint(0, (self.nopt - 1))
-            # Generate new input parameters
+                # Generate new input parameters
                 try:
-                    work[i][3][j] = work[z][1][j] + \
-                        random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
+                    work[i][3][j] = work[z][1][j] + random.uniform(-a, a) * (
+                        work[z][1][j] - work[k][1][j]
+                    )
                 except UnboundLocalError:
-                    z=0
-                    work[i][3][j] = work[z][1][j] + \
-                        random.uniform(-a, a) * (work[z][1][j] - work[k][1][j])
+                    z = 0
+                    work[i][3][j] = work[z][1][j] + random.uniform(-a, a) * (
+                        work[z][1][j] - work[k][1][j]
+                    )
                 if work[i][3][j] < lb[j]:
                     work[i][3][j] = lb[j]
                 if work[i][3][j] > ub[j]:
@@ -171,7 +180,9 @@ class abc(_algorithm):
             param_generator = ((rep, work[rep][3]) for rep in range(eb))
             for rep, randompar, simulations in self.repeat(param_generator):
                 # Calculate fitness
-                clike = self.postprocessing(icall+eb, randompar, simulations, chains = 3, negativlike=True)
+                clike = self.postprocessing(
+                    icall + eb, randompar, simulations, chains=3, negativlike=True
+                )
                 if clike > work[rep][0]:
                     work[rep][1] = work[rep][3]
                     work[rep][0] = clike
@@ -180,30 +191,32 @@ class abc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    print('Stopping samplig')
+                    print("Stopping samplig")
                     break
-        # Scout bee phase
+            # Scout bee phase
             for i, val in enumerate(work):
                 if work[i][4] >= self.limit:
-                    work[i][1] = self.parameter()['random']
+                    work[i][1] = self.parameter()["random"]
                     work[i][4] = 0
-                    t, work[i][0], simulations = self.simulate(
-                        (icall, work[i][1]))
-                    clike = self.postprocessing(icall+eb, randompar, simulations, chains = 4, negativlike=True)
+                    t, work[i][0], simulations = self.simulate((icall, work[i][1]))
+                    clike = self.postprocessing(
+                        icall + eb, randompar, simulations, chains=4, negativlike=True
+                    )
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:
-                        print('Stopping samplig')
+                        print("Stopping samplig")
                         break
             gnrng = -self.status.objectivefunction_max
             if icall >= repetitions:
-                print('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
-                print('ON THE MAXIMUM NUMBER OF TRIALS ')
+                print("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
+                print("ON THE MAXIMUM NUMBER OF TRIALS ")
                 print(repetitions)
-                print('HAS BEEN EXCEEDED.')
+                print("HAS BEEN EXCEEDED.")
 
             if gnrng < peps:
                 print(
-                    'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE AT RUN')
+                    "THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE AT RUN"
+                )
                 print(icall)
         self.final_call()

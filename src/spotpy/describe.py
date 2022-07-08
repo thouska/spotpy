@@ -29,7 +29,9 @@ def describe(obj):
     :param obj: A sampler
     :return: str
     """
-    return 'Sampler:\n--------\n{}\n\nModel:\n------\n{}'.format(sampler(obj), setup(obj.setup))
+    return "Sampler:\n--------\n{}\n\nModel:\n------\n{}".format(
+        sampler(obj), setup(obj.setup)
+    )
 
 
 def sampler(obj):
@@ -40,12 +42,16 @@ def sampler(obj):
     :return:
     """
     cname = str(type(obj).__name__)
-    s = [cname, '=' * len(cname), _getdoc(obj),
-         '    db format: ' + obj.dbformat,
-         '    db name: ' + obj.dbname,
-         '    save simulation: ' + str(obj.save_sim),
-         '    parallel: ' + type(obj.repeat).__module__.split('.')[-1]]
-    return '\n'.join(s)
+    s = [
+        cname,
+        "=" * len(cname),
+        _getdoc(obj),
+        "    db format: " + obj.dbformat,
+        "    db name: " + obj.dbname,
+        "    save simulation: " + str(obj.save_sim),
+        "    parallel: " + type(obj.repeat).__module__.split(".")[-1],
+    ]
+    return "\n".join(s)
 
 
 def setup(obj):
@@ -57,11 +63,13 @@ def setup(obj):
     # Get class name
     cname = str(type(obj).__name__)
     # Add doc string
-    mdoc = _getdoc(obj).strip('\n').replace('\r', '\n')
+    mdoc = _getdoc(obj).strip("\n").replace("\r", "\n")
     # Get parameters from class
-    params = '\n'.join(' - {p}'.format(p=str(p)) for p in get_parameters_from_setup(obj))
-    parts = [cname, '=' * len(cname), mdoc, 'Parameters:', '-' * 11, params]
-    return '\n'.join(parts)
+    params = "\n".join(
+        " - {p}".format(p=str(p)) for p in get_parameters_from_setup(obj)
+    )
+    parts = [cname, "=" * len(cname), mdoc, "Parameters:", "-" * 11, params]
+    return "\n".join(parts)
 
 
 import webbrowser
@@ -82,7 +90,7 @@ class rst:
     >>>description.show_in_browser()
     """
 
-    caption_characters = '=-#~*+^'
+    caption_characters = "=-#~*+^"
 
     def __init__(self, setup_or_sampler):
         """
@@ -101,7 +109,7 @@ class rst:
         if self.setup:
             self.rst_text.append(self._setup_text())
 
-    def append(self, text='', title=None, titlelevel=1):
+    def append(self, text="", title=None, titlelevel=1):
         """
         Appends additional descriptions in reStructured text to the generated text
         :param text: The rst text to add
@@ -109,7 +117,7 @@ class rst:
         :param titlelevel: The level of the section (0->h1.title, 1->h1, 2->h2, etc.)
         :return:
         """
-        res = '\n'
+        res = "\n"
         if title:
             res += rst._as_rst_caption(title, titlelevel)
         self.rst_text.append(res + text)
@@ -125,10 +133,10 @@ class rst:
         ...                         target='https://github.com/thouska',
         ...                         width='200px')
         """
-        rst = '.. image:: {}'.format(imgpath)
+        rst = ".. image:: {}".format(imgpath)
         for k, v in kwargs.items():
-            rst += '\n  :{}: {}'.format(k, v)
-        rst += '\n'
+            rst += "\n  :{}: {}".format(k, v)
+        rst += "\n"
         self.append(rst)
 
     def append_math(self, latex):
@@ -136,12 +144,12 @@ class rst:
         Appends a block equation to the output
         :param latex: Latex formula
         """
-        rst =  '.. math::\n'
-        rst += '  ' + latex + '\n'
+        rst = ".. math::\n"
+        rst += "  " + latex + "\n"
         self.append(rst)
 
     def __str__(self):
-        return '\n'.join(self.rst_text)
+        return "\n".join(self.rst_text)
 
     @classmethod
     def _as_rst_caption(cls, s, level=1):
@@ -151,7 +159,7 @@ class rst:
         :param level: Caption level 0-6, translates to 0=h1.title, 1=h1, 2=h2, etc.
         :return: The string as rst caption
         """
-        return s + '\n' + cls.caption_characters[level] * len(s) + '\n\n'
+        return s + "\n" + cls.caption_characters[level] * len(s) + "\n\n"
 
     css = """
         body, table, div, p, dl {
@@ -206,13 +214,12 @@ class rst:
         :return: The html document as string
         """
         if publish_string is None:
-            raise NotImplementedError('The docutils package needs to be installed')
-        args = {'input_encoding': 'unicode',
-                'output_encoding': 'unicode'}
-        res = publish_string(source=str(self),
-                                writer_name='html5',
-                                settings_overrides=args)
-        style_idx = res.index('</style>')
+            raise NotImplementedError("The docutils package needs to be installed")
+        args = {"input_encoding": "unicode", "output_encoding": "unicode"}
+        res = publish_string(
+            source=str(self), writer_name="html5", settings_overrides=args
+        )
+        style_idx = res.index("</style>")
         css = css or self.css
         # Include css
         res = res[:style_idx] + css + res[style_idx:]
@@ -225,10 +232,10 @@ class rst:
         :param filename: The html filename, if None use <setup class name>.html
         :param css: A style string, if None the default style is used
         """
-        html = self.as_html(css).replace('unicode', 'utf-8')
-        fn = filename or type(self.setup).__name__ + '.html'
+        html = self.as_html(css).replace("unicode", "utf-8")
+        fn = filename or type(self.setup).__name__ + ".html"
         path = Path(fn).absolute()
-        path.write_text(html, encoding='utf-8')
+        path.write_text(html, encoding="utf-8")
         webbrowser.open_new_tab(path.as_uri())
 
     def _sampler_text(self):
@@ -239,13 +246,14 @@ class rst:
         obj = self.sampler
         cname = rst._as_rst_caption(type(obj).__name__, 0)
         s = [
-                '- **db format:** ' + obj.dbformat,
-                '- **db name:** ' + obj.dbname,
-                '- **save simulation:** ' + str(obj.save_sim),
-                '- **parallel:** ' + type(obj.repeat).__module__.split('.')[-1],
-                '', ''
-                ]
-        return cname + _getdoc(obj).strip('\n') + '\n\n' + '\n'.join(s)
+            "- **db format:** " + obj.dbformat,
+            "- **db name:** " + obj.dbname,
+            "- **save simulation:** " + str(obj.save_sim),
+            "- **parallel:** " + type(obj.repeat).__module__.split(".")[-1],
+            "",
+            "",
+        ]
+        return cname + _getdoc(obj).strip("\n") + "\n\n" + "\n".join(s)
 
     def _setup_text(self):
         """
@@ -256,9 +264,10 @@ class rst:
         obj = self.setup
         cname = rst._as_rst_caption(type(obj).__name__, 0)
         # Add doc string
-        mdoc = _getdoc(obj).strip('\n').replace('\r', '\n') + '\n\n'
+        mdoc = _getdoc(obj).strip("\n").replace("\r", "\n") + "\n\n"
         # Get parameters from class
-        param_caption = rst._as_rst_caption('Parameters', 1)
-        params = '\n'.join('#. **{p.name}:** {p}'.format(p=p) for p in get_parameters_from_setup(obj))
+        param_caption = rst._as_rst_caption("Parameters", 1)
+        params = "\n".join(
+            "#. **{p.name}:** {p}".format(p=p) for p in get_parameters_from_setup(obj)
+        )
         return cname + mdoc + param_caption + params
-

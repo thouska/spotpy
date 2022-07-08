@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 
 This file is part of Statistical Parameter Optimization Tool (SPOTPY).
@@ -8,7 +8,7 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 
 This is the parent class of all algorithms, which can handle the database
 structure during the sample.
-'''
+"""
 
 import sys
 
@@ -29,12 +29,15 @@ class ram(database):
         # init the status vars
         self.ram = []
 
-    def save(self, objectivefunction, parameterlist, simulations=None,
-             chains=1):
-        self.ram.append(tuple(self.dim_dict['like'](objectivefunction) +
-                              self.dim_dict['par'](parameterlist) +
-                              self.dim_dict['simulation'](simulations) +
-                              [chains]))
+    def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
+        self.ram.append(
+            tuple(
+                self.dim_dict["like"](objectivefunction)
+                + self.dim_dict["par"](parameterlist)
+                + self.dim_dict["simulation"](simulations)
+                + [chains]
+            )
+        )
 
     def finalize(self):
         """
@@ -42,8 +45,7 @@ class ram(database):
         Forms the List of values into a strutured numpy array in order to have
         the same structure as a csv database.
         """
-        dt = {'names': self.header,
-              'formats': [float] * len(self.header)}
+        dt = {"names": self.header, "formats": [float] * len(self.header)}
         i = 0
         Y = np.zeros(len(self.ram), dtype=dt)
 

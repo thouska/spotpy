@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
@@ -9,17 +9,17 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :paper: Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: 
 SPOTting Model Parameters Using a Ready-Made Python Package, 
 PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
-'''
+"""
 
 from numba import jit
 
 
-def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
+def hymod(Precip, PET, cmax, bexp, alpha, Rs, Rq):
     """
     See https://www.proc-iahs.net/368/180/2015/piahs-368-180-2015.pdf for a scientific paper:
-    
-    Quan, Z.; Teng, J.; Sun, W.; Cheng, T. & Zhang, J. (2015): Evaluation of the HYMOD model 
-    for rainfall–runoff simulation using the GLUE method. Remote Sensing and GIS for Hydrology 
+
+    Quan, Z.; Teng, J.; Sun, W.; Cheng, T. & Zhang, J. (2015): Evaluation of the HYMOD model
+    for rainfall–runoff simulation using the GLUE method. Remote Sensing and GIS for Hydrology
     and Water Resources, 180 - 185, IAHS Publ. 368. DOI: 10.5194/piahs-368-180-2015.
 
     :param cmax:
@@ -37,12 +37,12 @@ def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
     x_slow = 2.3503 / (Rs * 22.5)
     x_slow = 0  # --> works ok if calibration data starts with low discharge
     # Initialize state(s) of quick tank(s)
-    x_quick = [0,0,0]
+    x_quick = [0, 0, 0]
     t = 0
     output = []
     # START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
 
-    while t <= len(Precip)-1:
+    while t <= len(Precip) - 1:
         Pval = Precip[t]
         PETval = PET[t]
         # Compute excess precipitation and evaporation
@@ -64,27 +64,32 @@ def hymod(Precip, PET, cmax,bexp,alpha,Rs,Rq):
 
         # Compute total flow for timestep
         output.append(QS + outflow)
-        t = t+1
+        t = t + 1
 
     return output
 
-@jit
-def power(X,Y):
-    X=abs(X) # Needed to capture invalid overflow with netgative values
-    return X**Y
 
 @jit
-def linres(x_slow,inflow,Rs):
+def power(X, Y):
+    X = abs(X)  # Needed to capture invalid overflow with netgative values
+    return X**Y
+
+
+@jit
+def linres(x_slow, inflow, Rs):
     # Linear reservoir
     x_slow = (1 - Rs) * x_slow + (1 - Rs) * inflow
     outflow = (Rs / (1 - Rs)) * x_slow
-    return x_slow,outflow
+    return x_slow, outflow
+
 
 @jit
-def excess(x_loss,cmax,bexp,Pval,PETval):
+def excess(x_loss, cmax, bexp, Pval, PETval):
     # this function calculates excess precipitation and evaporation
     xn_prev = x_loss
-    ct_prev = cmax * (1 - power((1 - ((bexp + 1) * (xn_prev) / cmax)), (1 / (bexp + 1))))
+    ct_prev = cmax * (
+        1 - power((1 - ((bexp + 1) * (xn_prev) / cmax)), (1 / (bexp + 1)))
+    )
     # Calculate Effective rainfall 1
     ER1 = max((Pval - cmax + ct_prev), 0.0)
     Pval = Pval - ER1
@@ -95,7 +100,9 @@ def excess(x_loss,cmax,bexp,Pval,PETval):
     ER2 = max(Pval - (xn - xn_prev), 0)
 
     # Alternative approach
-    evap = (1 - (((cmax / (bexp + 1)) - xn) / (cmax / (bexp + 1)))) * PETval  # actual ET is linearly related to the soil moisture state
+    evap = (
+        1 - (((cmax / (bexp + 1)) - xn) / (cmax / (bexp + 1)))
+    ) * PETval  # actual ET is linearly related to the soil moisture state
     xn = max(xn - evap, 0)  # update state
 
-    return ER1,ER2,xn
+    return ER1, ER2, xn

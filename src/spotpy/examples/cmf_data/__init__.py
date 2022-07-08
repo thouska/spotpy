@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
@@ -28,4 +28,4 @@ For general things about parameter optimization techniques have a look at:
 https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/tree/master/
 
 Please cite our paper, if you are using SPOTPY.
-'''
+"""

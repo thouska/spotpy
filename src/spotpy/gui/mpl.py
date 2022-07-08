@@ -15,8 +15,11 @@ from matplotlib.widgets import Button, Slider
 
 from ..parameter import create_set, get_parameters_array
 
-if matplotlib.__version__ < '2.1':
-    raise ImportError('Your matplotlib package is too old. Required >=2.1, you have ' + matplotlib.__version__)
+if matplotlib.__version__ < "2.1":
+    raise ImportError(
+        "Your matplotlib package is too old. Required >=2.1, you have "
+        + matplotlib.__version__
+    )
 
 
 def as_scalar(val):
@@ -64,7 +67,7 @@ class Widget:
         self.ax = plt.axes(rect)
         events = {}
         for k in list(kwargs.keys()):
-            if k.startswith('on_'):
+            if k.startswith("on_"):
                 events[k] = kwargs.pop(k)
         self.object = wtype(self.ax, *args, **kwargs)
         for k in events:
@@ -83,6 +86,7 @@ class ValueChanger:
     >>>from matplotlib.widgets import Slider
     >>>w = Widget([0,0,0.1,0.1], Slider, 'slider', 0, 100, on_changed=ValueChanger('a', d))
     """
+
     def __init__(self, key, stor):
         self.stor = stor
         self.key = key
@@ -117,8 +121,12 @@ class GUI:
         """
         self.fig = plt.figure(type(setup).__name__)
         self.ax = plt.axes([0.05, 0.1, 0.65, 0.85])
-        self.button_run = Widget([0.75, 0.01, 0.1, 0.03], Button, 'Simulate', on_clicked=self.run)
-        self.button_clear = Widget([0.87, 0.01, 0.1, 0.03], Button, 'Clear plot', on_clicked=self.clear)
+        self.button_run = Widget(
+            [0.75, 0.01, 0.1, 0.03], Button, "Simulate", on_clicked=self.run
+        )
+        self.button_clear = Widget(
+            [0.87, 0.01, 0.1, 0.03], Button, "Clear plot", on_clicked=self.clear
+        )
         self.parameter_values = {}
         self.setup = setup
         self.sliders = self._make_widgets()
@@ -146,16 +154,23 @@ class GUI:
         Creates the sliders
         :return:
         """
-        if hasattr(self, 'sliders'):
+        if hasattr(self, "sliders"):
             for s in self.sliders:
                 s.ax.remove()
 
         sliders = []
-        step = max(0.005, min(0.05, 0.8/len(self.parameter_array)))
+        step = max(0.005, min(0.05, 0.8 / len(self.parameter_array)))
         for i, row in enumerate(self.parameter_array):
             rect = [0.75, 0.9 - step * i, 0.2, step - 0.005]
-            s = Widget(rect, Slider, row['name'], row['minbound'], row['maxbound'],
-                       valinit=row['optguess'], on_changed=ValueChanger(row['name'], self.parameter_values))
+            s = Widget(
+                rect,
+                Slider,
+                row["name"],
+                row["minbound"],
+                row["maxbound"],
+                valinit=row["optguess"],
+                on_changed=ValueChanger(row["name"], self.parameter_values),
+            )
             sliders.append(s)
         plt.draw()
         return sliders
@@ -170,24 +185,28 @@ class GUI:
         """
         obs = self.setup.evaluation()
         self.ax.clear()
-        self.lines = list(self.ax.plot(obs, 'k:', label='Observation', zorder=2))
+        self.lines = list(self.ax.plot(obs, "k:", label="Observation", zorder=2))
         self.ax.legend()
 
     def run(self, _=None):
         """
         Runs the model and plots the result
         """
-        self.ax.set_title('Calculating...')
+        self.ax.set_title("Calculating...")
         plt.draw()
         time.sleep(0.001)
 
         parset = create_set(self.setup, **self.parameter_values)
         sim = self.setup.simulation(parset)
         objf = as_scalar(self.setup.objectivefunction(sim, self.setup.evaluation()))
-        label = ('{:0.4g}=M('.format(objf)
-                 + ', '.join('{f}={v:0.4g}'.format(f=f, v=v) for f, v in zip(parset.name, parset))
-                 + ')')
-        self.lines.extend(self.ax.plot(sim, '-', label=label))
+        label = (
+            "{:0.4g}=M(".format(objf)
+            + ", ".join(
+                "{f}={v:0.4g}".format(f=f, v=v) for f, v in zip(parset.name, parset)
+            )
+            + ")"
+        )
+        self.lines.extend(self.ax.plot(sim, "-", label=label))
         self.ax.legend()
         self.ax.set_title(type(self.setup).__name__)
         plt.draw()

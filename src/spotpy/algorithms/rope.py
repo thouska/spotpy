@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Alejandro Chamorro-Chavez
-'''
+"""
 import random
 import time
 
@@ -13,18 +13,18 @@ from . import _algorithm
 
 
 class rope(_algorithm):
-    '''
+    """
     This class holds the Robust Parameter Estimation (ROPE) algorithm based on
     Bárdossy and Singh (2008).
 
     Bárdossy, A. and Singh, S. K.:
     Robust estimation of hydrological model parameters,
     Hydrol. Earth Syst. Sci. Discuss., 5(3), 1641–1675, 2008.
-    '''
+    """
 
-    def __init__(self,  *args, **kwargs):
+    def __init__(self, *args, **kwargs):
 
-        '''
+        """
         Input
         ----------
         :param spot_setup: class
@@ -61,19 +61,30 @@ class rope(_algorithm):
         :param save_sim: boolean
             *True:  Simulation results will be saved
             *False: Simulation results will not be saved
-        '''
-        kwargs['optimization_direction'] = 'maximize'
-        kwargs['algorithm_name'] = 'RObust Parameter Estimation (ROPE) algorithm'
+        """
+        kwargs["optimization_direction"] = "maximize"
+        kwargs["algorithm_name"] = "RObust Parameter Estimation (ROPE) algorithm"
         super(rope, self).__init__(*args, **kwargs)
 
     def get_best_runs(self, likes, pars, runs, percentage):
-        '''
-        Returns the best xx% of the runs'''
-        return [new_pars for (new_likes, new_pars) in sorted(zip(likes, pars))[int(len(likes) * (1 - percentage)):]]
+        """
+        Returns the best xx% of the runs"""
+        return [
+            new_pars
+            for (new_likes, new_pars) in sorted(zip(likes, pars))[
+                int(len(likes) * (1 - percentage)) :
+            ]
+        ]
 
-    def sample(self, repetitions=None, repetitions_first_run=None,
-               subsets=5, percentage_first_run=0.10,
-               percentage_following_runs=0.10, NDIR=None):
+    def sample(
+        self,
+        repetitions=None,
+        repetitions_first_run=None,
+        subsets=5,
+        percentage_first_run=0.10,
+        percentage_following_runs=0.10,
+        NDIR=None,
+    ):
         """
         Samples from the ROPE algorithm.
 
@@ -91,29 +102,31 @@ class rope(_algorithm):
         next step after in all following subsets
         NDIR = The number of samples to draw
         """
-        #Reported behaviour:
+        # Reported behaviour:
         # Takes ways´to long for npar >8
         # wenn mehr parameter produziert werden sollen als reingehen, rechnet er sich tot (ngen>n)
-        #Subsets < 5 führt manchmal zu Absturz
-        print('Starting the ROPE algotrithm with '+str(repetitions)+ ' repetitions...')
+        # Subsets < 5 führt manchmal zu Absturz
+        print(
+            "Starting the ROPE algotrithm with " + str(repetitions) + " repetitions..."
+        )
         self.set_repetiton(repetitions)
 
         if repetitions_first_run is None:
-            #Take the first have of the repetitions as burn-in
+            # Take the first have of the repetitions as burn-in
             first_run = int(repetitions / 2.0)
 
         else:
-            #Make user defined number of burn-in repetitions
+            # Make user defined number of burn-in repetitions
             first_run = repetitions_first_run
 
-        repetitions_following_runs = int((repetitions-first_run)
-                                          / (subsets-1))
+        repetitions_following_runs = int((repetitions - first_run) / (subsets - 1))
         # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
-            print('Warning: Burn-in samples and total number of repetions are not compatible.\n'
-                  'SPOTPY will automatically adjust the number of total repetitions.')
-            repetitions_following_runs+=1
-
+            print(
+                "Warning: Burn-in samples and total number of repetions are not compatible.\n"
+                "SPOTPY will automatically adjust the number of total repetitions."
+            )
+            repetitions_following_runs += 1
 
         if NDIR is None:
             NDIR = int(repetitions_following_runs / 100.0)
@@ -121,8 +134,8 @@ class rope(_algorithm):
 
         starttime = time.time()
         intervaltime = starttime
-        parset =self.parameter()
-        self.min_bound, self.max_bound = parset['minbound'], parset['maxbound']
+        parset = self.parameter()
+        self.min_bound, self.max_bound = parset["minbound"], parset["maxbound"]
 
         # Init ROPE with one subset
         likes = []
@@ -142,8 +155,7 @@ class rope(_algorithm):
             random.shuffle(matrix[:, i])
 
         # A generator that produces the parameters
-        param_generator = ((rep, matrix[rep])
-                           for rep in range(int(first_run) - 1))
+        param_generator = ((rep, matrix[rep]) for rep in range(int(first_run) - 1))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database
             like = self.postprocessing(rep, randompar, simulations)
@@ -155,21 +167,26 @@ class rope(_algorithm):
             if self.status.stop:
                 break
             if acttime - intervaltime >= 2:
-                text = '1 Subset: Run %i of %i (best like=%g)' % (
-                    rep, first_run, self.status.objectivefunction_max)
+                text = "1 Subset: Run %i of %i (best like=%g)" % (
+                    rep,
+                    first_run,
+                    self.status.objectivefunction_max,
+                )
                 print(text)
                 intervaltime = time.time()
 
         for subset in range(subsets - 1):
             if subset == 0:
-                best_pars = self.get_best_runs(likes, pars, repetitions_following_runs,
-                                               percentage_first_run)
+                best_pars = self.get_best_runs(
+                    likes, pars, repetitions_following_runs, percentage_first_run
+                )
             else:
-                best_pars = self.get_best_runs(likes, pars, repetitions_following_runs,
-                                               percentage_following_runs)
+                best_pars = self.get_best_runs(
+                    likes, pars, repetitions_following_runs, percentage_following_runs
+                )
             valid = False
             trials = 0
-            while valid is False and trials < 10 and repetitions_following_runs>1:
+            while valid is False and trials < 10 and repetitions_following_runs > 1:
                 new_pars = self.programm_depth(best_pars, repetitions_following_runs)
                 if len(new_pars) == repetitions_following_runs:
                     valid = True
@@ -177,17 +194,22 @@ class rope(_algorithm):
                     trials += 1
             pars = []
             likes = []
-            if(int(repetitions_following_runs) > len(new_pars)):
+            if int(repetitions_following_runs) > len(new_pars):
                 repetitions_following_runs = len(new_pars)
             param_generator = (
-                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs)))
+                (rep, new_pars[rep]) for rep in range(int(repetitions_following_runs))
+            )
             for rep, ropepar, simulations in self.repeat(param_generator):
                 # Calculate the objective function
-                like = self.postprocessing(first_run + rep + repetitions_following_runs * subset, ropepar, simulations)
+                like = self.postprocessing(
+                    first_run + rep + repetitions_following_runs * subset,
+                    ropepar,
+                    simulations,
+                )
                 likes.append(like)
                 pars.append(ropepar)
                 if self.status.stop:
-                    print('Stopping samplig')
+                    print("Stopping samplig")
                     break
 
                 # Progress bar
@@ -195,11 +217,12 @@ class rope(_algorithm):
                 if repetitions_following_runs is not None:
                     # Refresh progressbar every second
                     if acttime - intervaltime >= 2:
-                        text = '%i Subset: Run %i of %i (best like=%g)' % (
+                        text = "%i Subset: Run %i of %i (best like=%g)" % (
                             subset + 2,
                             rep,
                             repetitions_following_runs,
-                            self.status.objectivefunction_max)
+                            self.status.objectivefunction_max,
+                        )
                         print(text)
                         intervaltime = time.time()
             if self.status.stop:
@@ -207,18 +230,17 @@ class rope(_algorithm):
 
         self.final_call()
 
-
     def programm_depth(self, pars, runs):
         X = np.array(pars)
 
         N, NP = X.shape
-        text = str(N) + ' input vectors with ' + str(NP) + ' parameters'
+        text = str(N) + " input vectors with " + str(NP) + " parameters"
         print(text)
 
         Ngen = int(runs)  # int(N*(1/self.percentage))
-        print(('Generating ' + str(Ngen) + ' parameters:'))
+        print(("Generating " + str(Ngen) + " parameters:"))
 
-        NPOSI = Ngen   # Number of points to generate
+        NPOSI = Ngen  # Number of points to generate
 
         EPS = 0.00001
 
@@ -237,8 +259,8 @@ class rope(_algorithm):
         CL = np.zeros(NP)
         TL = np.zeros(shape=(LLEN, NP))
 
-        while (IPOS < NPOSI):
-            for IM in range(LLEN):   # LLEN=1000 Random Vectors of dim NP
+        while IPOS < NPOSI:
+            for IM in range(LLEN):  # LLEN=1000 Random Vectors of dim NP
                 for j in range(NP):
                     DRAND = np.random.rand()
                     TL[IM, j] = XMIN[j] + DRAND * (XMAX[j] - XMIN[j])
@@ -283,7 +305,7 @@ class rope(_algorithm):
                 NSAMP = NSAMP + 1
                 JSAMP[index + 1] = L
 
-    #       Covariance matrix of the sample
+            #       Covariance matrix of the sample
             S = np.zeros(shape=(NP, NP))
             for i in range(NP):
                 row = JSAMP[i]
@@ -308,10 +330,10 @@ class rope(_algorithm):
             # Eigenvector in the direction of min eigenvalue
             EVECT = EVE[:, arg[0]]
 
-    #       Project all points on the line through theta with direction
+            #       Project all points on the line through theta with direction
             # given by the eigenvector of the smallest eigenvalue, i.e.
             # the direction orthogonal on the hyperplane given by the np-subset
-    #       Compute the one-dimensional halfspace depth of theta on this line
+            #       Compute the one-dimensional halfspace depth of theta on this line
             HELP = []
             for L in range(N):
                 k = np.dot(EVECT, X[L, :])
@@ -321,12 +343,11 @@ class rope(_algorithm):
 
             ICROSS = 0
             for LU in range(LLEN):
-                if (LNDEP[LU] > ICROSS):
-                    EKT = 0.
+                if LNDEP[LU] > ICROSS:
+                    EKT = 0.0
                     NT = 0
                     EKT = EKT + np.dot(TL[LU, :], EVECT)
-                    if ((EKT < (HELP[0] - EPS)) or (
-                                EKT > (HELP[N - 1] + EPS))):
+                    if (EKT < (HELP[0] - EPS)) or (EKT > (HELP[N - 1] + EPS)):
                         N1 = 0
                     else:
                         N1 = 1
@@ -334,12 +355,12 @@ class rope(_algorithm):
                         dirac = 0
                         while dirac == 0:
                             dirac = 1
-                            N3 = (N1 + N2) / 2.
-                            if (HELP[int(N3)] < EKT):
+                            N3 = (N1 + N2) / 2.0
+                            if HELP[int(N3)] < EKT:
                                 N1 = N3
                             else:
                                 N2 = N3
-                            if(N2 - N1) > 1:
+                            if (N2 - N1) > 1:
                                 dirac = 0
                     NUMH = N1
                     LNDEP[LU] = min(LNDEP[LU], min(NUMH + NT, N - NUMH))

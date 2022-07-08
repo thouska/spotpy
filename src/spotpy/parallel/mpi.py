@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
@@ -14,7 +14,7 @@ all the other processes that are used as workers. The master holds a list called
 where the master notes which processes are busy with a job. When a new job should be sent to
 a worker, the master looks for a free slot and sends the job to the corresponding worker
 process.
-'''
+"""
 
 from mpi4py import MPI
 
@@ -23,6 +23,7 @@ class tag:
     """
     This is just an enum to identify messages
     """
+
     job = 11
     answer = 12
 
@@ -31,6 +32,7 @@ class PhaseChange(object):
     """
     Object to identify a change of a simulation phase
     """
+
     def __init__(self, phase):
         self.phase = phase
 
@@ -63,7 +65,7 @@ class ForEach(object):
         self.comm = MPI.COMM_WORLD
         self.size = self.comm.Get_size()
         if self.size <= 1:
-            raise RuntimeError('Need at least two processes for parallelization')
+            raise RuntimeError("Need at least two processes for parallelization")
         self.rank = self.comm.Get_rank()
         self.process = process
         self.phase = None
@@ -71,7 +73,7 @@ class ForEach(object):
         if self.rank == 0:
             # The slots are a place for the master to remember which worker is doing something
             # Idle slots contain None
-            self.slots = [None] * (self.size-1)
+            self.slots = [None] * (self.size - 1)
 
     def is_master(self):
         """
@@ -151,7 +153,7 @@ class ForEach(object):
         :param jobiter: An iterator over job arguments
         :return: True if there are pending jobs
         """
-        assert(self.is_master())
+        assert self.is_master()
         for i, slot in enumerate(self.slots):
             # found a free slot
             if slot is None:
@@ -161,7 +163,7 @@ class ForEach(object):
                     job = next(jobiter)
                     self.slots[i] = job
                     # Send slot job to destination rank
-                    self.comm.send(job, dest=i+1, tag=tag.job)
+                    self.comm.send(job, dest=i + 1, tag=tag.job)
                 except StopIteration:
                     return False
         return True
@@ -193,9 +195,9 @@ class ForEach(object):
                 # If slot is active
                 if slot is not None:
                     # Check if slot has data in the pipeline
-                    if self.comm.Iprobe(source=i+1, tag=tag.answer):
+                    if self.comm.Iprobe(source=i + 1, tag=tag.answer):
                         # Receive data
-                        data = self.comm.recv(source=i+1, tag=tag.answer)
+                        data = self.comm.recv(source=i + 1, tag=tag.answer)
                         # Free slot
                         self.slots[i] = None
                         yield data

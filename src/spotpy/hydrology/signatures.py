@@ -67,6 +67,7 @@ class SignatureMethod:
     """
     Wraps a signature method from this module to access multiple variables
     """
+
     @classmethod
     def find_all(cls):
         """
@@ -77,7 +78,7 @@ class SignatureMethod:
 
         current_module = sys.modules[__name__]
         methods = inspect.getmembers(current_module)
-        return [cls(m, name) for name, m in methods if name.startswith('get_')]
+        return [cls(m, name) for name, m in methods if name.startswith("get_")]
 
     @classmethod
     def run(cls, list_of_methods, data, measurements_per_day=1):
@@ -99,10 +100,10 @@ class SignatureMethod:
 
     @classmethod
     def extract_from_doc(cls, token, doc):
-        for doc_line in doc.split('\n'):
+        for doc_line in doc.split("\n"):
             if doc_line.strip().startswith(token):
-                var_str = doc_line[len(token):].strip()
-                return [v.strip() for v in var_str.split(',')]
+                var_str = doc_line[len(token) :].strip()
+                return [v.strip() for v in var_str.split(",")]
         return []
 
     def __init__(self, method, name):
@@ -110,7 +111,7 @@ class SignatureMethod:
         self.name = name[4:]
 
         doc = inspect.getdoc(self.method)
-        self.variables = self.extract_from_doc(':return:', doc) or [self.name]
+        self.variables = self.extract_from_doc(":return:", doc) or [self.name]
 
     def __call__(self, data, measurements_per_day=1):
         """
@@ -126,8 +127,7 @@ class SignatureMethod:
             return [(self.variables[0], res)]
 
     def __repr__(self):
-        return 'Sig({n})->{v}'.format(n=self.name, v=', '.join(self.variables))
-
+        return "Sig({n})->{v}".format(n=self.name, v=", ".join(self.variables))
 
 
 def remove_nan(data):
@@ -177,9 +177,11 @@ def summarize(data, step, f):
     """
     if len(data) < step:
         return np.array([f(data)])
-    return np.fromiter((f(data[i:i+step])
-                        for i in range(0, len(data), step)),
-                       count=len(data) // step, dtype=float)
+    return np.fromiter(
+        (f(data[i : i + step]) for i in range(0, len(data), step)),
+        count=len(data) // step,
+        dtype=float,
+    )
 
 
 class Quantile(object):
@@ -190,9 +192,12 @@ class Quantile(object):
 
     :return: Q_{<quantile>}
     """
+
     def __init__(self, quantile):
         self.quantile = quantile
-        self.__doc__ = inspect.getdoc(type(self)).replace('<quantile>', '{:0.4g}'.format(self.quantile))
+        self.__doc__ = inspect.getdoc(type(self)).replace(
+            "<quantile>", "{:0.4g}".format(self.quantile)
+        )
 
     def __call__(self, data, measurements_per_day=None):
         """
@@ -205,7 +210,7 @@ class Quantile(object):
         return np.percentile(remove_nan(data), 100 - self.quantile)
 
     def __repr__(self):
-        return 'q({:0.2f}%)'.format(self.quantile)
+        return "q({:0.2f}%)".format(self.quantile)
 
 
 get_q0_01 = Quantile(0.01)
@@ -282,19 +287,19 @@ def get_sfdc(data, measurements_per_day=None):
     """
     mean = get_mean(data)
 
-    Q33 = Quantile(33)(data)/mean
-    Q66 = Quantile(66)(data)/mean
+    Q33 = Quantile(33)(data) / mean
+    Q66 = Quantile(66)(data) / mean
 
-    # Determine if the fdc has a slope at this tage and return the 
+    # Determine if the fdc has a slope at this tage and return the
     # corresponding values
     if Q33 == 0 and Q66 == 0:
         return 0
     elif Q33 == 0 and not Q66 == 0:
-        return -np.log(Q66) / (2/3 - 1/3)
+        return -np.log(Q66) / (2 / 3 - 1 / 3)
     elif not Q33 == 0 and Q66 == 0:
-        return np.log(Q33) / (2/3 - 1/3)
+        return np.log(Q33) / (2 / 3 - 1 / 3)
     else:
-        return (np.log(Q33) - np.log(Q66)) / (2/3 - 1/3)
+        return (np.log(Q33) - np.log(Q66)) / (2 / 3 - 1 / 3)
 
 
 def calc_baseflow(data, measurements_per_day=1):
@@ -308,15 +313,17 @@ def calc_baseflow(data, measurements_per_day=1):
     :param measurements_per_day:
     :return: The baseflow timeseries in the same resolution as data
     """
-    period_length = 5 # days
+    period_length = 5  # days
     if measurements_per_day < 1:
-        raise ValueError('At least a daily measurement frequency is needed to calculate baseflow')
+        raise ValueError(
+            "At least a daily measurement frequency is needed to calculate baseflow"
+        )
 
     # Remove NaN values
     data = fill_nan(data)
 
     def irange(seq):
-        """ Returns the indices of a sequence"""
+        """Returns the indices of a sequence"""
         return range(len(seq))
 
     # Calculate daily mean
@@ -325,7 +332,6 @@ def calc_baseflow(data, measurements_per_day=1):
     # Get minimum flow for each 5 day period (Step 1 in Gustard et al 1992)
     Q = summarize(daily_flow, period_length, np.min)
 
-
     def is_baseflow(i, Q):
         """
         Returns True if a 5 day period can be considered as baseflow
@@ -333,17 +339,16 @@ def calc_baseflow(data, measurements_per_day=1):
         :param Q: 5day period minimum values
         :return: True if Q[i] is a baseflow
         """
-        if 0 < i < len(Q)-1:
+        if 0 < i < len(Q) - 1:
             # The boolean expression after the or works with the assumption
-            # that flow values of 0 can always be considered as baseflow. 
+            # that flow values of 0 can always be considered as baseflow.
             return (Q[i] * 0.9 < min(Q[i - 1], Q[i + 1])) or (Q[i] == 0)
         else:
             return False
 
     # Get each 5 day period index, where the baseflow condition is fullfilled
     # (Step 2 in Gustard et al 1992)
-    QB_pos = [i for i in irange(Q)
-              if is_baseflow(i, Q)]
+    QB_pos = [i for i in irange(Q) if is_baseflow(i, Q)]
 
     QB_raw = Q[QB_pos]
     # get interpolated values for each minflow timestep (Step 3)
@@ -452,6 +457,7 @@ def get_qlf(data, measurements_per_day=1):
 
     def lowflow(value, mean):
         return value < 0.2 * mean
+
     fq, md = flow_event(data, lowflow, np.mean(data))
     return fq * measurements_per_day * 365, md / measurements_per_day
 
@@ -548,7 +554,7 @@ def get_recession(data, measurements_per_day=None):
 
     q = fill_nan(data)
     # Only use median of flows above 0, to avoid mathmatical errors.
-    q = q / np.median(q[q>0])
+    q = q / np.median(q[q > 0])
     dqdt = np.diff(q)
     # Use only recession situation (dqdt < 0)
     q = q[:-1][dqdt < 0]
@@ -557,7 +563,7 @@ def get_recession(data, measurements_per_day=None):
 
     b, t0 = np.polyfit(np.log(q), np.log(-dqdt), 1)
 
-    return b, 1/np.exp(t0), r2
+    return b, 1 / np.exp(t0), r2
 
 
 def get_zero_q_freq(data, measurements_per_day=None):
@@ -568,5 +574,3 @@ def get_zero_q_freq(data, measurements_per_day=None):
     :return: ZERO_Q_FREQ
     """
     return ((len(data) - np.count_nonzero(data)) / len(data)) * 100
-
-

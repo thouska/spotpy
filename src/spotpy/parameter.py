@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Philipp Kraft and Tobias Houska
 Contains classes to generate random parameter sets
-'''
+"""
 import copy
 import sys
 from itertools import cycle
@@ -24,13 +24,13 @@ class _ArgumentHelper(object):
     the new way to define parameters as class properties in a setup class is ugly if a parameter name
     needs to be given. This class helps by checking keyword and arguments for their types.
     """
+
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
         self.classname = type(parent).__name__
         self.args = list(args)
         self.kwargs = kwargs.copy()
         self.processed_args = 0
-
 
     def name(self):
         """
@@ -51,12 +51,12 @@ class _ArgumentHelper(object):
             name = self.args.pop(0)
             self.processed_args += 1
         # else get the name from the keywords
-        elif 'name' in self.kwargs:
-            name = self.kwargs.pop('name')
+        elif "name" in self.kwargs:
+            name = self.kwargs.pop("name")
             self.processed_args += 1
         # or just do not use a name
         else:
-            name = ''
+            name = ""
 
         return name
 
@@ -100,9 +100,8 @@ class _ArgumentHelper(object):
         # If the algorithm did not find values for distribution parameters in args are kwargs, fail
         if missing and raise_for_missing:
             raise TypeError(
-                '{T} expected values for the parameters {m}'.format(
-                    T=self.classname,
-                    m=', '.join(missing)
+                "{T} expected values for the parameters {m}".format(
+                    T=self.classname, m=", ".join(missing)
                 )
             )
         # Return the name, the distribution parameter values, and a tuple of unprocessed args and kwargs
@@ -130,7 +129,9 @@ class _ArgumentHelper(object):
         """
         total_args = len(self) + self.processed_args
         if len(self):
-            error = '{}: {} arguments where given but only {} could be used'.format(self.classname, total_args, self.processed_args)
+            error = "{}: {} arguments where given but only {} could be used".format(
+                self.classname, total_args, self.processed_args
+            )
             raise TypeError(error)
 
 
@@ -147,7 +148,7 @@ def _round_sig(x, sig=3):
     if abs(x) < 1e-12:
         return 0
     else:
-        return round(x, sig-int(floor(log10(abs(x))))-1)
+        return round(x, sig - int(floor(log10(abs(x)))) - 1)
 
 
 class Base(object):
@@ -168,7 +169,9 @@ class Base(object):
 
     The Uniform parameter class is the reference implementation.
     """
+
     __rndargs__ = ()
+
     def __init__(self, rndfunc, rndfuncname, *args, **kwargs):
         """
         :name:     Name of the parameter
@@ -188,18 +191,23 @@ class Base(object):
         self.rndfunctype = rndfuncname
         arghelper = _ArgumentHelper(self, *args, **kwargs)
         self.name = arghelper.name()
-        arghelper.alias('default', 'optguess')
+        arghelper.alias("default", "optguess")
         self.rndargs = arghelper.attributes(type(self).__rndargs__, type(self).__name__)
 
         if self.rndfunc:
             # Get the standard arguments for the parameter or create them
-            param_args = arghelper.attributes(['step', 'optguess', 'minbound', 'maxbound'], as_dict=True)
+            param_args = arghelper.attributes(
+                ["step", "optguess", "minbound", "maxbound"], as_dict=True
+            )
             # Draw one sample of size 1000
             sample = self(size=1000)
-            self.step = param_args.get('step', _round_sig(np.percentile(sample, 50) - np.percentile(sample, 40)))
-            self.optguess = param_args.get('optguess', _round_sig(np.median(sample)))
-            self.minbound = param_args.get('minbound', _round_sig(np.min(sample)))
-            self.maxbound = param_args.get('maxbound', _round_sig(np.max(sample)))
+            self.step = param_args.get(
+                "step",
+                _round_sig(np.percentile(sample, 50) - np.percentile(sample, 40)),
+            )
+            self.optguess = param_args.get("optguess", _round_sig(np.median(sample)))
+            self.minbound = param_args.get("minbound", _round_sig(np.min(sample)))
+            self.maxbound = param_args.get("maxbound", _round_sig(np.max(sample)))
 
         else:
 
@@ -208,7 +216,7 @@ class Base(object):
             self.minbound = 0.0
             self.maxbound = 0.0
 
-        self.description = arghelper.get('doc')
+        self.description = arghelper.get("doc")
 
         self.as_int = not not arghelper.get("as_int")
         arghelper.check_complete()
@@ -223,40 +231,51 @@ class Base(object):
         """
         Returns a tuple of a realization and the other parameter properties
         """
-        return self(), self.name, self.step, self.optguess, self.minbound, self.maxbound, self.as_int
+        return (
+            self(),
+            self.name,
+            self.step,
+            self.optguess,
+            self.minbound,
+            self.maxbound,
+            self.as_int,
+        )
 
     def __repr__(self):
         """
         Returns a textual representation of the parameter
         """
-        return "{tname}('{p.name}', {p.rndargs})".format(tname=type(self).__name__, p=self)
+        return "{tname}('{p.name}', {p.rndargs})".format(
+            tname=type(self).__name__, p=self
+        )
 
     def __str__(self):
         """
         Returns the description of the parameter, if available, else repr(self)
         :return:
         """
-        doc = vars(self).get('description')
+        doc = vars(self).get("description")
         if doc:
-            res = '{} ({})'.format(doc, repr(self))
+            res = "{} ({})".format(doc, repr(self))
             return res
         else:
             return repr(self)
 
     def __unicode__(self):
-        doc = vars(self).get('description')
+        doc = vars(self).get("description")
         if doc:
-            return u'{}({})'.format(str(doc), repr(self))
+            return "{}({})".format(str(doc), repr(self))
         else:
             return repr(self)
-
 
 
 class Uniform(Base):
     """
     A specialization of the Base parameter for uniform distributions
     """
-    __rndargs__ = 'low', 'high'
+
+    __rndargs__ = "low", "high"
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -269,7 +288,7 @@ class Uniform(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Uniform, self).__init__(rnd.uniform, 'Uniform', *args, **kwargs)
+        super(Uniform, self).__init__(rnd.uniform, "Uniform", *args, **kwargs)
 
 
 class List(Base):
@@ -281,11 +300,13 @@ class List(Base):
     list_param()
     1
     """
-    __rndargs__ = ('values', )
+
+    __rndargs__ = ("values",)
+
     def __init__(self, *args, **kwargs):
-        self.repeat = kwargs.pop('repeat', False)
-        super(List, self).__init__(None,  'List', *args, **kwargs)
-        self.values, = self.rndargs
+        self.repeat = kwargs.pop("repeat", False)
+        super(List, self).__init__(None, "List", *args, **kwargs)
+        (self.values,) = self.rndargs
 
         # Hack to avoid skipping the first value. See __call__ function below.
         self.throwaway_first = True
@@ -318,7 +339,7 @@ class List(Base):
             try:
                 return next(self.iterator)
             except StopIteration:
-                text = 'Number of repetitions is higher than the number of available parameter sets'
+                text = "Number of repetitions is higher than the number of available parameter sets"
                 raise IndexError(text)
 
     def astuple(self):
@@ -329,10 +350,11 @@ class Constant(Base):
     """
     A specialization that produces always the same constant value
     """
-    __rndargs__ = 'scalar',
+
+    __rndargs__ = ("scalar",)
 
     def __init__(self, *args, **kwargs):
-        super(Constant, self).__init__(self, 'Constant', *args, **kwargs)
+        super(Constant, self).__init__(self, "Constant", *args, **kwargs)
 
     value = property(lambda self: self.rndargs[0])
 
@@ -355,7 +377,9 @@ class Normal(Base):
     """
     A specialization of the Base parameter for normal distributions
     """
-    __rndargs__ = 'mean', 'stddev'
+
+    __rndargs__ = "mean", "stddev"
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -369,14 +393,16 @@ class Normal(Base):
                 rndfunc(*rndargs, size=1000)
         """
 
-        super(Normal, self).__init__(rnd.normal, 'Normal', *args, **kwargs)
+        super(Normal, self).__init__(rnd.normal, "Normal", *args, **kwargs)
 
 
 class logNormal(Base):
     """
     A specialization of the Base parameter for normal distributions
     """
-    __rndargs__ = 'mean', 'sigma'
+
+    __rndargs__ = "mean", "sigma"
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -389,14 +415,16 @@ class logNormal(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(logNormal, self).__init__(rnd.lognormal, 'logNormal', *args, **kwargs)
+        super(logNormal, self).__init__(rnd.lognormal, "logNormal", *args, **kwargs)
 
 
 class Chisquare(Base):
     """
     A specialization of the Base parameter for chisquare distributions
     """
-    __rndargs__ = 'dt',
+
+    __rndargs__ = ("dt",)
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -408,14 +436,15 @@ class Chisquare(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Chisquare, self).__init__(rnd.chisquare, 'Chisquare', *args, **kwargs)
+        super(Chisquare, self).__init__(rnd.chisquare, "Chisquare", *args, **kwargs)
 
 
 class Exponential(Base):
     """
     A specialization of the Base parameter for exponential distributions
     """
-    __rndargs__ = 'scale',
+
+    __rndargs__ = ("scale",)
 
     def __init__(self, *args, **kwargs):
         """
@@ -428,14 +457,17 @@ class Exponential(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Exponential, self).__init__(rnd.exponential, 'Exponential', *args, **kwargs)
+        super(Exponential, self).__init__(
+            rnd.exponential, "Exponential", *args, **kwargs
+        )
 
 
 class Gamma(Base):
     """
     A specialization of the Base parameter for gamma distributions
     """
-    __rndargs__ = 'shape', 'scale'
+
+    __rndargs__ = "shape", "scale"
 
     def __init__(self, *args, **kwargs):
         """
@@ -450,7 +482,7 @@ class Gamma(Base):
                 rndfunc(*rndargs, size=1000)
         """
 
-        super(Gamma, self).__init__(rnd.gamma, 'Gamma', *args, **kwargs)
+        super(Gamma, self).__init__(rnd.gamma, "Gamma", *args, **kwargs)
 
 
 class Wald(Base):
@@ -458,7 +490,8 @@ class Wald(Base):
     A specialization of the Base parameter for Wald distributions
     """
 
-    __rndargs__ = 'mean', 'scale'
+    __rndargs__ = "mean", "scale"
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -471,14 +504,16 @@ class Wald(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Wald, self).__init__(rnd.wald, 'Wald', *args, **kwargs)
+        super(Wald, self).__init__(rnd.wald, "Wald", *args, **kwargs)
 
 
 class Weibull(Base):
     """
     A specialization of the Base parameter for Weibull distributions
     """
-    __rndargs__ = 'a',
+
+    __rndargs__ = ("a",)
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -490,14 +525,16 @@ class Weibull(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Weibull, self).__init__(rnd.weibull, 'Weibull', *args, **kwargs)
+        super(Weibull, self).__init__(rnd.weibull, "Weibull", *args, **kwargs)
 
 
 class Triangular(Base):
     """
     A parameter sampling from a triangular distribution
     """
-    __rndargs__ = 'left', 'mode', 'right'
+
+    __rndargs__ = "left", "mode", "right"
+
     def __init__(self, *args, **kwargs):
         """
         :name: Name of the parameter
@@ -511,7 +548,7 @@ class Triangular(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Triangular, self).__init__(rnd.triangular, 'Triangular', *args, **kwargs)
+        super(Triangular, self).__init__(rnd.triangular, "Triangular", *args, **kwargs)
 
 
 class ParameterSet(object):
@@ -543,6 +580,7 @@ class ParameterSet(object):
 
 
     """
+
     def __init__(self, param_info):
         """
         Creates a set of parameters from a parameter info array.
@@ -557,7 +595,9 @@ class ParameterSet(object):
         :param param_info: A record array containing the properties of the parameters
                of this set.
         """
-        self.__lookup = dict(("p" + x if x.isdigit() else x, i) for i, x in enumerate(param_info['name']))
+        self.__lookup = dict(
+            ("p" + x if x.isdigit() else x, i) for i, x in enumerate(param_info["name"])
+        )
         self.__info = param_info
 
     def __call__(self, *values, **kwargs):
@@ -571,20 +611,22 @@ class ParameterSet(object):
         """
         if values:
             if len(self.__info) != len(values):
-                raise ValueError('Given values do are not the same length as the parameter set')
-            self.__info['random'][:] = values
+                raise ValueError(
+                    "Given values do are not the same length as the parameter set"
+                )
+            self.__info["random"][:] = values
         for k in kwargs:
             try:
-                self.__info['random'][self.__lookup[k]] = kwargs[k]
+                self.__info["random"][self.__lookup[k]] = kwargs[k]
             except KeyError:
-                raise TypeError('{} is not a parameter of this set'.format(k))
+                raise TypeError("{} is not a parameter of this set".format(k))
         return self
 
     def __len__(self):
-        return len(self.__info['random'])
+        return len(self.__info["random"])
 
     def __iter__(self):
-        return iter(self.__info['random'])
+        return iter(self.__info["random"])
 
     def __getitem__(self, item):
         """
@@ -595,7 +637,7 @@ class ParameterSet(object):
         """
         if type(item) is str:
             item = self.__lookup[item]
-        return self.__info['random'][item]
+        return self.__info["random"][item]
 
     def __setitem__(self, key, value):
         """
@@ -605,21 +647,25 @@ class ParameterSet(object):
         """
         if key in self.__lookup:
             key = self.__lookup[key]
-        self.__info['random'][key] = value
+        self.__info["random"][key] = value
 
     def __getattr__(self, item):
         """
         Provides the attribute access like
          print(ps.a)
         """
-        if item.startswith('_'):
-            raise AttributeError('{} is not a member of this parameter set'.format(item))
+        if item.startswith("_"):
+            raise AttributeError(
+                "{} is not a member of this parameter set".format(item)
+            )
         elif item in self.__lookup:
-            return self.__info['random'][self.__lookup[item]]
+            return self.__info["random"][self.__lookup[item]]
         elif item in self.__info.dtype.names:
             return self.__info[item]
         else:
-            raise AttributeError('{} is not a member of this parameter set'.format(item))
+            raise AttributeError(
+                "{} is not a member of this parameter set".format(item)
+            )
 
     def __setattr__(self, key, value):
         """
@@ -627,20 +673,21 @@ class ParameterSet(object):
          ps.a = 2
         """
         # Allow normal usage
-        if key.startswith('_') or key not in self.__lookup:
+        if key.startswith("_") or key not in self.__lookup:
             return object.__setattr__(self, key, value)
         else:
-            self.__info['random'][self.__lookup[key]] = value
+            self.__info["random"][self.__lookup[key]] = value
 
     def __str__(self):
-        return 'parameters({})'.format(
-            ', '.join('{}={:g}'.format(k, self.__info['random'][i])
-                      for i, k in enumerate(self.__info['name'])
-                      )
+        return "parameters({})".format(
+            ", ".join(
+                "{}={:g}".format(k, self.__info["random"][i])
+                for i, k in enumerate(self.__info["name"])
+            )
         )
 
     def __repr__(self):
-        return 'spotpy.parameter.ParameterSet()'
+        return "spotpy.parameter.ParameterSet()"
 
     def __dir__(self):
         """
@@ -649,21 +696,22 @@ class ParameterSet(object):
 
         :return: List of method names and fields
         """
-        attrs = [attr for attr in vars(type(self)) if not attr.startswith('_')]
-        return attrs + list(self.__info['name']) + list(self.__info.dtype.names)
+        attrs = [attr for attr in vars(type(self)) if not attr.startswith("_")]
+        return attrs + list(self.__info["name"]) + list(self.__info.dtype.names)
 
-    def set_by_array(self,array):
+    def set_by_array(self, array):
         for i, a in enumerate(array):
-            self.__setitem__(i,a)
+            self.__setitem__(i, a)
 
     def copy(self):
         return ParameterSet(copy.deepcopy(self.__info))
+
 
 def get_classes():
     keys = []
     current_module = sys.modules[__name__]
     for key in dir(current_module):
-        if isinstance( getattr(current_module, key), type ):
+        if isinstance(getattr(current_module, key), type):
             keys.append(key)
     return keys
 
@@ -674,11 +722,19 @@ def generate(parameters):
     is given as a structured array in the format the parameters function of a setup expects
     :parameters: A sequence of parameter objects
     """
-    dtype = [('random', '<f8'), ('name', '|U100'),
-             ('step', '<f8'), ('optguess', '<f8'),
-             ('minbound', '<f8'), ('maxbound', '<f8'), ('as_int', 'bool')]
+    dtype = [
+        ("random", "<f8"),
+        ("name", "|U100"),
+        ("step", "<f8"),
+        ("optguess", "<f8"),
+        ("minbound", "<f8"),
+        ("maxbound", "<f8"),
+        ("as_int", "bool"),
+    ]
 
-    return np.fromiter((param.astuple() for param in parameters), dtype=dtype, count=len(parameters))
+    return np.fromiter(
+        (param.astuple() for param in parameters), dtype=dtype, count=len(parameters)
+    )
 
 
 def check_parameter_types(parameters, unaccepted_parameter_types):
@@ -686,12 +742,17 @@ def check_parameter_types(parameters, unaccepted_parameter_types):
         problems = []
         for param in parameters:
             for param_type in unaccepted_parameter_types:
-               if type(param) == param_type:
+                if type(param) == param_type:
                     problems.append([param, param_type])
 
         if problems:
-            problem_string = ', '.join('{} is {}'.format(param, param_type) for param, param_type in problems)
-            raise TypeError('List parameters are only accepted for Monte Carlo (MC) sampler: ' + problem_string)
+            problem_string = ", ".join(
+                "{} is {}".format(param, param_type) for param, param_type in problems
+            )
+            raise TypeError(
+                "List parameters are only accepted for Monte Carlo (MC) sampler: "
+                + problem_string
+            )
 
     return parameters
 
@@ -711,7 +772,7 @@ def get_parameters_array(setup, unaccepted_parameter_types=()):
         generate(setup_parameters)
     )
 
-    if hasattr(setup, 'parameters') and callable(setup.parameters):
+    if hasattr(setup, "parameters") and callable(setup.parameters):
         # parameters is a function, as defined in the setup API up to at least spotpy version 1.3.13
         param_arrays.append(setup.parameters())
 
@@ -726,10 +787,10 @@ def find_constant_parameters(parameter_array):
     :param parameter_array: Return array from parameter.get_parameter_array(setup)
     :return: A True / False array with the len(result) == len(parameter_array)
     """
-    return (parameter_array['maxbound'] - parameter_array['minbound'] == 0.0)
+    return parameter_array["maxbound"] - parameter_array["minbound"] == 0.0
 
 
-def create_set(setup, valuetype='random', **kwargs):
+def create_set(setup, valuetype="random", **kwargs):
     """
     Returns a named tuple holding parameter values, to be used with the simulation method of a setup
 
@@ -781,16 +842,16 @@ def get_constant_indices(setup, unaccepted_parameter_types=(Constant,)):
     class_variables = vars(cls).items()
 
     par_index = []
-    i=0
-    contained_class_parameter=False
-    #for i in range(len(class_variables)):
+    i = 0
+    contained_class_parameter = False
+    # for i in range(len(class_variables)):
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
-            contained_class_parameter=True
+            contained_class_parameter = True
             if isinstance(attrobj, unaccepted_parameter_types):
                 par_index.append(i)
-            i+=1
+            i += 1
 
     if contained_class_parameter:
         return par_index
@@ -823,17 +884,17 @@ def get_parameters_from_setup(setup):
     for attrname, attrobj in class_variables:
         # Check if it is an spotpy parameter
         if isinstance(attrobj, Base):
-#            if isinstance(attrobj, unaccepted_parameter_types):
-#                pass
-#            # Set the attribute name
-#            else:
+            #            if isinstance(attrobj, unaccepted_parameter_types):
+            #                pass
+            #            # Set the attribute name
+            #            else:
             if not attrobj.name:
                 attrobj.name = attrname
             # Add parameter to dict
             parameters.append(attrobj)
 
     # Get the parameters list of setup if the parameter attribute is not a method:
-    if hasattr(setup, 'parameters') and not callable(setup.parameters):
+    if hasattr(setup, "parameters") and not callable(setup.parameters):
         # parameters is not callable, assume a list of parameter objects.
         # Generate the parameters array from it and append it to our list
         parameters.extend(setup.parameters)

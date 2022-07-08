@@ -1,10 +1,10 @@
-'''
+"""
 Copyright 2015 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python (SPOTPY).
 :author: Tobias Houska
 
 This example implements the Rosenbrock function into a SPOTPY class.
-'''
+"""
 
 import numpy as np
 
@@ -18,16 +18,19 @@ class spot_setup(object):
 
     Result at (1,1,1) is 0.
     """
-    x = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='x value of Rosenbrock function')
-    y = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='y value of Rosenbrock function')
-    z = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc='z value of Rosenbrock function')
 
-    def __init__(self,obj_func=None):
+    x = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc="x value of Rosenbrock function")
+    y = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc="y value of Rosenbrock function")
+    z = Uniform(-10, 10, 1.5, 3.0, -10, 10, doc="z value of Rosenbrock function")
+
+    def __init__(self, obj_func=None):
         self.obj_func = obj_func
 
     def simulation(self, vector):
-        x=np.array(vector)
-        simulations= [sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)]
+        x = np.array(vector)
+        simulations = [
+            sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)
+        ]
         return simulations
 
     def evaluation(self):
@@ -36,12 +39,12 @@ class spot_setup(object):
 
     def objectivefunction(self, simulation, evaluation, params=None):
 
-        #SPOTPY expects to get one or multiple values back,
-        #that define the performence of the model run
+        # SPOTPY expects to get one or multiple values back,
+        # that define the performence of the model run
         if not self.obj_func:
             # This is used if not overwritten by user
-            like = rmse(evaluation,simulation)
+            like = rmse(evaluation, simulation)
         else:
-            #Way to ensure on flexible spot setup class
-            like = self.obj_func(evaluation,simulation)
+            # Way to ensure on flexible spot setup class
+            like = self.obj_func(evaluation, simulation)
         return like

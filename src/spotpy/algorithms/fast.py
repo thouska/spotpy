@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and the SALib team
-'''
+"""
 
 import math
 
@@ -13,7 +13,7 @@ from . import _algorithm
 
 
 class fast(_algorithm):
-    '''
+    """
     Fourier Amplitude Sensitivity Test (FAST)
 
     This class holds the Fourier Amplitude Sensitivity Test (FAST) based on Cukier et al. (1973) and Saltelli et al. (1999):
@@ -27,10 +27,10 @@ class fast(_algorithm):
     The Sensitivity Analysis Library is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
     The Sensitivity Analysis Library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
     You should have received a copy of the GNU Lesser General Public License along with the Sensitivity Analysis Library. If not, see http://www.gnu.org/licenses/.
-     '''
+    """
 
-    def __init__(self,  *args, **kwargs):
-        '''
+    def __init__(self, *args, **kwargs):
+        """
         Input
         ----------
         spot_setup: class
@@ -60,19 +60,19 @@ class fast(_algorithm):
         save_sim: boolean
             *True:  Simulation results will be saved
             *False: Simulation results will not be saved
-        '''
-        kwargs['algorithm_name'] = 'Fourier Amplitude Sensitivity Test (FAST)'
+        """
+        kwargs["algorithm_name"] = "Fourier Amplitude Sensitivity Test (FAST)"
         super(fast, self).__init__(*args, **kwargs)
 
     def scale_samples(self, params, bounds):
-        '''
+        """
         Rescales samples in 0-to-1 range to arbitrary bounds.
 
         Arguments:
             bounds - list of lists of dimensions num_params-by-2
             params - numpy array of dimensions num_params-by-N,
             where N is the number of samples
-        '''
+        """
         # Check bounds are legal (upper bound is greater than lower bound)
         b = np.array(bounds)
         lower_bounds = b[:, 0]
@@ -85,11 +85,11 @@ class fast(_algorithm):
         # argument for the numpy ufunctions
         # The calculation is equivalent to:
         #   sample * (upper_bound - lower_bound) + lower_bound
-        np.add(np.multiply(params,
-                           (upper_bounds - lower_bounds),
-                           out=params),
-               lower_bounds,
-               out=params)
+        np.add(
+            np.multiply(params, (upper_bounds - lower_bounds), out=params),
+            lower_bounds,
+            out=params,
+        )
 
     def matrix(self, bounds, N, M=4):
         D = len(bounds)
@@ -105,7 +105,7 @@ class fast(_algorithm):
 
         # Discretization of the frequency space, s
         s = (2 * math.pi / N) * np.arange(N)
-        #s = math.pi / 2.0 * (2 * np.arange(1,N+1) - N-1) / N
+        # s = math.pi / 2.0 * (2 * np.arange(1,N+1) - N-1) / N
 
         # Transformation to get points in the X space
         X = np.empty([N * D, D])
@@ -122,8 +122,7 @@ class fast(_algorithm):
             phi = 2 * math.pi * np.random.rand()
 
             for j in range(D):
-                g = 0.5 + (1 / math.pi) * \
-                    np.arcsin(np.sin(omega2[j] * s + phi))
+                g = 0.5 + (1 / math.pi) * np.arcsin(np.sin(omega2[j] * s + phi))
                 X[l, j] = g
 
         self.scale_samples(X, bounds)
@@ -138,16 +137,24 @@ class fast(_algorithm):
             N = int(Y.size / D)
         elif Y.size > D:
             N = int(Y.size / D)
-            rest = Y.size - N*D
-            print("""
-                We can not use """ + str(rest) + """ samples which was generated
-                of totaly """ + str(Y.size) + """
-                """)
+            rest = Y.size - N * D
+            print(
+                """
+                We can not use """
+                + str(rest)
+                + """ samples which was generated
+                of totaly """
+                + str(Y.size)
+                + """
+                """
+            )
         else:
-            print("""
+            print(
+                """
                 Error: Number of samples in model output file must be a multiple of D,
                 where D is the number of parameters in your parameter file.
-              """)
+              """
+            )
             exit()
 
         # Recreate the vector omega used in the sampling
@@ -163,14 +170,13 @@ class fast(_algorithm):
         # Calculate and Output the First and Total Order Values
         if print_to_console:
             print("Parameter First Total")
-        Si = dict((k, [None] * D) for k in ['S1', 'ST'])
+        Si = dict((k, [None] * D) for k in ["S1", "ST"])
         for i in range(D):
             l = np.arange(i * N, (i + 1) * N)
-            Si['S1'][i] = self.compute_first_order(Y[l], N, M, omega[0])
-            Si['ST'][i] = self.compute_total_order(Y[l], N, omega[0])
+            Si["S1"][i] = self.compute_first_order(Y[l], N, M, omega[0])
+            Si["ST"][i] = self.compute_total_order(Y[l], N, omega[0])
             if print_to_console:
-                print("%s %f %f" %
-                      (parnames[i], Si['S1'][i], Si['ST'][i]))
+                print("%s %f %f" % (parnames[i], Si["S1"][i], Si["ST"][i]))
         return Si
 
     def compute_first_order(self, outputs, N, M, omega):
@@ -185,7 +191,7 @@ class fast(_algorithm):
         Sp = np.power(np.absolute(f[np.arange(1, int((N + 1) / 2))]) / N, 2)
         V = 2 * np.sum(Sp)
         Dt = 2 * sum(Sp[np.arange(int(omega / 2))])
-        return (1 - Dt / V)
+        return 1 - Dt / V
 
     def sample(self, repetitions, M=4):
         """
@@ -197,14 +203,15 @@ class fast(_algorithm):
             Maximum number of runs.
         """
         self.set_repetiton(repetitions)
-        print('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
-        print('Creating FAST Matrix')
+        print(
+            "Starting the FAST algotrithm with " + str(repetitions) + " repetitions..."
+        )
+        print("Creating FAST Matrix")
         # Get the names of the parameters to analyse
-        names = self.parameter()['name']
+        names = self.parameter()["name"]
         # Get the minimum and maximum value for each parameter from the
         # distribution
-        parmin, parmax = self.parameter()['minbound'], self.parameter()[
-            'maxbound']
+        parmin, parmax = self.parameter()["minbound"], self.parameter()["maxbound"]
 
         # Create an Matrix to store the parameter sets
         N = int(math.ceil(float(repetitions) / float(len(parmin))))
@@ -212,20 +219,19 @@ class fast(_algorithm):
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
         Matrix = self.matrix(bounds, N, M=M)
-        lastbackup=0
-        if self.breakpoint == 'read' or self.breakpoint == 'readandwrite':
+        lastbackup = 0
+        if self.breakpoint == "read" or self.breakpoint == "readandwrite":
             data_frombreak = self.read_breakdata(self.dbname)
             rep = data_frombreak[0]
             Matrix = data_frombreak[1]
 
-        param_generator = (
-            (rep, Matrix[rep]) for rep in range(len(Matrix)))
+        param_generator = ((rep, Matrix[rep]) for rep in range(len(Matrix)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # Calculate the objective function
             self.postprocessing(rep, randompar, simulations)
 
-            if self.breakpoint == 'write' or self.breakpoint == 'readandwrite':
-                if rep >= lastbackup+self.backup_every_rep:
+            if self.breakpoint == "write" or self.breakpoint == "readandwrite":
+                if rep >= lastbackup + self.backup_every_rep:
                     work = (rep, Matrix[rep:])
                     self.write_breakdata(self.dbname, work)
                     lastbackup = rep
@@ -235,6 +241,7 @@ class fast(_algorithm):
             data = self.datawriter.getdata()
             # this is likely to crash if database does not assign name 'like1'
             Si = self.analyze(
-                bounds, data['like1'], len(bounds), names, M=M, print_to_console=True)
+                bounds, data["like1"], len(bounds), names, M=M, print_to_console=True
+            )
         except AttributeError:  # Happens if no database was assigned
             pass

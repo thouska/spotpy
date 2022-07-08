@@ -17,28 +17,29 @@ class csv(database):
         # init base class
         super(csv, self).__init__(*args, **kwargs)
         # store init item only if dbinit
-        if kwargs.get('dbappend', False) is False:
+        if kwargs.get("dbappend", False) is False:
             print("* Database file '{}.csv' created.".format(self.dbname))
             # Create a open file, which needs to be closed after the sampling
-            mode = 'w'
-            self.db = io.open(self.dbname + '.csv', mode)
+            mode = "w"
+            self.db = io.open(self.dbname + ".csv", mode)
             # write header line
-            self.db.write(str(','.join(self.header) + '\n'))
+            self.db.write(str(",".join(self.header) + "\n"))
         else:
             print("* Appending to database file '{}.csv'.".format(self.dbname))
             # Continues writing file
-            mode = 'a'
-            self.db = io.open(self.dbname + '.csv', mode)
+            mode = "a"
+            self.db = io.open(self.dbname + ".csv", mode)
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
-        coll = (self.dim_dict['like'](objectivefunction) +
-                self.dim_dict['par'](parameterlist) +
-                self.dim_dict['simulation'](simulations) +
-                [chains])
+        coll = (
+            self.dim_dict["like"](objectivefunction)
+            + self.dim_dict["par"](parameterlist)
+            + self.dim_dict["simulation"](simulations)
+            + [chains]
+        )
         # Apply rounding of floats
         coll = map(self.db_precision, coll)
-        self.db.write(
-            ','.join(map(str, coll)) + '\n')
+        self.db.write(",".join(map(str, coll)) + "\n")
 
         acttime = time.time()
         # Force writing to disc at least every two seconds
@@ -51,5 +52,5 @@ class csv(database):
         self.db.close()
 
     def getdata(self):
-        data = np.genfromtxt(self.dbname + '.csv', delimiter=',', names=True)
+        data = np.genfromtxt(self.dbname + ".csv", delimiter=",", names=True)
         return data

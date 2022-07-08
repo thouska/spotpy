@@ -50,7 +50,7 @@ class lhs(_algorithm):
             * True:  Simulation results will be saved
             * False: Simulation results will not be saved
         """
-        kwargs['algorithm_name'] = 'Latin Hypercube Sampling (LHS)'
+        kwargs["algorithm_name"] = "Latin Hypercube Sampling (LHS)"
         super(lhs, self).__init__(*args, **kwargs)
 
     def sample(self, repetitions):
@@ -61,16 +61,17 @@ class lhs(_algorithm):
             maximum number of function evaluations allowed during optimization
         """
         self.set_repetiton(repetitions)
-        print('Starting the LHS algotrithm with '+str(repetitions)+ ' repetitions...')
-        print('Creating LatinHyperCube Matrix')
+        print(
+            "Starting the LHS algotrithm with " + str(repetitions) + " repetitions..."
+        )
+        print("Creating LatinHyperCube Matrix")
         # Get the names of the parameters to analyse
-        names = self.parameter()['name']
+        names = self.parameter()["name"]
         # Define the jump size between the parameter
         segment = 1 / float(repetitions)
         # Get the minimum and maximum value for each parameter from the
         # distribution
-        parmin, parmax = self.parameter()['minbound'], self.parameter()[
-            'maxbound']
+        parmin, parmax = self.parameter()["minbound"], self.parameter()["maxbound"]
 
         # Create an matrx to store the parameter sets
         matrix = np.empty((repetitions, len(parmin)))
@@ -84,8 +85,7 @@ class lhs(_algorithm):
             random.shuffle(matrix[:, i])
 
         # A generator that produces the parameters
-        param_generator = ((rep, matrix[rep])
-                           for rep in range(int(repetitions)))
+        param_generator = ((rep, matrix[rep]) for rep in range(int(repetitions)))
         for rep, randompar, simulations in self.repeat(param_generator):
             # A function that calculates the fitness of the run and the manages the database
             self.postprocessing(rep, randompar, simulations)

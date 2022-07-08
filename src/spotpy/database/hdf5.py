@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2015 by Tobias Houska
 
 This file is part of Statistical Parameter Optimization Tool (SPOTPY).
@@ -8,7 +8,7 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 
 This is the parent class of all algorithms, which can handle the database
 structure during the sample.
-'''
+"""
 
 import numpy as np
 
@@ -17,8 +17,10 @@ from .base import database
 try:
     import tables
 except ImportError:
-    print('ImportError: Pytables is not correctly installed. Please also make sure you',
-          'installed the hdf5 extension (https://www.hdfgroup.org/downloads/hdf5/)')
+    print(
+        "ImportError: Pytables is not correctly installed. Please also make sure you",
+        "installed the hdf5 extension (https://www.hdfgroup.org/downloads/hdf5/)",
+    )
     raise
 import sys
 
@@ -29,6 +31,7 @@ class hdf5(database):
 
     This is only available if PyTables is installed
     """
+
     def get_table_def(self):
         """
         Returns a dict of column definitions using multidimensional
@@ -59,12 +62,10 @@ class hdf5(database):
             # Get the appropriate dtype for the n-d cell
             # (tables.Col.from_dtype does not take a shape parameter)
             sim_dtype = np.dtype((self.db_precision, sim_shape))
-            columns['simulation'] = tables.Col.from_dtype(
-                sim_dtype, pos=sim_pos
-            )
+            columns["simulation"] = tables.Col.from_dtype(sim_dtype, pos=sim_pos)
             chain_pos += 1
         # Add a column chains
-        columns['chains'] = tables.UInt16Col(pos=chain_pos)
+        columns["chains"] = tables.UInt16Col(pos=chain_pos)
 
         return columns
 
@@ -77,29 +78,33 @@ class hdf5(database):
         # init base class
         super(hdf5, self).__init__(*args, **kwargs)
         # store init item only if dbinit
-        if not kwargs.get('dbappend', False):
+        if not kwargs.get("dbappend", False):
             # Create an open file, which needs to be closed after the sampling
-            self.db = tables.open_file(self.dbname + '.h5', 'w', self.dbname)
-            self.table = self.db.create_table('/', self.dbname, description=self.get_table_def())
+            self.db = tables.open_file(self.dbname + ".h5", "w", self.dbname)
+            self.table = self.db.create_table(
+                "/", self.dbname, description=self.get_table_def()
+            )
         else:
             # Continues writing file
-            self.db = tables.open_file(self.dbname + '.h5', 'a')
+            self.db = tables.open_file(self.dbname + ".h5", "a")
             self.table = self.db.root[self.dbname]
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         new_row = self.table.row
 
-        coll = self.dim_dict['like'](objectivefunction) + self.dim_dict['par'](parameterlist)
+        coll = self.dim_dict["like"](objectivefunction) + self.dim_dict["par"](
+            parameterlist
+        )
         for header, value in zip(self.header, coll):
             new_row[header] = value
         if self.save_sim:
-            new_row['simulation'] = simulations
-        new_row['chains'] = chains
+            new_row["simulation"] = simulations
+        new_row["chains"] = chains
         new_row.append()
 
     def finalize(self):
         self.db.close()
 
     def getdata(self):
-        with tables.open_file(self.dbname + '.h5', 'a') as db:
+        with tables.open_file(self.dbname + ".h5", "a") as db:
             return db.root[self.dbname][:]

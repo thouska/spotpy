@@ -7,8 +7,8 @@ from . import _algorithm
 
 class DDSGenerator:
     """
-        This class is used by the DDS algorithm to generate a new sample of parameters based on the current one.
-        Current parameter are exchanged in `ParameterSet` objects.
+    This class is used by the DDS algorithm to generate a new sample of parameters based on the current one.
+    Current parameter are exchanged in `ParameterSet` objects.
     """
 
     def __init__(self, np_random):
@@ -119,7 +119,9 @@ class DDSGenerator:
                 s_new = s_max
 
         s_new = np.round(s_new)  # New value must be integer
-        if s_new == s:  # pick a number between s_max and s_min by a Uniform distribution
+        if (
+            s_new == s
+        ):  # pick a number between s_max and s_min by a Uniform distribution
             sample = s_min - 1 + np.ceil((s_max - s_min) * self.np_random.rand())
             if sample < s:
                 s_new = sample
@@ -146,24 +148,24 @@ class DDSGenerator:
 
 class dds(_algorithm):
     """
-        Implements the Dynamically dimensioned search algorithm for computationally efficient watershed model
-        calibration
-        by
-        Tolson, B. A. and C. A. Shoemaker (2007), Dynamically dimensioned search algorithm for computationally efficient
-         watershed model calibration, Water Resources Research, 43, W01413, 10.1029/2005WR004723.
-        Asadzadeh, M. and B. A. Tolson (2013), Pareto archived dynamically dimensioned search with hypervolume-based
-        selection for multi-objective optimization, Engineering Optimization. 10.1080/0305215X.2012.748046.
+    Implements the Dynamically dimensioned search algorithm for computationally efficient watershed model
+    calibration
+    by
+    Tolson, B. A. and C. A. Shoemaker (2007), Dynamically dimensioned search algorithm for computationally efficient
+     watershed model calibration, Water Resources Research, 43, W01413, 10.1029/2005WR004723.
+    Asadzadeh, M. and B. A. Tolson (2013), Pareto archived dynamically dimensioned search with hypervolume-based
+    selection for multi-objective optimization, Engineering Optimization. 10.1080/0305215X.2012.748046.
 
-        http://www.civil.uwaterloo.ca/btolson/software.aspx
+    http://www.civil.uwaterloo.ca/btolson/software.aspx
 
-        Method:
-        "The DDS algorithm is a novel and simple stochastic single-solution based heuristic global search
-        algorithm that was developed for the purpose of finding good global solutions
-        (as opposed to globally optimal solutions) within a specified maximum function (or model) evaluation limit."
-        (Page 3)
+    Method:
+    "The DDS algorithm is a novel and simple stochastic single-solution based heuristic global search
+    algorithm that was developed for the purpose of finding good global solutions
+    (as opposed to globally optimal solutions) within a specified maximum function (or model) evaluation limit."
+    (Page 3)
 
-        The DDS algorithm is a simple greedy algorithm, always using the best solution (min or max) from the current
-        point of view. This may not lead to the global optimization.
+    The DDS algorithm is a simple greedy algorithm, always using the best solution (min or max) from the current
+    point of view. This may not lead to the global optimization.
 
     """
 
@@ -208,13 +210,13 @@ class dds(_algorithm):
             self.r = kwargs.pop("r")
         except KeyError:
             self.r = 0.2  # default value
-        kwargs['optimization_direction'] = 'maximize'
-        kwargs['algorithm_name'] = 'Dynamically Dimensioned Search (DDS) algorithm'
+        kwargs["optimization_direction"] = "maximize"
+        kwargs["algorithm_name"] = "Dynamically Dimensioned Search (DDS) algorithm"
         super(dds, self).__init__(*args, **kwargs)
 
         self.np_random = np.random
 
-        #self.status.params_max = ParameterSet(self.parameter())
+        # self.status.params_max = ParameterSet(self.parameter())
 
         # self.generator_repetitions will be set in `sample` and is needed to generate a
         # generator which sends back actual parameter s_test
@@ -232,7 +234,9 @@ class dds(_algorithm):
         """
         # We need to shift position and length of the sampling process
         for rep in range(self.generator_repetitions):
-            yield rep, self.calculate_next_s_test(self.params_max, rep, self.generator_repetitions, self.r)
+            yield rep, self.calculate_next_s_test(
+                self.params_max, rep, self.generator_repetitions, self.r
+            )
 
     def sample(self, repetitions, trials=1, x_initial=np.array([])):
         """
@@ -273,33 +277,50 @@ class dds(_algorithm):
         debug_results = []
 
         self.set_repetiton(repetitions)
-        self.min_bound, self.max_bound = self.parameter(
-        )['minbound'], self.parameter()['maxbound']
-        print('Starting the DDS algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.min_bound, self.max_bound = (
+            self.parameter()["minbound"],
+            self.parameter()["maxbound"],
+        )
+        print(
+            "Starting the DDS algotrithm with " + str(repetitions) + " repetitions..."
+        )
 
-        number_of_parameters = self.status.parameters  # number_of_parameters is the amount of parameters
+        number_of_parameters = (
+            self.status.parameters
+        )  # number_of_parameters is the amount of parameters
 
         if len(x_initial) == 0:
             initial_iterations = int(np.max([5, round(0.005 * repetitions)]))
         elif len(x_initial) != number_of_parameters:
-            raise ValueError("User specified 'x_initial' has not the same length as available parameters")
+            raise ValueError(
+                "User specified 'x_initial' has not the same length as available parameters"
+            )
         else:
             initial_iterations = 1
             x_initial = np.array(x_initial)
-            if not (np.all(x_initial <= self.max_bound) and np.all(
-                    x_initial >= self.min_bound)):
-                raise ValueError("User specified 'x_initial' but the values are not within the parameter range")
+            if not (
+                np.all(x_initial <= self.max_bound)
+                and np.all(x_initial >= self.min_bound)
+            ):
+                raise ValueError(
+                    "User specified 'x_initial' but the values are not within the parameter range"
+                )
 
         # Users can define trial runs in within "repetition" times the algorithm will be executed
         for trial in range(trials):
-            #objectivefunction_max = -1e308
+            # objectivefunction_max = -1e308
             params_max = x_initial
             # repitionno_best saves on which iteration the best parameter configuration has been found
             repitionno_best = initial_iterations  # needed to initialize variable and avoid code failure when small # iterations
-            params_max, repetions_left, objectivefunction_max = self.calc_initial_para_configuration(initial_iterations, trial,
-                                                                                    repetitions, x_initial)
+            (
+                params_max,
+                repetions_left,
+                objectivefunction_max,
+            ) = self.calc_initial_para_configuration(
+                initial_iterations, trial, repetitions, x_initial
+            )
             params_max = self.fix_status_params_format(params_max)
-            trial_best_value = list(params_max)#self.status.params_max.copy()
+            trial_best_value = list(params_max)  # self.status.params_max.copy()
 
             # important to set this field `generator_repetitions` so that
             # method `get_next_s_test` can generate exact parameters
@@ -313,9 +334,20 @@ class dds(_algorithm):
                     self.params_max = list(x_curr)
                     self.params_max = self.fix_status_params_format(self.params_max)
 
-            print('Best solution found has obj function value of ' + str(objectivefunction_max) + ' at '
-                  + str(repitionno_best) + '\n\n')
-            debug_results.append({"sbest": self.params_max, "trial_initial": trial_best_value,"objfunc_val": objectivefunction_max})
+            print(
+                "Best solution found has obj function value of "
+                + str(objectivefunction_max)
+                + " at "
+                + str(repitionno_best)
+                + "\n\n"
+            )
+            debug_results.append(
+                {
+                    "sbest": self.params_max,
+                    "trial_initial": trial_best_value,
+                    "objfunc_val": objectivefunction_max,
+                }
+            )
         self.final_call()
         return debug_results
 
@@ -324,8 +356,10 @@ class dds(_algorithm):
         start_params.set_by_array([j for j in params_max])
         return start_params
 
-    def calc_initial_para_configuration(self, initial_iterations, trial, repetitions, x_initial):
-        #max_bound, min_bound = self.status.params_max.maxbound, self.status.params_max.minbound
+    def calc_initial_para_configuration(
+        self, initial_iterations, trial, repetitions, x_initial
+    ):
+        # max_bound, min_bound = self.status.params_max.maxbound, self.status.params_max.minbound
         parameter_bound_range = self.max_bound - self.min_bound
         number_of_parameters = len(parameter_bound_range)
         discrete_flag = ParameterSet(self.parameter()).as_int
@@ -336,20 +370,41 @@ class dds(_algorithm):
         # by trying which randomized generated input matches best
         # initial_iterations is the number of function evaluations to initialize the DDS algorithm solution
         if initial_iterations > 1:
-            print('Finding best starting point for trial ' + str(trial + 1) + ' using ' + str(
-                initial_iterations) + ' random samples.')
-            repetions_left = repetitions - initial_iterations  # use this to reduce number of fevals in DDS loop
+            print(
+                "Finding best starting point for trial "
+                + str(trial + 1)
+                + " using "
+                + str(initial_iterations)
+                + " random samples."
+            )
+            repetions_left = (
+                repetitions - initial_iterations
+            )  # use this to reduce number of fevals in DDS loop
             if repetions_left <= 0:
-                raise ValueError('# Initialization samples >= Max # function evaluations.')
+                raise ValueError(
+                    "# Initialization samples >= Max # function evaluations."
+                )
 
             starting_generator = (
-                (rep, [self.np_random.randint(int(self.min_bound[j]), int(self.max_bound[j]) + 1) if
-                       discrete_flag[j] else self.min_bound[j] + parameter_bound_range[j] * self.np_random.rand()
-                       for j in
-                       range(number_of_parameters)]) for rep in range(int(initial_iterations)))
+                (
+                    rep,
+                    [
+                        self.np_random.randint(
+                            int(self.min_bound[j]), int(self.max_bound[j]) + 1
+                        )
+                        if discrete_flag[j]
+                        else self.min_bound[j]
+                        + parameter_bound_range[j] * self.np_random.rand()
+                        for j in range(number_of_parameters)
+                    ],
+                )
+                for rep in range(int(initial_iterations))
+            )
 
             for rep, x_curr, simulations in self.repeat(starting_generator):
-                like = self.postprocessing(rep, x_curr, simulations)  # get obj function value
+                like = self.postprocessing(
+                    rep, x_curr, simulations
+                )  # get obj function value
                 # status setting update
                 if like > objectivefunction_max:
                     objectivefunction_max = like
@@ -357,13 +412,17 @@ class dds(_algorithm):
                     params_max = self.fix_status_params_format(params_max)
 
         else:  # now initial_iterations=1, using a user supplied initial solution.  Calculate obj func value.
-            repetions_left = repetitions - 1  # use this to reduce number of fevals in DDS loop
-            rep, x_test_param, simulations = self.simulate((0, x_initial))  # get from the inputs
+            repetions_left = (
+                repetitions - 1
+            )  # use this to reduce number of fevals in DDS loop
+            rep, x_test_param, simulations = self.simulate(
+                (0, x_initial)
+            )  # get from the inputs
             like = self.postprocessing(rep, x_test_param, simulations)
             if like > objectivefunction_max:
-                    objectivefunction_max = like
-                    params_max = list(x_test_param)
-                    params_max = self.fix_status_params_format(params_max)
+                objectivefunction_max = like
+                params_max = list(x_test_param)
+                params_max = self.fix_status_params_format(params_max)
         return params_max, repetions_left, objectivefunction_max
 
     def calculate_next_s_test(self, previous_x_curr, rep, rep_limit, r):
@@ -385,22 +444,35 @@ class dds(_algorithm):
         :return: next parameter set
         """
         amount_params = len(previous_x_curr)
-        new_x_curr = previous_x_curr.copy()  # define new_x_curr initially as current (previous_x_curr for greedy)
+        new_x_curr = (
+            previous_x_curr.copy()
+        )  # define new_x_curr initially as current (previous_x_curr for greedy)
 
         randompar = self.np_random.rand(amount_params)
         probability_neighborhood = 1.0 - np.log(rep + 1) / np.log(rep_limit)
         dvn_count = 0  # counter for how many decision variables vary in neighbour
 
         for j in range(amount_params):
-            if randompar[j] < probability_neighborhood:  # then j th DV selected to vary in neighbour
+            if (
+                randompar[j] < probability_neighborhood
+            ):  # then j th DV selected to vary in neighbour
                 dvn_count = dvn_count + 1
-                new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, j, self.min_bound[j],self.max_bound[j])
+                new_value = self.dds_generator.neigh_value_mixed(
+                    previous_x_curr, r, j, self.min_bound[j], self.max_bound[j]
+                )
                 new_x_curr[j] = new_value  # change relevant dec var value in x_curr
 
         if dvn_count == 0:  # no DVs selected at random, so select ONE
             dec_var = int(np.ceil(amount_params * self.np_random.rand())) - 1
-            new_value = self.dds_generator.neigh_value_mixed(previous_x_curr, r, dec_var, self.min_bound[dec_var],
-                                                             self.max_bound[dec_var])
-            new_x_curr[dec_var] = new_value  # change relevant decision variable value in s_test
+            new_value = self.dds_generator.neigh_value_mixed(
+                previous_x_curr,
+                r,
+                dec_var,
+                self.min_bound[dec_var],
+                self.max_bound[dec_var],
+            )
+            new_x_curr[
+                dec_var
+            ] = new_value  # change relevant decision variable value in s_test
 
         return new_x_curr
