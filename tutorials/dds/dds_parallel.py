@@ -29,7 +29,9 @@ timeout = 10  # Given in Seconds
 parallel = "mpi"
 dbformat = "csv"
 start = time.time()
-dds_sampler = spotpy.algorithms.dds(spot_setup, parallel=parallel, dbname='DDS', dbformat=dbformat, sim_timeout=timeout)
+dds_sampler = spotpy.algorithms.dds(
+    spot_setup, parallel=parallel, dbname="DDS", dbformat=dbformat, sim_timeout=timeout
+)
 dds_sampler.sample(rep, trials=1)
 dds_elapsed = time.time() - start
 print(dds_elapsed)
@@ -40,4 +42,4 @@ benchmarks_duration["rep"].append(rep)
 
 print(benchmarks_duration)
 
-json.dump(benchmarks_duration, open(json_path,"w"))
+json.dump(benchmarks_duration, open(json_path, "w"))

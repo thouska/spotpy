@@ -18,7 +18,7 @@ def parallel():
     Returns 'mpi', if this code runs with MPI, else returns 'seq'
     :return:
     """
-    return 'mpi' if 'OMPI_COMM_WORLD_SIZE' in os.environ else 'seq'
+    return "mpi" if "OMPI_COMM_WORLD_SIZE" in os.environ else "seq"
 
 
 def get_runs(default=1):
@@ -28,9 +28,9 @@ def get_runs(default=1):
     :return: int
     """
     # Get number of runs
-    if 'SPOTPYRUNS' in os.environ:
+    if "SPOTPYRUNS" in os.environ:
         # from environment
-        return int(os.environ['SPOTPYRUNS'])
+        return int(os.environ["SPOTPYRUNS"])
     elif len(sys.argv) > 1:
         # from command line
         return int(sys.argv[1])
@@ -39,21 +39,23 @@ def get_runs(default=1):
         return default
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Create the model
-    model = SingleStorage(datetime.datetime(1980, 1, 1),
-                          datetime.datetime(1985, 12, 31))
+    model = SingleStorage(
+        datetime.datetime(1980, 1, 1), datetime.datetime(1985, 12, 31)
+    )
 
     runs = get_runs(default=100)
     # Create the sampler
-    sampler = spotpy.algorithms.mc(model,
-                                   parallel=parallel(),
-                                   dbname=model.dbname, dbformat='csv',
-                                   save_sim=True, sim_timeout=300)
+    sampler = spotpy.algorithms.mc(
+        model,
+        parallel=parallel(),
+        dbname=model.dbname,
+        dbformat="csv",
+        save_sim=True,
+        sim_timeout=300,
+    )
 
     # Now we can sample with the implemented Monte Carlo algorithm:
     sampler.sample(runs)
-
-
-

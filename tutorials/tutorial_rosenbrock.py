@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 
 This file holds the example code from the Rosenbrock tutorial web-documention.
-'''
+"""
 
 
 try:
     import spotpy
 except ImportError:
     import sys
+
     sys.path.append(".")
     import spotpy
 
 from spotpy.describe import describe
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 
-#Create samplers for every algorithm:
-results=[]
-rep=1000
-timeout=10 #Given in Seconds
+# Create samplers for every algorithm:
+results = []
+rep = 1000
+timeout = 10  # Given in Seconds
 
 parallel = "seq"
 dbformat = "csv"
@@ -30,77 +31,142 @@ dbformat = "csv"
 bayesian_likelihood_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
 
 
-sampler = spotpy.algorithms.mc(spot_setup(),
-                             parallel=parallel, dbname='RosenMC', dbformat=dbformat, sim_timeout=timeout)
+sampler = spotpy.algorithms.mc(
+    spot_setup(),
+    parallel=parallel,
+    dbname="RosenMC",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 print(describe(sampler))
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler = spotpy.algorithms.lhs(spot_setup(),
-                              parallel=parallel, dbname='RosenLHS', dbformat=dbformat, sim_timeout=timeout)
+sampler = spotpy.algorithms.lhs(
+    spot_setup(),
+    parallel=parallel,
+    dbname="RosenLHS",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.mle(spot_setup(obj_func=bayesian_likelihood_func),
-                              parallel=parallel, dbname='RosenMLE', dbformat=dbformat, sim_timeout=timeout)
+sampler = spotpy.algorithms.mle(
+    spot_setup(obj_func=bayesian_likelihood_func),
+    parallel=parallel,
+    dbname="RosenMLE",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-
-sampler=spotpy.algorithms.sceua(spot_setup(),
-                                parallel=parallel, dbname='RosenSCEUA', dbformat=dbformat, sim_timeout=timeout)
-sampler.sample(rep,ngs=4)
+sampler = spotpy.algorithms.sceua(
+    spot_setup(),
+    parallel=parallel,
+    dbname="RosenSCEUA",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
+sampler.sample(rep, ngs=4)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.sa(spot_setup(obj_func=bayesian_likelihood_func),
-                             parallel=parallel, dbname='RosenSA', dbformat=dbformat, sim_timeout=timeout)
+sampler = spotpy.algorithms.sa(
+    spot_setup(obj_func=bayesian_likelihood_func),
+    parallel=parallel,
+    dbname="RosenSA",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-
-sampler=spotpy.algorithms.rope(spot_setup(),
-                               parallel=parallel, dbname='RosenROPE',  dbformat=dbformat,sim_timeout=timeout)
+sampler = spotpy.algorithms.rope(
+    spot_setup(),
+    parallel=parallel,
+    dbname="RosenROPE",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.abc(spot_setup(),
-                              parallel=parallel,  dbname='RosenABC',     dbformat=dbformat,sim_timeout=timeout)
+sampler = spotpy.algorithms.abc(
+    spot_setup(),
+    parallel=parallel,
+    dbname="RosenABC",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.fscabc(spot_setup(),
-                                 parallel=parallel, dbname='RosenFSABC', dbformat=dbformat, sim_timeout=timeout)
+sampler = spotpy.algorithms.fscabc(
+    spot_setup(),
+    parallel=parallel,
+    dbname="RosenFSABC",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.mcmc(spot_setup(obj_func=bayesian_likelihood_func),
-                               parallel=parallel, dbname='RosenMCMC', dbformat=dbformat, sim_timeout=timeout)
+sampler = spotpy.algorithms.mcmc(
+    spot_setup(obj_func=bayesian_likelihood_func),
+    parallel=parallel,
+    dbname="RosenMCMC",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
 sampler.sample(rep)
 results.append(sampler.getdata())
 
 
-sampler=spotpy.algorithms.demcz(spot_setup(obj_func = bayesian_likelihood_func),
-                                parallel=parallel, dbname='RosenDEMCz', dbformat=dbformat, sim_timeout=timeout)
-sampler.sample(rep,nChains=4)
+sampler = spotpy.algorithms.demcz(
+    spot_setup(obj_func=bayesian_likelihood_func),
+    parallel=parallel,
+    dbname="RosenDEMCz",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
+sampler.sample(rep, nChains=4)
 results.append(sampler.getdata())
 
-sampler=spotpy.algorithms.dream(spot_setup(obj_func = bayesian_likelihood_func),
-                                parallel=parallel, dbname='RosenDREAM', dbformat=dbformat, sim_timeout=timeout)
-sampler.sample(rep,nChains=4)
+sampler = spotpy.algorithms.dream(
+    spot_setup(obj_func=bayesian_likelihood_func),
+    parallel=parallel,
+    dbname="RosenDREAM",
+    dbformat=dbformat,
+    sim_timeout=timeout,
+)
+sampler.sample(rep, nChains=4)
 results.append(sampler.getdata())
 
 
-print(results[0].dtype) # Check for Travis: Get the last sampled parameter for x
+print(results[0].dtype)  # Check for Travis: Get the last sampled parameter for x
 evaluation = spot_setup().evaluation()
 
 # Example how to plot the data
-algorithms = ['mc','lhs','mle','sceua','sa','rope','abc','fscabc', 'mcmc', 'demcz', 'dream']
+algorithms = [
+    "mc",
+    "lhs",
+    "mle",
+    "sceua",
+    "sa",
+    "rope",
+    "abc",
+    "fscabc",
+    "mcmc",
+    "demcz",
+    "dream",
+]
 spotpy.analyser.plot_parametertrace_algorithms(results, algorithms, spot_setup())
