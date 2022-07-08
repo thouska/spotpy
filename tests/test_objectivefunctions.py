@@ -1,8 +1,8 @@
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Benjamin Manns
-'''
+"""
 
 import unittest
 
@@ -10,7 +10,8 @@ import numpy as np
 
 from spotpy import objectivefunctions as of
 
-#https://docs.python.org/3/library/unittest.html
+# https://docs.python.org/3/library/unittest.html
+
 
 class TestObjectiveFunctions(unittest.TestCase):
 
@@ -50,8 +51,7 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.assertTrue(np.isnan(res))
 
     def test_log_p_with_default_scale(self):
-        """If the mean of the evaluation function is <0.01, it gets reset to 0.01
-        """
+        """If the mean of the evaluation function is <0.01, it gets reset to 0.01"""
         res = of.log_p(self.evaluation, self.simulation)
         self.assertAlmostEqual(res, -13135.8578574, self.tolerance)
 
@@ -70,20 +70,20 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.correlationcoefficient(self.evaluation, self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-        res = of.correlationcoefficient(self.evaluation, 2*self.evaluation)
+        res = of.correlationcoefficient(self.evaluation, 2 * self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-        res = of.correlationcoefficient(self.evaluation, 0.5*self.evaluation)
+        res = of.correlationcoefficient(self.evaluation, 0.5 * self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
     def test_correlationcoefficient_for_perfect_negative_is_minus_one(self):
         res = of.correlationcoefficient(self.evaluation, -self.evaluation)
         self.assertAlmostEqual(res, -1, self.tolerance)
 
-        res = of.correlationcoefficient(self.evaluation, -2*self.evaluation)
+        res = of.correlationcoefficient(self.evaluation, -2 * self.evaluation)
         self.assertAlmostEqual(res, -1, self.tolerance)
 
-        res = of.correlationcoefficient(self.evaluation, -0.5*self.evaluation)
+        res = of.correlationcoefficient(self.evaluation, -0.5 * self.evaluation)
         self.assertAlmostEqual(res, -1, self.tolerance)
 
     def test_rsquared_random(self):
@@ -95,19 +95,19 @@ class TestObjectiveFunctions(unittest.TestCase):
         res = of.rsquared(self.evaluation, self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-        res = of.rsquared(self.evaluation, 2*self.evaluation)
+        res = of.rsquared(self.evaluation, 2 * self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-        res = of.rsquared(self.evaluation, 0.5*self.evaluation)
+        res = of.rsquared(self.evaluation, 0.5 * self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
         res = of.rsquared(self.evaluation, -self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-        res = of.rsquared(self.evaluation, -2*self.evaluation)
+        res = of.rsquared(self.evaluation, -2 * self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
-        res = of.rsquared(self.evaluation, -0.5*self.evaluation)
+        res = of.rsquared(self.evaluation, -0.5 * self.evaluation)
         self.assertAlmostEqual(res, 1, self.tolerance)
 
     def test_mse(self):
@@ -143,7 +143,7 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.assertAlmostEqual(res, 0.0, self.tolerance)
 
     def test_rrmse_with_obs_mean_zero_is_inf(self):
-        #FIXME: Currently failing because rrmse returns np.inf
+        # FIXME: Currently failing because rrmse returns np.inf
         evaluation = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
         res = of.rrmse(evaluation, self.simulation)
         self.assertTrue(np.isinf(res))
@@ -173,7 +173,12 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.assertAlmostEqual(res, -0.92083174734809159, self.tolerance)
 
     def test_kge_return_all(self):
-        expected = (-0.92083174734809159, -0.1105109772757096, 0.95721520413458061, -0.56669379018786747)
+        expected = (
+            -0.92083174734809159,
+            -0.1105109772757096,
+            0.95721520413458061,
+            -0.56669379018786747,
+        )
         res = of.kge(self.evaluation, self.simulation, return_all=True)
         for exp, actual in zip(expected, res):
             self.assertAlmostEqual(actual, exp, self.tolerance)
@@ -183,7 +188,12 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.assertAlmostEqual(res, -0.84274521306792427, self.tolerance)
 
     def test_kge_non_parametric_return_all(self):
-        expected = (-0.8427452130679243, 0.030303030303030304, 0.970533493046538, -0.5666937901878675)
+        expected = (
+            -0.8427452130679243,
+            0.030303030303030304,
+            0.970533493046538,
+            -0.5666937901878675,
+        )
         res = of.kge_non_parametric(self.evaluation, self.simulation, return_all=True)
         for exp, actual in zip(expected, res):
             self.assertAlmostEqual(actual, exp, self.tolerance)
@@ -209,8 +219,10 @@ class TestObjectiveFunctions(unittest.TestCase):
 
         for func in all_funcs:
             res = func([0], [0, 1])
-            self.assertTrue(np.isnan(res), "Expected np.nan in length mismatch, Got {}".format(res))
+            self.assertTrue(
+                np.isnan(res), "Expected np.nan in length mismatch, Got {}".format(res)
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
-'''
+"""
 
 import unittest
 
 import matplotlib
 
-matplotlib.use('Agg')
+matplotlib.use("Agg")
 
 import inspect
 import sys
@@ -42,12 +42,14 @@ class SpotSetupBase(object):
         Returns a list of all derived classes in this module
         """
         module = sys.modules[__name__]
+
         def predicate(mcls):
             return inspect.isclass(mcls) and issubclass(mcls, cls) and mcls is not cls
+
         return [mcls for cname, mcls in inspect.getmembers(module, predicate)]
 
     def __repr__(self):
-        return '{}()'.format(type(self).__name__)
+        return "{}()".format(type(self).__name__)
 
 
 class SpotSetupMixedParameterFunction(SpotSetupBase):
@@ -55,18 +57,19 @@ class SpotSetupMixedParameterFunction(SpotSetupBase):
     A Test case with two parameters as class parameters (a,b)
     and 2 given from the parameter function
     """
+
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
+
     def parameters(self):
-        return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
+        return parameter.generate([parameter.Uniform(name, -1, 1) for name in "cd"])
 
 
 class TestGuiMpl(unittest.TestCase):
-
     def test_setup(self):
         setup = SpotSetupMixedParameterFunction()
         with GUI(setup) as gui:
-            self.assertTrue(hasattr(gui, 'setup'))
+            self.assertTrue(hasattr(gui, "setup"))
 
     def test_sliders(self):
         setup = SpotSetupMixedParameterFunction()
@@ -87,5 +90,5 @@ class TestGuiMpl(unittest.TestCase):
             self.assertEqual(len(gui.lines), 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

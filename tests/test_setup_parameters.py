@@ -1,11 +1,11 @@
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
 
 Tests the various possibilities to create and use parameters
 Focus especially the usage of parameters as class attributes
-'''
+"""
 import inspect
 import sys
 import unittest
@@ -38,13 +38,14 @@ class SpotSetupBase(object):
         Returns a list of all derived classes in this module
         """
         module = sys.modules[__name__]
+
         def predicate(mcls):
             return inspect.isclass(mcls) and issubclass(mcls, cls) and mcls is not cls
+
         return [mcls for cname, mcls in inspect.getmembers(module, predicate)]
 
     def __repr__(self):
-        return '{}()'.format(type(self).__name__)
-
+        return "{}()".format(type(self).__name__)
 
 
 class SpotSetupClassAttributes(SpotSetupBase):
@@ -52,6 +53,7 @@ class SpotSetupClassAttributes(SpotSetupBase):
     A Test case with two parameters as class parameters (a,b)
     and 2 given from the parameter function
     """
+
     a = parameter.Uniform(-1, 1)
     b = parameter.Uniform(-1, 1)
     c = parameter.Uniform(-1, 1)
@@ -62,26 +64,31 @@ class SpotSetupParameterFunction(SpotSetupBase):
     """
     A Test case with 4 parameters given from the parameter function
     """
+
     def parameters(self):
-        return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'abcd'])
+        return parameter.generate([parameter.Uniform(name, -1, 1) for name in "abcd"])
+
 
 class SpotSetupMixedParameterFunction(SpotSetupBase):
     """
     A Test case with two parameters as class parameters (a,b)
     and 2 given from the parameter function
     """
+
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
+
     def parameters(self):
-        return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
+        return parameter.generate([parameter.Uniform(name, -1, 1) for name in "cd"])
 
 
 class SpotSetupParameterList(SpotSetupBase):
     """
     A Test case with 4 parameters given from the parameter list
     """
+
     def __init__(self):
-        self.parameters = [parameter.Uniform(name, -1, 1) for name in 'abcd']
+        self.parameters = [parameter.Uniform(name, -1, 1) for name in "abcd"]
 
 
 class SpotSetupMixedParameterList(SpotSetupBase):
@@ -89,11 +96,12 @@ class SpotSetupMixedParameterList(SpotSetupBase):
     A Test case with two parameters as class parameters (a,b)
     and 2 given from the parameter function
     """
+
     a = parameter.Uniform(0, 1)
     b = parameter.Uniform(1, 2)
 
     def parameters(self):
-        return parameter.generate([parameter.Uniform(name, -1, 1) for name in 'cd'])
+        return parameter.generate([parameter.Uniform(name, -1, 1) for name in "cd"])
 
 
 class TestParameterSet(unittest.TestCase):
@@ -122,7 +130,7 @@ class TestParameterSet(unittest.TestCase):
     def test_getitem(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEqual(self.ps['a'], 1.0)
+        self.assertEqual(self.ps["a"], 1.0)
         self.assertEqual(self.ps[0], 1.0)
 
     def test_getattr(self):
@@ -133,7 +141,11 @@ class TestParameterSet(unittest.TestCase):
             _ = self.ps.__x
 
         self.assertEqual(self.ps.a, 1.0)
-        self.assertEqual(list(self.ps.random), list(self.ps), 'Access to random variable does not equal list of names')
+        self.assertEqual(
+            list(self.ps.random),
+            list(self.ps),
+            "Access to random variable does not equal list of names",
+        )
 
         with self.assertRaises(AttributeError):
             _ = self.ps.x
@@ -148,19 +160,23 @@ class TestParameterSet(unittest.TestCase):
 
         attrs = dir(self.ps)
         for param in self.ps.name:
-            self.assertIn(param, attrs, 'Attribute {} not found in {}'.format(param, self.ps))
-        for prop in ['maxbound', 'minbound', 'name', 'optguess', 'random', 'step']:
-            self.assertIn(prop, attrs, 'Property {} not found in {}'.format(prop, self.ps))
+            self.assertIn(
+                param, attrs, "Attribute {} not found in {}".format(param, self.ps)
+            )
+        for prop in ["maxbound", "minbound", "name", "optguess", "random", "step"]:
+            self.assertIn(
+                prop, attrs, "Property {} not found in {}".format(prop, self.ps)
+            )
 
     def test_str(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEqual(str(self.ps), 'parameters(a=1, b=1, c=1, d=1)')
+        self.assertEqual(str(self.ps), "parameters(a=1, b=1, c=1, d=1)")
 
     def test_repr(self):
         values = [1] * len(self.ps)
         self.ps(*values)
-        self.assertEqual(repr(self.ps), 'spotpy.parameter.ParameterSet()')
+        self.assertEqual(repr(self.ps), "spotpy.parameter.ParameterSet()")
 
 
 class TestSetupVariants(unittest.TestCase):
@@ -172,15 +188,25 @@ class TestSetupVariants(unittest.TestCase):
         self.assertGreater(len(self.objects), 0)
 
     def parameter_count_test(self, o):
-        params = parameter.create_set(o, valuetype='optguess')
-        param_names = ','.join(pn for pn in params.name)
-        self.assertEqual(len(params), 4, '{} should have 4 parameters, but found only {} ({})'
-                         .format(o, len(params), param_names))
-        self.assertEqual(param_names, 'a,b,c,d', '{} Parameter names should be "a,b,c,d" but got "{}"'
-                         .format(o, param_names))
+        params = parameter.create_set(o, valuetype="optguess")
+        param_names = ",".join(pn for pn in params.name)
+        self.assertEqual(
+            len(params),
+            4,
+            "{} should have 4 parameters, but found only {} ({})".format(
+                o, len(params), param_names
+            ),
+        )
+        self.assertEqual(
+            param_names,
+            "a,b,c,d",
+            '{} Parameter names should be "a,b,c,d" but got "{}"'.format(
+                o, param_names
+            ),
+        )
 
     def make_sampler(self, o, algo=spotpy.algorithms.mc):
-        sampler = algo(spot_setup=o, dbformat='ram')
+        sampler = algo(spot_setup=o, dbformat="ram")
         sampler.sample(100)
 
     def test_parameter_class(self):
@@ -215,7 +241,8 @@ class TestSetupVariants(unittest.TestCase):
             self.make_sampler(o, spotpy.algorithms.dream)
 
     def test_fscabc_sampler(self):
-        for o in self.objects: self.make_sampler(o, spotpy.algorithms.fscabc)
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.fscabc)
 
     def test_lhs_sampler(self):
         for o in self.objects:
@@ -230,7 +257,8 @@ class TestSetupVariants(unittest.TestCase):
             self.make_sampler(o, spotpy.algorithms.mcmc)
 
     def test_mle_sampler(self):
-        for o in self.objects: self.make_sampler(o, spotpy.algorithms.mle)
+        for o in self.objects:
+            self.make_sampler(o, spotpy.algorithms.mle)
 
     def test_rope_sampler(self):
         for o in self.objects:
@@ -245,6 +273,5 @@ class TestSetupVariants(unittest.TestCase):
             self.make_sampler(o, spotpy.algorithms.sceua)
 
 
-if __name__ == '_main__':
+if __name__ == "_main__":
     unittest.main(verbosity=3)
-
