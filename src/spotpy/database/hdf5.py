@@ -11,7 +11,9 @@ structure during the sample.
 '''
 
 import numpy as np
+
 from .base import database
+
 try:
     import tables
 except ImportError:

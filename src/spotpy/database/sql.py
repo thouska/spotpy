@@ -1,8 +1,9 @@
-import numpy as np
 import sqlite3
 import sys
-from .base import database
 
+import numpy as np
+
+from .base import database
 
 
 class PickalableSWIG:
@@ -33,6 +34,7 @@ class sql(database):
 
     def __init__(self, *args, **kwargs):
         import os
+
         # init base class
         super(sql, self).__init__(*args, **kwargs)
         # Create a open file, which needs to be closed after the sampling

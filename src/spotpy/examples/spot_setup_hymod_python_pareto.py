@@ -8,10 +8,13 @@ This example implements the python version of hymod into SPOTPY.
 '''
 
 
+import os
+
+import numpy as np
+
 import spotpy
 from spotpy.examples.hymod_python.hymod import hymod
-import os
-import numpy as np
+
 
 class spot_setup(object):
     cmax  = spotpy.parameter.Uniform(low=1.0 , high=500,  optguess=412.33)

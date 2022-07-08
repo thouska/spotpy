@@ -9,12 +9,13 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 This is the parent class of all algorithms, which can handle the database
 structure during the sample.
 '''
-import numpy as np
-import time
-from itertools import product
 import sys
-
+import time
 from importlib import import_module
+from itertools import product
+
+import numpy as np
+
 
 class database(object):
     """

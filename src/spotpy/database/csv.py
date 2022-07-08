@@ -1,8 +1,11 @@
-from .base import database
-import numpy as np
 import io
-import time
 import sys
+import time
+
+import numpy as np
+
+from .base import database
+
 
 class csv(database):
     """

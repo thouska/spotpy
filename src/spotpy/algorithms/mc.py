@@ -7,6 +7,7 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 from . import _algorithm
 
+
 class mc(_algorithm):
     """
     The Monte Carlo algorithm generates random parameters from their respective

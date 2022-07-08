@@ -4,12 +4,16 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Tobias Houska
 This example implements the external hydrological model HYMOD into SPOTPY.
 '''
-import numpy as np
-import spotpy
 import os
-from distutils.dir_util import copy_tree, remove_tree
+
 #from shutil import rmtree
 import sys
+from distutils.dir_util import copy_tree, remove_tree
+
+import numpy as np
+
+import spotpy
+
 
 class spot_setup(object):
     def __init__(self,parallel='seq'):

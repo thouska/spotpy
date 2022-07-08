@@ -5,13 +5,14 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Benjamin Manns
 '''
 
+import json
+import os
 import unittest
+
 import numpy as np
 
 import spotpy
-import os
 from spotpy.examples.spot_setup_dds import spot_setup
-import json
 
 
 # replaces numpy.random module in a way

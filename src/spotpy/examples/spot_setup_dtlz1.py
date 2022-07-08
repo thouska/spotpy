@@ -1,7 +1,10 @@
 
-import numpy as np
-import spotpy
 import time
+
+import numpy as np
+
+import spotpy
+
 
 def g1(x,k):
     return 100*( k + np.sum(np.square(x - 0.5) - np.cos(20*np.pi*(x -0.5)), axis=1))

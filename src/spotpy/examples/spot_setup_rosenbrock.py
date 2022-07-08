@@ -7,8 +7,10 @@ This example implements the Rosenbrock function into a SPOTPY class.
 '''
 
 import numpy as np
-from spotpy.parameter import Uniform
+
 from spotpy.objectivefunctions import rmse
+from spotpy.parameter import Uniform
+
 
 class spot_setup(object):
     """

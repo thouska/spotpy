@@ -7,10 +7,11 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This code shows you, how to use the hydroligcal signatures. They can also be implemented in the def objective function.
 '''
 
-from spotpy.examples.spot_setup_hymod import spot_setup
-import spotpy.signatures as sig
-
 from pprint import pprint
+
+import spotpy.signatures as sig
+from spotpy.examples.spot_setup_hymod import spot_setup
+
 print("INFO: For this example you need the folder >hymod< in the examples folder")
 
 spot_setup = spot_setup()
@@ -78,8 +79,8 @@ print(sig.getSlopeFDC(simulation, observation,mode="get_raw_data"))
 print(sig.getSlopeFDC(simulation, observation,mode="calc_Dev"))
 
 try:
-    import pandas as pd
     import matplotlib.pyplot as plt
+    import pandas as pd
     timespanlen = simulation.__len__()
     ddd = pd.date_range("2015-01-01 11:00", freq="5min",periods=timespanlen)
     dd_daily = pd.date_range("2015-05-01", periods=timespanlen)

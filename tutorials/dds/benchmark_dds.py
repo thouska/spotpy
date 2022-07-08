@@ -1,9 +1,9 @@
-from pprint import pprint
-import numpy as np
-import matplotlib.pylab as plt
 import json
-
 import time
+from pprint import pprint
+
+import matplotlib.pylab as plt
+import numpy as np
 
 try:
     import spotpy
@@ -14,8 +14,6 @@ except ImportError:
     import spotpy
 
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-
-
 
 spot_setup = spot_setup()
 

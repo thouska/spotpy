@@ -5,8 +5,10 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
-from spotpy import objectivefunctions as of
+
 import numpy as np
+
+from spotpy import objectivefunctions as of
 
 #https://docs.python.org/3/library/unittest.html
 

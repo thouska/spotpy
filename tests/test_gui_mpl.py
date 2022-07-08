@@ -6,15 +6,18 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
+
 import matplotlib
+
 matplotlib.use('Agg')
 
+import inspect
 import sys
 
-from spotpy.gui.mpl import GUI
-from spotpy import parameter
 import numpy as np
-import inspect
+
+from spotpy import parameter
+from spotpy.gui.mpl import GUI
 
 
 class SpotSetupBase(object):

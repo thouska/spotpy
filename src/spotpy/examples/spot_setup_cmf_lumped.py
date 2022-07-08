@@ -8,12 +8,12 @@ This example can be easily extended with more storages
 """
 
 import datetime
+
 import cmf
+import numpy as np
 
 import spotpy
-
 from spotpy.parameter import Uniform
-import numpy as np
 
 # Make sure we do not get pestered with divIde by zero errors
 np.seterr(all='ignore')

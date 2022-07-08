@@ -4,13 +4,14 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
 '''
 
-import unittest
-import spotpy
-from spotpy import parameter
-import numpy as np
-
 # Import inspect to scan spotpy.parameter for all Parameter classes
 import inspect
+import unittest
+
+import numpy as np
+
+import spotpy
+from spotpy import parameter
 
 
 def repeat(times):

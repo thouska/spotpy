@@ -5,13 +5,13 @@
 
 """
 
-import sys
 import datetime
+import os
+import sys
 
 import spotpy
-import os
-
 from spotpy.examples.spot_setup_cmf_lumped import SingleStorage
+
 
 def parallel():
     """

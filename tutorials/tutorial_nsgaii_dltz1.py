@@ -1,12 +1,13 @@
 
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
+
 import spotpy
 from spotpy.examples.spot_setup_dtlz1 import spot_setup
-import numpy as np
-import sys
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
-
 
 if __name__ == "__main__":
     #Create samplers for every algorithm:

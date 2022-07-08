@@ -5,9 +5,11 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Patrick Lauer
 '''
 
-from ._algorithm import _algorithm
-import numpy as np
 import random
+
+import numpy as np
+
+from ._algorithm import _algorithm
 
 
 class fscabc(_algorithm):

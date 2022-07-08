@@ -18,9 +18,10 @@ We modified the formula so, that a best fit of model can be archived by maximizi
 # ABCBoxcarLikelihood with Option 2 and 6 is good
 # logLikelihood with option 2 and 6 is good
 
-import numpy as np
 import math
 import warnings
+
+import numpy as np
 
 
 class LikelihoodError(Exception):

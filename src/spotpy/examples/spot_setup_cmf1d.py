@@ -9,11 +9,14 @@ A one dimensional cmf model analysing data from the Schwingbach hydrological obs
 You need to have cmf and pandas installed on your system: svn checkout svn://fb09-pasig.umwelt.uni-giessen.de/cmf/trunk cmf
 '''
 
-import cmf
+import os
+import sys
 from datetime import datetime, timedelta
+
+import cmf
 import numpy as np
+
 import spotpy
-import os, sys
 
 
 class _CmfProject:

@@ -1,11 +1,14 @@
-import numpy as np
+import copy
 from copy import deepcopy
 
-from spotpy.algorithms.dds import DDSGenerator
-from . import _algorithm
-from spotpy.parameter import ParameterSet
-import copy
+import numpy as np
 from scipy.spatial.qhull import ConvexHull, QhullError
+
+from spotpy.algorithms.dds import DDSGenerator
+from spotpy.parameter import ParameterSet
+
+from . import _algorithm
+
 
 class BestValue(object):
     """

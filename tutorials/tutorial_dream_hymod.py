@@ -8,14 +8,16 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This class holds example code how to use the dream algorithm
 '''
 
+import matplotlib.pyplot as plt
 import numpy as np
+
 import spotpy
+from spotpy.analyser import plot_parameter_trace, plot_posterior_parameter_histogram
+
 #from spotpy.examples.spot_setup_hymod_exe import spot_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-import matplotlib.pyplot as plt
-from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
-from spotpy.analyser import plot_parameter_trace
-from spotpy.analyser import plot_posterior_parameter_histogram
+from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
+
 if __name__ == "__main__":
     parallel ='seq'
     # Initialize the Hymod example (will only work on Windows systems)

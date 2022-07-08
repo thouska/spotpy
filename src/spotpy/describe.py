@@ -12,9 +12,10 @@ Usage:
 >>> spotpy.describe.setup(model)
 """
 import sys
-from .parameter import get_parameters_from_setup
-from .algorithms._algorithm import _algorithm
 from inspect import getdoc as _getdoc
+
+from .algorithms._algorithm import _algorithm
+from .parameter import get_parameters_from_setup
 
 try:
     from docutils.core import publish_string
@@ -63,8 +64,8 @@ def setup(obj):
     return '\n'.join(parts)
 
 
-from pathlib import Path
 import webbrowser
+from pathlib import Path
 
 
 class rst:

@@ -4,10 +4,12 @@ Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Alejandro Chamorro-Chavez
 '''
-from . import _algorithm
-import time
-import numpy as np
 import random
+import time
+
+import numpy as np
+
+from . import _algorithm
 
 
 class rope(_algorithm):

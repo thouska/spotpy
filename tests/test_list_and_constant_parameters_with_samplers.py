@@ -4,13 +4,15 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 '''
 
-import unittest
-import numpy as np
 import inspect
+import unittest
+from itertools import cycle
+
+import numpy as np
+
 import spotpy
 from spotpy import parameter
 from spotpy.objectivefunctions import rmse
-from itertools import cycle
 
 
 class Rosenbrock(object):

@@ -7,18 +7,20 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 
 import matplotlib as mpl
+
 mpl.use('Agg')
+import os
+import unittest
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 import spotpy
-import unittest
-import numpy as np
 import spotpy.analyser
-import os
-from spotpy.examples.spot_setup_rosenbrock import spot_setup as rosenbrock_setup
 from spotpy.examples.spot_setup_griewank import spot_setup as griewank_setup
 from spotpy.examples.spot_setup_hymod_python import spot_setup as hymod_setup
-from  spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
+from spotpy.examples.spot_setup_rosenbrock import spot_setup as rosenbrock_setup
+from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
 
 class TestAnalyser(unittest.TestCase):

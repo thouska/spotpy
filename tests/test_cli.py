@@ -6,14 +6,14 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import io
-
-from click.testing import CliRunner
-from spotpy.cli import cli, run, get_config_from_file, get_sampler_from_string
-from spotpy.algorithms import _algorithm
-from spotpy.examples.spot_setup_rosenbrock import spot_setup
+import os
 import unittest
 
-import os
+from click.testing import CliRunner
+
+from spotpy.algorithms import _algorithm
+from spotpy.cli import cli, get_config_from_file, get_sampler_from_string, run
+from spotpy.examples.spot_setup_rosenbrock import spot_setup
 
 
 class TestCLI(unittest.TestCase):

@@ -10,8 +10,10 @@ This tool holds functions for statistic analysis. It takes Python-lists and
 returns the objective function value of interest.
 '''
 
-import numpy as np
 import logging
+
+import numpy as np
+
 logging.basicConfig(format='%(levelname)s: %(module)s.%(funcName)s(): %(message)s')
 
 def bias(evaluation, simulation):

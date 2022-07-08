@@ -10,7 +10,6 @@ This class holds the example code from the Griewank tutorial web-documention.
 import spotpy
 from spotpy.examples.spot_setup_griewank import spot_setup
 
-
 #Create samplers for every algorithm:
 results=[]
 spot_setup=spot_setup()

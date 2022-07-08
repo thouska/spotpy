@@ -5,9 +5,11 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 '''
 
-from . import _algorithm
-import numpy as np
 import time
+
+import numpy as np
+
+from . import _algorithm
 
 
 class mcmc(_algorithm):

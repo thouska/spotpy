@@ -5,9 +5,11 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and the SALib team
 '''
 
-from . import _algorithm
-import numpy as np
 import math
+
+import numpy as np
+
+from . import _algorithm
 
 
 class fast(_algorithm):

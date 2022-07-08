@@ -4,13 +4,13 @@ Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
 '''
+import inspect
 import unittest
+from io import StringIO
 
 import spotpy
 from spotpy.parameter import Uniform
-from io import StringIO
 
-import inspect
 
 class SpotSetup(object):
     """

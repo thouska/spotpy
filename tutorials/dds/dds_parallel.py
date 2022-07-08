@@ -1,9 +1,10 @@
-import numpy as np
-import sys
-import os
-import matplotlib.pylab as plt
 import json
+import os
+import sys
 import time
+
+import matplotlib.pylab as plt
+import numpy as np
 
 try:
     import spotpy

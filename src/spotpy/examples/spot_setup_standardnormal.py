@@ -7,6 +7,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This example implements the Standard Normal function into SPOT.
 '''
 import numpy as np
+
 import spotpy
 
 

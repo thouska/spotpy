@@ -10,7 +10,6 @@ This example implements the Rosenbrock function into SPOT.
 import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 
-
 if __name__ == "__main__":
     # 1 We start classical by perfroming a sensitivity analysis
     parallel ='seq'

@@ -5,8 +5,9 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska and Stijn Van Hoey
 '''
 
-from . import _algorithm
 import numpy as np
+
+from . import _algorithm
 
 
 class sceua(_algorithm):

@@ -4,8 +4,10 @@ Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska
 '''
-from . import _algorithm
 from .. import analyser
+from . import _algorithm
+
+
 class list_sampler(_algorithm):
     """
     This class holds the List sampler, which samples from a given spotpy database

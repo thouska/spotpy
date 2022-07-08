@@ -7,14 +7,13 @@ and needs Python 3.5 minimum
 """
 
 import sys
-import matplotlib
-
-from matplotlib.widgets import Slider, Button
-from matplotlib import pylab as plt
-
 import time
-from ..parameter import get_parameters_array, create_set
 
+import matplotlib
+from matplotlib import pylab as plt
+from matplotlib.widgets import Button, Slider
+
+from ..parameter import create_set, get_parameters_array
 
 if matplotlib.__version__ < '2.1':
     raise ImportError('Your matplotlib package is too old. Required >=2.1, you have ' + matplotlib.__version__)

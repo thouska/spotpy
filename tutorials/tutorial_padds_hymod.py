@@ -9,6 +9,7 @@ This class holds example code how to use the dream algorithm
 '''
 
 import numpy as np
+
 try:
     import spotpy
 except ImportError:
@@ -16,8 +17,9 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-from spotpy.examples.spot_setup_hymod_python import spot_setup
 import matplotlib.pyplot as plt
+
+from spotpy.examples.spot_setup_hymod_python import spot_setup
 
 
 def multi_obj_func(evaluation, simulation):

@@ -8,6 +8,7 @@ This code shows how to use the likelihood framework and present all existing fun
 '''
 
 import numpy as np
+
 import spotpy
 
 # First we use all available likelihood functions just alone. The pydoc of every function tells, if we can add a
@@ -106,9 +107,8 @@ class spot_setup_gauss(object):
     def simulation(self, vector):
         # x = np.random.randint(-100, 100, size=201)
         # simulations= [sum(100.0 * (x[1:] - x[:-1] **2.0) **2.0 + (1 - x[:-1]) **2.0)]
-        import subprocess
-
         import json
+        import subprocess
 
         output = subprocess.check_output(
             "/Library/Frameworks/R.framework/Versions/3.1/Resources/Rscript /Users/Karlson/Documents/03_PRIVAT/Privat_UNI/Uni_JOB/Job_AGRAR/develop/spotpy/spotpy/likelihood_test/myR_2.R " + str(
@@ -174,9 +174,8 @@ class spot_setup_wald(object):
         return spotpy.parameter.generate(self.params)
 
     def simulation(self, vector):
-        import subprocess
-
         import json
+        import subprocess
 
         output = subprocess.check_output(
             "/Library/Frameworks/R.framework/Versions/3.1/Resources/Rscript /Users/Karlson/Documents/03_PRIVAT/Privat_UNI/Uni_JOB/Job_AGRAR/develop/spotpy/spotpy/likelihood_test/myR_WALD.R " + str(vector[0]), shell=True)
@@ -214,9 +213,9 @@ class spot_setup_ar_1_students_t_res(object):
         return spotpy.parameter.generate(self.params)
 
     def simulation(self, vector):
+        import json
         import subprocess
 
-        import json
         # parameter 0:phi, 1:nu
         output = subprocess.check_output(
             "/Library/Frameworks/R.framework/Versions/3.1/Resources/Rscript /Users/Karlson/Documents/03_PRIVAT/Privat_UNI/Uni_JOB/Job_AGRAR/develop/spotpy/spotpy/likelihood_test/myR_AR1_Student-t-res.R " + str(
@@ -255,9 +254,9 @@ class spot_setup_ar_1_gauss_res(object):
         return spotpy.parameter.generate(self.params)
 
     def simulation(self, vector):
+        import json
         import subprocess
 
-        import json
         # parameter 0:phi
         output = subprocess.check_output(
             "/Library/Frameworks/R.framework/Versions/3.1/Resources/Rscript /Users/Karlson/Documents/03_PRIVAT/Privat_UNI/Uni_JOB/Job_AGRAR/develop/spotpy/spotpy/likelihood_test/myR_AR1_Norm_res.R " + str(
@@ -304,9 +303,9 @@ class spot_setup_generalizedGauss(object):
         return spotpy.parameter.generate(self.params)
 
     def simulation(self, vector):
+        import json
         import subprocess
 
-        import json
         # we need a skew exponential power to add xi and beta in it which is the model for the error residuals of AR1 Model
 
         output = subprocess.check_output(

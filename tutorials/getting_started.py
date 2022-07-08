@@ -11,9 +11,10 @@ This class holds the example code from the getting_started web-documention.
 
 #To start your experience with SPOT you need to have SPOT installed. Please see the [Installation chapter](index.md) for further details.
 #To use SPOT we have to import it and use one of the pre-build examples:
-import spotpy                                # Load the SPOT package into your working storage
-from spotpy.examples.spot_setup_rosenbrock import spot_setup # Import the two dimensional Rosenbrock example
-
+import spotpy  # Load the SPOT package into your working storage
+from spotpy.examples.spot_setup_rosenbrock import (
+    spot_setup,  # Import the two dimensional Rosenbrock example
+)
 
 #The example comes along with parameter boundaries, the Rosenbrock function, the optimal value of the function and RMSE as a likelihood.
 #So we can directly start to analyse the Rosenbrock function with one of the algorithms. We start with a simple Monte Carlo sampling:

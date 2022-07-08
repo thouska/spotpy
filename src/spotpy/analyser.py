@@ -11,6 +11,7 @@ Note: This part of SPOTPY is in alpha status and not yet ready for production us
 '''
 
 import numpy as np
+
 import spotpy
 
 font = {'family' : 'calibri',
@@ -536,9 +537,7 @@ def plot_fast_sensitivity(results,like_index=1,number_of_sensitiv_pars=10,fig_na
 def plot_heatmap_griewank(results,algorithms, fig_name='heatmap_griewank.png'):
     """Example Plot as seen in the SPOTPY Documentation"""
     import matplotlib.pyplot as plt
-
-    from matplotlib import ticker
-    from matplotlib import cm
+    from matplotlib import cm, ticker
     font = {'family' : 'calibri',
         'weight' : 'normal',
         'size'   : 20}
@@ -593,6 +592,7 @@ def plot_objectivefunction(results,evaluation,limit=None,sort=True, fig_name = '
     # 1. The degree used in calculations is N - ddof
     stddev = np.std(data, ddof=1)
     from scipy.stats import t
+
     # Get the endpoints of the range that contains 95% of the distribution
     t_bounds = t.interval(0.999, len(data) - 1)
     # sum mean to the confidence interval

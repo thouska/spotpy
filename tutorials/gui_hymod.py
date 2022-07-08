@@ -7,9 +7,9 @@ Needs at least Python 3.5
 
 
 import spotpy
-from spotpy.gui.mpl import GUI
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-from  spotpy.objectivefunctions import rmse
+from spotpy.gui.mpl import GUI
+from spotpy.objectivefunctions import rmse
 
 if __name__ == '__main__':
     setup_class=spot_setup(rmse)

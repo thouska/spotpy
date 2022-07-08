@@ -13,11 +13,12 @@ URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=996017&isnumber=214
 - http://www.tik.ee.ethz.ch/file/6c0e384dceb283cd4301339a895b72b8/TIK-Report11.pdf (Tournament Selection)
 '''
 
-import numpy as np
-import math
-from spotpy.algorithms import _algorithm
 import copy
+import math
 
+import numpy as np
+
+from spotpy.algorithms import _algorithm
 
 
 class TournamentSelection:

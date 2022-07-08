@@ -5,7 +5,9 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 '''
 
 import unittest
+
 import numpy as np
+
 from spotpy.hydrology.signatures import SignatureMethod
 
 

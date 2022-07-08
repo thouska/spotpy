@@ -7,11 +7,12 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This code tests the likelihood framework and present all existing function.
 """
 
-import numpy as np
-import spotpy
 import unittest
-from spotpy.likelihoods import LikelihoodError
 
+import numpy as np
+
+import spotpy
+from spotpy.likelihoods import LikelihoodError
 
 # We use all available likelihood functions. The pydoc of every function tells, if we can add a
 # parameter `param` to the function which includes model parameter. The `param` must be None or a tuple with values

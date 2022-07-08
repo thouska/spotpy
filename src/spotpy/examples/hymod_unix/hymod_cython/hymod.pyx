@@ -1,5 +1,6 @@
-import sys, re, os
-
+import os
+import re
+import sys
 
 
 #cdef public list hymod(list Precip, list PET, float cmax, float bexp, float alpha, float Rs, float Rq): # public function declaration

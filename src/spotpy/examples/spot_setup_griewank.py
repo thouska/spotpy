@@ -7,7 +7,9 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This example implements the Griewank function into SPOT.
 '''
 import numpy as np
+
 import spotpy
+
 
 class spot_setup(object):
     def __init__(self, dim = 2):

@@ -1,7 +1,8 @@
-import spotpy
-from spotpy.parameter import Uniform
-from spotpy.objectivefunctions import rmse
 import numpy as np
+
+import spotpy
+from spotpy.objectivefunctions import rmse
+from spotpy.parameter import Uniform
 
 
 def ackley10(vector):

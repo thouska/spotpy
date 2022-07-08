@@ -15,10 +15,8 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.describe import describe
-
-
+from spotpy.examples.spot_setup_rosenbrock import spot_setup
 
 #Create samplers for every algorithm:
 results=[]

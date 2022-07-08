@@ -10,9 +10,11 @@ This is the parent class of all algorithms, which can handle the database
 structure during the sample.
 '''
 
-import numpy as np
-from .base import database
 import sys
+
+import numpy as np
+
+from .base import database
 
 
 class ram(database):

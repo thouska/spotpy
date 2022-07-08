@@ -1,6 +1,8 @@
 import numpy as np
-from . import _algorithm
+
 from spotpy.parameter import ParameterSet
+
+from . import _algorithm
 
 
 class DDSGenerator:

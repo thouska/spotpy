@@ -31,15 +31,29 @@ https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Metho
 
 Please cite our paper, if you are using SPOTPY.
 '''
-from . import database            # Writes the results of the sampler in a user defined output file
-from . import algorithms          # Contains all the different algorithms implemented in SPOTPY
-from . import parameter           # Contains different distributions to describe the prior information for every model parameter
-from . import analyser            # Contains some examples to analyse the results of the different algorithms
-from . import objectivefunctions  # Quantifies goodness of fit between simulation and evaluation data with objective functions
-from . import likelihoods         # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
-from . import examples            # Contains tutorials how to use SPOTPY
-from . import describe            # Contains some helper functions to describe samplers and set-ups
-from .hydrology import signatures # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
+from . import algorithms  # Contains all the different algorithms implemented in SPOTPY
+from . import (
+    analyser,  # Contains some examples to analyse the results of the different algorithms
+)
+from . import (
+    database,  # Writes the results of the sampler in a user defined output file
+)
+from . import (
+    describe,  # Contains some helper functions to describe samplers and set-ups
+)
+from . import examples  # Contains tutorials how to use SPOTPY
+from . import (
+    likelihoods,  # Quantifies goodness of fit between simulation and evaluation data with likelihood functions
+)
+from . import (
+    objectivefunctions,  # Quantifies goodness of fit between simulation and evaluation data with objective functions
+)
+from . import (
+    parameter,  # Contains different distributions to describe the prior information for every model parameter
+)
+from .hydrology import (
+    signatures,  # Quantifies goodness of fit between simulation and evaluation data with hydrological signatures
+)
 
 try:
     from ._version import __version__

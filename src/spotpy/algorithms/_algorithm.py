@@ -5,13 +5,13 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 This file holds the standards for every algorithm.
 '''
-from spotpy import database
-from spotpy import parameter
-import numpy as np
-import time
-import threading
 import random
+import threading
+import time
 
+import numpy as np
+
+from spotpy import database, parameter
 
 try:
     from queue import Queue

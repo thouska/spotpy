@@ -8,10 +8,12 @@ This example implements the python version of hymod into SPOTPY.
 '''
 
 
-from spotpy.parameter import Uniform
-from spotpy.objectivefunctions import rmse
-from spotpy.examples.hymod_python.hymod import hymod
 import os
+
+from spotpy.examples.hymod_python.hymod import hymod
+from spotpy.objectivefunctions import rmse
+from spotpy.parameter import Uniform
+
 
 class spot_setup(object):
     cmax  = Uniform(low=1.0 , high=500,  optguess=412.33)

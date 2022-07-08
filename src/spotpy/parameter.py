@@ -5,12 +5,12 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Philipp Kraft and Tobias Houska
 Contains classes to generate random parameter sets
 '''
-import numpy.random as rnd
-import numpy as np
-import sys
 import copy
-
+import sys
 from itertools import cycle
+
+import numpy as np
+import numpy.random as rnd
 
 
 class _ArgumentHelper(object):
@@ -142,6 +142,7 @@ def _round_sig(x, sig=3):
     :return: rounded value
     """
     from math import floor, log10
+
     # Check for zero to avoid math value error with log10(0.0)
     if abs(x) < 1e-12:
         return 0

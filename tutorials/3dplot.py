@@ -6,15 +6,14 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 
 This file shows how to make 3d surface plots.
 '''
-import spotpy
-
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter, LinearLocator
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
 from numpy import *
 
+import spotpy
 
 fig = plt.figure(figsize=(10,10))
 ax = fig.gca(projection='3d')

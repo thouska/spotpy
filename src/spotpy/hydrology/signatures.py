@@ -57,9 +57,10 @@ cf. to QuantileSignature and the get_qXXX methods
 """
 
 
-import numpy as np
 import inspect
 import sys
+
+import numpy as np
 
 
 class SignatureMethod:

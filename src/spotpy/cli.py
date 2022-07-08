@@ -1,9 +1,11 @@
 
-from . import algorithms, database, describe
-import click
 import inspect
 import io
 import os
+
+import click
+
+from . import algorithms, database, describe
 
 
 def get_config_from_file():

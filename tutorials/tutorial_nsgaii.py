@@ -19,11 +19,13 @@ except ImportError:
     sys.path.append(".")
     import spotpy
 
-import spotpy.algorithms
 import unittest
-from spotpy.examples.spot_setup_hymod_python import spot_setup
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+import spotpy.algorithms
+from spotpy.examples.spot_setup_hymod_python import spot_setup
 
 
 def multi_obj_func(evaluation, simulation):

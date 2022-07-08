@@ -1,8 +1,8 @@
-import numpy as np
-
-import matplotlib.pylab as plt
 import json
+
 import matplotlib as mp
+import matplotlib.pylab as plt
+import numpy as np
 
 data_normalizer = mp.colors.Normalize()
 color_map = mp.colors.LinearSegmentedColormap(
