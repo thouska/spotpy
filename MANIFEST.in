@@ -2,5 +2,7 @@ prune **
 recursive-include tests *.py
 recursive-include src/spotpy *.py
 recursive-include src/spotpy/examples *
-recursive-include tutorials
+recursive-include tutorials *
 include LICENSE README.md pyproject.toml setup.py
+global-exclude __pycache__
+global-exclude *.py[co]
