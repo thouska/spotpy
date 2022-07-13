@@ -115,11 +115,6 @@ target-version = [
 [tool.coverage]
     [tool.coverage.run]
     source = ["spotpy"]
-    omit = [
-        "*docs*",
-        "*examples*",
-        "*tests*",
-    ]
 
     [tool.coverage.report]
     exclude_lines = [
