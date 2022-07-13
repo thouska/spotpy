@@ -14,6 +14,7 @@ authors = [
     {name = "Philipp Kraft"},
     {name = "Alejandro Chamorro-Chavez"},
     {name = "Lutz Breuer"},
+    {name = "Sebastian Müller", email = "sebastian.mueller@ufz.de"},
 ]
 maintainers = [
     {name = "Tobias Houska", email = "tobias.houska@umwelt.uni-giessen.de"},
