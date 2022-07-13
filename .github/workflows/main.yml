@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "master"
-      - "refactor_setup"
     tags:
       - "*"
   pull_request:
@@ -74,6 +73,7 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest --cov spotpy --cov-report term-missing -v tests/
+          python -m coveralls --service=github
 
       - name: Build sdist
         run: |
@@ -94,15 +94,15 @@ jobs:
           name: artifact
           path: dist
 
-      # - name: Publish to Test PyPI
-      #   # only if working on main
-      #   if: github.ref == 'refs/heads/main'
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.PYPI_TEST_TOKEN }}
-      #     repository_url: https://test.pypi.org/legacy/
-      #     skip_existing: true
+      - name: Publish to Test PyPI
+        # only if working on master
+        if: github.ref == 'refs/heads/master'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TEST_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+          skip_existing: true
 
       - name: Publish to PyPI
         # only if tagged
