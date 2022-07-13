@@ -71,6 +71,8 @@ jobs:
           pip install --editable .[test]
 
       - name: Run tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python -m pytest --cov spotpy --cov-report term-missing -v tests/
           python -m coveralls --service=github
