@@ -111,7 +111,7 @@ tools:
 
 ## Style guide
 
-Follow [TensorFlow's style guide](https://www.tensorflow.org/versions/master/how_tos/style_guide.html) or the [Google style guide](https://google.github.io/styleguide/pyguide.html) for writing code, which more or less follows PEP 8.
+Try to make sure to follow the [Black style guide](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html) and [isort](https://pypi.org/project/isort/) for code submissions.
 
 
-#### This guide was derived from the [scikit-learn guide to contributing](https://github.com/scikit-learn/scikit-learn/blob/master/CONTRIBUTING.md)
+#### This guide was derived from the [scikit-learn guide to contributing](https://github.com/scikit-learn/scikit-learn/blob/master/CONTRIBUTING.md) and adopted to SPOTPY.
