@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 * Remove old Python2 necessarities [#287]
 * Modernize package structure [#287]
 * Spotpy source files moved to /src folder [#287]
-* Introduce new automatized upload to Pypi and TestPypi [#287]
+* Automatized upload to Pypi and TestPypi [#287]
 * New code style [Black](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html) and [isort](https://pypi.org/project/isort/)
 
 
