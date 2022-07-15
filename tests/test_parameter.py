@@ -1,31 +1,48 @@
-'''
+"""
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Tobias Houska, Philipp Kraft
-'''
-
-import unittest
-import sys
-try:
-    import spotpy
-except ImportError:
-    sys.path.append(".")
-    import spotpy
-from spotpy import parameter
-import numpy as np
+"""
 
 # Import inspect to scan spotpy.parameter for all Parameter classes
 import inspect
-from .testutils import repeat
-# https://docs.python.org/3/library/unittest.html
+import unittest
+
+import numpy as np
+
+import spotpy
+from spotpy import parameter
+
+
+def repeat(times):
+    """Repeats a single test the given number of times
+
+    Usage:
+    @repeat(5)
+    def test_foo(self):
+        self.assertTrue(self.bar == self.baz)
+
+    The above test will execute 5 times
+
+    Reference: https://stackoverflow.com/a/13606054/4014685
+    """
+
+    def repeatHelper(f):
+        def func_repeat_executor(*args, **kwargs):
+            for i in range(0, times):
+                f(*args, **kwargs)
+                args[0].setUp()
+
+        return func_repeat_executor
+
+    return repeatHelper
 
 
 class TestListParameterDistribution(unittest.TestCase):
-
     def setUp(self):
         self.values = [1, 2, 3, 4, 5]
-        self.list_param = parameter.List('test', self.values)
-        self.list_param_repeat = parameter.List('test2', self.values, repeat=True)
+        self.list_param = parameter.List("test", self.values)
+        self.list_param_repeat = parameter.List("test2", self.values, repeat=True)
 
     def test_list_is_callable(self):
         self.assertTrue(callable(self.list_param), "List instance should be callable")
@@ -103,37 +120,50 @@ class TestUniformParameterDistribution(unittest.TestCase):
         unif = parameter.Uniform("test", 0, 1)
         # Generate 10k random numbers
         nums = [unif() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), (1 - 0)/2.0, self.tolerance, "Mean of Unif(0, 1) should be 1/2")
-        self.assertAlmostEqual(np.var(nums), 1.0/12, self.tolerance, "Variance of Unif(0, 1) should be 1/12")
+        self.assertAlmostEqual(
+            np.mean(nums),
+            (1 - 0) / 2.0,
+            self.tolerance,
+            "Mean of Unif(0, 1) should be 1/2",
+        )
+        self.assertAlmostEqual(
+            np.var(nums),
+            1.0 / 12,
+            self.tolerance,
+            "Variance of Unif(0, 1) should be 1/12",
+        )
 
 
 class TestConstantParameterDistribution(unittest.TestCase):
-
     def setUp(self):
         self.const = parameter.Constant("test", 10)
 
     def test_constant_is_callable(self):
-        self.assertTrue(callable(self.const), "Constant param instance should be callable")
+        self.assertTrue(
+            callable(self.const), "Constant param instance should be callable"
+        )
 
     def test_constant_gives_only_constants(self):
         nums = set([self.const() for _ in range(1000)])
-        self.assertEqual(len(nums), 1, 'All results must be the same')
-        self.assertEqual(nums.pop(), 10, 'All results must be 10')
+        self.assertEqual(len(nums), 1, "All results must be the same")
+        self.assertEqual(nums.pop(), 10, "All results must be 10")
 
     def test_parameter_settings(self):
         p = parameter.generate([self.const])[0]
-        self.assertEqual(p['random'], 10, 'Random value must always be 10')
-        self.assertEqual(p['optguess'], 10, 'Optguess value must always be 10')
-        self.assertEqual(p['maxbound'], 10, 'maxbound value must always be 10')
-        self.assertEqual(p['minbound'], 10, 'minbound value must always be 10')
-        self.assertEqual(p['step'], 0, 'step value must always be 0')
+        self.assertEqual(p["random"], 10, "Random value must always be 10")
+        self.assertEqual(p["optguess"], 10, "Optguess value must always be 10")
+        self.assertEqual(p["maxbound"], 10, "maxbound value must always be 10")
+        self.assertEqual(p["minbound"], 10, "minbound value must always be 10")
+        self.assertEqual(p["step"], 0, "step value must always be 0")
 
     def test_find_constant_parameters(self):
-        flex = parameter.Uniform('flexible', 0, 1)
+        flex = parameter.Uniform("flexible", 0, 1)
         p = parameter.generate([flex, self.const])
         constant_parameters = parameter.find_constant_parameters(p)
-        self.assertFalse(constant_parameters[0], 'Flexible parameter detected as constant')
-        self.assertTrue(constant_parameters[1], 'Constant parameter not detected')
+        self.assertFalse(
+            constant_parameters[0], "Flexible parameter detected as constant"
+        )
+        self.assertTrue(constant_parameters[1], "Constant parameter not detected")
 
 
 class TestNormalParameterDistribution(unittest.TestCase):
@@ -153,8 +183,12 @@ class TestNormalParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_normal_has_correct_statistics(self):
         nums = [self.norm() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), 5, self.tolerance, "Mean of Norm(5, 10) should be 5")
-        self.assertAlmostEqual(np.std(nums), 10, self.tolerance, "SD of Norm(5, 10) should be 10")
+        self.assertAlmostEqual(
+            np.mean(nums), 5, self.tolerance, "Mean of Norm(5, 10) should be 5"
+        )
+        self.assertAlmostEqual(
+            np.std(nums), 10, self.tolerance, "SD of Norm(5, 10) should be 10"
+        )
 
 
 class TestLogNormalParameterDistribution(unittest.TestCase):
@@ -166,7 +200,9 @@ class TestLogNormalParameterDistribution(unittest.TestCase):
         self.log_norm = parameter.logNormal("test", mean=5, sigma=10)
 
     def test_normal_is_callable(self):
-        self.assertTrue(callable(self.log_norm), "Log Normal param instance should be callable")
+        self.assertTrue(
+            callable(self.log_norm), "Log Normal param instance should be callable"
+        )
 
     def test_normal_processes_non_keyword_args(self):
         _ = parameter.logNormal("test", 0, 1)
@@ -175,8 +211,18 @@ class TestLogNormalParameterDistribution(unittest.TestCase):
     def test_normal_has_correct_statistics(self):
         nums = [self.log_norm() for _ in range(10000)]
         log_nums = np.log(nums)
-        self.assertAlmostEqual(np.mean(log_nums), 5, self.tolerance, "Mean of Log(LogNorm(5, 10)) should be 5")
-        self.assertAlmostEqual(np.std(log_nums), 10, self.tolerance, "SD of Log(LogNorm(5, 10)) should be 10")
+        self.assertAlmostEqual(
+            np.mean(log_nums),
+            5,
+            self.tolerance,
+            "Mean of Log(LogNorm(5, 10)) should be 5",
+        )
+        self.assertAlmostEqual(
+            np.std(log_nums),
+            10,
+            self.tolerance,
+            "SD of Log(LogNorm(5, 10)) should be 10",
+        )
 
 
 class TestChiSquareParameterDistribution(unittest.TestCase):
@@ -188,7 +234,9 @@ class TestChiSquareParameterDistribution(unittest.TestCase):
         self.chisq = parameter.Chisquare("test", dt=self.df)
 
     def test_chisq_is_callable(self):
-        self.assertTrue(callable(self.chisq), "Chisquare param instance should be callable")
+        self.assertTrue(
+            callable(self.chisq), "Chisquare param instance should be callable"
+        )
 
     def test_chisq_processes_non_keyword_args(self):
         _ = parameter.Chisquare("test", 5)
@@ -196,10 +244,18 @@ class TestChiSquareParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_chisq_has_correct_statistics(self):
         nums = [self.chisq() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), self.df, self.tolerance, 
-                               "Mean of Chisquare({df}) should be {df}".format(df=self.df))
-        self.assertAlmostEqual(np.std(nums), np.sqrt(2*self.df), self.tolerance, 
-                               "SD of Chisquare({df}) should be sqrt(2*{df})".format(df=self.df))
+        self.assertAlmostEqual(
+            np.mean(nums),
+            self.df,
+            self.tolerance,
+            "Mean of Chisquare({df}) should be {df}".format(df=self.df),
+        )
+        self.assertAlmostEqual(
+            np.std(nums),
+            np.sqrt(2 * self.df),
+            self.tolerance,
+            "SD of Chisquare({df}) should be sqrt(2*{df})".format(df=self.df),
+        )
 
 
 class TestExponentialParameterDistribution(unittest.TestCase):
@@ -211,7 +267,9 @@ class TestExponentialParameterDistribution(unittest.TestCase):
         self.exp = parameter.Exponential("test", scale=self.beta)
 
     def test_exp_is_callable(self):
-        self.assertTrue(callable(self.exp), "Exponential param instance should be callable")
+        self.assertTrue(
+            callable(self.exp), "Exponential param instance should be callable"
+        )
 
     def test_exp_processes_non_keyword_args(self):
         _ = parameter.Exponential("test", self.beta)
@@ -219,10 +277,18 @@ class TestExponentialParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_exp_has_correct_statistics(self):
         nums = [self.exp() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), self.beta, self.tolerance, 
-                               "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta))
-        self.assertAlmostEqual(np.std(nums), self.beta, self.tolerance, 
-                               "SD of Exponential({beta}) should be {beta}".format(beta=self.beta))
+        self.assertAlmostEqual(
+            np.mean(nums),
+            self.beta,
+            self.tolerance,
+            "Mean of Exponential({beta}) should be {beta}".format(beta=self.beta),
+        )
+        self.assertAlmostEqual(
+            np.std(nums),
+            self.beta,
+            self.tolerance,
+            "SD of Exponential({beta}) should be {beta}".format(beta=self.beta),
+        )
 
 
 class TestGammaParameterDistribution(unittest.TestCase):
@@ -243,12 +309,24 @@ class TestGammaParameterDistribution(unittest.TestCase):
     @repeat(5)
     def test_gamma_has_correct_statistics(self):
         nums = [self.gamma() for _ in range(10000)]
-        expected_mean = self.shape*self.scale
-        expected_sd = np.sqrt(self.shape*self.scale*self.scale)
-        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, 
-                               "Mean of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
-                               "SD of Gamma({}, {}) should be {}".format(self.shape, self.scale, expected_sd))
+        expected_mean = self.shape * self.scale
+        expected_sd = np.sqrt(self.shape * self.scale * self.scale)
+        self.assertAlmostEqual(
+            np.mean(nums),
+            expected_mean,
+            self.tolerance,
+            "Mean of Gamma({}, {}) should be {}".format(
+                self.shape, self.scale, expected_mean
+            ),
+        )
+        self.assertAlmostEqual(
+            np.std(nums),
+            expected_sd,
+            self.tolerance,
+            "SD of Gamma({}, {}) should be {}".format(
+                self.shape, self.scale, expected_sd
+            ),
+        )
 
 
 class TestWaldParameterDistribution(unittest.TestCase):
@@ -269,10 +347,22 @@ class TestWaldParameterDistribution(unittest.TestCase):
     def test_wald_has_correct_statistics(self):
         nums = [self.wald() for _ in range(40000)]
         expected_sd = np.sqrt(self.mean**3 / self.scale)
-        self.assertAlmostEqual(np.mean(nums), self.mean, self.tolerance, 
-                               "Mean of Wald({}, {}) should be {}".format(self.mean, self.scale, self.mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
-                               "SD of Wald({}, {}) should be {}".format(self.mean, self.scale, expected_sd))
+        self.assertAlmostEqual(
+            np.mean(nums),
+            self.mean,
+            self.tolerance,
+            "Mean of Wald({}, {}) should be {}".format(
+                self.mean, self.scale, self.mean
+            ),
+        )
+        self.assertAlmostEqual(
+            np.std(nums),
+            expected_sd,
+            self.tolerance,
+            "SD of Wald({}, {}) should be {}".format(
+                self.mean, self.scale, expected_sd
+            ),
+        )
 
 
 class TestWeibullParameterDistribution(unittest.TestCase):
@@ -284,17 +374,27 @@ class TestWeibullParameterDistribution(unittest.TestCase):
         self.weibull = parameter.Weibull("test", a=self.a)
 
     def test_weibull_is_callable(self):
-        self.assertTrue(callable(self.weibull), "Weibull param instance should be callable")
+        self.assertTrue(
+            callable(self.weibull), "Weibull param instance should be callable"
+        )
 
     def test_weibull_processes_non_keyword_args(self):
         _ = parameter.Weibull("test", self.a)
 
     def test_weibull_has_correct_statistics(self):
         nums = [self.weibull() for _ in range(10000)]
-        self.assertAlmostEqual(np.mean(nums), 0.918169, self.tolerance, 
-                               "Mean of Weibull({}) should be {}".format(self.a, 0.918169))
-        self.assertAlmostEqual(np.std(nums), 0.0442300, self.tolerance, 
-                               "SD of Weibull({}) should be {}".format(self.a, 0.0442300))
+        self.assertAlmostEqual(
+            np.mean(nums),
+            0.918169,
+            self.tolerance,
+            "Mean of Weibull({}) should be {}".format(self.a, 0.918169),
+        )
+        self.assertAlmostEqual(
+            np.std(nums),
+            0.0442300,
+            self.tolerance,
+            "SD of Weibull({}) should be {}".format(self.a, 0.0442300),
+        )
 
 
 class TestTriangularParameterDistribution(unittest.TestCase):
@@ -303,21 +403,45 @@ class TestTriangularParameterDistribution(unittest.TestCase):
 
     def setUp(self):
         self.a, self.c, self.b = 0, 2, 5
-        self.triangular = parameter.Triangular("test", left=self.a, mode=self.c, right=self.b)
+        self.triangular = parameter.Triangular(
+            "test", left=self.a, mode=self.c, right=self.b
+        )
 
     def test_triangular_is_callable(self):
-        self.assertTrue(callable(self.triangular), "Triangular param instance should be callable")
+        self.assertTrue(
+            callable(self.triangular), "Triangular param instance should be callable"
+        )
 
     def test_triangular_has_correct_statistics(self):
         nums = [self.triangular() for _ in range(10000)]
         expected_mean = (self.a + self.b + self.c) / 3
-        expected_sd = np.sqrt((self.a**2 + self.b**2 + self.c**2 - self.a*self.c - self.a*self.b - self.b*self.c)/18)
-        self.assertAlmostEqual(np.mean(nums), expected_mean, self.tolerance, 
-                               "Mean of Triangular({}, {}, {}) should be {}"
-                               .format(self.a, self.c, self.b, expected_mean))
-        self.assertAlmostEqual(np.std(nums), expected_sd, self.tolerance, 
-                               "SD of Triangular({}, {}, {}) should be {}"
-                               .format(self.a, self.c, self.b, expected_sd))
+        expected_sd = np.sqrt(
+            (
+                self.a**2
+                + self.b**2
+                + self.c**2
+                - self.a * self.c
+                - self.a * self.b
+                - self.b * self.c
+            )
+            / 18
+        )
+        self.assertAlmostEqual(
+            np.mean(nums),
+            expected_mean,
+            self.tolerance,
+            "Mean of Triangular({}, {}, {}) should be {}".format(
+                self.a, self.c, self.b, expected_mean
+            ),
+        )
+        self.assertAlmostEqual(
+            np.std(nums),
+            expected_sd,
+            self.tolerance,
+            "SD of Triangular({}, {}, {}) should be {}".format(
+                self.a, self.c, self.b, expected_sd
+            ),
+        )
 
 
 class TestParameterArguments(unittest.TestCase):
@@ -339,35 +463,61 @@ class TestParameterArguments(unittest.TestCase):
         for cl, args in zip(self.classes, self.rndargs):
             p_no_name = cl(*args)
             p_with_name = cl(cl.__name__, *args)
-            self.assertTrue(10 <= p_no_name.optguess < 20, 'Optguess out of boundaries')
-            self.assertTrue(10 <= p_with_name.optguess < 20, 'Optguess out of boundaries')
-            self.assertTrue(p_no_name.step < 10, 'Step to large')
-            self.assertTrue(p_with_name.step < 10, 'Step to large')
+            self.assertTrue(10 <= p_no_name.optguess < 20, "Optguess out of boundaries")
+            self.assertTrue(
+                10 <= p_with_name.optguess < 20, "Optguess out of boundaries"
+            )
+            self.assertTrue(p_no_name.step < 10, "Step to large")
+            self.assertTrue(p_with_name.step < 10, "Step to large")
 
     def test_correct_with_extra_args(self):
         for cl, args in zip(self.classes, self.rndargs):
             p_no_name = cl(*args, step=1, default=12)
             p_with_name = cl(cl.__name__, *args, step=1, default=12)
-            self.assertTrue(p_no_name.optguess == 12,
-                            'Optguess not found from default (name={})'.format(repr(p_no_name.name)))
-            self.assertTrue(p_with_name.optguess == 12,
-                            'Optguess not found from default (name={})'.format(repr(p_with_name.name)))
-            self.assertTrue(p_no_name.step == 1,
-                            'Step overridden by class (name={})'.format(repr(p_no_name.name)))
-            self.assertTrue(p_with_name.step == 1,
-                            'Step overridden by class (name={})'.format(repr(p_with_name.name)))
+            self.assertTrue(
+                p_no_name.optguess == 12,
+                "Optguess not found from default (name={})".format(
+                    repr(p_no_name.name)
+                ),
+            )
+            self.assertTrue(
+                p_with_name.optguess == 12,
+                "Optguess not found from default (name={})".format(
+                    repr(p_with_name.name)
+                ),
+            )
+            self.assertTrue(
+                p_no_name.step == 1,
+                "Step overridden by class (name={})".format(repr(p_no_name.name)),
+            )
+            self.assertTrue(
+                p_with_name.step == 1,
+                "Step overridden by class (name={})".format(repr(p_with_name.name)),
+            )
 
     def test_minbound_zero(self):
-        param = spotpy.parameter.Normal(name="parname", mean=0.6, stddev=0.2, optguess=0.6, minbound=0, maxbound=1)
+        param = spotpy.parameter.Normal(
+            name="parname", mean=0.6, stddev=0.2, optguess=0.6, minbound=0, maxbound=1
+        )
         self.assertEqual(param.minbound, 0)
 
     def test_maxbound_zero(self):
-        param = spotpy.parameter.Normal(name="parname", mean=-0.6, stddev=0.2, optguess=-0.6, minbound=-1, maxbound=0)
+        param = spotpy.parameter.Normal(
+            name="parname",
+            mean=-0.6,
+            stddev=0.2,
+            optguess=-0.6,
+            minbound=-1,
+            maxbound=0,
+        )
         self.assertEqual(param.maxbound, 0)
 
     def test_optguess_zero(self):
-        param = spotpy.parameter.Normal(name="parname", mean=0.1, stddev=0.2, optguess=0.0, minbound=-1, maxbound=1)
+        param = spotpy.parameter.Normal(
+            name="parname", mean=0.1, stddev=0.2, optguess=0.0, minbound=-1, maxbound=1
+        )
         self.assertEqual(param.optguess, 0)
+
 
 def make_args(pcls):
     """
@@ -379,16 +529,16 @@ def make_args(pcls):
 def get_classes():
     """
     Get all classes from spotpy.parameter module, except special cases
-    """    
+    """
+
     def predicate(cls):
-        return (inspect.isclass(cls)
-                and cls not in [parameter.Base, parameter.List]
-                and issubclass(cls, parameter.Base))
-    
-    return [[cname, cls]
-            for cname, cls in
-            inspect.getmembers(parameter, predicate)
-            ]
+        return (
+            inspect.isclass(cls)
+            and cls not in [parameter.Base, parameter.List]
+            and issubclass(cls, parameter.Base)
+        )
+
+    return [[cname, cls] for cname, cls in inspect.getmembers(parameter, predicate)]
 
 
 class TestParameterClasses(unittest.TestCase):
@@ -398,8 +548,14 @@ class TestParameterClasses(unittest.TestCase):
 
     def test_classes_available(self):
         classes = get_classes()
-        self.assertGreaterEqual(len(classes), 1, 'No parameter classes found in spotpy.parameter')
-        self.assertIn('Uniform', [n for n, c in classes], 'Parameter class spotpy.parameter.Uniform not found')
+        self.assertGreaterEqual(
+            len(classes), 1, "No parameter classes found in spotpy.parameter"
+        )
+        self.assertIn(
+            "Uniform",
+            [n for n, c in classes],
+            "Parameter class spotpy.parameter.Uniform not found",
+        )
 
     def test_create_posargs(self):
         """
@@ -416,14 +572,17 @@ class TestParameterClasses(unittest.TestCase):
             # Check the names
             self.assertEqual(p_name.name, cname)
             # Check name is empty, when no name is given
-            self.assertEqual(p_no_name.name, '')
+            self.assertEqual(p_no_name.name, "")
             # Test Parameter character for both
             for p in [p_name, p_no_name]:
                 self.assertTrue(callable(p))
                 self.assertGreater(p(), -np.inf)
-                self.assertTrue(p.step == 0.01,
-                                '{} did not receive step as the correct value, check number of arguments'
-                                .format(cls.__name__))
+                self.assertTrue(
+                    p.step == 0.01,
+                    "{} did not receive step as the correct value, check number of arguments".format(
+                        cls.__name__
+                    ),
+                )
 
     def test_create_kwargs(self):
         """
@@ -438,14 +597,18 @@ class TestParameterClasses(unittest.TestCase):
             p_no_name = cls(step=0.01, **kwargs)
             # Check the names
             self.assertEqual(p_name.name, cname)
-            self.assertEqual(p_no_name.name, '')
+            self.assertEqual(p_no_name.name, "")
             # Test Parameter character for both
             for p in [p_name, p_no_name]:
                 self.assertTrue(callable(p))
                 self.assertGreater(p(), -np.inf)
-                self.assertEqual(p.step, 0.01,
-                                 '{} did not receive step as the correct value, check number of arguments'
-                                 .format(cls.__name__))
+                self.assertEqual(
+                    p.step,
+                    0.01,
+                    "{} did not receive step as the correct value, check number of arguments".format(
+                        cls.__name__
+                    ),
+                )
 
     def test_too_many_args(self):
         """
@@ -453,7 +616,7 @@ class TestParameterClasses(unittest.TestCase):
         """
         for cname, cls in get_classes():
             # Implicit definition of step in args
-            step_args = make_args(cls) + (1, )
+            step_args = make_args(cls) + (1,)
             with self.assertRaises(TypeError):
                 _ = cls(*step_args, step=1)
             with self.assertRaises(TypeError):
@@ -472,5 +635,5 @@ class TestParameterClasses(unittest.TestCase):
                 _ = cls(cls.__name__, *args[:-1], step=1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

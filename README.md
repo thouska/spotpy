@@ -25,13 +25,13 @@ A Statistical Parameter Optimization Tool for Python
 Purpose
 =================
 
-SPOTPY is a Python framework that enables the use of Computational optimization techniques for calibration, uncertainty 
+SPOTPY is a Python framework that enables the use of Computational optimization techniques for calibration, uncertainty
 and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One:
 
-Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE, 
+Houska, T., Kraft, P., Chamorro-Chavez, A. and Breuer, L.: SPOTting Model Parameters Using a Ready-Made Python Package, PLoS ONE,
 10(12), e0145180, doi:[10.1371/journal.pone.0145180](http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0145180 "SPOTting Model Parameters Using a Ready-Made Python Package"), 2015
- 
-The simplicity and flexibility enables the use and test of different 
+
+The simplicity and flexibility enables the use and test of different
 algorithms of almost any model, without the need of complex codes::
 
 	sampler = spotpy.algorithms.sceua(model_setup())     # Initialize your model with a setup file
@@ -44,17 +44,17 @@ algorithms of almost any model, without the need of complex codes::
 Features
 =================
 
-Complex algorithms bring complex tasks to link them with a model. 
-We want to make this task as easy as possible. 
+Complex algorithms bring complex tasks to link them with a model.
+We want to make this task as easy as possible.
 Some features you can use with the SPOTPY package are:
 
-* Fitting models to evaluation data with different algorithms. 
-  Available algorithms are: 
-  
+* Fitting models to evaluation data with different algorithms.
+  Available algorithms are:
+
   * Monte Carlo (`MC`)
   * Markov-Chain Monte-Carlo (`MCMC`)
   * Maximum Likelihood Estimation (`MLE`)
-  * Latin-Hypercube Sampling (`LHS`) 
+  * Latin-Hypercube Sampling (`LHS`)
   * Simulated Annealing (`SA`)
   * Shuffled Complex Evolution Algorithm (`SCE-UA`)
   * Differential Evolution Markov Chain Algorithm (`DE-MCz`)
@@ -97,7 +97,7 @@ Some features you can use with the SPOTPY package are:
   * Skewness
   * compare percentiles of discharge
 
-* Prebuild parameter distribution functions: 
+* Prebuild parameter distribution functions:
 
   * Uniform
   * Normal
@@ -112,7 +112,7 @@ Some features you can use with the SPOTPY package are:
   of a model.
 
 * Multi-objective support
- 
+
 * MPI support for fast parallel computing
 
 * A progress bar monitoring the sampling loops. Enables you to plan your coffee brakes.
@@ -181,7 +181,7 @@ Patches/enhancements/new algorithms and any other contributions to this package 
 1. Fork it ( http://github.com/thouska/spotpy/fork )
 2. Create your feature branch (``git checkout -b my-new-feature``)
 3. Add your modifications
-4. Add short summary of your modifications on ``CHANGELOG.rst``
+4. Add short summary of your modifications on ``CHANGELOG.md``
 5. Commit your changes (``git commit -m "Add some feature"``)
 6. Push to the branch (``git push origin my-new-feature``)
 7. Create new Pull Request

@@ -1,0 +1,127 @@
+[build-system]
+requires = [
+    "setuptools>=63",
+    "setuptools_scm[toml]>=6.4",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+requires-python = ">=3.7"
+name = "spotpy"
+description = "A Statistical Parameter Optimization Tool."
+authors = [
+    {name = "Tobias Houska", email = "tobias.houska@umwelt.uni-giessen.de"},
+    {name = "Philipp Kraft"},
+    {name = "Alejandro Chamorro-Chavez"},
+    {name = "Lutz Breuer"},
+    {name = "Sebastian Müller", email = "sebastian.mueller@ufz.de"},
+]
+maintainers = [
+    {name = "Tobias Houska", email = "tobias.houska@umwelt.uni-giessen.de"},
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+dynamic = ["version"]
+keywords = [
+    "Monte Carlo",
+    "MCMC",
+    "MLE",
+    "SCE-UA",
+    "Simulated Annealing",
+    "DE-MCz",
+    "DREAM",
+    "ROPE",
+    "Artifical Bee Colony",
+    "DDS",
+    "PA-DDS",
+    "NSGAii",
+    "Uncertainty",
+    "Calibration",
+    "Model",
+    "Signatures",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft",
+    "Operating System :: MacOS",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Hydrology",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "numpy>=1.14.5",
+    "scipy>=1.5.0",
+]
+
+[project.optional-dependencies]
+plotting = [
+    "pandas>=1",
+    "matplotlib>=3",
+]
+test = [
+    "pytest-cov>=3",
+    "numba",
+    "pathos",
+    "matplotlib",
+    "click",
+    "pandas",
+    "tables",
+    "docutils",
+]
+
+[project.urls]
+Changelog = "https://github.com/thouska/spotpy/blob/master/CHANGELOG.md"
+Conda-Forge = "https://anaconda.org/conda-forge/spotpy"
+Documentation = "https://spotpy.readthedocs.io"
+Homepage = "https://github.com/thouska/spotpy"
+Source = "https://github.com/thouska/spotpy"
+Tracker = "https://github.com/thouska/spotpy/issues"
+
+[tool.setuptools_scm]
+write_to = "src/spotpy/_version.py"
+write_to_template = "__version__ = '{version}'"
+local_scheme = "no-local-version"
+fallback_version = "0.0.0.dev0"
+tag_regex = "^(?:[\\w-]+-)?[vV]?\\.?(?P<version>\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:\\+.*)?$"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.black]
+exclude = "_version.py"
+target-version = [
+    "py36",
+    "py37",
+    "py38",
+]
+
+[tool.coverage]
+    [tool.coverage.run]
+    source = ["spotpy"]
+
+    [tool.coverage.report]
+    exclude_lines = [
+        "pragma: no cover",
+        "if __name__ == .__main__.:",
+        "def __repr__",
+        "def __str__",
+        "raise NotImplementedError",
+        "def parse_args",
+    ]
