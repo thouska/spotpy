@@ -314,7 +314,7 @@ def get_posterior(results, percentage=10, maximize=True):
         )
     else:
         index = np.where(
-            results["like1"] >= np.percentile(results["like1"], 100.0 - percentage)
+            results["like1"] <= np.percentile(results["like1"], 100.0 - (100 - percentage))
         )
     return results[index]
 
