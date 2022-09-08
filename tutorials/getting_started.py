@@ -23,8 +23,7 @@ from spotpy.examples.spot_setup_rosenbrock import spot_setup
 if __name__ == "__main__":
     # Give Monte Carlo algorithm the example setup and saves results in a
     # RosenMC.csv file
-    sampler = spotpy.algorithms.mc(spot_setup(), dbname="RosenMC",
-                                   dbformat="ram")
+    sampler = spotpy.algorithms.mc(spot_setup(), dbname="RosenMC", dbformat="ram")
 
     # Now we can sample with the implemented Monte Carlo algortihm:
     sampler.sample(50000)  # Sample 50.000 parameter combinations
