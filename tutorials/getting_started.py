@@ -32,3 +32,4 @@ if __name__ == "__main__":
     spotpy.analyser.plot_parameterInteraction(posterior)
     # Print the run with the lowest objective function
     print(spotpy.analyser.get_best_parameterset(results))
+    
