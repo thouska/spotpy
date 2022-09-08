@@ -314,7 +314,7 @@ def get_posterior(results, percentage=10, maximize=True):
         )
     else:
         index = np.where(
-            results["like1"] 
+            results["like1"]
             <= np.percentile(results["like1"], 100.0 - (100 - percentage))
         )
     return results[index]
@@ -498,7 +498,6 @@ def get_sensitivity_of_fast(results, like_index=1, M=4, print_to_console=True):
         omega[1:] = np.floor(np.linspace(1, m, parnumber - 1))
     else:
         omega[1:] = np.arange(parnumber - 1) % m + 1
-
     print("Omega =", omega)
     # Calculate and Output the First and Total Order Values
     if print_to_console:
@@ -554,14 +553,12 @@ def plot_fast_sensitivity(
         threshold = np.sort(list(Si.values())[1])[-number_of_sensitiv_pars]
     except IndexError:
         threshold = 0
-
     first_sens_call = True
     first_insens_call = True
     try:
         Si.values()
     except AttributeError:
         exit("Our SI is wrong: " + str(Si))
-
     for j in range(len(list(Si.values())[1])):
         if list(Si.values())[1][j] >= threshold:
             names.append(j)
@@ -577,7 +574,6 @@ def plot_fast_sensitivity(
             else:
                 ax.bar(j, list(Si.values())[1][j], color="blue")
             first_sens_call = False
-
         else:
             # names.append('')
             no_values.append(list(Si.values())[1][j])
@@ -592,7 +588,6 @@ def plot_fast_sensitivity(
             else:
                 ax.bar(j, list(Si.values())[1][j], color="orange")
             first_insens_call = False
-
     ax.set_ylim([0, 1])
 
     ax.set_xlabel("Model Paramters")
@@ -604,7 +599,6 @@ def plot_fast_sensitivity(
     plt.setp(xtickNames, rotation=90)
     for name_id in names:
         ax.get_xticklabels()[name_id].set_color("black")
-
     # ax.set_xticklabels(['0']+parnames)
     ax.plot(
         np.arange(-1, len(parnames) + 1, 1), [threshold] * (len(parnames) + 2), "r--"
@@ -631,7 +625,7 @@ def plot_heatmap_griewank(results, algorithms, fig_name="heatmap_griewank.png"):
 
     x, y = np.meshgrid(x, y)
 
-    z = 1 + (x**2 + y**2) / 4000 - np.cos(x / np.sqrt(2)) * np.cos(y / np.sqrt(3))
+    z = 1 + (x ** 2 + y ** 2) / 4000 - np.cos(x / np.sqrt(2)) * np.cos(y / np.sqrt(3))
 
     cmap = plt.get_cmap("autumn")
 
@@ -650,12 +644,9 @@ def plot_heatmap_griewank(results, algorithms, fig_name="heatmap_griewank.png"):
         if i >= subplots / rows:
             ax.set_xlabel("x")
             ax.xaxis.set_ticks(xticks)
-
         if i != 0 and i != subplots / rows:
             ax.yaxis.set_ticks([])
-
         ax.set_title(algorithms[i])
-
     fig.savefig(fig_name, bbox_inches="tight")
 
 
@@ -732,7 +723,6 @@ def plot_parametertrace_algorithms(
             ax.plot([1] * rep, "r--")
             ax.set_xlim(0, rep)
             ax.set_ylim(parameter["minbound"][j], parameter["maxbound"][j])
-
     # plt.tight_layout()
     fig.savefig(fig_name, bbox_inches="tight")
 
@@ -984,13 +974,11 @@ def plot_bestmodelruns(
                 likes.append(
                     spotpy.objectivefunctions.lognashsutcliffe(evaluation, list(s))
                 )
-
             maximum = max(likes)
             index = likes.index(maximum)
             bestmodelrun = list(sim[index])
             bestparameterset = list(par[index])
             print(bestparameterset)
-
         else:
             if objectivefunctionmax == True:
                 index, maximum = get_maxlikeindex(results[i])
@@ -999,7 +987,6 @@ def plot_bestmodelruns(
             bestmodelrun = list(
                 get_modelruns(results[i])[index][0]
             )  # Transform values into list to ensure plotting
-
         maxLike = spotpy.objectivefunctions.lognashsutcliffe(evaluation, bestmodelrun)
 
         if dates is not None:
@@ -1010,7 +997,6 @@ def plot_bestmodelruns(
                 color=colors[i],
                 label=algorithms[i] + ": LogNSE=" + str(round(maxLike, 4)),
             )
-
         else:
             plt.plot(
                 bestmodelrun,
@@ -1054,7 +1040,6 @@ def plot_objectivefunctiontraces(
             ax.yaxis.set_ticks([0, 10, 20])
         else:
             ax.yaxis.set_ticks([])
-
     plt.tight_layout()
     fig.savefig(fig_name)
 
@@ -1104,7 +1089,6 @@ def plot_allmodelruns(modelruns, observations, dates=None, fig_name="bestmodel.p
                 ax.plot(dates, modelruns[i], "b", alpha=0.05, label="Simulations")
             else:
                 ax.plot(dates, modelruns[i], "b", alpha=0.05)
-
     else:
         for i in range(len(modelruns)):
             if i == 0:
@@ -1131,7 +1115,6 @@ def plot_gelman_rubin(results, r_hat_values, fig_name="gelman_rub.png"):
     for i in range(int(max(results["chain"])) + 1):
         index = np.where(results["chain"] == i)
         ax1.plot(results["like1"][index], label="Chain " + str(i + 1))
-
     ax1.set_ylabel("Likelihood value")
     ax1.legend()
 
@@ -1140,7 +1123,6 @@ def plot_gelman_rubin(results, r_hat_values, fig_name="gelman_rub.png"):
     ax2.plot([1.2] * len(r_hat), "k--")
     for i in range(len(r_hat[0])):
         ax2.plot(r_hat[:, i], label="x" + str(i + 1))
-
     ax2.set_yscale("log", nonpositive="clip")
     ax2.set_ylabel("R$^d$ - convergence diagnostic")
     ax2.set_xlabel("Number of chainruns")
