@@ -625,9 +625,9 @@ def plot_heatmap_griewank(results, algorithms, fig_name="heatmap_griewank.png"):
 
     x, y = np.meshgrid(x, y)
 
-    z = 1 + (x ** 2 + y ** 2) / 4000 - np.cos(x / np.sqrt(2)) * np.cos(y / np.sqrt(3))
+    z = 1 + (x**2 + y**2) / 4000 - np.cos(x / np.sqrt(2)) * np.cos(y / np.sqrt(3))
 
-    cmap = plt.get_cmap("autumn")
+    plt.get_cmap("autumn")
 
     rows = 2
     for i in range(subplots):
