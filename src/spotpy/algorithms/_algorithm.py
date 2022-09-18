@@ -225,7 +225,6 @@ class _algorithm(object):
 
     _unaccepted_parameter_types = (parameter.List,)
 
-<<<<<<< HEAD:src/spotpy/algorithms/_algorithm.py
     def __init__(
         self,
         spot_setup,
@@ -243,14 +242,10 @@ class _algorithm(object):
         random_state=None,
         optimization_direction="grid",
         algorithm_name="",
+        quiet=False, 
+        logfile=None, 
+        logdir=None,
     ):
-=======
-    def __init__(self, spot_setup, dbname=None, dbformat=None, dbinit=True,
-                 dbappend=False, parallel='seq', save_sim=True, breakpoint=None,
-                 backup_every_rep=100, save_threshold=-np.inf, db_precision=np.float16,
-                 sim_timeout=None, random_state=None, optimization_direction='grid', algorithm_name='',
-                 quiet=False, logfile=None, logdir=None):
->>>>>>> d175060 (Adds logdir option and click parameter delegation for _algorithm):spotpy/algorithms/_algorithm.py
 
         # Instatiate logging
         self.logger = spotpylogging.instantiate_logger(self.__class__.__name__, quiet, logfile, logdir)

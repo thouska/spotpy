@@ -622,7 +622,7 @@ def _dream_proposals(
     return proposalVectors
 
 
-class _GRConvergence():
+class _GRConvergence:
     """
     Gelman Rubin convergence diagnostic calculator class. It currently only calculates the naive
     version found in the first paper. It does not check to see whether the variances have been

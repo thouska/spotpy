@@ -25,7 +25,7 @@ def instantiate_logger(name, quiet=None, logfile=None, logdir=None):
       if already instantiated returns a new child of the main logger
     """
 
-    path_to_logdir = PurePath() # current directory is assumed
+    path_to_logdir = PurePath()  # current directory is assumed
     path_to_logfile = PurePath('{}-spotpy.log'.format(datetime.isoformat(datetime.now())))
 
     if not spotpy_logger.handlers:
