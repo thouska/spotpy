@@ -9,8 +9,9 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This tool holds functions for statistic analysis. It takes Python-lists and
 returns the objective function value of interest.
 """
-from spotpy import spotpylogging
 import numpy as np
+
+from spotpy import spotpylogging
 
 logger = spotpylogging.get_logger("objective_functions")
 

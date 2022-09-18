@@ -11,8 +11,7 @@ import time
 
 import numpy as np
 
-from spotpy import database, parameter
-from spotpy import spotpylogging
+from spotpy import database, parameter, spotpylogging
 
 try:
     from queue import Queue

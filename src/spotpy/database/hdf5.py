@@ -12,9 +12,9 @@ structure during the sample.
 
 import numpy as np
 
-from .base import database
-
 from spotpy import spotpylogging
+
+from .base import database
 
 try:
     import tables

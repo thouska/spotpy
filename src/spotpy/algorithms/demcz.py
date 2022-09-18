@@ -7,8 +7,9 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 import numpy as np
 
-from . import _algorithm
 from spotpy import spotpylogging
+
+from . import _algorithm
 
 
 class demcz(_algorithm):
