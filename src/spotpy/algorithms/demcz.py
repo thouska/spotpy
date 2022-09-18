@@ -105,7 +105,9 @@ class demcz(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.error('ERROR Bounds have not the same lenghts as Parameterarray')
+            self.logger.error(
+                "ERROR Bounds have not the same lenghts as Parameterarray"
+            )
         return par
 
     def sample(
@@ -145,8 +147,7 @@ class demcz(_algorithm):
 
         self.set_repetiton(repetitions)
         self.logger.info(
-            "Starting the DEMCz algotrithm with %s repetitions...", 
-            repetitions
+            "Starting the DEMCz algotrithm with %s repetitions...", repetitions
         )
 
         self.min_bound, self.max_bound = (
@@ -224,7 +225,7 @@ class demcz(_algorithm):
             while cur_iter < maxChainDraws:
                 self.logger.debug("%s, %s", cur_iter, burnIn)
                 if cur_iter == burnIn:
-                    self.logger.debug('starting')
+                    self.logger.debug("starting")
                     history.start_sampling()
 
                 # every5th iteration allow a big jump
@@ -364,11 +365,10 @@ class demcz(_algorithm):
         self.iter = cur_iter
         self.burnIn = burnIn
         self.R = grConvergence.R
-        
-        self.logger.info('Gelman Rubin R=%s', self.R)
+
+        self.logger.info("Gelman Rubin R=%s", self.R)
         self.status.rep = self.status.repetitions
         self.final_call()
-
 
     def _update_accepts_ratio(self, weighting, acceptances):
         self.accepts_ratio = (
@@ -536,8 +536,8 @@ def _random_no_replace(sampleSize, populationSize, numSamples):
     return samples
 
 
-class _CovarianceConvergence():
-    
+class _CovarianceConvergence:
+
     relativeVariances = {}
 
     def update(self, history, group):
@@ -566,7 +566,9 @@ class _CovarianceConvergence():
             projection = np.dot(np.linalg.inv(basis1), basis2)
         except np.linalg.linalg.LinAlgError as e:
             projection = np.array(basis1) * np.nan
-            spotpylogging.get_logger("_CovarianceConvergence()").logger.debug("Exception happend!\nExcpetion:%s", e)
+            spotpylogging.get_logger("_CovarianceConvergence()").logger.debug(
+                "Exception happend!\nExcpetion:%s", e
+            )
 
         # find the releative size in each of the basis1 directions
         return np.log(np.sum(projection**2, axis=0) ** 0.5)

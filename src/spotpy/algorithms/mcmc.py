@@ -63,7 +63,9 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.error(
+                "ERROR: Bounds have not the same lenghts as Parameterarray"
+            )
         return par
 
     def check_par_validity_reflect(self, par):
@@ -81,7 +83,9 @@ class mcmc(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
+            self.logger.error(
+                "ERROR: Bounds have not the same lenghts as Parameterarray"
+            )
         return par
 
     def get_new_proposal_vector(self, old_par):
@@ -132,7 +136,7 @@ class mcmc(_algorithm):
             self.iter += 1
 
         intervaltime = time.time()
-        self.logger.debug('Beginn of Random Walk')
+        self.logger.debug("Beginn of Random Walk")
         # Walk through chains
         while self.iter <= repetitions - self.burnIn:
             param_generator = (

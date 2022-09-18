@@ -62,11 +62,9 @@ class sa(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-<<<<<<< HEAD:src/spotpy/algorithms/sa.py
-            self.logger.info("ERROR: Bounds have not the same lenghts as Parameterarray")
-=======
-            self.logger.error('ERROR: Bounds have not the same lenghts as Parameterarray')
->>>>>>> f7fa4fd (Nuanced using of debug/info/error in algorithms):spotpy/algorithms/sa.py
+            self.logger.error(
+                "ERROR: Bounds have not the same lenghts as Parameterarray"
+            )
         return par
 
     def sample(self, repetitions, Tini=80, Ntemp=50, alpha=0.99):
@@ -80,10 +78,13 @@ class sa(_algorithm):
         """
         self.set_repetiton(repetitions)
         self.logger.info(
-            'Starting the SA algotrithm with '+str(repetitions)+ ' repetitions...'
-            )
-        self.min_bound, self.max_bound = self.parameter()['minbound'], self.parameter()['maxbound']
-        stepsizes = self.parameter()['step']
+            "Starting the SA algotrithm with " + str(repetitions) + " repetitions..."
+        )
+        self.min_bound, self.max_bound = (
+            self.parameter()["minbound"],
+            self.parameter()["maxbound"],
+        )
+        stepsizes = self.parameter()["step"]
         Eopt = 999999
         Titer = Tini
         x = self.parameter()["optguess"]

@@ -133,8 +133,8 @@ class fscabc(_algorithm):
                 work.append([like, randompar, like, randompar, c, p])
                 icall += 1
                 if self.status.stop:
-                    #icall = repetitions
-                    self.logger.debug('Stopping sampling')
+                    # icall = repetitions
+                    self.logger.debug("Stopping sampling")
                     break
 
         # Bee Phases
@@ -174,7 +174,7 @@ class fscabc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    self.logger.debug('Stopping samplig')
+                    self.logger.debug("Stopping samplig")
                     break
 
             # Fitness scaling
@@ -223,7 +223,7 @@ class fscabc(_algorithm):
                     work[rep][4] = work[rep][4] + 1
                 icall += 1
                 if self.status.stop:
-                    self.logger.debug('Stopping samplig')
+                    self.logger.debug("Stopping samplig")
                     break
             # Scout bee phase
             for i, val in enumerate(work):
@@ -239,7 +239,7 @@ class fscabc(_algorithm):
                     work[i][0] = clike
                     icall += 1
                     if self.status.stop:
-                        self.logger.debug('Stopping samplig')
+                        self.logger.debug("Stopping samplig")
                         break
             gnrng = -self.status.objectivefunction_max
 

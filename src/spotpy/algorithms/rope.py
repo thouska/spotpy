@@ -122,9 +122,11 @@ class rope(_algorithm):
         repetitions_following_runs = int((repetitions - first_run) / (subsets - 1))
         # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
-            self.logger.info('Warning: Burn-in samples and total number of repetions are not compatible.\n'
-                  'SPOTPY will automatically adjust the number of total repetitions.')
-            repetitions_following_runs+=1
+            self.logger.info(
+                "Warning: Burn-in samples and total number of repetions are not compatible.\n"
+                "SPOTPY will automatically adjust the number of total repetitions."
+            )
+            repetitions_following_runs += 1
 
         if NDIR is None:
             NDIR = int(repetitions_following_runs / 100.0)
@@ -165,8 +167,11 @@ class rope(_algorithm):
             if self.status.stop:
                 break
             if acttime - intervaltime >= 2:
-                text = '1 Subset: Run %i of %i (best like=%g)' % (
-                    rep, first_run, self.status.objectivefunction_max)
+                text = "1 Subset: Run %i of %i (best like=%g)" % (
+                    rep,
+                    first_run,
+                    self.status.objectivefunction_max,
+                )
                 self.logger.debug(text)
                 intervaltime = time.time()
 
@@ -204,7 +209,7 @@ class rope(_algorithm):
                 likes.append(like)
                 pars.append(ropepar)
                 if self.status.stop:
-                    self.logger.debug('Stopping sampling')
+                    self.logger.debug("Stopping sampling")
                     break
 
                 # Progress bar

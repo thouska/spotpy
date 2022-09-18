@@ -25,7 +25,9 @@ class csv(database):
             # write header line
             self.db.write(str(",".join(self.header) + "\n"))
         else:
-            self.logger.info("* Appending to database file '{}.csv'.".format(self.dbname))
+            self.logger.info(
+                "* Appending to database file '{}.csv'.".format(self.dbname)
+            )
             # Continues writing file
             mode = "a"
             self.db = io.open(self.dbname + ".csv", mode)

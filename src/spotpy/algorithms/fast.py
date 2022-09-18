@@ -170,14 +170,13 @@ class fast(_algorithm):
         # Calculate and Output the First and Total Order Values
         if print_to_console:
             self.logger.info("Parameter First Total")
-        Si = dict((k, [None] * D) for k in ['S1', 'ST'])
+        Si = dict((k, [None] * D) for k in ["S1", "ST"])
         for i in range(D):
             l = np.arange(i * N, (i + 1) * N)
             Si["S1"][i] = self.compute_first_order(Y[l], N, M, omega[0])
             Si["ST"][i] = self.compute_total_order(Y[l], N, omega[0])
             if print_to_console:
-                self.logger.info("%s %f %f" %
-                      (parnames[i], Si['S1'][i], Si['ST'][i]))
+                self.logger.info("%s %f %f" % (parnames[i], Si["S1"][i], Si["ST"][i]))
         return Si
 
     def compute_first_order(self, outputs, N, M, omega):
@@ -204,9 +203,11 @@ class fast(_algorithm):
             Maximum number of runs.
         """
         self.set_repetiton(repetitions)
-        self.logger.info('Starting the FAST algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info(
+            "Starting the FAST algotrithm with " + str(repetitions) + " repetitions..."
+        )
 
-        self.logger.debug('Creating FAST Matrix')
+        self.logger.debug("Creating FAST Matrix")
         # Get the names of the parameters to analyse
         names = self.parameter()["name"]
         # Get the minimum and maximum value for each parameter from the

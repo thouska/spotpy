@@ -174,7 +174,9 @@ class sceua(_algorithm):
             Number of loops executed at max in this function call
         """
         self.set_repetiton(repetitions)
-        self.logger.info('Starting the SCEUA algotrithm with '+str(repetitions)+ ' repetitions...')
+        self.logger.info(
+            "Starting the SCEUA algotrithm with " + str(repetitions) + " repetitions..."
+        )
 
         # Initialize SCE parameters:
         self.ngs = ngs
@@ -208,7 +210,7 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
-            self.logger.debug('Starting burn-in sampling...')
+            self.logger.debug("Starting burn-in sampling...")
 
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
@@ -218,7 +220,9 @@ class sceua(_algorithm):
                 xf[rep] = like
                 icall += 1
                 if self.status.stop:
-                    self.logger.debug('Stopping samplig. Maximum number of repetitions reached already during burn-in')
+                    self.logger.debug(
+                        "Stopping samplig. Maximum number of repetitions reached already during burn-in"
+                    )
                     proceed = False
                     break
             # Sort the population in order of increasing function values;
@@ -258,16 +262,17 @@ class sceua(_algorithm):
 
         # Check for convergency;
         if self.status.rep >= repetitions:
-            self.logger.debug('*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT')
-            self.logger.debug('ON THE MAXIMUM NUMBER OF TRIALS ')
+            self.logger.debug("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
+            self.logger.debug("ON THE MAXIMUM NUMBER OF TRIALS ")
             self.logger.debug(repetitions)
-            self.logger.debug('HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:')
+            self.logger.debug("HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:")
             self.logger.debug(self.status.rep)
-            self.logger.debug('OF THE INITIAL LOOP!')
+            self.logger.debug("OF THE INITIAL LOOP!")
 
         if gnrng < peps:
             self.logger.debug(
-                'THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE')
+                "THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE"
+            )
 
         # Begin evolution loops:
         nloop = 0
@@ -296,7 +301,7 @@ class sceua(_algorithm):
             and proceed == True
         ):
             nloop += 1
-            self.logger.debug('ComplexEvo loop #%d in progress...' % nloop)
+            self.logger.debug("ComplexEvo loop #%d in progress..." % nloop)
             # Loop on complexes (sub-populations);
             cx = np.zeros((self.npg, self.nopt))
             cf = np.zeros((self.npg))
@@ -377,7 +382,9 @@ class sceua(_algorithm):
 
             # Check for convergency;
             if self.status.rep >= repetitions:
-                self.logger.debug("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
+                self.logger.debug(
+                    "*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT"
+                )
                 self.logger.debug("ON THE MAXIMUM NUMBER OF TRIALS ")
                 self.logger.debug(repetitions)
                 self.logger.debug("HAS BEEN EXCEEDED.")
@@ -401,7 +408,9 @@ class sceua(_algorithm):
                     criter_change_pcent = 0.0
                 else:
                     criter_change_pcent = absolute_change / denominator
-                self.logger.debug("Updated convergence criteria: %f" % criter_change_pcent)
+                self.logger.debug(
+                    "Updated convergence criteria: %f" % criter_change_pcent
+                )
                 if criter_change_pcent <= pcento:
                     self.logger.debug(
                         "THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f"
@@ -417,7 +426,9 @@ class sceua(_algorithm):
             # stop, if max number of loop iteration was reached
             elif max_loop_inc and nloop >= max_loop_inc:
                 proceed = False
-                self.logger.debug("THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED")
+                self.logger.debug(
+                    "THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED"
+                )
                 break
 
         # End of the Outer Loops

@@ -2,7 +2,8 @@ from importlib import import_module
 
 from spotpy.spotpylogging import get_logger
 
-logger = get_logger('database.__init__')
+logger = get_logger("database.__init__")
+
 
 def __dir__():
     """
