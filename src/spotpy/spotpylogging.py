@@ -56,7 +56,8 @@ def instantiate_logger(name, quiet=None, logfile=None, logdir=None):
         spotpy_logger.addHandler(handler_file)
 
         spotpy_logger.setLevel(logging.INFO)
-        spotpy_logger.info("Write logging output to file '%s'", path_to_logfile)
+        spotpy_logger.info("Write logging output to file '%s'",
+                           path_to_logfile)
 
     return get_logger(name)
 
