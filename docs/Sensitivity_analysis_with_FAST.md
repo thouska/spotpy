@@ -38,7 +38,7 @@ about a chain (not relevant for FAST).
 
 These results can be loaded, e.g. directly from the sampler:
 
-	results = sampler.get_data()
+	results = sampler.getdata()
 
 OR, by loading the results from the database:
 
