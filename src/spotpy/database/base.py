@@ -16,6 +16,8 @@ from itertools import product
 
 import numpy as np
 
+from spotpy import spotpylogging
+
 
 class database(object):
     """
@@ -36,6 +38,9 @@ class database(object):
         **kwargs,
     ):
         # Just needed for the first line in the database
+
+        self.logger = spotpylogging.get_logger(self.__class__.__name__)
+
         self.chains = chains
         self.dbname = dbname
         self.like = like
@@ -87,15 +92,15 @@ class database(object):
         return []
 
     def _scalar_to_list(self, obj):
-        # print('scalar')
+        # self.logger.info('scalar')
         return [obj]
 
     def _iterable_to_list(self, obj):
-        # print('iterable')
+        # self.logger.info('iterable')
         return list(obj)
 
     def _array_to_list(self, obj):
-        # print('array')
+        # self.logger.info('array')
         values = []
         for val in obj:
             values.append(val)
@@ -103,13 +108,13 @@ class database(object):
         # return obj.flatten().tolist()
 
     def _nestediterable_to_list(self, obj):
-        # print('nested')
+        # self.logger.info('nested')
         values = []
         for nestedlist in obj:
-            # print(len(nestedlist))
+            # self.logger.info(len(nestedlist))
             for val in nestedlist:
                 values.append(val)
-        # print(len(values))
+        # self.logger.info(len(values))
         return values
         # return np.array(obj).flatten().tolist()
 

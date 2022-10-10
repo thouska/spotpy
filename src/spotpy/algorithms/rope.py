@@ -106,7 +106,7 @@ class rope(_algorithm):
         # Takes ways´to long for npar >8
         # wenn mehr parameter produziert werden sollen als reingehen, rechnet er sich tot (ngen>n)
         # Subsets < 5 führt manchmal zu Absturz
-        print(
+        self.logger.info(
             "Starting the ROPE algotrithm with " + str(repetitions) + " repetitions..."
         )
         self.set_repetiton(repetitions)
@@ -122,7 +122,7 @@ class rope(_algorithm):
         repetitions_following_runs = int((repetitions - first_run) / (subsets - 1))
         # Needed to avoid an error in integer division somewhere in depth function
         if repetitions_following_runs % 2 != 0:
-            print(
+            self.logger.info(
                 "Warning: Burn-in samples and total number of repetions are not compatible.\n"
                 "SPOTPY will automatically adjust the number of total repetitions."
             )
@@ -172,7 +172,7 @@ class rope(_algorithm):
                     first_run,
                     self.status.objectivefunction_max,
                 )
-                print(text)
+                self.logger.debug(text)
                 intervaltime = time.time()
 
         for subset in range(subsets - 1):
@@ -209,7 +209,7 @@ class rope(_algorithm):
                 likes.append(like)
                 pars.append(ropepar)
                 if self.status.stop:
-                    print("Stopping samplig")
+                    self.logger.debug("Stopping sampling")
                     break
 
                 # Progress bar
@@ -223,7 +223,7 @@ class rope(_algorithm):
                             repetitions_following_runs,
                             self.status.objectivefunction_max,
                         )
-                        print(text)
+                        self.logger.debug(text)
                         intervaltime = time.time()
             if self.status.stop:
                 break
@@ -235,10 +235,10 @@ class rope(_algorithm):
 
         N, NP = X.shape
         text = str(N) + " input vectors with " + str(NP) + " parameters"
-        print(text)
+        self.logger.debug(text)
 
         Ngen = int(runs)  # int(N*(1/self.percentage))
-        print(("Generating " + str(Ngen) + " parameters:"))
+        self.logger.debug(("Generating " + str(Ngen) + " parameters:"))
 
         NPOSI = Ngen  # Number of points to generate
 
@@ -270,7 +270,7 @@ class rope(_algorithm):
                 if LNDEP[L] >= 1:
                     CL = np.vstack((CL, TL[L, :]))
                     IPOS = IPOS + 1
-            print((IPOS, ITRY))
+            self.logger.info((IPOS, ITRY))
 
         CL = np.delete(CL, 0, 0)
         CL = CL[:NPOSI]

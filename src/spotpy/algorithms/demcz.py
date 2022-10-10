@@ -7,6 +7,8 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 
 import numpy as np
 
+from spotpy import spotpylogging
+
 from . import _algorithm
 
 
@@ -104,7 +106,9 @@ class demcz(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print("ERROR Bounds have not the same lenghts as Parameterarray")
+            self.logger.error(
+                "ERROR Bounds have not the same lenghts as Parameterarray"
+            )
         return par
 
     def sample(
@@ -143,8 +147,8 @@ class demcz(_algorithm):
         """
 
         self.set_repetiton(repetitions)
-        print(
-            "Starting the DEMCz algotrithm with " + str(repetitions) + " repetitions..."
+        self.logger.info(
+            "Starting the DEMCz algotrithm with %s repetitions...", repetitions
         )
 
         self.min_bound, self.max_bound = (
@@ -220,9 +224,9 @@ class demcz(_algorithm):
             # 3) and we have not done more than the maximum number of iterations
 
             while cur_iter < maxChainDraws:
-                print(cur_iter, burnIn)
+                self.logger.debug("%s, %s", cur_iter, burnIn)
                 if cur_iter == burnIn:
-                    print("starting")
+                    self.logger.debug("starting")
                     history.start_sampling()
 
                 # every5th iteration allow a big jump
@@ -349,7 +353,7 @@ class demcz(_algorithm):
                     covConvergence.update(history, "interest")
                     if all(grConvergence.R < convergenceCriteria):
                         cur_iter = maxChainDraws
-                        print(
+                        self.logger.info(
                             "All chains fullfil the convergence criteria. Sampling stopped."
                         )
                 cur_iter += 1
@@ -362,8 +366,8 @@ class demcz(_algorithm):
         self.iter = cur_iter
         self.burnIn = burnIn
         self.R = grConvergence.R
-        text = "Gelman Rubin R=" + str(self.R)
-        print(text)
+
+        self.logger.info("Gelman Rubin R=%s", self.R)
         self.status.rep = self.status.repetitions
         self.final_call()
 
@@ -561,9 +565,11 @@ class _CovarianceConvergence:
 
         try:
             projection = np.dot(np.linalg.inv(basis1), basis2)
-        except np.linalg.linalg.LinAlgError:
+        except np.linalg.linalg.LinAlgError as e:
             projection = np.array(basis1) * np.nan
-            print("Exception happend!")
+            spotpylogging.get_logger("_CovarianceConvergence()").logger.debug(
+                "Exception happend!\nExcpetion:%s", e
+            )
 
         # find the releative size in each of the basis1 directions
         return np.log(np.sum(projection**2, axis=0) ** 0.5)
