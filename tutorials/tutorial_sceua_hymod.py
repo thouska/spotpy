@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import spotpy
-from spotpy.examples.spot_setup_hymod_python import spot_setup
+from spotpy.examples.spot_setup_hymod_python_loguniform import spot_setup
 
 if __name__ == "__main__":
     parallel = "seq"  # Runs everthing in sequential mode
