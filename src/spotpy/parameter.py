@@ -295,7 +295,6 @@ class Loguniform(Base):
     """
     A specialization of the Base parameter for loguniform distributions
     """
-
     __rndargs__ = "low", "high"
 
     def __init__(self, *args, **kwargs):
@@ -310,7 +309,7 @@ class Loguniform(Base):
                 default is quantile(0.5) - quantile(0.4) of
                 rndfunc(*rndargs, size=1000)
         """
-        super(Loguniform, self).__init__(loguniform, "Loguniform", *args, **kwargs)
+        super(Loguniform, self).__init__(loguniform.rvs, "Loguniform", *args, **kwargs)
         
 class List(Base):
     """
