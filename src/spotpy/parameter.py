@@ -11,6 +11,7 @@ from itertools import cycle
 
 import numpy as np
 import numpy.random as rnd
+from scipy.stats import loguniform
 
 
 class _ArgumentHelper(object):
@@ -290,7 +291,27 @@ class Uniform(Base):
         """
         super(Uniform, self).__init__(rnd.uniform, "Uniform", *args, **kwargs)
 
+class Loguniform(Base):
+    """
+    A specialization of the Base parameter for loguniform distributions
+    """
 
+    __rndargs__ = "low", "high"
+
+    def __init__(self, *args, **kwargs):
+        """
+        :name: Name of the parameter
+        :low: lower bound of the uniform distribution
+        :high: higher bound of the uniform distribution
+        :step:     (optional) number for step size required for some algorithms,
+                eg. mcmc need a parameter of the variance for the next step
+                default is median of rndfunc(*rndargs, size=1000)
+        :optguess: (optional) number for start point of parameter
+                default is quantile(0.5) - quantile(0.4) of
+                rndfunc(*rndargs, size=1000)
+        """
+        super(Loguniform, self).__init__(loguniform, "Loguniform", *args, **kwargs)
+        
 class List(Base):
     """
     A specialization to sample from a list (or other iterable) of parameter sets.
