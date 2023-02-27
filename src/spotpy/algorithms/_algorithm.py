@@ -465,8 +465,7 @@ class _algorithm(object):
         save_run=True,
         negativlike=False,
         block_print=False,
-        ):  # TODO: rep not necessaray
-
+    ):  # TODO: rep not necessaray
         params = self.update_params(params)
         if negativlike is True:
             like = -self.getfitness(simulation=simulation, params=params)
