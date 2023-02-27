@@ -9,9 +9,9 @@ This class holds example code how to use the FAST algorithm
 """
 
 import numpy as np
+
 import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
-# from spotpy.examples.spot_setup_rosenbrock import spot_setup
 
 if __name__ == "__main__":
     parallel = "seq"
