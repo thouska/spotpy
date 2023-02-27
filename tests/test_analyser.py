@@ -95,10 +95,10 @@ class TestAnalyser(unittest.TestCase):
 
     def test_get_best_parameterset(self):
         get_best_parameterset_true = spotpy.analyser.get_best_parameterset(
-            self.results, True
+            self.results, maximize=True
         )
         get_best_parameterset_false = spotpy.analyser.get_best_parameterset(
-            self.results, False
+            self.results, maximize=False
         )
         self.assertEqual(len(get_best_parameterset_true[0]), 3)
         self.assertEqual(type(get_best_parameterset_true[0]), np.void)

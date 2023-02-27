@@ -176,10 +176,7 @@ def get_maxlikeindex(results, like_index=1, verbose=True):
         value and value of the maximum objectivefunction of your result array
     :rtype: int and float
     """
-    try:
-        likes = results["like"]
-    except ValueError:
-        likes = results["like" + str(like_index)]
+    likes = results["like" + str(like_index)]
     maximum = np.nanmax(likes)
     value = str(round(maximum, 4))
     text = str("Run number ")
@@ -202,10 +199,7 @@ def get_minlikeindex(results, like_index=1, verbose=True):
         value and value of the minimum objectivefunction of your result array
     :rtype: int and float
     """
-    try:
-        likes = results["like"]
-    except ValueError:
-        likes = results["like" + str(like_index)]
+    likes = results["like" + str(like_index)]
     minimum = np.nanmin(likes)
     value = str(round(minimum, 4))
     text = str("Run number ")
@@ -401,10 +395,7 @@ def get_best_parameterset(results, like_index=1, maximize=True):
     :return: Best parameter set
     :rtype: array
     """
-    try:
-        likes = results["like"]
-    except ValueError:
-        likes = results["like" + str(like_index)]
+    likes = results["like" + str(like_index)]
     if maximize:
         best = np.nanmax(likes)
     else:
