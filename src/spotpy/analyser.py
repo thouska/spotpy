@@ -337,7 +337,8 @@ def plot_posterior_parameter_histogram(ax, results, parameter):
 
 
 def plot_parameter_uncertainty(
-    posterior_results, evaluation, fig_name="Posterior_parameter_uncertainty.png"
+    posterior_results, evaluation, maximize=True, 
+    fig_name="Posterior_parameter_uncertainty.png"
 ):
     import matplotlib.pyplot as plt
 
@@ -363,8 +364,10 @@ def plot_parameter_uncertainty(
         label="parameter uncertainty",
     )
     ax.plot(evaluation, "r.", markersize=1, label="Observation data")
-
-    bestindex, bestobjf = get_maxlikeindex(posterior_results, verbose=False)
+    if maximize:
+        bestindex, bestobjf = get_maxlikeindex(posterior_results, verbose=False)
+    else:
+        bestindex, bestobjf = get_minlikeindex(posterior_results, verbose=False)     
     plt.plot(
         list(posterior_results[simulation_fields][bestindex][0]),
         "b-",
