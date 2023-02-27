@@ -21,7 +21,7 @@ from spotpy.likelihoods import LikelihoodError
 
 class TestLikelihood(unittest.TestCase):
     def setUp(self):
-        np.random.seed(12)
+        np.random.seed = 12
         self.normal_data, self.normal_comparedata = np.random.normal(
             1500, 2530, 20
         ), np.random.normal(15, 25, 20)

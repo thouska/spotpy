@@ -19,7 +19,7 @@ class TestObjectiveFunctions(unittest.TestCase):
     tolerance = 7
 
     def setUp(self):
-        np.random.seed(42)
+        np.random.seed = 42
         self.simulation = np.random.randn(10)
         self.evaluation = np.random.randn(10)
 

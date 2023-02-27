@@ -14,7 +14,7 @@ from spotpy.hydrology.signatures import SignatureMethod
 class TestSignatures(unittest.TestCase):
     def setUp(self):
 
-        np.random.seed(0)
+        np.random.seed = 0
         rain = np.random.normal(-1, 5, size=3650)
         rain[rain < 0] = 0.0
         runoff = np.zeros(rain.shape, float)
