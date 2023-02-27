@@ -37,10 +37,6 @@ jobs:
           pip install black 'isort[colors]<6'
           pip install --editable .
 
-      - name: black check
-        run: |
-          python -m black --check .
-
       - name: isort check
         run: |
           python -m isort --check --diff --color .
