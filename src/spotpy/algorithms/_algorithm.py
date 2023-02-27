@@ -282,7 +282,7 @@ class _algorithm(object):
             random_state is None
         ):  # ToDo: Have to discuss if these 3 lines are neccessary.
             random_state = np.random.randint(low=0, high=2**30)
-        np.random.seed(random_state)  # Both numpy.random and random or used in spotpy
+        np.random.seed = random_state  # Both numpy.random and random or used in spotpy
         random.seed(random_state)  # Both numpy.random and random or used in spotpy
 
         # If value is not None a timeout will set so that the simulation will break after sim_timeout seconds without return a value
