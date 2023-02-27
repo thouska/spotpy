@@ -39,7 +39,7 @@ jobs:
 
       - name: black check
         run: |
-          python -m black - .
+          python -m black --check .
 
       - name: isort check
         run: |
