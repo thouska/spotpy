@@ -59,4 +59,4 @@ is available
 *Figure 1: Example output of a sensitivity analysis using the FAST (Fourier Amplitude Sensitivity Test). 
 Total sensitivity index is plotted for every model parameter. Sensitive parameters are plotted in blue, insensitive parameter in orange.*
 
-The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_fast_hymod.py).
+The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/tutorials/tutorial_fast_hymod.py).

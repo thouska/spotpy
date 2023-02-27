@@ -125,4 +125,4 @@ Or if you want to check the posterior parameter distribution:
 
 *Figure 3: Posterior parameter distribution of HYMOD. Plotting the last 100 repetitions of the algorithm as a histogram.*
 
-The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_dream_hymod.py).
+The corresponding code is available for download [here](https://github.com/thouska/spotpy/tree/master/tutorials/tutorial_dream_hymod.py).

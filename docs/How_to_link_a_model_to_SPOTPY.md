@@ -123,4 +123,4 @@ A value of 0 would be a perfect fit of the simulation and observation data, +inf
         return like
 Finally, save the file and check out the next example how to use the spotpy setup class with an algorithm.
  
-The shown example code is available [here](https://github.com/thouska/spotpy/blob/master/spotpy/examples/spot_setup_hymod_python.py)
+The shown example code is available [here](https://github.com/thouska/spotpy/tree/master/src/spotpy/examples/spot_setup_hymod_python.py)
