@@ -179,7 +179,7 @@ def get_maxlikeindex(results, like_index=1, verbose=True):
     try:
         likes = results["like"]
     except ValueError:
-        likes = results["like"+str(like_index)]
+        likes = results["like" + str(like_index)]
     maximum = np.nanmax(likes)
     value = str(round(maximum, 4))
     text = str("Run number ")
@@ -205,7 +205,7 @@ def get_minlikeindex(results, like_index=1, verbose=True):
     try:
         likes = results["like"]
     except ValueError:
-        likes = results["like"+str(like_index)]
+        likes = results["like" + str(like_index)]
     minimum = np.nanmin(likes)
     value = str(round(minimum, 4))
     text = str("Run number ")
@@ -310,12 +310,15 @@ def get_posterior(results, like_index=1, percentage=10, maximize=True):
     """
     if maximize:
         index = np.where(
-            results["like"+str(like_index)] >= np.percentile(results["like"+str(like_index)], 100.0 - percentage)
+            results["like" + str(like_index)]
+            >= np.percentile(results["like" + str(like_index)], 100.0 - percentage)
         )
     else:
         index = np.where(
-            results["like"+str(like_index)]
-            <= np.percentile(results["like"+str(like_index)], 100.0 - (100 - percentage))
+            results["like" + str(like_index)]
+            <= np.percentile(
+                results["like" + str(like_index)], 100.0 - (100 - percentage)
+            )
         )
     return results[index]
 
@@ -401,7 +404,7 @@ def get_best_parameterset(results, like_index=1, maximize=True):
     try:
         likes = results["like"]
     except ValueError:
-        likes = results["like"+str(like_index)]
+        likes = results["like" + str(like_index)]
     if maximize:
         best = np.nanmax(likes)
     else:
