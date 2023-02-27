@@ -26,7 +26,7 @@ from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 class TestAnalyser(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        np.random.seed = 42
+        np.random.seed(42)
         self.rep = 300
         self.parallel = "seq"
         self.dbformat = "ram"

@@ -11,7 +11,7 @@ SPOTting Model Parameters Using a Ready-Made Python Package,
 PLoS ONE, 10(12), e0145180, doi:10.1371/journal.pone.0145180, 2015.
 """
 
-#from numba import jit
+# from numba import jit
 
 
 def hymod(Precip, PET, cmax, bexp, alpha, Rs, Rq):
@@ -69,13 +69,13 @@ def hymod(Precip, PET, cmax, bexp, alpha, Rs, Rq):
     return output
 
 
-#@jit
+# @jit
 def power(X, Y):
     X = abs(X)  # Needed to capture invalid overflow with netgative values
     return X**Y
 
 
-#@jit
+# @jit
 def linres(x_slow, inflow, Rs):
     # Linear reservoir
     x_slow = (1 - Rs) * x_slow + (1 - Rs) * inflow
@@ -83,7 +83,7 @@ def linres(x_slow, inflow, Rs):
     return x_slow, outflow
 
 
-#@jit
+# @jit
 def excess(x_loss, cmax, bexp, Pval, PETval):
     # this function calculates excess precipitation and evaporation
     xn_prev = x_loss
