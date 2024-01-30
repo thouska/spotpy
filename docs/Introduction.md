@@ -1,6 +1,6 @@
 # Introduction
 
-Before you start to use SPOTPY you should be familiar with Python. Otherwise I recommend you to read a [basic Python Tutorial](https://docs.python.org/2/tutorial/ " Basic Python tutorial") or [Think Python](http://www.greenteapress.com/thinkpython/ "Think Python") first.
+Before you start to use SPOTPY you should be familiar with Python. Otherwise I recommend you to read a [basic Python Tutorial](https://docs.python.org/3/tutorial/index.html " Basic Python tutorial") or [Think Python](http://www.greenteapress.com/thinkpython/ "Think Python") first.
 
 Basic knowledge about NumPy is also needed. You can get this [here](http://www.engr.ucsb.edu/~shell/che210d/numpy.pdf "NumPY tutorial").
 
