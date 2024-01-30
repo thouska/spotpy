@@ -13,7 +13,7 @@ $$N = (1+4M^2(1+(k-2)d))k$$
 
 with N = needed parameter iterations, M= inference factor (SPOTPY default M=4) and d= frequency step (SPOTPY default d=2) and k as the number of parameters of your model.
 
-In our case, we provide the hymod model as an [example](https://github.com/thouska/spotpy/blob/master/spotpy/examples/spot_setup_hymod_python.py)
+In our case, we provide the hymod model as an [example](https://github.com/thouska/spotpy/blob/master/src/spotpy/examples/spot_setup_hymod_python.py)
 You can start the simulation with
 
 
