@@ -47,7 +47,9 @@ class _ArgumentHelper(object):
         :return: name
         """
         # Check if args[0] is string like (and exists)
-        if self.args and str(self.args[0]) == self.args[0]:
+        #if self.args and str(self.args[0]) == self.args[0]:
+        if self.args and (str(self.args[0]) == self.args[0]):
+        #if (self.args & isinstance(self.args[0], str)).all():
             name = self.args.pop(0)
             self.processed_args += 1
         # else get the name from the keywords
@@ -148,7 +150,7 @@ def _round_sig(x, sig=3):
     if abs(x) < 1e-12:
         return 0
     else:
-        return round(x, sig - int(floor(log10(abs(x)))) - 1)
+        return round(x, sig - int(floor(log10(abs(x)))))
 
 
 class Base(object):
@@ -200,7 +202,7 @@ class Base(object):
                 ["step", "optguess", "minbound", "maxbound"], as_dict=True
             )
             # Draw one sample of size 1000
-            sample = self(size=1000)
+            sample = self(size=100000)
             self.step = param_args.get(
                 "step",
                 _round_sig(np.percentile(sample, 50) - np.percentile(sample, 40)),
