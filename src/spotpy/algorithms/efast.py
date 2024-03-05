@@ -331,6 +331,14 @@ class efast(_algorithm):
         ----------
         repetitions: int
             Maximum number of runs.
+        factor: (optional) int
+            used to create more values than the minimum required.
+        cukier: (optional) bool
+            indicates weather to use the frequencies after Cukier or McRae
+            Default is Cukier
+        logscale: (optional) bool
+            array containing bool values indicating weather a parameter is varied
+            on a logarithmic scale. In that case minimum and maximum are exponents
         """
 
         print("generating eFAST Parameters")
@@ -350,7 +358,6 @@ class efast(_algorithm):
             print("Number of specified repetitions equals or exeeds number of minimum required repetitions for eFAST analysis\n"+
                   "programm will stop after required runs.")
 
-        self.repetitions = repetitions
         self.set_repetiton(repetitions)
 
         # Generate Matrix with eFAST parameter sets
@@ -380,18 +387,18 @@ class efast(_algorithm):
         Parameters
         ----------
 
-        data: np.array of float
+        results: np.array of void
             spopty restults array
-            data array containing the model output used for the sensitivity calculation 
-            with one row per parameter set
     
-        numberf : int
-            number of parameters used
+        dbname: (optional) str
+            name of file to store sensitivity values
+        
+        cukier: (optional) bool
+            indicates weather to use the frequencies after Cukier or McRae
+            Default is Cukier
 
-        xval: int, optional
     
         """ 
-        print("call analyser")
         data = get_modelruns(results)
         
         # convert array of void to array of float
