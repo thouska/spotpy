@@ -1218,34 +1218,6 @@ def _Geweke(samples, intervals=20):
         z[k] = (mean1 - mean2) / np.sqrt(var1 + var2)
     return z
 
-def na2mean(x):
-
-    """
-    Function to replace nan values in an array by the mean of neighbouring values.
-    Example (1, nan, 3) is converted to (1, 2, 3)
-    This function workes only for singe nan occurences, it fails with multiple nans 
-    in a row. 
-
-    adapted from R package FAST (Reusser et al. 2011)
-
-    Parameters
-    ----------
-    x: array of float
-        array to be filled
-
-    Returns
-    ----------
-    value: array of float
-        filled array with nans replaced by mean
-
-    """
-
-    x1 = np.append(x[1:], [np.nan, np.nan])
-    x2 = np.append(np.array([np.nan]), x)
-    mean = (x1 + x2) /2
-    np.place(x, np.isnan(x), mean[np.isnan(x)[-1]])
-    return x
-
 def double_serie(x):
     """
     This function reverses the model output series from a number of model runs for
@@ -1307,8 +1279,7 @@ def efast_sensitivity(x, numberf, t_runs, t_freq, order = 4, make_plot = False, 
     if len(x) < t_runs:
         raise Exception("Not enough model runs loaded. Expected " + str(t_runs) +" runs, but found only " + str(len(x)))
         
-    y = na2mean(x)
-    fft = np.fft.fft(double_serie(y))
+    fft = np.fft.fft(double_serie(x))
     ff = abs(fft/len(x))[:len(x)+1]
     
     freq = np.outer(t_freq, range(1, order+1))
