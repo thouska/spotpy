@@ -1241,7 +1241,7 @@ def double_serie(x):
 
     return(np.append(x, np.flip(x)[1:]))
 
-def efast_sensitivity(x, numberf, t_runs, t_freq, order = 4, make_plot = False, include_total_variance = False, cukier = True):
+def efast_sensitivity(x, t_runs, t_freq, order = 4, include_total_variance = False):
     """
     function that calculates the sensitivity from a series of model outputs
     according to the FAST algorithm

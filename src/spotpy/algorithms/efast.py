@@ -147,7 +147,7 @@ class efast(_algorithm):
                 return np.append(o, self.freq_mcrae82(m, i+1, o))
         
 
-    def s(self, m, factor = 1, cukier = True):
+    def s(self, m, freq = 'cukier'):
 
         """
         Function that generates a number of equally spaced values between -p1/2 
@@ -158,12 +158,9 @@ class efast(_algorithm):
         ----------
         m: int
             number of parameters/ frequencies
-        factor: (optional) int
-            used if more than the minimum required shall be generated
-            default: the length of the returned array is the minimum number 
-            required for the FAST time factor
-        cukier: (optional) bool
-            indicates weather to use the frequencies after Cukier or McRae
+
+        freq: (optional) str
+            indicates weather to use the frequencies after 'cukier' or McRae 'mcrae'
             Default is Cukier
 
         Returns
@@ -173,19 +170,21 @@ class efast(_algorithm):
 
         """
 
-        if cukier:
+        if freq == 'cukier':
             min_runs = self.min_runs_cukier75
-        else:
+        elif freq == 'mcrae':
             min_runs = self.min_runs_mcrae82
+        else:
+            raise Exception("Missing option for Frequency selection for Parameter definition, choose cukier or mcrae!")
         
-        r = np.round(min_runs[m-1]*factor)
+        r = min_runs[m-1]
         r_range = np.array(range(1,r+1))
         s = np.pi/r * (2*r_range-r-1)/2
     
         return s
 
 
-    def S(self, m, factor = 1, cukier = True): # , par_names = np.nan, reorder = range(0,m)
+    def S(self, m, freq = 'cukier'):
     
         """
         Function to generate an array of values with provide the base for parameters 
@@ -196,10 +195,9 @@ class efast(_algorithm):
         ----------
         m: int
             number of parameters/frequencies
-        factor: (optional) int
-            used to create more values than the minimum required.
-        cukier: (optional) bool
-            indicates weather to use the frequencies after Cukier or McRae
+
+        freq: (optional) str
+            indicates weather to use the frequencies after 'cukier' or McRae 'mcrae'
             Default is Cukier
 
         Returns
@@ -208,12 +206,14 @@ class efast(_algorithm):
             an array with the shape (number of runs, parameters)
         """
 
-        if cukier:
+        if freq == 'cukier':
             omega = self.freq_cukier(m)
-        else:
+        elif freq == 'mcrae':
             omega = self.freq_mcrae82(m)
+        else:
+            raise Exception("Missing option for Frequency selection for Parameter definition, choose cukier or mcrae!")
     
-        tab = np.outer(self.s(m, factor, cukier), omega)
+        tab = np.outer(self.s(m, freq), omega)
     
         toreturn = np.arcsin(np.sin(tab))/np.pi
     
@@ -268,7 +268,7 @@ class efast(_algorithm):
             return(new_data)
     
 
-    def fast_parameters(self, minimum, maximum, cukier = True, factor = 1, logscale = np.nan, names = np.nan):
+    def fast_parameters(self, minimum, maximum, freq = 'cukier', logscale = np.nan, names = np.nan):
     
         """
         Function for the creation of a FAST Parameter set based on thier range
@@ -281,10 +281,8 @@ class efast(_algorithm):
             array containing the upper parameter boundries
         names: (optional) str
             array containing the parameter names
-        factor: (optional) int
-            used to create more values than the minimum required.
-        cukier: (optional) bool
-            indicates weather to use the frequencies after Cukier or McRae
+        freq: (optional) str
+            indicates weather to use the frequencies after 'cukier' or McRae 'mcrae'
             Default is Cukier
         logscale: (optional) bool
             array containing bool values indicating weather a parameter is varied
@@ -313,7 +311,7 @@ class efast(_algorithm):
         elif(n != len(logscale)):
             raise Exception("Expecting minimum and logscale of same size") 
     
-        toreturn = self.S(m=n, cukier = cukier, factor = factor) #par_names = names, 
+        toreturn = self.S(m=n, freq = freq) #par_names = names, 
     
         for i in range(0,n):
             toreturn[:,i] = self.rerange(toreturn[:,i], minimum[i], maximum[i])
@@ -323,7 +321,7 @@ class efast(_algorithm):
         return toreturn
 
 
-    def sample(self, repetitions, cukier = True, factor = 1, logscale = np.nan):
+    def sample(self, repetitions, freq = 'cukier', logscale = np.nan):
         """
         Samples from the EFAST algorithm.
 
@@ -331,10 +329,8 @@ class efast(_algorithm):
         ----------
         repetitions: int
             Maximum number of runs.
-        factor: (optional) int
-            used to create more values than the minimum required.
-        cukier: (optional) bool
-            indicates weather to use the frequencies after Cukier or McRae
+        freq: (optional) str
+            indicates weather to use the frequencies after 'cukier' or McRae 'mcrae'
             Default is Cukier
         logscale: (optional) bool
             array containing bool values indicating weather a parameter is varied
@@ -361,7 +357,7 @@ class efast(_algorithm):
         self.set_repetiton(repetitions)
 
         # Generate Matrix with eFAST parameter sets
-        N = self.fast_parameters(parmin, parmax, cukier, factor, logscale)
+        N = self.fast_parameters(parmin, parmax, freq, logscale)
 
         print("Starting the eFast algorithm with {} repetitions...".format(repetitions))
 
@@ -380,7 +376,7 @@ class efast(_algorithm):
                     lastbackup = rep
         self.final_call()
 
-    def calc_sensitivity(self, results, dbname, cukier = True):
+    def calc_sensitivity(self, results, dbname, freq = 'cukier'):
         """
         Function to calcultae the sensitivity for a data series (eg. a time series)
 
@@ -393,8 +389,8 @@ class efast(_algorithm):
         dbname: (optional) str
             name of file to store sensitivity values
         
-        cukier: (optional) bool
-            indicates weather to use the frequencies after Cukier or McRae
+        freq: (optional) str
+            indicates weather to use the frequencies after Cukier 'cukier' or McRae 'mcrae'
             Default is Cukier
 
     
@@ -411,12 +407,14 @@ class efast(_algorithm):
 
         # sens_data = np.full((len(results[0]), numberf), np.nan)
 
-        if cukier:
+        if freq == 'cukier':
             t_runs = self.min_runs_cukier75[numberf-1]
             t_freq = self.freq_cukier(numberf)
-        else: 
+        elif freq == 'mcrae': 
             t_runs = self.min_runs_mcrae82[numberf-1]
             t_freq = self.freq_mcrae82(numberf)
+        else:
+            raise Exception("Missing option for Frequency selection for Parameter definition, choose cukier or mcrae!")
     
         # Get the names of the parameters to analyse
         names = ["par" + name for name in self.parameter()["name"]]
