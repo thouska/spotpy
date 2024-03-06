@@ -1,19 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-EFAST algorithm after Reusser et al. transfered from R
-Reusser, Dominik E., Wouter Buytaert, and Erwin Zehe. "Temporal dynamics of model parameter sensitivity for computationally expensive models with FAST (Fourier Amplitude Sensitivity Test)." Water Resources Research 47 (2011): W07551.
+EFAST algorithm transfered from CRAN R package 'fast' by Dominik Reusser (2015)
+Copy of most functions and descriptions and implementation in SPOTPY framework by Anna Herzog (2024)
+
+This Version of FAST differs from the previously impemented Version, as it does not require a precalculation of minimum model runs by the user. It rather uses a hard coded definition of minimum runs based on Cukier or McRae.
+It therefore requieres considreably less model runs (for 5 Parameters 2245 (fast) vs. 71 runs (efast)).
+
+For further information on the functions, the origninal R package and the fast algorithm please have a look at the R package description from CRAN, or see the following references:
+
+Reusser, Dominik E., Wouter Buytaert, and Erwin Zehe. 
+"Temporal dynamics of model parameter sensitivity for computationally expensive models with FAST (Fourier Amplitude Sensitivity Test)." Water Resources Research 47 (2011): W07551.
 
 Further References:
-CUKIER, R. I.; LEVINE, H. B. & SHULER, K. E. Non-Linear Sensitivity Analysis Of Multi-Parameter Model Systems Journal Of Computational Physics, 1978 , 26 , 1-42
-CUKIER, R. I.; FORTUIN, C. M.; SHULER, K. E.; PETSCHEK, A. G. & SCHAIBLY, J. H. Study Of Sensitivity Of Coupled Reaction Systems To Uncertainties In Rate Coefficients .1. Theory Journal Of Chemical Physics, 1973 , 59 , 3873-3878
-SCHAIBLY, J. H. & SHULER, K. E. Study Of Sensitivity Of Coupled Reaction Systems To Uncertainties In Rate Coefficients .2. Applications Journal Of Chemical Physics, 1973 , 59 , 3879-3888
-CUKIER, R. I.; SCHAIBLY, J. H. & SHULER, K. E. Study Of Sensitivity Of Coupled Reaction Systems To Uncertainties In Rate Coefficients .3. Analysis Of Approximations Journal Of Chemical Physics, 1975 , 63 , 1140-1149
+CUKIER, R. I.; LEVINE, H. B. & SHULER, K. E. Non-Linear 
+"Sensitivity Analysis Of Multi-Parameter Model Systems" Journal Of Computational Physics, 1978 , 26 , 1-42
+CUKIER, R. I.; FORTUIN, C. M.; SHULER, K. E.; PETSCHEK, A. G. & SCHAIBLY, J. H. 
+"Study Of Sensitivity Of Coupled Reaction Systems To Uncertainties In Rate Coefficients .1. Theory" Journal Of Chemical Physics, 1973 , 59 , 3873-3878
+SCHAIBLY, J. H. & SHULER, K. E. 
+"Study Of Sensitivity Of Coupled Reaction Systems To Uncertainties In Rate Coefficients .2. Applications" Journal Of Chemical Physics, 1973 , 59 , 3879-3888
+CUKIER, R. I.; SCHAIBLY, J. H. & SHULER, K. E. 
+"Study Of Sensitivity Of Coupled Reaction Systems To Uncertainties In Rate Coefficients .3. Analysis Of Approximations" Journal Of Chemical Physics, 1975 , 63 , 1140-1149
 
-Transferred form R and implemented by Anna Herzog (2024)
 
 Copyright (c) 2018 by Tobias Houska
 This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
-:author: Anna Herzog, Tobias Houska
+:author: Anna Herzog, Tobias Houska, Dominik Reusser
 """
 
 import numpy as np
@@ -24,7 +35,9 @@ from ..analyser import   efast_sensitivity, get_modelruns
 
 class efast(_algorithm):
     """
-    Efast Algorithm for (distributed) parameter Sensitivity after FAST algorithm according to Cukier 1975 or McRae 1982
+    EFAST Algorithm for (distributed) parameter Sensitivity after FAST algorithm according to Cukier 1975 or McRae 1982
+    The Fourier Amplitude Sensitivity Test (FAST) is a method to determine global sensitvities of a model on parameter changes
+    within relatively few model runs. 
     """
 
     _unaccepted_parameter_types = ()
@@ -79,7 +92,7 @@ class efast(_algorithm):
     
         """
         This function creates an array of independant frequencies accroding to 
-        Cukier 1975 for usage in the fast method.
+        Cukier 1975 for usage in the eFAST method.
 
         Parameters
         ----------
@@ -90,10 +103,21 @@ class efast(_algorithm):
         omega_before: (intern) int
             internally used previous frequency
 
+        Raises
+        ----------
+        Exeption:
+            "Parameter number m to high, not implemented"
+            Execution is stopped, if the number of Parameters is to high (max. Number of Parameters for Cukier = 50)    
+
         Returns
         ----------
-        value: np.array of float
+        np.array of float:
             A 1d-Array of independant frequencies to the order of 4
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
 
         """
 
@@ -115,7 +139,7 @@ class efast(_algorithm):
     
         """
         This function creates an array of independant frequencies accroding to 
-        McRae 1982 for usage in the fast method.
+        McRae 1982 for usage in the eFAST method.
 
         Parameters
         ----------
@@ -126,10 +150,21 @@ class efast(_algorithm):
         omega_before: (intern) int
             internally used previous frequency
 
+        Raises
+        ----------
+        Exeption:
+            "Parameter number m to high, not implemented"
+            Execution is stopped, if the number of Parameters is to high (max. Number of Parameters for McRae = 15)    
+
         Returns
         ----------
-        value: np.array of float
+        np.array of float:
             A 1d-Array of independant frequencies to the order of 4
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
 
         """
 
@@ -151,8 +186,8 @@ class efast(_algorithm):
 
         """
         Function that generates a number of equally spaced values between -p1/2 
-        and pi/2. The number is determined by the number of runs required for the
-        FAST method for a number of parameters (min_runs_cukier or min_runs_mcrae)
+        and pi/2. The number is determined by the number of runs required of the
+        eFAST method for a number of parameters (min_runs_cukier or min_runs_mcrae)
 
         Parameters
         ----------
@@ -163,10 +198,21 @@ class efast(_algorithm):
             indicates weather to use the frequencies after 'cukier' or McRae 'mcrae'
             Default is Cukier
 
+        Raises
+        ----------
+        Exeption:
+            "Missing option for Frequency selection for Parameter definition, choose cukier or mcrae!"
+            Execution is stopped if an invalid method for the frequency selection is provided
+
         Returns
         ----------
-        value: array of float
+        2D array of float:
             an array of equally spaced values between -pi/2 and pi/2
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
 
         """
 
@@ -187,8 +233,8 @@ class efast(_algorithm):
     def S(self, m, freq = 'cukier'):
     
         """
-        Function to generate an array of values with provide the base for parameters 
-        for the FAST method. It is usally not used directly but called from the 
+        Function to generate an array of values, which provides the base for the parameterdistribution 
+        in the FAST method. It is usally not used directly but called from the 
         fast_parameters function.
 
         Parameters
@@ -200,10 +246,21 @@ class efast(_algorithm):
             indicates weather to use the frequencies after 'cukier' or McRae 'mcrae'
             Default is Cukier
 
+        Raises
+        ----------
+        Exeption:
+            "Missing option for Frequency selection for Parameter definition, choose cukier or mcrae!"
+            Execution is stopped if an invalid method for the frequency selection is provided
+
         Returns
         ----------
-        value: array of float
+        2D array of float:
             an array with the shape (number of runs, parameters)
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
         """
 
         if freq == 'cukier':
@@ -243,8 +300,13 @@ class efast(_algorithm):
 
         Returns
         ----------
-        value: array of float
+        2D array of float:
             array with the transformed data
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
     
         """
     
@@ -288,11 +350,22 @@ class efast(_algorithm):
             array containing bool values indicating weather a parameter is varied
             on a logarithmic scale. In that case minimum and maximum are exponents
 
+        Raises
+        ----------
+        Exeption:
+            "Expecting minimum and maximum of same size"
+            Execution is stopped if the number of minimum, maximum or logscale values differ
+
         Returns
         ----------
         value: array of float
             an array with the shape (number of runs, parameters) containing the 
             required parameter sets
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
 
         """
         
@@ -323,7 +396,7 @@ class efast(_algorithm):
 
     def sample(self, repetitions, freq = 'cukier', logscale = np.nan):
         """
-        Samples from the EFAST algorithm.
+        Samples from the eFAST algorithm.
 
         Input
         ----------
@@ -335,6 +408,30 @@ class efast(_algorithm):
         logscale: (optional) bool
             array containing bool values indicating weather a parameter is varied
             on a logarithmic scale. In that case minimum and maximum are exponents
+
+        Raises
+        ----------
+        Warning:
+            "specified number of repetitions is smaller than minimum required for eFAST analysis!
+            Simultions will be perfomed but eFAST analysis might not be possible"
+
+            If the specified number of repetitions is smaller than required by the algorithm, the
+            algortihm will still execute, but the usage of spotpy.analyser.efast.calc_sensitivity() 
+            might not be possible. Rather define a large number of reps as only required minimum runs
+            will be performed anyway. 
+        
+        Warning:
+            "Number of specified repetitions equals or exeeds number of minimum required repetitions for eFAST analysis
+             programm will stop after required runs."
+
+        Returns
+        ----------
+        database:
+            spotpy data base in chosen format with objective function values, parameter values and simulation results
+
+        Author
+        ----------
+        Tobias Houska, Anna Herzog
         """
 
         print("generating eFAST Parameters")
@@ -347,7 +444,7 @@ class efast(_algorithm):
         min_runs = self.min_runs_cukier75[self.numberf-1]
 
         if min_runs > repetitions:
-            warnings.warn("specified number of repetitions is smaller than minimum required number for FAST analysis!\n"+
+            warnings.warn("specified number of repetitions is smaller than minimum required for eFAST analysis!\n"+
                           "Simultions will be perfomed but eFAST analysis might not be possible")
         else:
             repetitions = min_runs
@@ -378,21 +475,35 @@ class efast(_algorithm):
 
     def calc_sensitivity(self, results, dbname, freq = 'cukier'):
         """
-        Function to calcultae the sensitivity for a data series (eg. a time series)
+        Function to calcultae the sensitivity for a data series (eg. a time series) 
+        based on the eFAST algorithm.
 
         Parameters
         ----------
-
         results: np.array of void
-            spopty restults array
-    
+            spopty restults array as loaded with spotpy.analyser.load_csv_results()
         dbname: (optional) str
-            name of file to store sensitivity values
-        
+            name of file to store sensitivity values        
         freq: (optional) str
             indicates weather to use the frequencies after Cukier 'cukier' or McRae 'mcrae'
             Default is Cukier
 
+        Raises
+        ----------
+        Exeption:
+            "Missing option for Frequency selection for Parameter definition, choose cukier or mcrae!"
+            Execution is stopped if an invalid method for the frequency selection is provided
+
+        Returns
+        ----------
+        database:
+            database containing the temporal parameter sensitivities with seperate column
+            for each parameter and row for eg. time step
+
+        Author
+        ----------
+        Dominic Reusser
+        spotpy translation: Anna Herzog
     
         """ 
         data = get_modelruns(results)

@@ -1221,7 +1221,7 @@ def _Geweke(samples, intervals=20):
 def double_serie(x):
     """
     This function reverses the model output series from a number of model runs for
-    the FAST analysis and appends it to the original series. The last element of the 
+    the eFAST analysis and appends it to the original series. The last element of the 
     existing series is not duplicated during this process.
     This is required in order to process the model run results for the FAST
     analysis with the fft function.
@@ -1237,6 +1237,11 @@ def double_serie(x):
     ----------
     value: np.array of float
         doubled x 
+
+    Author
+    ----------
+    Dominic Reusser
+    spotpy translation: Anna Herzog   
     """
 
     return(np.append(x, np.flip(x)[1:]))
@@ -1244,7 +1249,7 @@ def double_serie(x):
 def efast_sensitivity(x, t_runs, t_freq, order = 4, include_total_variance = False):
     """
     function that calculates the sensitivity from a series of model outputs
-    according to the FAST algorithm
+    according to the eFAST algorithm
 
     adapted from R package FAST (Reusser et al. 2011)
 
@@ -1268,11 +1273,23 @@ def efast_sensitivity(x, t_runs, t_freq, order = 4, include_total_variance = Fal
         include the sum of all variances in the result array? 
         default = False
     
-    
+    Raises
+    ----------
+    Exeption:
+        "Not enough model runs loaded. Expected <x> runs, but found only <y>"
+        Function is stoped, if the loaded data base contains not enough model 
+        runs for the given number of parameters. A pervious warning might have
+        appeared during execution of the sample() function. 
+
     Returns
     ----------
     value: np.array of float
         partial variance values accounted for by each parameter
+
+    Author
+    ----------
+    Dominic Reusser
+    spotpy translation: Anna Herzog  
 
     """    
     
