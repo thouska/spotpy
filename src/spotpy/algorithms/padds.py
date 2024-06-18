@@ -2,7 +2,7 @@ import copy
 from copy import deepcopy
 
 import numpy as np
-from scipy.spatial.qhull import ConvexHull, QhullError
+from scipy.spatial import ConvexHull, QhullError
 
 from spotpy.algorithms.dds import DDSGenerator
 from spotpy.parameter import ParameterSet
