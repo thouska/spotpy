@@ -58,4 +58,4 @@ And you will get something like
 
 depending on your random results. The optimal best values for the Rosenbrock function are *x=1* and *y=1*.
 
-Check out chapter [Rosenbrock Tutorial](Tutorial\2-Rosenbrock.md# The Rosenbrock) to see how the Rosenbrock function really looks like.
+Check out chapter [Rosenbrock Tutorial](https://spotpy.readthedocs.io/en/latest/Rosenbrock/# The Rosenbrock) to see how the Rosenbrock function really looks like.

@@ -106,18 +106,15 @@ Optional packages are:
  
 all packages are pre-installed e.g. in the following packages:
 
-* [Python xy](https://code.google.com/p/pythonxy/ "Python xy") version >2.7
-* [WinPython](http://winpython.sourceforge.net/ "WinPython) version >2.7
+* [Python xy](https://code.google.com/p/pythonxy/ "Python xy") version >3.5
+* [WinPython](http://winpython.sourceforge.net/ "WinPython") version >3.5
+* [Anaconda](https://www.anaconda.com/products/distribution "Anaconda") version >3.5
 
 ### Download
 SPOTPY is available on [PYPI](https://pypi.python.org/pypi/spotpy "spotpy") and [GitHub](https://github.com/thouska/spotpy "spotpy"). 
 This should make installation easy, as you just have to use a command window and type
 
 	pip install spotpy
-	
-Alternatively, you can download the latest version of SPOTPY with a [SVN-Client](http://tortoisesvn.net/index.de.html "TortoiseSVN").
- 
-With this software you just have to check out: `svn://fb09-pasig.umwelt.uni-giessen.de/spotpy/trunk`
 
 The recommended place for the SPOTPY package is in the site-packages folder in your Python Path, just the location of all other Python packages.
 
@@ -173,9 +170,9 @@ The results can be analysed with some pre-build statistics and plotting features
 		spotpy_setup_griewank.py    # Example SPOTPY setup to analyse the Griewank function
 		spotpy_setup_rosenbrock.py  # Example SPOTPY setup to analyse the Rosenbrock function
 		getting_started.py          # Recommended test file for starters
+	
+	tutorials/
 		tutorial_rosenbrock.py      # Source code for the Rosenbrock example the Tutorial
 		tutorial_griewank.py        # Source code for the Rosenbrock example the Tutorial
 		tutorial_ackley.py          # Source code for the Rosenbrock example the Tutorial
 		tutorial_Parameterlist_iterator.py        # Example how to sample given parameter combinations
-		3dplot.py                   # Response surface plot of example files
-

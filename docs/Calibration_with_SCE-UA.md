@@ -86,4 +86,4 @@ The best model run can be plotted by using basic Matplotlib skills:
 
 *Figure 2: Best model run of HYMOD, calibrated with SCE-UA, using RMSE as objective function.*
 
-The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_sceua_hymod.py).
+The corresponding code is available for download [here](https://github.com/thouska/spotpy/tree/master/tutorials/tutorial_sceua_hymod.py).

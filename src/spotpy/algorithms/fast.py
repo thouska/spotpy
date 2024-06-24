@@ -238,11 +238,11 @@ class fast(_algorithm):
                     lastbackup = rep
         self.final_call()
 
-        try:
-            data = self.datawriter.getdata()
-            # this is likely to crash if database does not assign name 'like1'
-            Si = self.analyze(
-                bounds, data["like1"], len(bounds), names, M=M, print_to_console=True
-            )
-        except AttributeError:  # Happens if no database was assigned
-            pass
+        # try:
+        #     data = self.datawriter.getdata()
+        #     # this is likely to crash if database does not assign name 'like1'
+        #     Si = self.analyze(
+        #         bounds, data["like1"], len(bounds), names, M=M, print_to_console=True
+        #     )
+        # except AttributeError:  # Happens if no database was assigned
+        #     pass

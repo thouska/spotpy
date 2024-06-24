@@ -9,14 +9,12 @@ This class holds example code how to use the dream algorithm
 """
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import spotpy
 from spotpy.examples.spot_setup_hymod_python import spot_setup
 
 if __name__ == "__main__":
     parallel = "seq"  # Runs everthing in sequential mode
-    np.random.seed(2000)  # Makes the results reproduceable
 
     # Initialize the Hymod example
     # In this case, we tell the setup which algorithm we want to use, so

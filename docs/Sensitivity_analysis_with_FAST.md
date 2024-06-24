@@ -13,7 +13,7 @@ $$N = (1+4M^2(1+(k-2)d))k$$
 
 with N = needed parameter iterations, M= inference factor (SPOTPY default M=4) and d= frequency step (SPOTPY default d=2) and k as the number of parameters of your model.
 
-In our case, we provide the hymod model as an [example](https://github.com/thouska/spotpy/blob/master/spotpy/examples/spot_setup_hymod_python.py)
+In our case, we provide the hymod model as an [example](https://github.com/thouska/spotpy/blob/master/src/spotpy/examples/spot_setup_hymod_python.py)
 You can start the simulation with
 
 
@@ -38,7 +38,7 @@ about a chain (not relevant for FAST).
 
 These results can be loaded, e.g. directly from the sampler:
 
-	results = sampler.get_data()
+	results = sampler.getdata()
 
 OR, by loading the results from the database:
 
@@ -48,9 +48,6 @@ Finally SPOTPY gives you some tools at hand, to analyse these results. E.g. if y
 model, you can use the following:
 
     spotpy.analyser.plot_fast_sensitivity(results, number_of_sensitiv_pars=3)
-
-
-	analyser.plot_fast_sensitivity(results,number_of_sensitiv_pars=5)
 	
 This will show you a Plot with the total Sensitivity index of all your parameters and in this case the five most sensitive parameters (can be adjusted).
 Herein we use a already create spotpy setup class from the tutorial. The code for this class
@@ -62,4 +59,4 @@ is available
 *Figure 1: Example output of a sensitivity analysis using the FAST (Fourier Amplitude Sensitivity Test). 
 Total sensitivity index is plotted for every model parameter. Sensitive parameters are plotted in blue, insensitive parameter in orange.*
 
-The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/spotpy/examples/tutorial_fast_hymod.py).
+The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/tutorials/tutorial_fast_hymod.py).

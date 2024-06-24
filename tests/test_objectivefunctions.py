@@ -88,7 +88,7 @@ class TestObjectiveFunctions(unittest.TestCase):
 
     def test_rsquared_random(self):
         res = of.rsquared(self.evaluation, self.simulation)
-        self.assertAlmostEqual(res, 0.012212676098496588, self.tolerance)
+        self.assertAlmostEqual(res, 0.012212676098432405, self.tolerance)
 
     def test_rsquared_perfect_corr_is_1(self):
         """rsquared for perfect correlation should be 1"""
@@ -200,7 +200,7 @@ class TestObjectiveFunctions(unittest.TestCase):
 
     def test_rsr(self):
         res = of.rsr(self.evaluation, self.simulation)
-        self.assertAlmostEqual(res, 2.2619034190253462, self.tolerance)
+        self.assertAlmostEqual(res, 2.261903419025346, self.tolerance)
 
     def test_rsr_with_self_is_zero(self):
         res = of.rsr(self.evaluation, self.evaluation)

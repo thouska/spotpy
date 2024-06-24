@@ -165,7 +165,7 @@ def get_parameternames(results):
     return parnames
 
 
-def get_maxlikeindex(results, verbose=True):
+def get_maxlikeindex(results, like_index=1, verbose=True):
     """
     Get the maximum objectivefunction of your result array
 
@@ -176,10 +176,7 @@ def get_maxlikeindex(results, verbose=True):
         value and value of the maximum objectivefunction of your result array
     :rtype: int and float
     """
-    try:
-        likes = results["like"]
-    except ValueError:
-        likes = results["like1"]
+    likes = results["like" + str(like_index)]
     maximum = np.nanmax(likes)
     value = str(round(maximum, 4))
     text = str("Run number ")
@@ -191,7 +188,7 @@ def get_maxlikeindex(results, verbose=True):
     return index, maximum
 
 
-def get_minlikeindex(results):
+def get_minlikeindex(results, like_index=1, verbose=True):
     """
     Get the minimum objectivefunction of your result array
 
@@ -202,18 +199,15 @@ def get_minlikeindex(results):
         value and value of the minimum objectivefunction of your result array
     :rtype: int and float
     """
-    try:
-        likes = results["like"]
-    except ValueError:
-        likes = results["like1"]
+    likes = results["like" + str(like_index)]
     minimum = np.nanmin(likes)
     value = str(round(minimum, 4))
     text = str("Run number ")
     index = np.where(likes == minimum)
     text2 = str(" has the lowest objectivefunction with: ")
     textv = text + str(index[0][0]) + text2 + value
-    print(textv)
-
+    if verbose:
+        print(textv)
     return index[0][0], minimum
 
 
@@ -292,7 +286,7 @@ def compare_different_objectivefunctions(like1, like2):
     return out
 
 
-def get_posterior(results, percentage=10, maximize=True):
+def get_posterior(results, like_index=1, percentage=10, maximize=True):
     """
     Get the best XX% of your result array (e.g. best 10% model runs would be a threshold setting of 0.9)
 
@@ -310,12 +304,15 @@ def get_posterior(results, percentage=10, maximize=True):
     """
     if maximize:
         index = np.where(
-            results["like1"] >= np.percentile(results["like1"], 100.0 - percentage)
+            results["like" + str(like_index)]
+            >= np.percentile(results["like" + str(like_index)], 100.0 - percentage)
         )
     else:
         index = np.where(
-            results["like1"]
-            <= np.percentile(results["like1"], 100.0 - (100 - percentage))
+            results["like" + str(like_index)]
+            <= np.percentile(
+                results["like" + str(like_index)], 100.0 - (100 - percentage)
+            )
         )
     return results[index]
 
@@ -340,7 +337,8 @@ def plot_posterior_parameter_histogram(ax, results, parameter):
 
 
 def plot_parameter_uncertainty(
-    posterior_results, evaluation, fig_name="Posterior_parameter_uncertainty.png"
+    posterior_results, evaluation, maximize=True, 
+    fig_name="Posterior_parameter_uncertainty.png"
 ):
     import matplotlib.pyplot as plt
 
@@ -366,8 +364,10 @@ def plot_parameter_uncertainty(
         label="parameter uncertainty",
     )
     ax.plot(evaluation, "r.", markersize=1, label="Observation data")
-
-    bestindex, bestobjf = get_maxlikeindex(posterior_results, verbose=False)
+    if maximize:
+        bestindex, bestobjf = get_maxlikeindex(posterior_results, verbose=False)
+    else:
+        bestindex, bestobjf = get_minlikeindex(posterior_results, verbose=False)     
     plt.plot(
         list(posterior_results[simulation_fields][bestindex][0]),
         "b-",
@@ -385,7 +385,7 @@ def sort_like(results):
     return np.sort(results, axis=0)
 
 
-def get_best_parameterset(results, maximize=True):
+def get_best_parameterset(results, like_index=1, maximize=True):
     """
     Get the best parameter set of your result array, depending on your first objectivefunction
 
@@ -398,10 +398,7 @@ def get_best_parameterset(results, maximize=True):
     :return: Best parameter set
     :rtype: array
     """
-    try:
-        likes = results["like"]
-    except ValueError:
-        likes = results["like1"]
+    likes = results["like" + str(like_index)]
     if maximize:
         best = np.nanmax(likes)
     else:
