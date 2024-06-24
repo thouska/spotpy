@@ -174,6 +174,10 @@ class sceua(_algorithm):
             Number of loops executed at max in this function call
         """
         self.set_repetiton(repetitions)
+        self.logger.info(
+            "Starting the SCEUA algotrithm with " + str(repetitions) + " repetitions..."
+        )
+
         # Initialize SCE parameters:
         self.ngs = ngs
         randompar = self.parameter()["random"]
@@ -206,7 +210,7 @@ class sceua(_algorithm):
             icall = 0
             xf = np.zeros(npt)
 
-            print("Starting burn-in sampling...")
+            self.logger.debug("Starting burn-in sampling...")
 
             # Burn in
             param_generator = ((rep, x[rep]) for rep in range(int(npt)))
@@ -216,7 +220,7 @@ class sceua(_algorithm):
                 xf[rep] = like
                 icall += 1
                 if self.status.stop:
-                    print(
+                    self.logger.debug(
                         "Stopping samplig. Maximum number of repetitions reached already during burn-in"
                     )
                     proceed = False
@@ -258,15 +262,15 @@ class sceua(_algorithm):
 
         # Check for convergency;
         if self.status.rep >= repetitions:
-            print("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
-            print("ON THE MAXIMUM NUMBER OF TRIALS ")
-            print(repetitions)
-            print("HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:")
-            print(self.status.rep)
-            print("OF THE INITIAL LOOP!")
+            self.logger.debug("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
+            self.logger.debug("ON THE MAXIMUM NUMBER OF TRIALS ")
+            self.logger.debug(repetitions)
+            self.logger.debug("HAS BEEN EXCEEDED.  SEARCH WAS STOPPED AT TRIAL NUMBER:")
+            self.logger.debug(self.status.rep)
+            self.logger.debug("OF THE INITIAL LOOP!")
 
         if gnrng < peps:
-            print(
+            self.logger.debug(
                 "THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE"
             )
 
@@ -297,7 +301,7 @@ class sceua(_algorithm):
             and proceed == True
         ):
             nloop += 1
-            print("ComplexEvo loop #%d in progress..." % nloop)
+            self.logger.debug("ComplexEvo loop #%d in progress..." % nloop)
             # Loop on complexes (sub-populations);
             cx = np.zeros((self.npg, self.nopt))
             cf = np.zeros((self.npg))
@@ -336,7 +340,7 @@ class sceua(_algorithm):
                             i, pars[i], sims[i], chains=i + 1, save_run=False
                         )
                         self.discarded_runs += 1
-                        print("Skipping saving")
+                        self.logger.debug("Skipping saving")
 
             if (
                 self.breakpoint == "write"
@@ -378,20 +382,22 @@ class sceua(_algorithm):
 
             # Check for convergency;
             if self.status.rep >= repetitions:
-                print("*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT")
-                print("ON THE MAXIMUM NUMBER OF TRIALS ")
-                print(repetitions)
-                print("HAS BEEN EXCEEDED.")
+                self.logger.debug(
+                    "*** OPTIMIZATION SEARCH TERMINATED BECAUSE THE LIMIT"
+                )
+                self.logger.debug("ON THE MAXIMUM NUMBER OF TRIALS ")
+                self.logger.debug(repetitions)
+                self.logger.debug("HAS BEEN EXCEEDED.")
 
             elif gnrng < peps:
-                print(
+                self.logger.debug(
                     "THE POPULATION HAS CONVERGED TO A PRESPECIFIED SMALL PARAMETER SPACE"
                 )
 
             elif (
                 nloop >= kstop
             ):  # necessary so that the area of high posterior density is visited as much as possible
-                print(
+                self.logger.debug(
                     "Objective function convergence criteria is now being updated and assessed..."
                 )
                 absolute_change = (
@@ -402,13 +408,15 @@ class sceua(_algorithm):
                     criter_change_pcent = 0.0
                 else:
                     criter_change_pcent = absolute_change / denominator
-                print("Updated convergence criteria: %f" % criter_change_pcent)
+                self.logger.debug(
+                    "Updated convergence criteria: %f" % criter_change_pcent
+                )
                 if criter_change_pcent <= pcento:
-                    print(
+                    self.logger.debug(
                         "THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY LESS THAN THE USER-SPECIFIED THRESHOLD %f"
                         % (kstop, pcento)
                     )
-                    print(
+                    self.logger.debug(
                         "CONVERGENCY HAS ACHIEVED BASED ON OBJECTIVE FUNCTION CRITERIA!!!"
                     )
             elif self.status.stop:
@@ -418,14 +426,16 @@ class sceua(_algorithm):
             # stop, if max number of loop iteration was reached
             elif max_loop_inc and nloop >= max_loop_inc:
                 proceed = False
-                print("THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED")
+                self.logger.debug(
+                    "THE MAXIMAL NUMBER OF LOOPS PER EXECUTION WAS REACHED"
+                )
                 break
 
         # End of the Outer Loops
-        print("SEARCH WAS STOPPED AT TRIAL NUMBER: %d" % self.status.rep)
-        print("NUMBER OF DISCARDED TRIALS: %d" % self.discarded_runs)
-        print("NORMALIZED GEOMETRIC RANGE = %f" % gnrng)
-        print(
+        self.logger.debug("SEARCH WAS STOPPED AT TRIAL NUMBER: %d" % self.status.rep)
+        self.logger.debug("NUMBER OF DISCARDED TRIALS: %d" % self.discarded_runs)
+        self.logger.debug("NORMALIZED GEOMETRIC RANGE = %f" % gnrng)
+        self.logger.debug(
             "THE BEST POINT HAS IMPROVED IN LAST %d LOOPS BY %f PERCENT"
             % (kstop, criter_change_pcent)
         )

@@ -62,7 +62,9 @@ class sa(_algorithm):
                 if par[i] > self.max_bound[i]:
                     par[i] = self.max_bound[i]
         else:
-            print("ERROR: Bounds have not the same lenghts as Parameterarray")
+            self.logger.error(
+                "ERROR: Bounds have not the same lenghts as Parameterarray"
+            )
         return par
 
     def sample(self, repetitions, Tini=80, Ntemp=50, alpha=0.99):
@@ -75,7 +77,9 @@ class sa(_algorithm):
             Maximum number of runs.
         """
         self.set_repetiton(repetitions)
-        print("Starting the SA algotrithm with " + str(repetitions) + " repetitions...")
+        self.logger.info(
+            "Starting the SA algotrithm with " + str(repetitions) + " repetitions..."
+        )
         self.min_bound, self.max_bound = (
             self.parameter()["minbound"],
             self.parameter()["maxbound"],
