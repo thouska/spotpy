@@ -400,7 +400,7 @@ class _SimulationHistory(object):
         self._logPSequences = np.zeros((nChains, maxChainDraws))
         self._logPHistory = np.zeros(nChains * maxChainDraws)
         self.r_hat = [] * dimensions
-        self._sampling_start = np.Inf
+        self._sampling_start = np.inf
 
         self._nChains = nChains
         self._dimensions = dimensions

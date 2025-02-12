@@ -504,8 +504,8 @@ def generalizedLikelihoodFunction(data, comparedata, measerror=None, params=None
         missingparams = []
         randomparset, parameternames = params
         parameternames = np.array(parameternames)
-        randomparset = np.array(randomparset)
-
+        #randomparset = np.array(randomparset)
+        randomparset = [np.array(par) for par in randomparset] 
         for nm in paramDependencies:
             if nm not in parameternames:
                 missingparams.append(nm)
