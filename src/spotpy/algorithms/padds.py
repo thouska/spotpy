@@ -2,7 +2,7 @@ import copy
 from copy import deepcopy
 
 import numpy as np
-from scipy.spatial.qhull import ConvexHull, QhullError
+from scipy.spatial import ConvexHull, QhullError
 
 from spotpy.algorithms.dds import DDSGenerator
 from spotpy.parameter import ParameterSet
@@ -172,6 +172,7 @@ class padds(_algorithm):
         self.pareto_front = np.array(
             [[np.array([]), np.array([0] * self.number_of_parameters)]]
         )
+
         # self.pareto_front = np.array([np.append([np.inf] * self.like_struct_len, [0] * self.number_of_parameters)])
 
         if len(initial_objs) != len(initial_params):

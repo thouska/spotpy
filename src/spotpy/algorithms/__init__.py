@@ -20,7 +20,7 @@ from .abc import abc  # Artificial Bee Colony
 from .dds import dds  # Dynamically Dimensioned Search algorithm
 from .demcz import demcz  # Differential Evolution Markov Chain
 from .dream import dream  # DiffeRential Evolution Adaptive Metropolis
-from .efast import efast # eFAST algorithm adapted from FAST R package (Reusser et al. 2011)
+from .efast import efast # eFAST algorithm adapted from FAST R package
 from .fast import fast  # Fourier Amplitude Sensitivity Test
 from .fscabc import fscabc  # Fitness Scaling Artificial Bee Colony
 from .lhs import lhs  # Latin Hypercube Sampling

@@ -11,7 +11,6 @@ import unittest
 import numpy as np
 
 import spotpy
-from spotpy.describe import describe
 from spotpy.examples.spot_setup_hymod_python import spot_setup as spot_setup_hymod
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike

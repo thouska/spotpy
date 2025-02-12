@@ -27,11 +27,11 @@ This file is part of Statistical Parameter Optimization Tool for Python(SPOTPY).
 :author: Anna Herzog, Tobias Houska, Dominik Reusser
 """
 
-import numpy as np
 import warnings
+import numpy as np
 
-from . import _algorithm
 from ..analyser import   efast_sensitivity, get_modelruns
+from . import _algorithm
 
 class efast(_algorithm):
     """
