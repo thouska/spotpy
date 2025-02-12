@@ -78,8 +78,9 @@ jobs:
           python -m build
 
       - uses: actions/upload-artifact@v4
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         with:
+          name: dist-sdist
           path: dist
 
   upload_to_pypi:
@@ -89,8 +90,8 @@ jobs:
       - name: Download all the dists
         uses: actions/download-artifact@v4
         with:
-          name: artifact
-          path: dist/
+          name: dist-sdist
+          path: dist
     
           
       - name: Publish to Test PyPI
