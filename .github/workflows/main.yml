@@ -87,11 +87,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: artifact
-          path: dist
-
       - name: Publish to Test PyPI
         # only if working on master
         if: github.ref == 'refs/heads/master'
