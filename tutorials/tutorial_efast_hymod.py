@@ -32,8 +32,26 @@ if __name__ == "__main__":
     # Load the results gained with the fast sampler, stored in FAST_hymod.csv
     results = spotpy.analyser.load_csv_results("eFAST_hymod")
 
+    # Calculate Sensitivity targeting performance criteria
+    sampler.calc_sensitivity(results["like1"], dbname="eFAST_sens_hymod_like1")
+
+    # Calculate sensitivity targeting model output variables
+    res = spotpy.analyser.get_modelruns(results)
+
     # calculate the sensitivities
     sampler.calc_sensitivity(results, dbname = "eFAST_sens_hymod")
 
     # plot the temporal parameter sensitivities
-    spotpy.analyser.plot_efast(dbname="eFast_sens_hymod")
+    spotpy.analyser.plot_efast(dbname="eFast_sens_hymod", fig_name="efast_sensitivities.png")
+
+    # In case of more than on model output: 
+    # seperate restults from each other (in case more than one model output is saved in the database)
+    # res = spotpy.analyser.get_modelruns_list(results)
+
+    #for i in range(len(res)):
+
+        # calculate the sensitivities
+    #    sampler.calc_sensitivity(results, dbname = "eFAST_sens_hymod"+str(i))
+
+        # plot the temporal parameter sensitivities
+    #    spotpy.analyser.plot_efast(dbname="eFast_sens_hymod", fig_name="sens"+str(i)+"png")
