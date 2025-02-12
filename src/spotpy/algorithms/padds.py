@@ -162,16 +162,31 @@ class padds(_algorithm):
             yield rep, self.calculate_next_s_test(
                 self.best_value.parameters, rep, self.generator_repetitions, self.r
             )
-
     def calculate_initial_parameterset(self, repetitions, initial_objs, initial_params):
         self.obj_func_current = np.array([0.0])
         self.parameter_current = np.array([0.0] * self.number_of_parameters)
         self.parameter_range = (
             self.best_value.parameters.maxbound - self.best_value.parameters.minbound
         )
-        self.pareto_front = np.array(
-            [[np.array([]), np.array([0] * self.number_of_parameters)]]
-        )
+        self.pareto_front = [
+            np.zeros(self.number_of_parameters),
+            np.zeros(self.number_of_parameters)
+        ]
+        print(self.pareto_front)
+        self.pareto_front = np.array(self.pareto_front)
+    # def calculate_initial_parameterset(self, repetitions, initial_objs, initial_params):
+    #     self.obj_func_current = np.array([0.0])
+    #     self.parameter_current = np.array([0.0] * self.number_of_parameters)
+    #     self.parameter_range = (
+    #         self.best_value.parameters.maxbound - self.best_value.parameters.minbound
+    #     )
+    #     self.pareto_front = [
+    #     np.array([]),
+    #     np.zeros(self.number_of_parameters)
+    #     ]
+    #     # self.pareto_front = np.array(
+    #     #     [[np.array([]), np.array([0] * self.number_of_parameters)]]
+    #     # )
 
         # self.pareto_front = np.array([np.append([np.inf] * self.like_struct_len, [0] * self.number_of_parameters)])
 

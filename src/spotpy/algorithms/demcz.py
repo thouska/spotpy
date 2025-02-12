@@ -483,7 +483,7 @@ class _SimulationHistory(object):
         return self.group_samples("all")
 
     def group_samples(self, name):
-        if self._sampling_start < np.Inf:
+        if self._sampling_start < np.inf:
             start = int(
                 max(np.ceil(self.relevantHistoryStart), self._sampling_start)
                 * self._nChains
@@ -627,11 +627,11 @@ class _GRConvergence:
     """
 
     def __init__(self):
-        self._W = np.Inf
-        self._R = np.Inf
-        self._V = np.Inf
-        self._VChange = np.Inf
-        self._WChange = np.Inf
+        self._W = np.inf
+        self._R = np.inf
+        self._V = np.inf
+        self._VChange = np.inf
+        self._WChange = np.inf
 
     def _get_R(self):
         return self._R
