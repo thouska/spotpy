@@ -85,7 +85,13 @@ jobs:
   upload_to_pypi:
     needs: [build_sdist]
     runs-on: ubuntu-latest
-
+    - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+          - uses: casperdcl/deploy-pypi@v2
+            with:
+              build: --sdist
+              name: artifact
+              path: dist
     steps:
       - name: Publish to Test PyPI
         # only if working on master
