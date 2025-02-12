@@ -15,6 +15,7 @@ authors = [
     {name = "Alejandro Chamorro-Chavez"},
     {name = "Lutz Breuer"},
     {name = "Sebastian Müller", email = "sebastian.mueller@ufz.de"},
+	{name = "Anna Herzog", email = "anna.herzog@uni-potsdam.de"}
 ]
 maintainers = [
     {name = "Tobias Houska", email = "tobias.houska@umwelt.uni-giessen.de"},
@@ -108,9 +109,6 @@ multi_line_output = 3
 [tool.black]
 exclude = "_version.py"
 target-version = [
-    "py39",
-    "py310",
-    "py311",
 	"py312",
 ]
 
