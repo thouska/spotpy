@@ -35,7 +35,7 @@ Simulated Annealing (`SA`), Shuffled Complex Evolution Algorithm (`SCE-UA`),
 Differential Evolution Adaptive Metropolis Algorithm (`DE-MCz`), 
 RObust Parameter Estimation (`ROPE`), Artificial Bee Colony (`ABC`),
 Dynamicallly Dimensioned Search algorithm (`DDS`), Pareto Archived Dynamicallly Dimensioned Search algorithm (`PA-DDS`)
-Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`) and Fourier Amplitude Sensitivity Test (`FAST`).
+Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`), Fourier Amplitude Sensitivity Test (`FAST`) and extended Fourier Amplitude Sensitivity Test (`eFAST`).
 
 * Wide range of objective functions, likelihood functions and hydroligcal signatures to validate the sampled results. 
 Available objective functions are:
@@ -153,6 +153,7 @@ The results can be analysed with some pre-build statistics and plotting features
 		sa.py         # Simulated annealing
 		rope.py       # RObust Parameter Estimation
 		fast.py       # Fourier Amplitude Sensitivity Testing
+		efast.py      # extended Fourier Amplitude Sensitivity Testing
 		abc.py        # Artificial Bee Colony
 		fscabc.py     # Fitness Scaled Chaotic Artificial Bee Colony
 		dream.py      # Differential Evolution Adaptive Metropolis
@@ -172,7 +173,17 @@ The results can be analysed with some pre-build statistics and plotting features
 		getting_started.py          # Recommended test file for starters
 	
 	tutorials/
-		tutorial_rosenbrock.py      # Source code for the Rosenbrock example the Tutorial
-		tutorial_griewank.py        # Source code for the Rosenbrock example the Tutorial
-		tutorial_ackley.py          # Source code for the Rosenbrock example the Tutorial
-		tutorial_Parameterlist_iterator.py        # Example how to sample given parameter combinations
+		tutorial_rosenbrock.py               # Source code for the Rosenbrock example the Tutorial
+		tutorial_griewank.py                 # Source code for the Griewank example the Tutorial
+		tutorial_ackley.py                   # Source code for the Ackley example the Tutorial
+		tutorial_Parameterlist_iterator.py   # Example how to sample given parameter combinations
+		tutorial_own_database.py             # Example how to implement your own database
+		tutorial_parallel_computing_hymod.py # Example how to set up spotpy on a cluster computer
+		tutorial_signatures.py               # Example on usage on hydrological signatures
+		tutorial_nsgaii.py				 	 # Example on how to use the nsgaii algorithm
+		tutorial_padds_hymod.py              # Example on how to use the padds algorithm
+		tutorial_dds_hymod.py                # Example on how to use the dds algorithm
+		tutorial_sceua_hymod.py              # Example on how to use the sceua algorithm
+		tutorial_fast_hymod.py               # Example on how to use the fast algorithm
+		tutorial_efast_hymod.py              # Example on how to use the efast algorithm
+		tutorial_dream_hymod.py              # Example on how to use the dream algorithm

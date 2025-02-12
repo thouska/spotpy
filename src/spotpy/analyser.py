@@ -129,6 +129,34 @@ def get_modelruns(results):
     fields = [word for word in results.dtype.names if word.startswith("sim")]
     return results[fields]
 
+def get_modelruns_list(results):
+    """
+    Get a list of shorter arrays out of your result array, containing just the
+    simulations of your model. Each list element contains the simulations of one model output.
+
+    :results: Expects an numpy array which should have indices beginning with "sim"
+    :type: array
+
+    :return: List of arrays containing just the columns beginnning with the indice "sim"
+    :rtype: List
+    """
+
+    fields = [word for word in results.dtype.names if word.startswith("sim")]
+    fields_sim = [field.split("_")[0] for field in fields]
+    sim_nr = [int(num) for s in fields_sim for num in ''.join([c if c.isdigit() else ' ' for c in s]).split()]
+    try:
+        max_simnr = max(sim_nr)
+
+        results_x = list()
+        for i in range(max_simnr):
+            fields_i = [word for word in results.dtype.names if "n"+str(i+1)+"_" in word]
+            results_x.append(results[fields_i])
+        return results_x
+    
+    except ValueError:
+        raise ValueError("The model only has one output, use get_modelruns() instead")
+
+    
 
 def get_parameters(results):
     """
@@ -1217,3 +1245,151 @@ def _Geweke(samples, intervals=20):
         # calculate the Geweke test
         z[k] = (mean1 - mean2) / np.sqrt(var1 + var2)
     return z
+
+def double_serie(x):
+    """
+    This function reverses the model output series from a number of model runs for
+    the eFAST analysis and appends it to the original series. The last element of the 
+    existing series is not duplicated during this process.
+    This is required in order to process the model run results for the FAST
+    analysis with the fft function.
+
+    adapted from R package FAST (Reusser et al. 2011)
+
+    Parameters
+    ----------
+    x: np.array of float
+        dataseries to be doubled 
+
+    Returns
+    ----------
+    value: np.array of float
+        doubled x 
+
+    Author
+    ----------
+    Dominic Reusser
+    spotpy translation: Anna Herzog   
+    """
+
+    return(np.append(x, np.flip(x)[1:]))
+
+def efast_sensitivity(x, numberf, t_runs, t_freq, order = 4, make_plot = False, include_total_variance = False, cukier = True):
+    """
+    function that calculates the sensitivity from a series of model outputs
+    according to the eFAST algorithm
+
+    adapted from R package FAST (Reusser et al. 2011)
+
+    Parameters
+    ----------
+    x: np.array of float,
+        1D array of model outputs where parameters vary between runs according to the fast algorithm    
+    numberf: int
+        Number of parameters vaired
+    t_runs: float 
+        number of runs required by algorithm (calculated internally in eFAST algorithm)
+    t_freq: float
+        frequencies used for parameter sampling (calculated internally in eFAST algorithm)
+    order: int, optional
+        Order of parameter frequency independance (see Cukier)
+        default = 4
+    make_plot: bool, optional
+        plot the Fourier spectrum?
+        default = False
+    include_total_variance: bool, optional
+        include the sum of all variances in the result array? 
+        default = False
+    
+    Raises
+    ----------
+    Exeption:
+        "Not enough model runs loaded. Expected <x> runs, but found only <y>"
+        Function is stoped, if the loaded data base contains not enough model 
+        runs for the given number of parameters. A pervious warning might have
+        appeared during execution of the sample() function. 
+
+    Returns
+    ----------
+    value: np.array of float
+        partial variance values accounted for by each parameter
+
+    Author
+    ----------
+    Dominic Reusser
+    spotpy translation: Anna Herzog  
+
+    """    
+    
+    if len(x) < t_runs:
+        raise Exception("Not enough model runs loaded. Expected " + str(t_runs) +" runs, but found only " + str(len(x)))
+        
+    fft = np.fft.fft(double_serie(x))
+    ff = abs(fft/len(x))[:len(x)+1]
+    
+    freq = np.outer(t_freq, range(1, order+1))
+    
+    total = sum(ff[1:,]**2)
+
+    sens = np.full(freq.shape[0], np.nan) 
+    
+    for i in range(freq.shape[0]):
+        index = freq[i,:][freq[i,:] < len(ff)]
+        sens[i] = np.nansum(ff[index]**2)/total
+        
+    if include_total_variance:
+        np.append(sens, total)
+        
+    return sens
+
+def void_to_arr(results):
+    """
+    Function to transform Spotpy results array (array of void) into np.array (float)
+
+    Parameters
+    ----------
+    results: Spotpy results array
+
+    Returns
+    ----------
+    value: np.array of float
+    """
+    
+    arr = np.full((results.shape[0], len(results[0])), np.nan)
+    for index in range(len(results)):        
+        arr[index, :] = list(results[index])
+
+    return arr
+
+def plot_efast(dbname, fig_name = "efast_sensitivities.png"):
+
+    """
+    Function to plot the series of parameter sensitvities generated by the eFAST algorithm
+
+    Parameters
+    ----------
+    dbname: str
+        name of the database with the parameter sensitvities generated by eFAST algorithm 
+    fig_name: (optional) str
+        custom name of the figure
+
+    Returns
+    ----------
+    fig: saves figure as .png
+    """
+
+    import matplotlib.pyplot as plt
+
+    senstivities = load_csv_results(dbname)
+
+    parameters = senstivities.dtype.names
+    sens_values = void_to_arr(senstivities).T
+    
+    fig, axs = plt.subplots(len(parameters), sharey=True)
+    
+    for i in range(len(parameters)):
+        axs[i].plot(range(len(sens_values[i,:])), sens_values[i,:])
+        axs[i].set_ylabel(parameters[i])
+    
+    fig.savefig(fig_name, dpi=150)
+

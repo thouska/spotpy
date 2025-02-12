@@ -61,6 +61,7 @@ Some features you can use with the SPOTPY package are:
   * Differential Evolution Adaptive Metropolis Algorithm (`DREAM`)
   * RObust Parameter Estimation (`ROPE`)
   * Fourier Amplitude Sensitivity Test (`FAST`)
+  * extended Fourier Amplitude Sensitivity Test (`eFAST`)  
   * Artificial Bee Colony (`ABC`)
   * Fitness Scaled Chaotic Artificial Bee Colony (`FSCABC`)
   * Dynamically Dimensioned Search algorithm (`DDS`)
