@@ -38,8 +38,8 @@ from . import _algorithm
 class efast(_algorithm):
     """
     EFAST Algorithm for (distributed) parameter Sensitivity after FAST algorithm according to Cukier 1975 or McRae 1982
-    The Fourier Amplitude Sensitivity Test (FAST) is a method to determine global sensitvities of a model on parameter changes
-    within relatively few model runs. 
+    The extended Fourier Amplitude Sensitivity Test (eFAST) is a method to determine global sensitvities of a model on parameter changes
+    within relatively few model runs over time. 
     """
 
     _unaccepted_parameter_types = ()
