@@ -129,6 +129,34 @@ def get_modelruns(results):
     fields = [word for word in results.dtype.names if word.startswith("sim")]
     return results[fields]
 
+def get_modelruns_list(results):
+    """
+    Get a list of shorter arrays out of your result array, containing just the
+    simulations of your model. Each list element contains the simulations of one model output.
+
+    :results: Expects an numpy array which should have indices beginning with "sim"
+    :type: array
+
+    :return: List of arrays containing just the columns beginnning with the indice "sim"
+    :rtype: List
+    """
+
+    fields = [word for word in results.dtype.names if word.startswith("sim")]
+    fields_sim = [field.split("_")[0] for field in fields]
+    sim_nr = [int(num) for s in fields_sim for num in ''.join([c if c.isdigit() else ' ' for c in s]).split()]
+    try:
+        max_simnr = max(sim_nr)
+
+        results_x = list()
+        for i in range(max_simnr):
+            fields_i = [word for word in results.dtype.names if "n"+str(i+1)+"_" in word]
+            results_x.append(results[fields_i])
+        return results_x
+    
+    except ValueError:
+        raise ValueError("The model only has one output, use get_modelruns() instead")
+
+    
 
 def get_parameters(results):
     """
@@ -1246,7 +1274,7 @@ def double_serie(x):
 
     return(np.append(x, np.flip(x)[1:]))
 
-def efast_sensitivity(x, t_runs, t_freq, order = 4, include_total_variance = False):
+def efast_sensitivity(x, numberf, t_runs, t_freq, order = 4, make_plot = False, include_total_variance = False, cukier = True):
     """
     function that calculates the sensitivity from a series of model outputs
     according to the eFAST algorithm
