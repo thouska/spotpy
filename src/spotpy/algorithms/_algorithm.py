@@ -206,7 +206,7 @@ class _algorithm(object):
         csv: A csv file will be created, which you can import afterwards.
     parallel: str
         seq: Sequentiel sampling (default): Normal iterations on one core of your cpu.
-        mpc: Multi processing: Iterations on all available cores on your (single) pc
+        mpc: Multi processing: Iterations on all available cores on your (single) pc/laptop
         mpi: Message Passing Interface: Parallel computing on high performance computing clusters, py4mpi needs to be installed
     save_threshold: float or list
         Compares the given value/list of values with return value/list of values from spot_setup.objectivefunction.
