@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased Changes](https://github.com/thouska/spotpy/compare/v1.6.0-rc1...master)
+## [Unreleased Changes](https://github.com/thouska/spotpy/compare/v1.6.3..master)
+
+
+## Spotpy Version [v1.6.3](https://github.com/thouska/spotpy/compare/v1.6.0-rc1...v1.6.3) (2025-02-12)
+
+* Introducing efast [#330](https://github.com/thouska/spotpy/pull/330)
+
 
 ## Spotpy Version [v1.6.0-rc1](https://github.com/thouska/spotpy/compare/v1.5.16..v1.6.0-rc1) (2022-07-15)
 
