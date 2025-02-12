@@ -506,18 +506,11 @@ class efast(_algorithm):
         spotpy translation: Anna Herzog
     
         """ 
-        data = get_modelruns(results)
-        
-        # convert array of void to array of float
-        mod_results = np.full((data.shape[0], len(data[0])), np.nan)
-
-        for index in range(len(data)):        
-            mod_results[index, :] = list(data[index])
-
         numberf = len(self.parameter()["minbound"])
 
         # sens_data = np.full((len(results[0]), numberf), np.nan)
-
+        
+        # idendtify frequency
         if freq == 'cukier':
             t_runs = self.min_runs_cukier75[numberf-1]
             t_freq = self.freq_cukier(numberf)
@@ -530,11 +523,28 @@ class efast(_algorithm):
         # Get the names of the parameters to analyse
         names = ["par" + name for name in self.parameter()["name"]]
 
+        # open the file for sensitivity results
         f = open(dbname+".csv", 'w+')
         np.savetxt(f, [names], "%s", delimiter=",")
         
-        for index in range(mod_results.shape[1]):    
-            x_data = mod_results[:, index]
+        data = np.array(results)
+        
+        try:            
+            # convert array of void to array of float
+            mod_results = np.full((data.shape[0], len(data[0])), np.nan)
+
+            for index in range(len(data)):        
+                mod_results[index, :] = list(data[index])
+      
+            print("data series")
+            for index in range(mod_results.shape[1]):    
+                x_data = mod_results[:, index]
+                sens_data = efast_sensitivity(x_data, numberf, t_runs, t_freq)
+                np.savetxt(f, [sens_data], delimiter=",", fmt='%1.5f')
+                
+        except:
+            print("single data")
+            x_data = data
             sens_data = efast_sensitivity(x_data, numberf, t_runs, t_freq)
             np.savetxt(f, [sens_data], delimiter=",", fmt='%1.5f')
         
