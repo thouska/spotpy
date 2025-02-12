@@ -81,7 +81,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         with:
           name: dist-sdist
-          path: dist
+          path: dist/
 
   upload_to_pypi:
     needs: [build_sdist]
@@ -91,9 +91,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist-sdist
-          path: dist
-    
-          
+          path: dist/
+       
       - name: Publish to Test PyPI
         # only if working on master
         if: github.ref == 'refs/heads/master'
