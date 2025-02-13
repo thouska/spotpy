@@ -186,4 +186,3 @@ Patches/enhancements/new algorithms and any other contributions to this package 
 Papers citing SPOTPY
 =====================
 See [Google Scholar](https://scholar.google.de/scholar?cites=17155001516727704728&as_sdt=2005&sciodt=0,5&hl=de) for a continuously updated list.
-
