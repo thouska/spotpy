@@ -60,3 +60,5 @@ is available
 Total sensitivity index is plotted for every model parameter. Sensitive parameters are plotted in blue, insensitive parameter in orange.*
 
 The corresponding code is available for download [here](https://github.com/thouska/spotpy/blob/master/tutorials/tutorial_fast_hymod.py).
+
+For advanced users, there is also an option for a temporal sensitvity analyssis [here](https://github.com/thouska/spotpy/blob/master/tutorials/tutorial_efast_hymod.py)
