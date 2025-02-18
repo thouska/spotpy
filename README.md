@@ -21,6 +21,10 @@ A Statistical Parameter Optimization Tool for Python
 Purpose
 =================
 
+
+https://github.com/user-attachments/assets/4df71cb2-dcf9-4a24-bb78-6e4e1c43356a
+
+
 SPOTPY is a Python framework that enables the use of Computational optimization techniques for calibration, uncertainty
 and sensitivity analysis techniques of almost every (environmental-) model. The package is puplished in the open source journal PLoS One:
 
