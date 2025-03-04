@@ -1,5 +1,9 @@
 from importlib import import_module
 
+from spotpy.spotpylogging import get_logger
+
+logger = get_logger("database.__init__")
+
 
 def __dir__():
     """
@@ -19,7 +23,7 @@ def __dir__():
 
 def __getattr__(name):
     names = __dir__()
-    print(names)
+    logger.info(names)
     if name in names:
         try:
             db_module = import_module("." + name, __name__)

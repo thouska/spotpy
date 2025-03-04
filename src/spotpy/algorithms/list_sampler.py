@@ -68,7 +68,9 @@ class list_sampler(_algorithm):
         self.set_repetiton(repetitions)
 
         # Initialization
-        print("Starting the List sampler with " + str(repetitions) + " repetitions...")
+        self.logger.info(
+            "Starting the List sampler with " + str(repetitions) + " repetitions..."
+        )
         param_generator = (
             (rep, list(parameters[rep])) for rep in range(int(repetitions))
         )
