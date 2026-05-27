@@ -56,7 +56,6 @@ For typical parametrizations, create instances of this class inside this module,
 cf. to QuantileSignature and the get_qXXX methods
 """
 
-
 import inspect
 import sys
 

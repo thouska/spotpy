@@ -14,7 +14,6 @@ Imports the different algorithms from this package.
 To reduce dependencies, one may select here just the needed algorithm.
 """
 
-
 from ._algorithm import _algorithm
 from .abc import abc  # Artificial Bee Colony
 from .dds import dds  # Dynamically Dimensioned Search algorithm
@@ -28,6 +27,7 @@ from .list_sampler import list_sampler  # Samples from  given spotpy database
 from .mc import mc  # Monte Carlo
 from .mcmc import mcmc  # Metropolis Markov Chain Monte Carlo
 from .mle import mle  # Maximum Likelihood Estimation
+from .morris import morris  # Morris Screening Sensitivity Test
 from .nsgaii import (
     NSGAII,  # A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II
 )
@@ -35,4 +35,3 @@ from .padds import padds  # Pareto Archived - Dynamicallly Dimensioned Search al
 from .rope import rope  # RObust Parameter Estimation
 from .sa import sa  # Simulated annealing
 from .sceua import sceua  # Shuffled Complex Evolution
-from .morris import morris # Morris Screening Sensitivity Test

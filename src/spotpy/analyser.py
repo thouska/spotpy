@@ -29,7 +29,11 @@ def load_csv_results(filename, usecols=None):
     """
     if usecols == None:
         return np.genfromtxt(
-            filename + ".csv", delimiter=",", names=True, dtype=np.float32, invalid_raise=False
+            filename + ".csv",
+            delimiter=",",
+            names=True,
+            dtype=np.float32,
+            invalid_raise=False,
         )
     else:
         return np.genfromtxt(
@@ -39,7 +43,7 @@ def load_csv_results(filename, usecols=None):
             skip_footer=1,
             invalid_raise=False,
             usecols=usecols,
-            dtype=np.float32
+            dtype=np.float32,
         )[1:]
 
 
@@ -1404,85 +1408,105 @@ def plot_efast(dbname, spot_setup, fig_name="efast_sensitivities.png"):
     fig: saves figure as .png
     """
 
-    import matplotlib.pyplot as plt
     import matplotlib.cm as cm
+    import matplotlib.pyplot as plt
+
     senstivities = load_csv_results(dbname)
 
     parameters = senstivities.dtype.names
     sens_values = void_to_arr(senstivities).T
-    
-    color= cm.brg(np.linspace(0, 1, len(parameters)))
+
+    color = cm.brg(np.linspace(0, 1, len(parameters)))
     fig, axs = plt.subplots(len(parameters), figsize=(10, 5), sharey=True)
     for i in range(len(parameters)):
         # WATCH OUT: First 5 results get discarded
-        axs[i].plot(spot_setup.date[364:], sens_values[i, :][5:], color=color[i]) 
+        axs[i].plot(spot_setup.date[364:], sens_values[i, :][5:], color=color[i])
         axs[i].set_ylabel(parameters[i][3:])
-        if i < len(parameters)-1:
+        if i < len(parameters) - 1:
             axs[i].set_xticklabels([])
-            print('hello')
-    axs[i].set_xlabel('Date')
-    axs[i].set_ylim(0,1)
+            print("hello")
+    axs[i].set_xlabel("Date")
+    axs[i].set_ylim(0, 1)
     plt.tight_layout()
     fig.savefig(fig_name, dpi=300)
 
+
 def calculate_morris_sensitivity(problem, X, Y, num_levels=4, print_to_console=False):
     from SALib.analyze import morris as morris_analyze
-    Si = morris_analyze.analyze(problem, X, Y, conf_level=0.95, num_levels=num_levels,
-                                print_to_console=print_to_console)
+
+    Si = morris_analyze.analyze(
+        problem,
+        X,
+        Y,
+        conf_level=0.95,
+        num_levels=num_levels,
+        print_to_console=print_to_console,
+    )
     return Si
 
-def plot_morris_sensitivity(results, spot_setup, like_index=0, num_levels=4, fig_name='Morris_interaction.png'):
+
+def plot_morris_sensitivity(
+    results, spot_setup, like_index=0, num_levels=4, fig_name="Morris_interaction.png"
+):
+    import matplotlib.cm as cm
     import matplotlib.pyplot as plt
     import pandas as pd
-    import matplotlib.cm as cm
+
     parameter = spotpy.parameter.get_parameters_array(spot_setup)
     names = parameter["name"]
-    
+
     bounds = []
     for i in range(len(names)):
         bounds.append([parameter["minbound"][i], parameter["maxbound"][i]])
 
     problem = {
-        'num_vars': len(names),
-        'names': names.tolist(),  # or name_spotpy if you expanded names
-        'bounds':  bounds
+        "num_vars": len(names),
+        "names": names.tolist(),  # or name_spotpy if you expanded names
+        "bounds": bounds,
         #'bounds': self.parameter()[['minbound','maxbound']].values.tolist()
     }
 
     par_fields = get_parameter_fields(results)
-    
+
     par_results = results[par_fields]
     X = pd.DataFrame(par_results).values
-    
-    like_results = results["like"+str(like_index+1)]
+
+    like_results = results["like" + str(like_index + 1)]
     Y = like_results
-    
-    SI = calculate_morris_sensitivity(problem, X, Y, num_levels=num_levels) 
+
+    SI = calculate_morris_sensitivity(problem, X, Y, num_levels=num_levels)
     fig = plt.figure(figsize=(6, 6))
-    
+
     colors = cm.brg(np.linspace(0, 1, len(par_fields)))
-    
+
     ax = plt.subplot(1, 1, 1)
-    
+
     for i, label in enumerate(par_fields):
-        plt.scatter(SI['mu_star'][i], SI['sigma'][i], color=colors[i])
-        plt.text(SI['mu_star'][i]+0.03, SI['sigma'][i]+0.03, par_fields[i][3:])
+        plt.scatter(SI["mu_star"][i], SI["sigma"][i], color=colors[i])
+        plt.text(SI["mu_star"][i] + 0.03, SI["sigma"][i] + 0.03, par_fields[i][3:])
     print(SI)
     xmin, xmax = ax.get_xlim()
-    ymin, ymax =ax.get_ylim()
-    #lims = [
-    #np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
-    #np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
-    #]
-    #print(lims)
+    ymin, ymax = ax.get_ylim()
+    # lims = [
+    # np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+    # np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    # ]
+    # print(lims)
     # now plot both limits against eachother
-    #ax.plot(lims, lims, 'k--', alpha=0.75, zorder=0)
-    ax.plot([0,np.max([ax.get_xlim(), ax.get_ylim()])], [0,np.max([ax.get_xlim(), ax.get_ylim()])*2], color='dimgrey', linestyle='--', alpha=0.75, zorder=0)
-    plt.xlabel("$\mu*$"+'\nParameter Sensitivity')
-    plt.ylabel("$\sigma$"+'\nParameter Interaction')
-    plt.xlim(0,xmax*1.1)
-    plt.ylim(0,ymax*1.1)
-    
+    # ax.plot(lims, lims, 'k--', alpha=0.75, zorder=0)
+    ax.plot(
+        [0, np.max([ax.get_xlim(), ax.get_ylim()])],
+        [0, np.max([ax.get_xlim(), ax.get_ylim()]) * 2],
+        color="dimgrey",
+        linestyle="--",
+        alpha=0.75,
+        zorder=0,
+    )
+    plt.xlabel("$\mu*$" + "\nParameter Sensitivity")
+    plt.ylabel("$\sigma$" + "\nParameter Interaction")
+    plt.xlim(0, xmax * 1.1)
+    plt.ylim(0, ymax * 1.1)
+
     plt.tight_layout()
     plt.show()
     fig.savefig(fig_name, dpi=150)

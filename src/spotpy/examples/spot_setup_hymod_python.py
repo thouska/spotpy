@@ -7,12 +7,12 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 This example implements the python version of hymod into SPOTPY.
 """
 
+import datetime as dt
 import os
 
 from spotpy.examples.hymod_python.hymod import hymod
 from spotpy.objectivefunctions import rmse
 from spotpy.parameter import Uniform
-import datetime as dt
 
 
 class spot_setup(object):
@@ -46,7 +46,7 @@ class spot_setup(object):
         self.header = headerline.split(self.delimiter)
         for line in climatefile:
             values = line.strip().split(self.delimiter)
-            self.date.append(dt.datetime.strptime(str(values[0]), '%d.%m.%Y'))
+            self.date.append(dt.datetime.strptime(str(values[0]), "%d.%m.%Y"))
             self.Precip.append(float(values[1]))
             self.PET.append(float(values[2]))
             self.trueObs.append(float(values[3]))

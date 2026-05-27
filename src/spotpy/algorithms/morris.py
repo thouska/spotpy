@@ -19,13 +19,13 @@ class morris(_algorithm):
     This class holds the Morris Screening Sensitivity Test (MORRIS) based on Morris (1991), Campolongo et al (2007) and Ruano et al. (2012):
 
     Morris, M.D., 1991, Factorial Sampling Plans for Preliminary Computational Experiments. Technometrics 33, 161-174.
-       
+
     Campolongo, F., Cariboni, J., & Saltelli, A. 2007. An effective screening design for sensitivity analysis of large
     models. Environmental Modelling & Software, 22(10), 1509-1518.
 
     Ruano, M.V., Ribes, J., Seco, A., Ferrer, J., 2012. An improved sampling strategy based on trajectory design for
     application of the Morris method to systems with many input factors. Environmental Modelling & Software 37, 103-109.
-    
+
     The presented code is based on SALib
     Copyright (C) 2013-2015 Jon Herman and others. Licensed under the GNU Lesser General Public License.
     The Sensitivity Analysis Library is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -98,18 +98,29 @@ class morris(_algorithm):
     def matrix(self, bounds, problem, N, M=4):
         from SALib.sample import morris as morris_sample
 
-        X = morris_sample.sample(problem, N=N, num_levels=M,
-                                 optimal_trajectories=None,  # set int to use Campolongo opt design
-                                 local_optimization=True,    # Ruano-style distance improvement
-                                 seed=123)
+        X = morris_sample.sample(
+            problem,
+            N=N,
+            num_levels=M,
+            optimal_trajectories=None,  # set int to use Campolongo opt design
+            local_optimization=True,  # Ruano-style distance improvement
+            seed=123,
+        )
 
         self.scale_samples(X, bounds)
         return X
 
     def analyze(self, problem, X, Y, num_levels=4, print_to_console=False):
         from SALib.analyze import morris as morris_analyze
-        Si = morris_analyze.analyze(problem, X, Y, conf_level=0.95, num_levels=num_levels,
-                                    print_to_console=print_to_console)
+
+        Si = morris_analyze.analyze(
+            problem,
+            X,
+            Y,
+            conf_level=0.95,
+            num_levels=num_levels,
+            print_to_console=print_to_console,
+        )
         return Si
 
     def sample(self, repetitions, num_levels=4):
@@ -132,7 +143,6 @@ class morris(_algorithm):
         # distribution
         parmin, parmax = self.parameter()["minbound"], self.parameter()["maxbound"]
 
-
         bounds = []
         for i in range(len(parmin)):
             bounds.append([parmin[i], parmax[i]])
@@ -142,14 +152,14 @@ class morris(_algorithm):
         # Assume df_params from your existing script
         # columns: name, change_type, lower_bound, upper_bound, subbasins
         problem = {
-            'num_vars': len(names),
-            'names': names.tolist(),  # or name_spotpy if you expanded names
-            'bounds':  bounds
+            "num_vars": len(names),
+            "names": names.tolist(),  # or name_spotpy if you expanded names
+            "bounds": bounds,
             #'bounds': self.parameter()[['minbound','maxbound']].values.tolist()
         }
 
-        k = problem['num_vars']
-        N = 15          # number of trajectories (adjust for robustness vs runtime)
+        k = problem["num_vars"]
+        N = 15  # number of trajectories (adjust for robustness vs runtime)
         num_levels = num_levels  # classic Morris grid
 
         # Create an Matrix to store the parameter sets
@@ -179,10 +189,16 @@ class morris(_algorithm):
         try:
             data = self.datawriter.getdata()
             # this is likely to crash if database does not assign name 'like1'
-            Si = self.analyze(problem, Matrix, data["like1"], num_levels=num_levels, print_to_console=False)
+            Si = self.analyze(
+                problem,
+                Matrix,
+                data["like1"],
+                num_levels=num_levels,
+                print_to_console=False,
+            )
             # Si = self.analyze(
             #     bounds, data["like1"], len(bounds), names, M=num_levels, print_to_console=True
             # )
-            print(Si['mu_star'])
+            print(Si["mu_star"])
         except AttributeError:  # Happens if no database was assigned
             pass
