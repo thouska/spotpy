@@ -11,14 +11,8 @@ lint = [
     "isort >=8.0.1"
 ]
 test = [
-    "click >=8.1",
-    "docutils",
-    "matplotlib >=3.8.0",
-    "numba >=0.60.0",
-    "pandas >=2.2.0",
-    "pathos",
-    "pytest-cov >=6.0",
-    "tables"
+    "pytest >=9.0",
+    "pytest-cov >=7.1.0",
 ]
 
 [project]
@@ -92,6 +86,16 @@ plotting = [
     "pandas >=2.2.0",
     "matplotlib >=3.8.0",
 ]
+mpi = [
+    "mpi4py",
+    "pathos"
+]
+describe = [
+    "docutils"
+]
+database = [
+    "tables"
+]
 
 [project.scripts]
 spotpy = "spotpy.cli:cli"
@@ -121,8 +125,7 @@ target-version = [
     "py310",
     "py311",
 	"py312",
-    "py313",
-    "py314"
+    "py313"
 ]
 
 [tool.coverage]
