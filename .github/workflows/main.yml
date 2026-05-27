@@ -45,7 +45,7 @@ jobs:
           black --check src/spotpy
           isort --check src/spotpy
 
-  test:
+  test_build:
     name: Test and build (${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -101,7 +101,7 @@ jobs:
   upload_to_pypi:
     name: Upload to PyPI/Test PyPI
     needs:
-      - build_sdist
+      - test_build
     if: (github.ref == 'refs/heads/master') || (startsWith(github.ref, 'refs/tags'))
     runs-on: ubuntu-latest
     steps:
