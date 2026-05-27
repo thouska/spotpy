@@ -5,6 +5,18 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[dependency-groups]
+test = [
+    "click >=8.1",
+    "docutils",
+    "matplotlib >=3.8.0",
+    "numba >=0.60.0",
+    "pandas >=2.2.0",
+    "pathos",
+    "pytest-cov >=6.0",
+    "tables"
+]
+
 [project]
 requires-python = ">=3.10"
 name = "spotpy"
@@ -76,16 +88,9 @@ plotting = [
     "pandas >=2.2.0",
     "matplotlib >=3.8.0",
 ]
-test = [
-    "pytest-cov>=3",
-    "numba",
-    "pathos",
-    "matplotlib",
-    "click",
-    "pandas",
-    "tables",
-    "docutils",
-]
+
+[project.scripts]
+spotpy = "spotpy.cli:cli"
 
 [project.urls]
 Changelog = "https://github.com/thouska/spotpy/blob/master/CHANGELOG.md"
