@@ -1,7 +1,7 @@
 [build-system]
 requires = [
-    "setuptools>=64",
-    "setuptools_scm[toml]>=6.4",
+    "setuptools>=80",
+    "setuptools_scm[toml]>=9.2",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -66,14 +66,15 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "numpy>=2.0",
-    "scipy>=1.5.0",
+    "click >=8.1",
+    "numpy >=2.0",
+    "scipy >=1.12.0",
 ]
 
 [project.optional-dependencies]
 plotting = [
-    "pandas>=1",
-    "matplotlib>=3",
+    "pandas >=2.2.0",
+    "matplotlib >=3.8.0",
 ]
 test = [
     "pytest-cov>=3",
@@ -108,11 +109,11 @@ multi_line_output = 3
 [tool.black]
 exclude = "_version.py"
 target-version = [
-    "py39",
     "py310",
     "py311",
 	"py312",
     "py313",
+    "py314"
 ]
 
 [tool.coverage]
