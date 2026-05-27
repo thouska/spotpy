@@ -6,6 +6,10 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
+lint = [
+    "black >=26.3.0",
+    "isort >=8.0.1"
+]
 test = [
     "click >=8.1",
     "docutils",
