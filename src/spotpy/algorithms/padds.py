@@ -382,7 +382,7 @@ class padds(_algorithm):
                     ]
                 )
             else:
-                (self.pareto_front, dominance_flag) = nd_check(
+                self.pareto_front, dominance_flag = nd_check(
                     self.pareto_front,
                     self.obj_func_current,
                     self.parameter_current.copy(),

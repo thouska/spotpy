@@ -9,6 +9,7 @@ This file is part of Statistical Parameter Optimization Tool (SPOTPY).
 This is the parent class of all algorithms, which can handle the database
 structure during the sample.
 """
+
 import sys
 import time
 from importlib import import_module
@@ -170,12 +171,10 @@ class custom(database):
 
     def __init__(self, *args, **kwargs):
         if "setup" not in kwargs:
-            raise ValueError(
-                """
+            raise ValueError("""
                 You are using the 'custom' Datawriter. To use it, the
                 setup must be specified on creation, but it is missing
-            """
-            )
+            """)
         self.setup = kwargs["setup"]
         if not hasattr(self.setup, "save"):
             raise AttributeError(

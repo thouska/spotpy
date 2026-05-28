@@ -31,6 +31,7 @@ https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Metho
 
 Please cite our paper, if you are using SPOTPY.
 """
+
 from . import algorithms  # Contains all the different algorithms implemented in SPOTPY
 from . import (
     analyser,  # Contains some examples to analyse the results of the different algorithms

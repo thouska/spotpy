@@ -149,12 +149,10 @@ class fast(_algorithm):
                 """
             )
         else:
-            print(
-                """
+            print("""
                 Error: Number of samples in model output file must be a multiple of D,
                 where D is the number of parameters in your parameter file.
-              """
-            )
+              """)
             exit()
 
         # Recreate the vector omega used in the sampling

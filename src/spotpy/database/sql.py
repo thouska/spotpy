@@ -48,14 +48,8 @@ class sql(database):
         # Create Table
         #        self.db_cursor.execute('''CREATE TABLE IF NOT EXISTS  '''+self.dbname+'''
         #                     (like1 real, parx real, pary real, simulation1 real, chain int)''')
-        self.db_cursor.execute(
-            """CREATE TABLE IF NOT EXISTS  """
-            + self.dbname
-            + """
-                     ("""
-            + " real ,".join(self.header)
-            + """)"""
-        )
+        self.db_cursor.execute("""CREATE TABLE IF NOT EXISTS  """ + self.dbname + """
+                     (""" + " real ,".join(self.header) + """)""")
 
     def save(self, objectivefunction, parameterlist, simulations=None, chains=1):
         coll = (

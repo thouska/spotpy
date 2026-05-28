@@ -2,5 +2,5 @@ prune **
 graft src/spotpy
 graft tests
 graft tutorials
-include LICENSE README.md pyproject.toml setup.py
+include LICENSE README.md pyproject.toml
 global-exclude __pycache__ *.py[co]

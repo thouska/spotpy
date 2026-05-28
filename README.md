@@ -7,7 +7,7 @@ A Statistical Parameter Optimization Tool for Python
 [![Python Versions][pypi-pyv-image]][pypi-pyv-link]
 [![License][license-image]][license-link]
 [![Coverage Status](https://coveralls.io/repos/github/thouska/spotpy/badge.svg?branch=master)](https://coveralls.io/github/thouska/spotpy?branch=master)
-[![DOI](https://zenodo.org/badge/47562322.svg)](https://zenodo.org/badge/latestdoi/47562322)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4075177.svg)](https://doi.org/10.5281/zenodo.4075177)
 
 [pypi-v-image]: https://img.shields.io/pypi/v/spotpy.png
 [pypi-v-link]: https://pypi.python.org/pypi/spotpy

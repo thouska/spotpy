@@ -5,6 +5,7 @@ This file is part of Statistical Parameter Estimation Tool (SPOTPY).
 :author: Philipp Kraft and Tobias Houska
 Contains classes to generate random parameter sets
 """
+
 import copy
 import sys
 from itertools import cycle
