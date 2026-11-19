@@ -183,6 +183,41 @@ class TestObjectiveFunctions(unittest.TestCase):
         for exp, actual in zip(expected, res):
             self.assertAlmostEqual(actual, exp, self.tolerance)
 
+    def test_mkge(self):
+        res = of.mkge(self.evaluation, self.simulation)
+        self.assertAlmostEqual(res, -2.304412749952606, self.tolerance)
+
+    def test_mkge_return_all(self):
+        expected = (
+            -2.304412749952606,
+            -0.11051097727570955,
+            -1.6891224515046288,
+            -0.5666937901878675,
+        )
+        res = of.mkge(self.evaluation, self.simulation, return_all=True)
+        for exp, actual in zip(expected, res):
+            self.assertAlmostEqual(actual, exp, self.tolerance)
+
+    def test_mkge_with_self_is_one(self):
+        evaluation = np.array([1.0, 3.0, 2.0, 5.0, 4.0, 8.0, 6.0])
+        res = of.mkge(evaluation, evaluation)
+        self.assertAlmostEqual(res, 1, self.tolerance)
+
+    def test_mkge_scaled_simulation(self):
+        # A constant multiplier changes the mean but not the coefficient of
+        # variation, so only the bias term is penalised in KGE', whereas
+        # KGE penalises it twice (through alpha and beta).
+        evaluation = np.array([1.0, 3.0, 2.0, 5.0, 4.0, 8.0, 6.0])
+        simulation = 2 * evaluation
+        mkge_val, cc, gamma, beta = of.mkge(evaluation, simulation, return_all=True)
+        self.assertAlmostEqual(cc, 1, self.tolerance)
+        self.assertAlmostEqual(gamma, 1, self.tolerance)
+        self.assertAlmostEqual(beta, 2, self.tolerance)
+        self.assertAlmostEqual(mkge_val, 0, self.tolerance)
+        self.assertAlmostEqual(
+            of.kge(evaluation, simulation), 1 - np.sqrt(2), self.tolerance
+        )
+
     def test_kge_non_parametric(self):
         res = of.kge_non_parametric(self.evaluation, self.simulation)
         self.assertAlmostEqual(res, -0.8659231357310928, self.tolerance)
