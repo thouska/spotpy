@@ -470,6 +470,49 @@ def kge(evaluation, simulation, return_all=False):
         return np.nan
 
 
+def mkge(evaluation, simulation, return_all=False):
+    """
+    Modified Kling-Gupta Efficiency (KGE')
+
+    Uses the ratio of the coefficients of variation instead of the ratio of
+    the standard deviations as variability term, so that the bias and
+    variability ratios are not cross-correlated.
+
+        .. math::
+
+         KGE' = 1 - \\sqrt{(r-1)^2 + (\\gamma-1)^2 + (\\beta-1)^2}
+
+         \\gamma = \\frac{\\sigma_s / \\mu_s}{\\sigma_e / \\mu_e}, \\quad \\beta = \\frac{\\mu_s}{\\mu_e}
+
+    Corresponding paper:
+    Kling, Fuchs, Paulin, 2012, Runoff conditions in the upper Danube basin under an ensemble of climate change scenarios,
+    Journal of Hydrology, 424-425, 264-277, https://doi.org/10.1016/j.jhydrol.2012.01.011
+
+    output:
+        mkge: Modified Kling-Gupta Efficiency
+    optional_output:
+        cc: correlation
+        gamma: ratio of the coefficient of variation
+        beta: ratio of the mean
+    """
+    if len(evaluation) == len(simulation):
+        cc = np.corrcoef(evaluation, simulation)[0, 1]
+        beta = np.mean(simulation) / np.mean(evaluation)
+        gamma = (np.std(simulation) / np.mean(simulation)) / (
+            np.std(evaluation) / np.mean(evaluation)
+        )
+        mkge = 1 - np.sqrt((cc - 1) ** 2 + (gamma - 1) ** 2 + (beta - 1) ** 2)
+        if return_all:
+            return mkge, cc, gamma, beta
+        else:
+            return mkge
+    else:
+        logging.warning(
+            "evaluation and simulation lists does not have the same length."
+        )
+        return np.nan
+
+
 def _spearmann_corr(x, y):
     """Separmann correlation coefficient"""
     col = [list(a) for a in zip(x, y)]
@@ -602,6 +645,7 @@ _all_functions = [
     covariance,
     decomposed_mse,
     kge,
+    mkge,
     log_p,
     lognashsutcliffe,
     mae,
